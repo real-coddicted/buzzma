@@ -1,0 +1,102 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '3.3.4'
+  id 'io.spring.dependency-management' version '1.1.6'
+  id 'com.diffplug.spotless' version '7.0.2'
+  id 'checkstyle'
+}
+
+group = 'com.mobo'
+version = '0.0.1-SNAPSHOT'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+ext {
+  mapstructVersion = '1.5.5.Final'
+  jjwtVersion = '0.12.6'
+  testcontainersVersion = '1.20.4'
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
+}
+
+dependencies {
+  // Spring Boot starters
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+
+  // Flyway
+  implementation 'org.flywaydb:flyway-core'
+  implementation 'org.flywaydb:flyway-database-postgresql'
+
+  // PostgreSQL driver
+  runtimeOnly 'org.postgresql:postgresql'
+
+  // MapStruct
+  implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+
+  // Jackson
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  // JJWT
+  implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+  runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+  runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+  // OpenAPI / Swagger UI
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+  // Lombok
+  compileOnly 'org.projectlombok:lombok'
+
+  // Test dependencies
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+  testImplementation 'org.mockito:mockito-core'
+  testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.testcontainers:postgresql'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+  // Annotation processors (order matters: lombok → binding → mapstruct)
+  annotationProcessor 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+  annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+}
+
+spotless {
+  java {
+    target 'src/*/java/**/*.java'
+    googleJavaFormat()
+    removeUnusedImports()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+}
+
+checkstyle {
+  toolVersion = '10.17.0'
+  configFile = file('config/checkstyle/google_checks.xml')
+  checkstyleTest.enabled = false
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+  // Docker 25+ rejects docker-java's default API version; pin to a supported one.
+  environment 'DOCKER_API_VERSION', '1.45'
+  systemProperty 'api.version', '1.45'
+}
