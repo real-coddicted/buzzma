@@ -10,7 +10,7 @@ import type { NavPage } from './types'
 export default function App() {
   const { theme, toggleTheme } = useTheme()
   const [activePage, setActivePage] = useState<NavPage>('dashboard')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(import.meta.env.DEV)
 
   if (!isAuthenticated) {
     return <Auth onAuth={() => setIsAuthenticated(true)} />
