@@ -4,6 +4,7 @@ import type {
   Campaign,
   PerformanceBar,
   SecurityQuestion,
+  UserDetails,
 } from '../types'
 
 export const statCards: StatCardData[] = [
@@ -233,4 +234,11 @@ export const securityQuestions: SecurityQuestion[] = [
   'What was the make of your first car?',
   'What is your favourite movie?',
 ]
+
+export const currentUser: UserDetails = {
+  code: 'BRD-A7K2P',
+  type: 'brand',
+  name: 'Acme Corp',
+  mobile: '+91 9876543210',
+}
 

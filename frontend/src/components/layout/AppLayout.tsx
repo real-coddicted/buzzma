@@ -21,7 +21,7 @@ export function AppLayout({
   return (
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base text-ink-light-primary dark:text-ink-dark-primary">
       <Sidebar activePage={activePage} onNavigate={onNavigate} />
-      <Topbar theme={theme} onToggleTheme={onToggleTheme} activePage={activePage} />
+      <Topbar theme={theme} onToggleTheme={onToggleTheme} activePage={activePage} onNavigate={onNavigate} />
       <main className="ml-60 pt-16 min-h-screen">
         <div className="p-6 animate-fade-in">{children}</div>
       </main>
