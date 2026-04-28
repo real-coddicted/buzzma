@@ -227,3 +227,11 @@ export function IconPlus({ size = 16, ...p }: IconProps) {
     </svg>
   )
 }
+
+export function IconFeedback({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}

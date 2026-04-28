@@ -1,6 +1,6 @@
 export type Theme = 'light' | 'dark'
 
-export type NavPage = 'dashboard' | 'campaigns'
+export type NavPage = 'dashboard' | 'campaigns' | 'feedback'
 
 export type CampaignStatus = 'active' | 'paused' | 'completed' | 'draft'
 

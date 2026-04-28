@@ -6,6 +6,7 @@ import type { Theme, NavPage } from '../../types'
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Welcome back, Alex' },
   campaigns: { title: 'Campaigns', subtitle: 'Manage and monitor your campaigns' },
+  feedback:  { title: 'Feedback',  subtitle: 'Share your thoughts on Pulse' },
 }
 
 interface TopbarProps {
