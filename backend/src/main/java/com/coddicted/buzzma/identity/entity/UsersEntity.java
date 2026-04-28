@@ -67,10 +67,6 @@ public class UsersEntity implements Auditable {
   @Column(name = "qr_code")
   private String qrCode;
 
-
-
-
-
   @Column(name = "avatar")
   private String avatar;
 

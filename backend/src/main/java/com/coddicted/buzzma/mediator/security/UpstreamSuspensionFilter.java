@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.mediator.security;
 
-import com.coddicted.buzzma.identity.security.MoboUserDetails;
+import com.coddicted.buzzma.identity.security.BuzzmaUserDetails;
 import com.coddicted.buzzma.mediator.service.LineageService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,7 +29,7 @@ public class UpstreamSuspensionFilter extends OncePerRequestFilter {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !authentication.isAuthenticated()
-        || !(authentication.getPrincipal() instanceof MoboUserDetails userDetails)) {
+        || !(authentication.getPrincipal() instanceof BuzzmaUserDetails userDetails)) {
       filterChain.doFilter(request, response);
       return;
     }

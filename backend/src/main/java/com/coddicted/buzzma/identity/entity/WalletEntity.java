@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigInteger;
 import java.util.UUID;
 
 @Entity
@@ -23,8 +24,8 @@ public class WalletEntity {
     private UUID id;
 
     @Column(name = "balance_paise")
-    private Integer balancePaise = 0;
+    private BigInteger balancePaise;
 
     @Column(name = "pending_amount_paise")
-    private Integer pendingAmountPaise = 0;
+    private BigInteger pendingAmountPaise;
 }

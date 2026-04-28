@@ -1,8 +1,8 @@
-package com.coddicted.buzzma.identity.web;
+package com.coddicted.buzzma.identity.controller;
 
-import com.coddicted.buzzma.identity.api.InvitesRequestDto;
-import com.coddicted.buzzma.identity.api.InvitesResponseDto;
-import com.coddicted.buzzma.identity.service.InviteService;
+import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
+import com.coddicted.buzzma.identity.service.SecurityQuestionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -22,37 +22,38 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/invites")
+@RequestMapping("/api/security-questions")
 @Validated
-public class InvitesController {
+public class SecurityQuestionsController {
 
-  private final InviteService service;
+  private final SecurityQuestionService service;
 
-  public InvitesController(InviteService service) {
+  public SecurityQuestionsController(SecurityQuestionService service) {
     this.service = service;
   }
 
   @GetMapping
-  public List<InvitesResponseDto> list(
+  public List<SecurityQuestionsResponseDto> list(
       @RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit,
       @RequestParam(defaultValue = "0") @Min(0) int offset) {
     return service.list(limit, offset);
   }
 
   @GetMapping("/{id}")
-  public InvitesResponseDto getById(@PathVariable UUID id) {
+  public SecurityQuestionsResponseDto getById(@PathVariable UUID id) {
     return service.getById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public InvitesResponseDto create(@Valid @RequestBody InvitesRequestDto request) {
+  public SecurityQuestionsResponseDto create(
+      @Valid @RequestBody SecurityQuestionsRequestDto request) {
     return service.create(request);
   }
 
   @PatchMapping("/{id}")
-  public InvitesResponseDto update(
-      @PathVariable UUID id, @Valid @RequestBody InvitesRequestDto request) {
+  public SecurityQuestionsResponseDto update(
+      @PathVariable UUID id, @Valid @RequestBody SecurityQuestionsRequestDto request) {
     return service.update(id, request);
   }
 

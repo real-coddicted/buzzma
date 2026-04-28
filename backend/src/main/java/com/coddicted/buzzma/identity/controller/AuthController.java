@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.web;
+package com.coddicted.buzzma.identity.controller;
 
 import com.coddicted.buzzma.identity.api.auth.ForgotPasswordLookupRequest;
 import com.coddicted.buzzma.identity.api.auth.ForgotPasswordResetRequest;

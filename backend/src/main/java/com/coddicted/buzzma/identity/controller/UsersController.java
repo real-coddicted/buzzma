@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.web;
+package com.coddicted.buzzma.identity.controller;
 
 import com.coddicted.buzzma.identity.api.UsersRequestDto;
 import com.coddicted.buzzma.identity.api.UsersResponseDto;
