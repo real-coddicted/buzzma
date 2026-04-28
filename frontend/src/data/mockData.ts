@@ -3,6 +3,7 @@ import type {
   ActivityItem,
   Campaign,
   PerformanceBar,
+  SecurityQuestion,
 } from '../types'
 
 export const statCards: StatCardData[] = [
@@ -221,3 +222,15 @@ export const performanceBars: PerformanceBar[] = [
   { label: 'Display', value: 42, max: 100, accent: 'blue'   },
   { label: 'Video',   value: 57, max: 100, accent: 'orange' },
 ]
+
+export const securityQuestions: SecurityQuestion[] = [
+  'What was the name of your first pet?',
+  "What is your mother's maiden name?",
+  'What city were you born in?',
+  'What was the name of your first school?',
+  "What is your oldest sibling's middle name?",
+  'What street did you grow up on?',
+  'What was the make of your first car?',
+  'What is your favourite movie?',
+]
+
