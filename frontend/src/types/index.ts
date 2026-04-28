@@ -61,6 +61,35 @@ export interface Campaign {
 
 export type CampaignChannel = 'email' | 'social' | 'search' | 'display' | 'video'
 
+export type Platform =
+  | 'PLATFORM_AMAZON'
+  | 'PLATFORM_FLIPKART'
+  | 'PLATFORM_NYKAA'
+  | 'PLATFORM_MYNTRA'
+
+export type CampaignType =
+  | 'CAMPAIGN_TYPE_RATING'
+  | 'CAMPAIGN_TYPE_REVIEW'
+  | 'CAMPAIGN_TYPE_ORDER'
+  | 'CAMPAIGN_TYPE_DISCOUNT'
+  | 'CAMPAIGN_TYPE_AGENCY_DISCRETION'
+
+export interface CampaignRequestDto {
+  title: string
+  platform: string
+  productBrandName: string
+  productImageUrl: string
+  productUrl: string
+  originalPricePaise: number
+  campaignPricePaise: number
+  commissionOfferedPaise: number
+  returnWindowDays: number | null
+  campaignType: CampaignType | null
+  totalSlots: number | null
+  allowedAgencies: string[] | null
+  openToAll: boolean | null
+}
+
 export interface PerformanceBar {
   label: string
   value: number

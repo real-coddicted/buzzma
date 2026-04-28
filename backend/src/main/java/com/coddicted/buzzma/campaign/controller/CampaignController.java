@@ -1,8 +1,8 @@
 package com.coddicted.buzzma.campaign.controller;
 
-import com.coddicted.buzzma.catalog.api.CampaignRequestDto;
+import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
-import com.coddicted.buzzma.catalog.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
