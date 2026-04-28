@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../components/ui/Button'
+import { Toast } from '../components/ui/Toast'
+import { loginUser } from '../api/authApi'
 import type { LoginAs, LoginForm } from '../types/LoginTypes'
 
 interface LoginProps {
@@ -23,6 +25,8 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
     password: '',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [toastError, setToastError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string>>>({})
 
   function set<K extends keyof LoginForm>(key: K, value: LoginForm[K]) {
@@ -40,12 +44,34 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
     return Object.keys(next).length === 0
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (validate()) onLogin()
+    if (!validate()) return
+    setSubmitting(true)
+    setToastError(null)
+    try {
+      const res = await loginUser(form)
+      if (res.success) {
+        onLogin()
+      } else {
+        setToastError(res.message)
+      }
+    } catch {
+      setToastError('Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
+    <>
+    {toastError && (
+      <Toast
+        message={toastError}
+        type="error"
+        onDismiss={() => setToastError(null)}
+      />
+    )}
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
@@ -125,7 +151,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
               )}
             </div>
 
-            <Button type="submit" variant="primary" size="lg" className="w-full mt-2">
+            <Button type="submit" variant="primary" size="lg" loading={submitting} className="w-full mt-2">
               Sign In
             </Button>
 
@@ -153,5 +179,6 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
         </p>
       </div>
     </div>
+    </>
   )
 }
