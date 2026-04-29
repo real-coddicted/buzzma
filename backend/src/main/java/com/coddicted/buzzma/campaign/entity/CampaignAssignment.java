@@ -43,13 +43,12 @@ public class CampaignAssignment implements Auditable {
     @Column(name = "slot_limit", nullable = false)
     private Integer slotLimit;
 
+    @Column(name = "campaign_price_paise", nullable = false)
+    private BigInteger campaignPricePaise;
+
     // commission in paise that the assignee will get for each successful conversion tracked for this campaign assignment
     @Column(name = "commission_offered_paise")
     private BigInteger commissionOfferedPaise;
-
-    // commission in paise that the assignee has charged for each successful conversion tracked for this campaign assignment.
-    @Column(name = "commission_charged_paise")
-    private BigInteger commissionChargedPaise;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

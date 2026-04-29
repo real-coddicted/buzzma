@@ -35,7 +35,7 @@ public class CampaignResponseDto {
 
   @Nullable List<String> allowedAgencies;
 
-  @Nullable Boolean openToAll;
+  boolean openToAll;
 
   // Product fields
   UUID productId;
@@ -50,16 +50,16 @@ public class CampaignResponseDto {
 
   Platform platform;
 
-  // Campaign pricing
-  BigInteger campaignPricePaise;
 
-  BigInteger commissionOfferedPaise;
+  // Audit fields
+  Instant createdAt;
 
-  @Nullable Integer returnWindowDays;
+  UUID createdBy;
+
+  Instant updatedAt;
+
+  UUID updatedBy;
 
   Boolean isDeleted;
 
-  Instant createdAt;
-
-  Instant updatedAt;
 }

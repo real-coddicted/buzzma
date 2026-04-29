@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.api;
 
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.OwnerType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 
@@ -20,7 +21,8 @@ public class CampaignRequestDto {
 
   @NotBlank UUID ownerId;
 
-  @NotBlank UUID ownerType;
+  @NotBlank
+  OwnerType ownerType;
 
   @NotBlank String platform;
 
@@ -32,19 +34,14 @@ public class CampaignRequestDto {
 
   @NotBlank BigInteger originalPricePaise;
 
-  @NotBlank BigInteger campaignPricePaise;
-
-  @NotBlank BigInteger commissionOfferedPaise;
-
-  @Nullable Integer returnWindowDays;
+  @Nullable Integer endDate;
 
   @Nullable
   CampaignType campaignType;
 
   Long totalSlots;
 
-  @Nullable
-  List<String> allowedAgencies;
+  List<CampaignAssignmentRequestDto> assignees;
 
-  @Nullable Boolean openToAll;
+  boolean openToAll;
 }

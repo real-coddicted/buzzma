@@ -28,15 +28,8 @@ public class CampaignController {
 
   private final CampaignService service;
 
-  public CampaignController(CampaignService service) {
+  public CampaignController(final CampaignService service) {
     this.service = service;
-  }
-
-  @GetMapping
-  public List<CampaignResponseDto> list(
-      @RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit,
-      @RequestParam(defaultValue = "0") @Min(0) int offset) {
-    return service.list(limit, offset);
   }
 
   @GetMapping("/{id}")
@@ -46,19 +39,19 @@ public class CampaignController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public CampaignResponseDto create(@Valid @RequestBody CampaignRequestDto request) {
+  public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
     return service.create(request);
   }
 
   @PatchMapping("/{id}")
   public CampaignResponseDto update(
-      @PathVariable UUID id, @Valid @RequestBody CampaignRequestDto request) {
+      @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
     return service.update(id, request);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable UUID id) {
+  public void delete(@PathVariable final UUID id) {
     service.delete(id);
   }
 }

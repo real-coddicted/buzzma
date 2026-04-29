@@ -41,7 +41,6 @@ public class AuthServiceImpl implements AuthService {
   private final SecurityQuestionRepository securityQuestionRepository;
   private final PasswordService passwordService;
   private final JwtService jwtService;
-  private final WalletBusinessService walletBusinessService;
   private final InviteBusinessService inviteBusinessService;
 
   public AuthServiceImpl(
