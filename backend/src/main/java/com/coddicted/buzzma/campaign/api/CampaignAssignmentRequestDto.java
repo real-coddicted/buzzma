@@ -1,12 +1,12 @@
 package com.coddicted.buzzma.campaign.api;
 
-import com.coddicted.buzzma.campaign.entity.AssigneeType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 @Value
 @Builder
@@ -14,10 +14,10 @@ import java.math.BigInteger;
 public class CampaignAssignmentRequestDto {
 
     @NotBlank
-    String assigneeCode;
+    UUID assignorId;
 
     @NotBlank
-    AssigneeType assigneeType;
+    UUID assigneeId;
 
     BigInteger campaignPricePaise = BigInteger.ZERO;
 

@@ -31,9 +31,6 @@ public class Campaign implements Auditable {
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 
-    @Column(name = "owner_type", length = 200, nullable = false)
-    private String ownerType;
-
     @Column(name = "total_slots", nullable = false)
     private Integer totalSlots;
 

@@ -3,7 +3,6 @@ package com.coddicted.buzzma.campaign.mapper;
 import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.OwnerType;
 import org.mapstruct.*;
 
 @Mapper(

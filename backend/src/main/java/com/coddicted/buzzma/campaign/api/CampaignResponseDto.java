@@ -2,7 +2,6 @@ package com.coddicted.buzzma.campaign.api;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
-import com.coddicted.buzzma.campaign.entity.OwnerType;
 import com.coddicted.buzzma.campaign.entity.Platform;
 import jakarta.annotation.Nullable;
 import java.math.BigInteger;
@@ -25,17 +24,11 @@ public class CampaignResponseDto {
 
   UUID ownerId;
 
-  OwnerType ownerType;
-
   Integer totalSlots;
 
   CampaignType campaignType;
 
   CampaignStatus status;
-
-  @Nullable List<String> allowedAgencies;
-
-  boolean openToAll;
 
   // Product fields
   UUID productId;

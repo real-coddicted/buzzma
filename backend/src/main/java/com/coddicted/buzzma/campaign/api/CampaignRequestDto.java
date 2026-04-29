@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.campaign.api;
 
 import com.coddicted.buzzma.campaign.entity.CampaignType;
-import com.coddicted.buzzma.campaign.entity.OwnerType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 
@@ -20,9 +19,6 @@ public class CampaignRequestDto {
   @NotBlank String title;
 
   @NotBlank UUID ownerId;
-
-  @NotBlank
-  OwnerType ownerType;
 
   @NotBlank String platform;
 

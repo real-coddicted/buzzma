@@ -25,20 +25,14 @@ public class CampaignAssignment implements Auditable {
     @UuidGenerator
     private UUID id;
 
-    @Column(name= "parent_id")
-    private UUID parentId;
-
     @Column(name = "campaign_id", nullable = false)
     private UUID campaignId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assigned_to_type", nullable = false)
-    private AssigneeType assignedToType;  // AGENCY | MEDIATOR
+    @Column(name = "assignor_id", nullable=false)
+    private UUID assignorId;
 
-    // human-readable unique code for agency or mediator to which the campaign is assigned.
-    // This will be used by the tracking system to attribute conversions to the correct assignee.
-    @Column(name = "assigned_to_code", nullable = false)
-    private String assignedToCode;   // agencyCode or mediatorCode
+    @Column(name = "assignee_id", nullable = false)
+    private UUID assigneeId;   // agencyCode or mediatorCode
 
     @Column(name = "slot_limit", nullable = false)
     private Integer slotLimit;
@@ -49,6 +43,10 @@ public class CampaignAssignment implements Auditable {
     // commission in paise that the assignee will get for each successful conversion tracked for this campaign assignment
     @Column(name = "commission_offered_paise")
     private BigInteger commissionOfferedPaise;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private CampaignAssignmentStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

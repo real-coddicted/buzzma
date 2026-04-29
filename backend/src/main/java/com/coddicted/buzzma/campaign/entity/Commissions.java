@@ -24,14 +24,11 @@ public class Commissions {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assignee_type", nullable = false)
-    private AssigneeType assigneeType;  // AGENCY | MEDIATOR
+    @Column(name = "campaign_id", nullable = false)
+    private UUID campaignId;
 
-    // human-readable unique code for agency or mediator to which the campaign is assigned.
-    // This will be used by the tracking system to attribute conversions to the correct assignee.
-    @Column(name = "assignee_code", nullable = false)
-    private String assigneeCode;   // agencyCode or mediatorCode
+    @Column(name = "charged_by_id")
+    private UUID chargedById;
 
     @Column(name = "commission")
     private BigInteger commissionPaise;
