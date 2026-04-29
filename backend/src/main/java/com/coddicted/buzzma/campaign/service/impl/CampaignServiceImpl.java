@@ -37,11 +37,4 @@ public class CampaignServiceImpl implements CampaignService {
         campaignRepository.save(campaign);
         return campaignMapper.toResponse(campaign);
     }
-
-    @Override
-    public List<CampaignAssignmentResponseDto> assign(final List<CampaignAssignmentRequestDto> assignees){
-        List<CampaignAssignment> assignments = campaignAssignmentMapper.toCampaignAssignments(assignees);
-        campaignAssignmentRepository.saveAll(assignments);
-        return campaignAssignmentMapper.toResponse(assignments);
-    }
 }

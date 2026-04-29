@@ -2,8 +2,6 @@ package com.coddicted.buzzma.campaign.mapper;
 
 import com.coddicted.buzzma.campaign.api.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.api.CampaignAssignmentResponseDto;
-import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
-import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,5 +29,6 @@ public interface CampaignAssignmentMapper {
     List<CampaignAssignment> toCampaignAssignments(List<CampaignAssignmentRequestDto> request);
 
     CampaignAssignmentResponseDto toResponse(CampaignAssignment entity);
+
     List<CampaignAssignmentResponseDto> toResponse(List<CampaignAssignment> entities);
 }

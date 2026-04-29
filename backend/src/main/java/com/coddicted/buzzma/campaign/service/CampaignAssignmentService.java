@@ -8,8 +8,15 @@ import java.util.UUID;
 
 public interface CampaignAssignmentService {
     List<CampaignAssignmentResponseDto> listAssignmentsByAssignor(UUID assignorId);
+
     List<CampaignAssignmentResponseDto> listAssignmentsByAssignee(UUID assigneeId);
-    List<CampaignAssignmentRequestDto> create(List<CampaignAssignmentRequestDto> assignees);
-    List<CampaignAssignmentRequestDto> update(List<CampaignAssignmentRequestDto> assignees);
+
+    List<CampaignAssignmentResponseDto> create(List<CampaignAssignmentRequestDto> assignees);
+
+    List<CampaignAssignmentResponseDto> update(List<CampaignAssignmentRequestDto> assignees);
+
     CampaignAssignmentRequestDto delete(CampaignAssignmentRequestDto assignee);
+
+    List<CampaignAssignmentResponseDto> copy(List<UUID> srcCampaignAssignments, UUID destCampaignId);
+
 }

@@ -16,7 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Commissions {
+public class Commission {
 
     @Id
     @GeneratedValue

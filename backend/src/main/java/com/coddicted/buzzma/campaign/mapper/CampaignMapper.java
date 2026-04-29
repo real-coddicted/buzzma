@@ -49,9 +49,4 @@ public interface CampaignMapper {
   @Mapping(source = "campaignType", target = "type")
   void updateCampaign(CampaignRequestDto request, @MappingTarget Campaign entity);
 
-  @Named("stringToOwnerType")
-  default OwnerType stringToOwnerType(String value) {
-    if (value == null || value.isBlank()) return null;
-    return OwnerType.valueOf(value);
-  }
 }
