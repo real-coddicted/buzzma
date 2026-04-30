@@ -1,9 +1,9 @@
 package com.coddicted.buzzma.shared.common;
 
-import com.coddicted.buzzma.shared.exception.ApiException;
-import java.util.UUID;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.HttpStatus;
+
+import java.util.UUID;
 
 public abstract class BaseCrudService {
 
@@ -12,7 +12,6 @@ public abstract class BaseCrudService {
                 .findById(id)
                 .orElseThrow(
                         () ->
-                                new ApiException(
-                                        HttpStatus.NOT_FOUND, "NOT_FOUND", entityName + " not found: " + id));
+                                new NotFoundException(entityName + " not found: " + id));
     }
 }

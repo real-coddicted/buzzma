@@ -1,46 +1,71 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentRequestDto;
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentResponseDto;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
+import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
+import com.coddicted.buzzma.shared.common.BaseCrudService;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public class CampaignAssignmentServiceImpl implements CampaignAssignmentService {
+@Service
+public class CampaignAssignmentServiceImpl extends BaseCrudService implements CampaignAssignmentService {
 
-    @Override
-    public List<CampaignAssignmentResponseDto> listAssignmentsByAssignor(UUID assignorId) {
-        return List.of();
+    private final CampaignAssignmentRepository campaignAssignmentRepository;
+
+    public CampaignAssignmentServiceImpl(final CampaignAssignmentRepository campaignAssignmentRepository) {
+        this.campaignAssignmentRepository = campaignAssignmentRepository;
     }
 
     @Override
-    public List<CampaignAssignmentResponseDto> listAssignmentsByAssignee(UUID assigneeId) {
-        return List.of();
+    public List<CampaignAssignment> listAssignmentsByAssignor(final UUID assignorId) {
+        return this.campaignAssignmentRepository.findByAssignorId(assignorId);
     }
 
     @Override
-    public List<CampaignAssignmentResponseDto> create(List<CampaignAssignmentRequestDto> assignees) {
-        return List.of();
+    public List<CampaignAssignment> listAssignmentsByAssignee(final UUID assigneeId) {
+        return this.campaignAssignmentRepository.findByAssigneeId(assigneeId);
     }
 
     @Override
-    public List<CampaignAssignmentResponseDto> update(List<CampaignAssignmentRequestDto> assignees) {
-        return List.of();
+    public List<CampaignAssignment> create(final List<CampaignAssignment> assignments) {
+        return this.campaignAssignmentRepository.saveAll(assignments);
     }
 
     @Override
-    public CampaignAssignmentRequestDto delete(CampaignAssignmentRequestDto assignee) {
-        return null;
+    public List<CampaignAssignment> update(final List<CampaignAssignment> assignments) {
+        return this.campaignAssignmentRepository.saveAll(assignments);
     }
 
     @Override
-    public List<CampaignAssignmentResponseDto> copy(List<UUID> srcCampaignAssignments, UUID destCampaignId) {
-        return List.of();
+    public CampaignAssignment delete(final UUID campaignAssignmentId, final UUID requesterId) {
+        final CampaignAssignment existingCampaignAssignment = mustFind(campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");
+        final CampaignAssignment updatedCampaignAssignment = existingCampaignAssignment.toBuilder().isDeleted(true).updatedBy(requesterId).updatedAt(Instant.now()).build();
+        return this.campaignAssignmentRepository.save(updatedCampaignAssignment);
     }
 
     @Override
-    public List<CampaignAssignmentResponseDto> lockAssignments(List<UUID> campaignAssignments) {
+    public List<CampaignAssignment> copy(final List<UUID> srcCampaignAssignments, final UUID destCampaignId, final UUID requesterId) {
+        final List<CampaignAssignment> copies = campaignAssignmentRepository.findAllById(srcCampaignAssignments)
+                .stream()
+                .map(src -> src.toBuilder()
+                        .id(null)
+                        .campaignId(destCampaignId)
+                        .status(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_DRAFT)
+                        .createdAt(null)
+                        .createdBy(requesterId)
+                        .updatedAt(null)
+                        .updatedBy(requesterId)
+                        .build())
+                .toList();
+        return campaignAssignmentRepository.saveAll(copies);
+    }
+
+    @Override
+    public List<CampaignAssignment> lockAssignments(final List<UUID> campaignAssignments) {
         return List.of();
     }
 }

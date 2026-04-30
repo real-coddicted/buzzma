@@ -37,6 +37,38 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(ex.getStatus()).body(body);
   }
 
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "NOT_FOUND");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<Map<String, Object>> handleForbidden(ForbiddenException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "FORBIDDEN");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+  }
+
+  @ExceptionHandler(InvalidStateTransitionException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidTransition(InvalidStateTransitionException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "INVALID_STATE_TRANSITION");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+  }
+
+  @ExceptionHandler(BusinessRuleViolationException.class)
+  public ResponseEntity<Map<String, Object>> handleBusinessRuleViolation(BusinessRuleViolationException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "BUSINESS_RULE_VIOLATION");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
     LOGGER.error(ex.getMessage(), ex);

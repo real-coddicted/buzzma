@@ -2,8 +2,7 @@ package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
-import com.coddicted.buzzma.shared.exception.ApiException;
-import org.springframework.http.HttpStatus;
+import com.coddicted.buzzma.shared.exception.InvalidStateTransitionException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -23,7 +22,7 @@ public class CampaignStateMachine {
     public void transition(final Campaign campaign, final CampaignStatus to) {
         final CampaignStatus from = campaign.getStatus();
         if (!TRANSITIONS.getOrDefault(from, Set.of()).contains(to)) {
-            throw new ApiException(HttpStatus.CONFLICT, "INVALID_TRANSITION",
+            throw new InvalidStateTransitionException(
                 "Cannot transition campaign from " + from + " to " + to);
         }
         campaign.setStatus(to);

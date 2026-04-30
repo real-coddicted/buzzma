@@ -13,6 +13,8 @@ import java.util.UUID;
 public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssignment, UUID> {
 
     List<CampaignAssignment> findByCampaignId(UUID campaignId);
+    List<CampaignAssignment> findByAssignorId(UUID assignorId);
+    List<CampaignAssignment> findByAssigneeId(UUID assigneeId);
 
     @Query(value = """
             SELECT COUNT(DISTINCT ca.campaign_id)

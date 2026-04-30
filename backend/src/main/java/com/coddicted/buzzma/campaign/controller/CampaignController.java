@@ -3,14 +3,14 @@ package com.coddicted.buzzma.campaign.controller;
 import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/campaigns")
@@ -18,26 +18,30 @@ import java.util.UUID;
 public class CampaignController {
 
     private final CampaignService service;
+    private final CampaignMapper campaignMapper;
 
-    public CampaignController(final CampaignService service) {
+    public CampaignController(final CampaignService service, final CampaignMapper campaignMapper) {
         this.service = service;
+        this.campaignMapper = campaignMapper;
     }
 
     @GetMapping("/{id}")
-    public CampaignResponseDto getById(@PathVariable UUID id) {
-        return service.getById(id);
+    public CampaignResponseDto getById(@PathVariable final UUID id) {
+        return campaignMapper.toResponse(service.getById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
-        return service.create(request);
+        return campaignMapper.toResponse(service.create(campaignMapper.toCampaignEntity(request)));
     }
 
     @PatchMapping("/{id}")
     public CampaignResponseDto update(
             @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
-        return service.update(id, request);
+        final var existing = service.getById(id);
+        campaignMapper.updateCampaign(request, existing);
+        return campaignMapper.toResponse(service.update(existing));
     }
 
     @DeleteMapping("/{id}")
@@ -51,6 +55,6 @@ public class CampaignController {
             @PathVariable final UUID id,
             @PathVariable final CampaignAction action,
             @CurrentUserId final UUID requesterId) {
-        return service.action(id, action, requesterId);
+        return campaignMapper.toResponse(service.action(id, action, requesterId));
     }
 }

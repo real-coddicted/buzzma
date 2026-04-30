@@ -1,24 +1,23 @@
 package com.coddicted.buzzma.campaign.service;
 
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentRequestDto;
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentResponseDto;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface CampaignAssignmentService {
-    List<CampaignAssignmentResponseDto> listAssignmentsByAssignor(UUID assignorId);
+    List<CampaignAssignment> listAssignmentsByAssignor(UUID assignorId);
 
-    List<CampaignAssignmentResponseDto> listAssignmentsByAssignee(UUID assigneeId);
+    List<CampaignAssignment> listAssignmentsByAssignee(UUID assigneeId);
 
-    List<CampaignAssignmentResponseDto> create(List<CampaignAssignmentRequestDto> assignees);
+    List<CampaignAssignment> create(List<CampaignAssignment> assignees);
 
-    List<CampaignAssignmentResponseDto> update(List<CampaignAssignmentRequestDto> assignees);
+    List<CampaignAssignment> update(List<CampaignAssignment> assignees);
 
-    CampaignAssignmentRequestDto delete(CampaignAssignmentRequestDto assignee);
+    CampaignAssignment delete(UUID campaignAssignmentId, UUID requesterId);
 
-    List<CampaignAssignmentResponseDto> copy(List<UUID> srcCampaignAssignments, UUID destCampaignId);
+    List<CampaignAssignment> copy(List<UUID> srcCampaignAssignments, UUID destCampaignId, UUID requesterId);
 
-    List<CampaignAssignmentResponseDto> lockAssignments(List<UUID> campaignAssignments);
+    List<CampaignAssignment> lockAssignments(List<UUID> campaignAssignments);
 
 }

@@ -3,9 +3,7 @@ package com.coddicted.buzzma.campaign.entity;
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -17,6 +15,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Campaign implements Auditable {
 
     @Id
