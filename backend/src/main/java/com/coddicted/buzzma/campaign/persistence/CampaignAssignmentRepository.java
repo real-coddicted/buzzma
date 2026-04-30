@@ -6,10 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssignment, UUID> {
+
+    List<CampaignAssignment> findByCampaignId(UUID campaignId);
 
     @Query(value = """
             SELECT COUNT(DISTINCT ca.campaign_id)

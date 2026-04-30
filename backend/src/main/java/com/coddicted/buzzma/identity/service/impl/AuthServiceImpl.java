@@ -48,13 +48,11 @@ public class AuthServiceImpl implements AuthService {
       SecurityQuestionRepository securityQuestionRepository,
       PasswordService passwordService,
       JwtService jwtService,
-      WalletBusinessService walletBusinessService,
       InviteBusinessService inviteBusinessService) {
     this.usersRepository = usersRepository;
     this.securityQuestionRepository = securityQuestionRepository;
     this.passwordService = passwordService;
     this.jwtService = jwtService;
-    this.walletBusinessService = walletBusinessService;
     this.inviteBusinessService = inviteBusinessService;
   }
 

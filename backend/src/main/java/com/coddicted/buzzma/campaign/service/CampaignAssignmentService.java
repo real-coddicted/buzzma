@@ -19,4 +19,6 @@ public interface CampaignAssignmentService {
 
     List<CampaignAssignmentResponseDto> copy(List<UUID> srcCampaignAssignments, UUID destCampaignId);
 
+    List<CampaignAssignmentResponseDto> lockAssignments(List<UUID> campaignAssignments);
+
 }
