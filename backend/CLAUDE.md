@@ -40,6 +40,35 @@ shared/enums/       Global enums
 - Soft delete via `isDeleted` boolean field — never hard-delete.
 - Enums stored as `@Enumerated(EnumType.STRING)`. Enum values are prefixed: `CAMPAIGN_STATUS_DRAFT`, `CAMPAIGN_ACTION_PUBLISH`, etc.
 
+## Entity update pattern (immutability via toBuilder)
+
+Never mutate a loaded entity directly. Use `toBuilder()` to produce a modified copy, then save that copy:
+
+```java
+// soft delete
+final Campaign updated = existing.toBuilder()
+    .isDeleted(true)
+    .updatedBy(requesterId)
+    .build();
+return campaignRepository.save(updated);
+
+// copy to a new record (clear id so JPA inserts)
+final Campaign copy = src.toBuilder()
+    .id(null)
+    .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
+    .createdAt(null)
+    .updatedAt(null)
+    .createdBy(requesterId)
+    .updatedBy(requesterId)
+    .build();
+return campaignRepository.save(copy);
+```
+
+Rules:
+- Always clear `id`, `createdAt`, `updatedAt` when copying to a new record — `AuditEntityListener` will populate the timestamps.
+- Set `createdBy` / `updatedBy` to `requesterId` on every write.
+- The only exception is `CampaignStateMachine.transition()`, which calls `setStatus()` directly on the entity before the caller saves it — that is intentional and scoped to the state machine only.
+
 ## DTOs
 
 - Immutable: `@Value @Builder @Jacksonized` (Lombok).

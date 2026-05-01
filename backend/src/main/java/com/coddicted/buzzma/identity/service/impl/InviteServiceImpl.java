@@ -1,65 +1,91 @@
 package com.coddicted.buzzma.identity.service.impl;
 
-import com.coddicted.buzzma.identity.api.InvitesRequestDto;
-import com.coddicted.buzzma.identity.api.InvitesResponseDto;
-import com.coddicted.buzzma.identity.entity.InviteEntity;
-import com.coddicted.buzzma.identity.mapper.InvitesMapper;
+import com.coddicted.buzzma.identity.entity.Invite;
+import com.coddicted.buzzma.identity.entity.InviteStatus;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.InviteRepository;
 import com.coddicted.buzzma.identity.service.InviteService;
-import com.coddicted.buzzma.shared.common.OffsetBasedPageRequest;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import org.springframework.data.domain.Sort;
+import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.common.CodeGenerator;
+import com.coddicted.buzzma.shared.util.DateTimeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Service
-public class InviteServiceImpl implements InviteService {
+public class InviteServiceImpl extends BaseCrudService implements InviteService {
 
-  private final InviteRepository repository;
-  private final InvitesMapper mapper;
+    private static final Logger log = LoggerFactory.getLogger(InviteServiceImpl.class);
 
-  public InviteServiceImpl(InviteRepository repository, InvitesMapper mapper) {
-    this.repository = repository;
-    this.mapper = mapper;
-  }
+    private final InviteRepository inviteRepository;
+    private final CodeGenerator codeGenerator;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<InvitesResponseDto> list(int limit, int offset) {
-    var pageable =
-        new OffsetBasedPageRequest(limit, offset, Sort.by(Sort.Direction.DESC, "createdAt"));
-    return repository.findAll(pageable).stream()
-        .map(mapper::toResponse)
-        .collect(Collectors.toList());
-  }
+    public InviteServiceImpl(final InviteRepository inviteRepository,
+                             final CodeGenerator codeGenerator) {
+        this.inviteRepository = inviteRepository;
+        this.codeGenerator = codeGenerator;
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public InvitesResponseDto getById(UUID id) {
-    InviteEntity entity = mustFind(repository, id, "Invites");
-    return mapper.toResponse(entity);
-  }
+    @Override
+    @Transactional
+    public Invite create(final Invite invite) {
+        return inviteRepository.save(invite.toBuilder()
+                .code(codeGenerator.generateHumanCode("INV"))
+                .status(InviteStatus.INVITE_STATUS_ACTIVE)
+                .build());
+    }
 
-  @Override
-  @Transactional
-  public InvitesResponseDto create(InvitesRequestDto request) {
-    InviteEntity entity = mapper.toEntity(request);
-    return mapper.toResponse(repository.save(entity));
-  }
+    @Override
+    @Transactional
+    public boolean consume(final UserRole inviteeRole, final String inviteCode, final UUID requesterId) {
+        final Invite invite = inviteRepository.findByCodeAndIsDeletedFalse(inviteCode)
+                .orElseThrow(() -> new RuntimeException("Invite not found"));
+        if (!verify(inviteeRole, invite)) {
+            return false;
+        }
+        inviteRepository.save(invite.toBuilder()
+                .status(InviteStatus.INVITE_STATUS_USED)
+                .updatedBy(requesterId)
+                .build());
+        return true;
+    }
 
-  @Override
-  @Transactional
-  public InvitesResponseDto update(UUID id, InvitesRequestDto request) {
-    InviteEntity entity = mustFind(repository, id, "Invites");
-    mapper.update(request, entity);
-    return mapper.toResponse(repository.save(entity));
-  }
+    @Override
+    @Transactional
+    public void delete(final UUID id, final UUID requesterId) {
+        final Invite invite = mustFind(inviteRepository, id, "Invite");
+        inviteRepository.save(invite.toBuilder()
+                .updatedBy(requesterId)
+                .isDeleted(true)
+                .build());
+    }
 
-  @Override
-  @Transactional
-  public void delete(UUID id) {
-    repository.deleteById(id);
-  }
+    private boolean verify(final UserRole inviteeRole, final Invite existingInvite) {
+        log.debug("Verifying invite code={} role={}", existingInvite.getCode(), inviteeRole);
+
+        if (existingInvite.getIsDeleted()) {
+            log.warn("Invite verification failed: invite {} is deleted", existingInvite.getCode());
+            return false;
+        }
+        if (existingInvite.getStatus() != InviteStatus.INVITE_STATUS_ACTIVE) {
+            log.warn("Invite verification failed: invite {} has status {}", existingInvite.getCode(), existingInvite.getStatus());
+            return false;
+        }
+        final LocalDate validTo = DateTimeUtils.toLocalDate(existingInvite.getValidTo());
+        if (validTo.isBefore(LocalDate.now())) {
+            log.warn("Invite verification failed: invite {} expired on {}", existingInvite.getCode(), validTo);
+            return false;
+        }
+        if (existingInvite.getRole() != inviteeRole) {
+            log.warn("Invite verification failed: invite {} role {} does not match requested role {}", existingInvite.getCode(), existingInvite.getRole(), inviteeRole);
+            return false;
+        }
+
+        log.debug("Invite verification succeeded for code={}", existingInvite.getCode());
+        return true;
+    }
 }

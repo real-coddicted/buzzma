@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserBankingDetailsEntity {
+public class UserBankingDetails {
 
     @Id
     @GeneratedValue

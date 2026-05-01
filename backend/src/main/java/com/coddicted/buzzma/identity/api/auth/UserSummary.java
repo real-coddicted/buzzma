@@ -1,53 +1,36 @@
 package com.coddicted.buzzma.identity.api.auth;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.entity.UserStatus;
 import lombok.Builder;
 import lombok.Value;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Value
 @Builder
 public class UserSummary {
 
-  UUID id;
+    UUID id;
 
-  String name;
+    String name;
 
-  String mobile;
+    String mobile;
 
-  String email;
+    String email;
 
-  String role;
+    UserRole role;
 
-  String[] roles;
+    UserStatus status;
 
-  String status;
+    String avatar;
 
-  String mediatorCode;
+    Instant createdAt;
 
-  String parentCode;
+    String createdBy;
 
-  Boolean isVerifiedByMediator;
+    Instant updatedAt;
 
-  String brandCode;
-
-  String kycStatus;
-
-  String upiId;
-
-  String bankAccountNumber;
-
-  String bankIfsc;
-
-  String bankName;
-
-  String bankHolderName;
-
-  String avatar;
-
-  Integer walletAvailablePaise;
-
-  Integer walletPendingPaise;
-
-  Instant createdAt;
+    String updatedBy;
 }

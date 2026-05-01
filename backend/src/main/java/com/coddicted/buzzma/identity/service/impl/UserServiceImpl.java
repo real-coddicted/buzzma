@@ -2,8 +2,8 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.api.UsersRequestDto;
 import com.coddicted.buzzma.identity.api.UsersResponseDto;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.mapper.UsersMapper;
-import com.coddicted.buzzma.identity.entity.UsersEntity;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.OffsetBasedPageRequest;
@@ -38,21 +38,21 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public UsersResponseDto getById(UUID id) {
-    UsersEntity entity = mustFind(repository, id, "Users");
+    BuzzmaUser entity = mustFind(repository, id, "Users");
     return mapper.toResponse(entity);
   }
 
   @Override
   @Transactional
   public UsersResponseDto create(UsersRequestDto request) {
-    UsersEntity entity = mapper.toEntity(request);
+    BuzzmaUser entity = mapper.toEntity(request);
     return mapper.toResponse(repository.save(entity));
   }
 
   @Override
   @Transactional
   public UsersResponseDto update(UUID id, UsersRequestDto request) {
-    UsersEntity entity = mustFind(repository, id, "Users");
+    BuzzmaUser entity = mustFind(repository, id, "Users");
     mapper.update(request, entity);
     return mapper.toResponse(repository.save(entity));
   }
@@ -60,7 +60,7 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Override
   @Transactional
   public void delete(UUID id) {
-    UsersEntity entity = mustFind(repository, id, "Users");
+    BuzzmaUser entity = mustFind(repository, id, "Users");
     entity.setIsDeleted(true);
     repository.save(entity);
   }

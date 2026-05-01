@@ -10,10 +10,10 @@ import com.coddicted.buzzma.identity.api.auth.RegisterRequest;
 import com.coddicted.buzzma.identity.api.auth.SecurityQuestionsRequest;
 import com.coddicted.buzzma.identity.api.auth.UpdateProfileRequest;
 import com.coddicted.buzzma.identity.api.auth.UserSummary;
-import com.coddicted.buzzma.identity.entity.InviteEntity;
+import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionsEntity;
 import com.coddicted.buzzma.identity.persistence.SecurityQuestionRepository;
-import com.coddicted.buzzma.identity.entity.UsersEntity;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.identity.service.AuthService;
 import com.coddicted.buzzma.identity.service.InviteBusinessService;
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
     // Look up invite or validate mediator code
     String upstreamMediatorCode;
     try {
-      InviteEntity consumed =
+      Invite consumed =
           inviteBusinessService.consumeInvite(request.getMediatorCode(), "shopper", null);
       upstreamMediatorCode = consumed.getParentCode() != null ? consumed.getParentCode() : "";
     } catch (ApiException e) {
@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
         .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_INVITE_PARENT"));
 
     // Create user
-    UsersEntity user = new UsersEntity();
+    BuzzmaUser user = new BuzzmaUser();
     user.setName(request.getName());
     user.setMobile(request.getMobile());
     user.setEmail(request.getEmail());
@@ -122,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
     String username =
         request.getUsername() != null ? request.getUsername().trim().toLowerCase() : null;
 
-    UsersEntity user =
+    BuzzmaUser user =
         (mobile != null && !mobile.isBlank())
             ? usersRepository.findByMobileAndIsDeletedFalse(mobile).orElse(null)
             : (username != null
@@ -187,7 +187,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public LoginResponse refresh(String refreshToken) {
     UUID userId = jwtService.validateRefreshToken(refreshToken);
-    UsersEntity user =
+    BuzzmaUser user =
         usersRepository
             .findById(userId)
             .filter(u -> !Boolean.TRUE.equals(u.getIsDeleted()))
@@ -200,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public UserSummary me(UUID userId) {
-    UsersEntity user =
+    BuzzmaUser user =
         usersRepository
             .findById(userId)
             .filter(u -> !Boolean.TRUE.equals(u.getIsDeleted()))
@@ -234,7 +234,7 @@ public class AuthServiceImpl implements AuthService {
     // Validate invite code
     inviteBusinessService.consumeInvite(request.getCode(), role.name(), null);
 
-    UsersEntity user = new UsersEntity();
+    BuzzmaUser user = new BuzzmaUser();
     user.setName(request.getName());
     user.setMobile(request.getMobile());
     user.setPasswordHash(passwordService.hashPassword(request.getPassword()));
@@ -257,7 +257,7 @@ public class AuthServiceImpl implements AuthService {
               throw new ApiException(HttpStatus.CONFLICT, "MOBILE_ALREADY_EXISTS");
             });
 
-    UsersEntity user = new UsersEntity();
+    BuzzmaUser user = new BuzzmaUser();
     user.setName(request.getName());
     user.setMobile(request.getMobile());
     user.setPasswordHash(passwordService.hashPassword(request.getPassword()));
@@ -274,7 +274,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public UserSummary updateProfile(UUID userId, UpdateProfileRequest request) {
-    UsersEntity user =
+    BuzzmaUser user =
         usersRepository
             .findById(userId)
             .filter(u -> !Boolean.TRUE.equals(u.getIsDeleted()))
@@ -345,7 +345,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public UserSummary forgotPasswordLookup(ForgotPasswordLookupRequest request) {
-    UsersEntity user =
+    BuzzmaUser user =
         usersRepository
             .findByMobileAndIsDeletedFalse(request.getMobile())
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
@@ -363,7 +363,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public void forgotPasswordReset(ForgotPasswordResetRequest request) {
-    UsersEntity user =
+    BuzzmaUser user =
         usersRepository
             .findByMobileAndIsDeletedFalse(request.getMobile())
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
@@ -399,7 +399,7 @@ public class AuthServiceImpl implements AuthService {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  private LoginResponse buildLoginResponse(UsersEntity user, WalletsResponseDto wallet) {
+  private LoginResponse buildLoginResponse(BuzzmaUser user, WalletsResponseDto wallet) {
     String accessToken = jwtService.generateAccessToken(user.getId());
     String refreshToken = jwtService.generateRefreshToken(user.getId());
     return LoginResponse.builder()
@@ -412,7 +412,7 @@ public class AuthServiceImpl implements AuthService {
         .build();
   }
 
-  private UserSummary toUserSummary(UsersEntity user, WalletsResponseDto wallet) {
+  private UserSummary toUserSummary(BuzzmaUser user, WalletsResponseDto wallet) {
     return UserSummary.builder()
         .id(user.getId())
         .name(user.getName())

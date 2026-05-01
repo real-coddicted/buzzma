@@ -16,9 +16,7 @@ public class SecurityQuestionsResponseDto {
 
   UUID userId;
 
-  Integer questionId;
-
-  String answerHash;
+  UUID questionId;
 
   @Nullable Instant createdAt;
 

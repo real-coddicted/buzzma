@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface AuthService {
 
-  LoginResponse register(RegisterRequest request);
+  LoginResponse signUp(RegisterRequest request);
 
   LoginResponse login(LoginRequest request);
 

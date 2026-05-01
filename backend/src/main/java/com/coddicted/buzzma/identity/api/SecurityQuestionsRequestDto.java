@@ -13,7 +13,7 @@ public class SecurityQuestionsRequestDto {
 
   UUID userId;
 
-  Integer questionId;
+  UUID questionId;
 
-  @NotBlank String answerHash;
+  @NotBlank String answer;
 }

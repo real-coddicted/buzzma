@@ -1,19 +1,16 @@
 package com.coddicted.buzzma.identity.service;
 
-import com.coddicted.buzzma.identity.api.UsersRequestDto;
-import com.coddicted.buzzma.identity.api.UsersResponseDto;
-import java.util.List;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+
 import java.util.UUID;
 
 public interface UserService {
 
-  List<UsersResponseDto> list(int limit, int offset);
+    BuzzmaUser getById(UUID id);
 
-  UsersResponseDto getById(UUID id);
+    BuzzmaUser create(BuzzmaUser user);
 
-  UsersResponseDto create(UsersRequestDto request);
+    BuzzmaUser update(UUID id, BuzzmaUser user, UUID requesterId);
 
-  UsersResponseDto update(UUID id, UsersRequestDto request);
-
-  void delete(UUID id);
+    void delete(UUID id, UUID requesterId);
 }

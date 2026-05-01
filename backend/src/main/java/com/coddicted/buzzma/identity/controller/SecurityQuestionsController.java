@@ -2,22 +2,22 @@ package com.coddicted.buzzma.identity.controller;
 
 import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
 import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
-import com.coddicted.buzzma.identity.service.SecurityQuestionService;
+import com.coddicted.buzzma.identity.entity.SecurityQuestion;
+import com.coddicted.buzzma.identity.mapper.SecurityAnswerMapper;
+import com.coddicted.buzzma.identity.mapper.SecurityQuestionMapper;
+import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
+import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,40 +26,33 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class SecurityQuestionsController {
 
-  private final SecurityQuestionService service;
+  private final SecurityQuestionAnswerService service;
+  private final SecurityAnswerMapper answerMapper;
 
-  public SecurityQuestionsController(SecurityQuestionService service) {
+  public SecurityQuestionsController(
+      final SecurityQuestionAnswerService service,
+      final SecurityAnswerMapper answerMapper) {
     this.service = service;
+    this.answerMapper = answerMapper;
   }
 
   @GetMapping
-  public List<SecurityQuestionsResponseDto> list(
-      @RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit,
-      @RequestParam(defaultValue = "0") @Min(0) int offset) {
-    return service.list(limit, offset);
+  public List<SecurityQuestion> list() {
+    return service.listSecurityQuestions();
   }
 
-  @GetMapping("/{id}")
-  public SecurityQuestionsResponseDto getById(@PathVariable UUID id) {
-    return service.getById(id);
-  }
-
-  @PostMapping
+  @PostMapping("/answers")
   @ResponseStatus(HttpStatus.CREATED)
-  public SecurityQuestionsResponseDto create(
-      @Valid @RequestBody SecurityQuestionsRequestDto request) {
-    return service.create(request);
-  }
-
-  @PatchMapping("/{id}")
-  public SecurityQuestionsResponseDto update(
-      @PathVariable UUID id, @Valid @RequestBody SecurityQuestionsRequestDto request) {
-    return service.update(id, request);
+  public SecurityQuestionsResponseDto createAnswer(
+      @Valid @RequestBody final SecurityQuestionsRequestDto request) {
+    return answerMapper.toResponse(service.createSecurityAnswer(answerMapper.toEntity(request)));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable UUID id) {
-    service.delete(id);
+  public void deleteQuestion(
+      @PathVariable final UUID id,
+      @CurrentUserId final UUID requesterId) {
+    service.deleteSecurityQuestion(id, requesterId);
   }
 }

@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.support.web;
 
-import com.coddicted.buzzma.identity.entity.UsersEntity;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.enums.TicketStatus;
 import com.coddicted.buzzma.shared.exception.ApiException;
@@ -153,7 +153,7 @@ public class TicketsController {
       @PathVariable UUID id,
       @Valid @RequestBody AddCommentRequest request,
       @CurrentUserId UUID actorId) {
-    UsersEntity actor =
+    BuzzmaUser actor =
         usersRepository
             .findById(actorId)
             .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "USER_NOT_FOUND"));

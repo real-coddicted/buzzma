@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.identity.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,21 +12,39 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "security_answers")
+@Table(name = "invites")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SecurityQuestionEntity {
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class Invite {
+
     @Id
     @GeneratedValue
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "question", nullable = false)
-    private String question;
+    @Column(name = "code", unique = true, nullable = false)
+    private String code;
 
-    @Column(name = "created_by", nullable = false, updatable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "invitee_role", nullable = false)
+    private UserRole role;
+
+    @Column(name = "owner_id")
+    private UUID ownerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private InviteStatus status;
+
+    @Column(name = "valid_to")
+    private int validTo;
+
+    // Audit fields
+    @Column(name = "created_by")
     private UUID createdBy;
 
     @Column(name = "updated_by")
