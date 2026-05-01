@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.util.UUID;
 
 @Entity
-@Table(name = "campaigns")
+@Table(name = "commissions")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter

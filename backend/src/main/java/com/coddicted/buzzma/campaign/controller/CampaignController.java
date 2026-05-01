@@ -46,8 +46,8 @@ public class CampaignController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable final UUID id) {
-        service.delete(id);
+    public void delete(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
+        service.delete(id, requesterId);
     }
 
     @PostMapping("/{id}/action/{action}")
