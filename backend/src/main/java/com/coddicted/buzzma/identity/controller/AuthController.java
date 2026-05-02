@@ -5,8 +5,6 @@ import com.coddicted.buzzma.identity.api.auth.ForgotPasswordResetRequest;
 import com.coddicted.buzzma.identity.api.auth.LoginRequest;
 import com.coddicted.buzzma.identity.api.auth.LoginResponse;
 import com.coddicted.buzzma.identity.api.auth.RefreshRequest;
-import com.coddicted.buzzma.identity.api.auth.RegisterBrandRequest;
-import com.coddicted.buzzma.identity.api.auth.RegisterOpsRequest;
 import com.coddicted.buzzma.identity.api.auth.RegisterRequest;
 import com.coddicted.buzzma.identity.api.auth.SecurityQuestionsRequest;
 import com.coddicted.buzzma.identity.api.auth.UpdateProfileRequest;

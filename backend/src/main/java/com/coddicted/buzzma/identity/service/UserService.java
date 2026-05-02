@@ -13,4 +13,6 @@ public interface UserService {
     BuzzmaUser update(UUID id, BuzzmaUser user, UUID requesterId);
 
     void delete(UUID id, UUID requesterId);
+
+    boolean existsByMobile(String mobile);
 }

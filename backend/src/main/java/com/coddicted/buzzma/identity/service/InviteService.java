@@ -12,4 +12,6 @@ public interface InviteService {
     boolean consume(UserRole inviteeRole, String inviteCode, UUID requesterId);
 
     void delete(UUID id, UUID requesterId);
+
+    boolean verify(UserRole inviteeRole, String inviteCode, UUID requesterId);
 }

@@ -17,35 +17,19 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class BuzzmaUser implements Auditable {
-
+public class UserCredential implements Auditable {
     @Id
     @GeneratedValue
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "name", length = 120, nullable = false)
-    private String name;
+    @Column(name = "user_id", nullable = false, updatable = false)
+    private UUID userId;
 
-    @Column(name = "username", length = 64, unique = true)
-    private String username;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
-    @Column(name = "mobile", length = 10, nullable = false)
-    private String mobile;
-
-    @Column(name = "email", length = 320)
-    private String email;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private UserRole role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private UserStatus status;
-
-    // Audit fields
     @Column(name = "created_by")
     private UUID createdBy;
 

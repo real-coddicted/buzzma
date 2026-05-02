@@ -13,7 +13,7 @@ public interface UsersRepository extends JpaRepository<BuzzmaUser, UUID> {
 
   Page<BuzzmaUser> findAllByIsDeletedFalse(Pageable pageable);
 
-  Optional<BuzzmaUser> findByMobileAndIsDeletedFalse(String mobile);
+  boolean existsUserByMobile(String mobile);
 
   Optional<BuzzmaUser> findByUsernameAndIsDeletedFalse(String username);
 
