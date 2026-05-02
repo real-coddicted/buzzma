@@ -1,17 +1,13 @@
 package com.coddicted.buzzma.identity.api.auth;
 
-import com.coddicted.buzzma.identity.entity.UserBankingDetails;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-
-import java.util.List;
-import java.util.UUID;
 
 @Value
 @Builder
@@ -38,16 +34,11 @@ public class UserRegistrationRequestDto {
 
   UserRole userRole;
 
-  @Nullable
-  String bankAccountNumber;
+  @Nullable String bankAccountNumber;
 
-  @Nullable
-  String bankIfscCode;
+  @Nullable String bankIfscCode;
 
-  @Nullable
-  String bankName;
+  @Nullable String bankName;
 
-  @Nullable
-  String bankAccountHolderName;
-
+  @Nullable String bankAccountHolderName;
 }

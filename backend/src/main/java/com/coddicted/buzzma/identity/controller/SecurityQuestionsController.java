@@ -4,7 +4,6 @@ import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
 import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import com.coddicted.buzzma.identity.mapper.SecurityAnswerMapper;
-import com.coddicted.buzzma.identity.mapper.SecurityQuestionMapper;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
@@ -30,8 +29,7 @@ public class SecurityQuestionsController {
   private final SecurityAnswerMapper answerMapper;
 
   public SecurityQuestionsController(
-      final SecurityQuestionAnswerService service,
-      final SecurityAnswerMapper answerMapper) {
+      final SecurityQuestionAnswerService service, final SecurityAnswerMapper answerMapper) {
     this.service = service;
     this.answerMapper = answerMapper;
   }
@@ -50,9 +48,7 @@ public class SecurityQuestionsController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteQuestion(
-      @PathVariable final UUID id,
-      @CurrentUserId final UUID requesterId) {
+  public void deleteQuestion(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
     service.deleteSecurityQuestion(id, requesterId);
   }
 }

@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.support.service.impl;
 
+import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.common.OffsetBasedPageRequest;
 import com.coddicted.buzzma.support.api.TicketCommentsRequestDto;
 import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;

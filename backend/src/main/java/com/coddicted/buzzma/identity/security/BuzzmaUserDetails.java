@@ -1,11 +1,9 @@
 package com.coddicted.buzzma.identity.security;
 
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.Collection;
 import java.util.List;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

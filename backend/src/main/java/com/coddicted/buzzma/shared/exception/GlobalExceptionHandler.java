@@ -54,7 +54,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(InvalidStateTransitionException.class)
-  public ResponseEntity<Map<String, Object>> handleInvalidTransition(InvalidStateTransitionException ex) {
+  public ResponseEntity<Map<String, Object>> handleInvalidTransition(
+      InvalidStateTransitionException ex) {
     Map<String, Object> body = new HashMap<>();
     body.put("error", "INVALID_STATE_TRANSITION");
     body.put("message", ex.getMessage());
@@ -62,7 +63,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(BusinessRuleViolationException.class)
-  public ResponseEntity<Map<String, Object>> handleBusinessRuleViolation(BusinessRuleViolationException ex) {
+  public ResponseEntity<Map<String, Object>> handleBusinessRuleViolation(
+      BusinessRuleViolationException ex) {
     Map<String, Object> body = new HashMap<>();
     body.put("error", "BUSINESS_RULE_VIOLATION");
     body.put("message", ex.getMessage());

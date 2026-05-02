@@ -31,10 +31,6 @@ public interface CampaignMapper {
   @Mapping(source = "product.pricePaise", target = "productPricePaise")
   @Mapping(source = "product.platform", target = "platform")
   @Mapping(source = "type", target = "campaignType")
-  @Mapping(source = "ownerType", target = "ownerType", qualifiedByName = "stringToOwnerType")
-  @Mapping(target = "allowedAgencies", ignore = true)
-  @Mapping(target = "openToAll", ignore = true)
-  @Mapping(target = "commissionOfferedPaise", ignore = true)
   CampaignResponseDto toResponse(Campaign entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -48,5 +44,4 @@ public interface CampaignMapper {
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
   void updateCampaign(CampaignRequestDto request, @MappingTarget Campaign entity);
-
 }

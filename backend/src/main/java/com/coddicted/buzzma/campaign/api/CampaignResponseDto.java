@@ -3,11 +3,9 @@ package com.coddicted.buzzma.campaign.api;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Platform;
-import jakarta.annotation.Nullable;
 import java.math.BigInteger;
 import java.net.URL;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
@@ -43,7 +41,6 @@ public class CampaignResponseDto {
 
   Platform platform;
 
-
   // Audit fields
   Instant createdAt;
 
@@ -54,5 +51,4 @@ public class CampaignResponseDto {
   UUID updatedBy;
 
   Boolean isDeleted;
-
 }

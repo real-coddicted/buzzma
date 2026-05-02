@@ -2,35 +2,34 @@ package com.coddicted.buzzma.identity.api.auth;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.UserStatus;
-import lombok.Builder;
-import lombok.Value;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Builder;
+import lombok.Value;
 
 @Value
 @Builder
 public class UserSummary {
 
-    UUID id;
+  UUID id;
 
-    String name;
+  String name;
 
-    String mobile;
+  String mobile;
 
-    String email;
+  String email;
 
-    UserRole role;
+  UserRole role;
 
-    UserStatus status;
+  UserStatus status;
 
-    String avatar;
+  String avatar;
 
-    Instant createdAt;
+  Instant createdAt;
 
-    String createdBy;
+  String createdBy;
 
-    Instant updatedAt;
+  Instant updatedAt;
 
-    String updatedBy;
+  String updatedBy;
 }

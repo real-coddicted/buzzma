@@ -9,14 +9,14 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
-        componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    componentModel = "spring",
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface SecurityQuestionMapper {
 
-    SecurityQuestion toEntity(SecurityQuestionsRequestDto request);
+  SecurityQuestion toEntity(SecurityQuestionsRequestDto request);
 
-    SecurityQuestionsResponseDto toResponse(SecurityQuestion entity);
+  SecurityQuestionsResponseDto toResponse(SecurityQuestion entity);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void update(SecurityQuestionsRequestDto request, @MappingTarget SecurityQuestion entity);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void update(SecurityQuestionsRequestDto request, @MappingTarget SecurityQuestion entity);
 }

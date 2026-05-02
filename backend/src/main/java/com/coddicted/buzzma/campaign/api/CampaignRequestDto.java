@@ -3,7 +3,6 @@ package com.coddicted.buzzma.campaign.api;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
@@ -32,8 +31,7 @@ public class CampaignRequestDto {
 
   @Nullable Integer endDate;
 
-  @Nullable
-  CampaignType campaignType;
+  @Nullable CampaignType campaignType;
 
   Long totalSlots;
 

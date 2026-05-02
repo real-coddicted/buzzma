@@ -6,15 +6,15 @@ import java.util.UUID;
 
 public interface CampaignService {
 
-    Campaign getById(UUID campaignId);
+  Campaign getById(UUID campaignId);
 
-    Campaign create(Campaign campaign);
+  Campaign create(Campaign campaign);
 
-    Campaign update(Campaign campaign);
+  Campaign update(Campaign campaign);
 
-    Campaign delete(UUID campaignId, UUID requesterId);
+  Campaign delete(UUID campaignId, UUID requesterId);
 
-    Campaign action(UUID campaignId, CampaignAction action, UUID requesterId);
+  Campaign action(UUID campaignId, CampaignAction action, UUID requesterId);
 
-    Campaign copy(UUID campaignId, UUID requesterId);
+  Campaign copy(UUID campaignId, UUID requesterId);
 }

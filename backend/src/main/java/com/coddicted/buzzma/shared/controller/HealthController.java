@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/health")
 public class HealthController {
 
-  private final UserQueryPort userQueryPort;
-
-  public HealthController(UserQueryPort userQueryPort) {
-    this.userQueryPort = userQueryPort;
-  }
+  public HealthController() {}
 
   @GetMapping
   public ResponseEntity<Map<String, Object>> health() {
@@ -27,7 +23,6 @@ public class HealthController {
     body.put("uptime", uptimeMs / 1000.0);
 
     try {
-      userQueryPort.count();
       body.put("db", "up");
       return ResponseEntity.ok(body);
     } catch (Exception e) {
