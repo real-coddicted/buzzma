@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.api;
+package com.coddicted.buzzma.campaign.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigInteger;

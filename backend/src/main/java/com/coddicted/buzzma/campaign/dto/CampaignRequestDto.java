@@ -1,8 +1,11 @@
-package com.coddicted.buzzma.campaign.api;
+package com.coddicted.buzzma.campaign.dto;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.Platform;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
@@ -19,9 +22,9 @@ public class CampaignRequestDto {
 
   @NotBlank UUID ownerId;
 
-  @NotBlank String platform;
+  @NotBlank Platform platform;
 
-  @NotBlank String productBrandName;
+  @NotBlank String productName;
 
   @NotBlank String productImageUrl;
 
@@ -31,9 +34,11 @@ public class CampaignRequestDto {
 
   @Nullable Integer endDate;
 
-  @Nullable CampaignType campaignType;
+  @NotNull CampaignType campaignType;
 
-  Long totalSlots;
+  @NotNull CampaignStatus campaignStatus;
+
+  @NotNull Integer totalSlots;
 
   List<CampaignAssignmentRequestDto> assignees;
 

@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.campaign.mapper;
 
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentRequestDto;
-import com.coddicted.buzzma.campaign.api.CampaignAssignmentResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import java.util.List;
 import org.mapstruct.Mapper;

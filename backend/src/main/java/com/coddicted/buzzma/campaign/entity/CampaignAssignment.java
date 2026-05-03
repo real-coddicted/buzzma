@@ -2,13 +2,17 @@ package com.coddicted.buzzma.campaign.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -55,6 +59,10 @@ public class CampaignAssignment implements Auditable {
   @Enumerated(EnumType.STRING)
   @Column(name = "status")
   private CampaignAssignmentStatus status;
+
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+  @JoinColumn(name = "slot_id", referencedColumnName = "id", nullable = false)
+  private CampaignSlot campaignSlot;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;

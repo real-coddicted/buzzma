@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.campaign.mapper;
 
-import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.entity.Platform;
 import com.coddicted.buzzma.campaign.entity.Product;
 import java.net.MalformedURLException;
@@ -17,11 +17,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface ProductMapper {
 
   @Mapping(target = "id", ignore = true)
-  @Mapping(source = "productBrandName", target = "name")
+  @Mapping(source = "productName", target = "name")
   @Mapping(source = "productImageUrl", target = "imageUrl", qualifiedByName = "stringToUrl")
   @Mapping(source = "productUrl", target = "productLink", qualifiedByName = "stringToUrl")
   @Mapping(source = "originalPricePaise", target = "pricePaise")
-  @Mapping(source = "platform", target = "platform", qualifiedByName = "stringToPlatform")
   Product toProductEntity(final CampaignRequestDto request);
 
   @Named("stringToUrl")

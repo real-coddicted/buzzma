@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.campaign.mapper;
 
-import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
-import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -33,7 +33,6 @@ public interface CampaignMapper {
   @Mapping(source = "product.imageUrl", target = "productImageUrl")
   @Mapping(source = "product.productLink", target = "productLink")
   @Mapping(source = "product.pricePaise", target = "productPricePaise")
-  @Mapping(source = "product.platform", target = "platform")
   @Mapping(source = "type", target = "campaignType")
   CampaignResponseDto toResponse(Campaign entity);
 
@@ -45,7 +44,7 @@ public interface CampaignMapper {
   @Mapping(target = "updatedBy", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "isDeleted", ignore = true)
+  @Mapping(target = "deleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
   void updateCampaign(CampaignRequestDto request, @MappingTarget Campaign entity);
 }

@@ -4,8 +4,6 @@ import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -41,8 +39,4 @@ public class Product {
 
   @Column(name = "price_paise", updatable = false, nullable = false)
   BigInteger pricePaise;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "platform", nullable = false)
-  private Platform platform;
 }

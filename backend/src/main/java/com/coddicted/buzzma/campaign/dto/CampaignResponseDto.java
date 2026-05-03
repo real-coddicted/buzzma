@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.api;
+package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;

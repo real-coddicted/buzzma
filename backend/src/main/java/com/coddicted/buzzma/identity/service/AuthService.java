@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.identity.service;
 
-import com.coddicted.buzzma.identity.entity.*;
+import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import java.util.List;
 import java.util.UUID;
 

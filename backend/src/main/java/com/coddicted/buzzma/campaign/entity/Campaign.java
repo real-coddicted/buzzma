@@ -54,12 +54,22 @@ public class Campaign implements Auditable {
   private Product product;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "platform", nullable = false)
+  private Platform platform;
+
+  @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private CampaignType type;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status")
   private CampaignStatus status;
+
+  @Column(name = "end_date")
+  private Integer endDate;
+
+  @Column(name = "open_to_all", nullable = false)
+  private boolean openToAll;
 
   // Audit fields
   @Column(name = "created_by")
@@ -75,5 +85,5 @@ public class Campaign implements Auditable {
   private Instant updatedAt;
 
   @Column(name = "is_deleted", nullable = false)
-  private Boolean isDeleted = false;
+  private boolean isDeleted;
 }
