@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.api.auth;
+package com.coddicted.buzzma.identity.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
@@ -8,7 +8,8 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class RefreshTokenRequestDto {
+public class InviteRequestDto {
 
-  @NotBlank String refreshToken;
+  @NotBlank String role;
+  int validityInDays;
 }

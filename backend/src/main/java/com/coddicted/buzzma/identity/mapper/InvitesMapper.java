@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.InviteRequestDto;
-import com.coddicted.buzzma.identity.api.InviteResponseDto;
+import com.coddicted.buzzma.identity.dto.InviteRequestDto;
+import com.coddicted.buzzma.identity.dto.InviteResponseDto;
 import com.coddicted.buzzma.identity.entity.Invite;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

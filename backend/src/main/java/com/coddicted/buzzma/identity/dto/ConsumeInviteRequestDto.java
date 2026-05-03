@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.api;
+package com.coddicted.buzzma.identity.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
@@ -8,8 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class InviteRequestDto {
-
-  @NotBlank String role;
-  int validityInDays;
+public class ConsumeInviteRequestDto {
+  @NotBlank String inviteCode;
+  @NotBlank String inviteeRole;
 }

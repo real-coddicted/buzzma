@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.UserRequestDto;
-import com.coddicted.buzzma.identity.api.UserResponseDto;
+import com.coddicted.buzzma.identity.dto.UserRequestDto;
+import com.coddicted.buzzma.identity.dto.UserResponseDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;

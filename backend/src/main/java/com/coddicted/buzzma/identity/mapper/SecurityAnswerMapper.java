@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.SecurityQuestionRequestDto;
-import com.coddicted.buzzma.identity.api.SecurityQuestionResponseDto;
+import com.coddicted.buzzma.identity.dto.SecurityQuestionRequestDto;
+import com.coddicted.buzzma.identity.dto.SecurityQuestionResponseDto;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

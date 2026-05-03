@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.api;
+package com.coddicted.buzzma.identity.dto;
 
 import jakarta.annotation.Nullable;
 import java.time.Instant;

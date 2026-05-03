@@ -1,13 +1,13 @@
 package com.coddicted.buzzma.identity.controller;
 
-import com.coddicted.buzzma.identity.api.SecurityQuestionResponseDto;
-import com.coddicted.buzzma.identity.api.auth.ForgotPasswordLookupRequestDto;
-import com.coddicted.buzzma.identity.api.auth.PasswordResetRequestDto;
-import com.coddicted.buzzma.identity.api.auth.RefreshTokenRequestDto;
-import com.coddicted.buzzma.identity.api.auth.TokensDto;
-import com.coddicted.buzzma.identity.api.auth.UserRegistrationRequestDto;
-import com.coddicted.buzzma.identity.api.auth.UserSignInRequestDto;
-import com.coddicted.buzzma.identity.api.auth.UserSignInResponseDto;
+import com.coddicted.buzzma.identity.dto.SecurityQuestionResponseDto;
+import com.coddicted.buzzma.identity.dto.auth.ForgotPasswordLookupRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.PasswordResetRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.RefreshTokenRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.TokensDto;
+import com.coddicted.buzzma.identity.dto.auth.UserRegistrationRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.UserSignInRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.UserSignInResponseDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.mapper.AuthMapper;

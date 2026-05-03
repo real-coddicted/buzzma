@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.api.auth;
+package com.coddicted.buzzma.identity.dto.auth;
 
 import lombok.Builder;
 import lombok.Value;

@@ -1,8 +1,8 @@
 package com.coddicted.buzzma.identity.controller;
 
-import com.coddicted.buzzma.identity.api.ConsumeInviteRequestDto;
-import com.coddicted.buzzma.identity.api.InviteRequestDto;
-import com.coddicted.buzzma.identity.api.InviteResponseDto;
+import com.coddicted.buzzma.identity.dto.ConsumeInviteRequestDto;
+import com.coddicted.buzzma.identity.dto.InviteRequestDto;
+import com.coddicted.buzzma.identity.dto.InviteResponseDto;
 import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.InvitesMapper;

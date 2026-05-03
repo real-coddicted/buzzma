@@ -1,9 +1,9 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.auth.SecurityQuestionWrapper;
-import com.coddicted.buzzma.identity.api.auth.UserRegistrationRequestDto;
-import com.coddicted.buzzma.identity.api.auth.UserSignInRequestDto;
-import com.coddicted.buzzma.identity.api.auth.UserSummary;
+import com.coddicted.buzzma.identity.dto.auth.SecurityQuestionWrapper;
+import com.coddicted.buzzma.identity.dto.auth.UserRegistrationRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.UserSignInRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.UserSummary;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
