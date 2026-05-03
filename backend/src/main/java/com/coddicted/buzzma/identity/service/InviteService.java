@@ -6,11 +6,11 @@ import java.util.UUID;
 
 public interface InviteService {
 
-  Invite create(Invite invite);
+  Invite getByRoleAndCode(UserRole inviteeRole, String inviteCode);
 
-  boolean consume(UserRole inviteeRole, String inviteCode, UUID requesterId);
+  Invite create(Invite invite, UUID requesterId);
+
+  void consume(Invite invite, UUID requesterId);
 
   void delete(UUID id, UUID requesterId);
-
-  boolean verify(UserRole inviteeRole, String inviteCode, UUID requesterId);
 }

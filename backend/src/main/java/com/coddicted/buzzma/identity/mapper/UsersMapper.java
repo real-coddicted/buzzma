@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.UsersRequestDto;
-import com.coddicted.buzzma.identity.api.UsersResponseDto;
+import com.coddicted.buzzma.identity.api.UserRequestDto;
+import com.coddicted.buzzma.identity.api.UserResponseDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -13,10 +13,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UsersMapper {
 
-  BuzzmaUser toEntity(UsersRequestDto request);
+  BuzzmaUser toEntity(UserRequestDto request);
 
-  UsersResponseDto toResponse(BuzzmaUser entity);
+  UserResponseDto toResponse(BuzzmaUser entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void update(UsersRequestDto request, @MappingTarget BuzzmaUser entity);
+  void update(UserRequestDto request, @MappingTarget BuzzmaUser entity);
 }

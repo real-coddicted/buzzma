@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.controller;
 
-import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
-import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionRequestDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionResponseDto;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import com.coddicted.buzzma.identity.mapper.SecurityAnswerMapper;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
@@ -41,8 +41,8 @@ public class SecurityQuestionsController {
 
   @PostMapping("/answers")
   @ResponseStatus(HttpStatus.CREATED)
-  public SecurityQuestionsResponseDto createAnswer(
-      @Valid @RequestBody final SecurityQuestionsRequestDto request) {
+  public SecurityQuestionResponseDto createAnswer(
+      @Valid @RequestBody final SecurityQuestionRequestDto request) {
     return answerMapper.toResponse(service.createSecurityAnswer(answerMapper.toEntity(request)));
   }
 

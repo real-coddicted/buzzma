@@ -16,12 +16,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CodeGenerator {
-
+  // Todo: Consider adding a method to generate a unique code by checking against a provided set of
+  // existing codes.
+  // Todo: add unique constraint on the database column that stores the generated code to enforce
+  // uniqueness at the database level.
   private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   private static final int CODE_LENGTH = 8;
   private static final SecureRandom RANDOM = new SecureRandom();
 
-  public String generateHumanCode(String prefix) {
+  public String generateHumanCode(final String prefix) {
     StringBuilder sb = new StringBuilder(prefix).append('-');
     for (int i = 0; i < CODE_LENGTH; i++) {
       sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));

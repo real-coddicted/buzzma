@@ -3,7 +3,11 @@ package com.coddicted.buzzma.campaign.mapper;
 import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
     componentModel = "spring",

@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
-import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionRequestDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionResponseDto;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -13,10 +13,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface SecurityQuestionMapper {
 
-  SecurityQuestion toEntity(SecurityQuestionsRequestDto request);
+  SecurityQuestion toEntity(SecurityQuestionRequestDto request);
 
-  SecurityQuestionsResponseDto toResponse(SecurityQuestion entity);
+  SecurityQuestionResponseDto toResponse(SecurityQuestion entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void update(SecurityQuestionsRequestDto request, @MappingTarget SecurityQuestion entity);
+  void update(SecurityQuestionRequestDto request, @MappingTarget SecurityQuestion entity);
 }

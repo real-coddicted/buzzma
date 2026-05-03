@@ -2,8 +2,8 @@ package com.coddicted.buzzma.support.service.impl;
 
 import com.coddicted.buzzma.shared.enums.TicketStatus;
 import com.coddicted.buzzma.shared.exception.ApiException;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
-import com.coddicted.buzzma.support.api.TicketsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
+import com.coddicted.buzzma.support.api.TicketResponseDto;
 import com.coddicted.buzzma.support.mapper.TicketCommentsMapper;
 import com.coddicted.buzzma.support.mapper.TicketsMapper;
 import com.coddicted.buzzma.support.persistence.TicketCommentsEntity;
@@ -38,7 +38,7 @@ public class TicketDomainServiceImpl implements TicketDomainService {
 
   @Override
   @Transactional
-  public TicketsResponseDto createTicket(
+  public TicketResponseDto createTicket(
       UUID userId,
       String userName,
       String role,
@@ -64,7 +64,7 @@ public class TicketDomainServiceImpl implements TicketDomainService {
 
   @Override
   @Transactional
-  public TicketsResponseDto resolveTicket(UUID ticketId, String note, UUID resolvedBy) {
+  public TicketResponseDto resolveTicket(UUID ticketId, String note, UUID resolvedBy) {
     TicketsEntity ticket = loadActiveTicket(ticketId);
     ticket.setStatus(TicketStatus.Resolved);
     ticket.setResolutionNote(note);
@@ -76,7 +76,7 @@ public class TicketDomainServiceImpl implements TicketDomainService {
 
   @Override
   @Transactional
-  public TicketsResponseDto rejectTicket(UUID ticketId, String note, UUID rejectedBy) {
+  public TicketResponseDto rejectTicket(UUID ticketId, String note, UUID rejectedBy) {
     TicketsEntity ticket = loadActiveTicket(ticketId);
     ticket.setStatus(TicketStatus.Rejected);
     ticket.setResolutionNote(note);
@@ -88,7 +88,7 @@ public class TicketDomainServiceImpl implements TicketDomainService {
 
   @Override
   @Transactional
-  public TicketCommentsResponseDto addComment(
+  public TicketCommentResponseDto addComment(
       UUID ticketId, String message, UUID userId, String userName, String role) {
     ticketsRepository
         .findById(ticketId)

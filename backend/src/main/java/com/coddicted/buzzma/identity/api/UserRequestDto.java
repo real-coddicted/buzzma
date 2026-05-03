@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class UsersRequestDto {
+public class UserRequestDto {
 
   @NotBlank
   @Size(max = 120)

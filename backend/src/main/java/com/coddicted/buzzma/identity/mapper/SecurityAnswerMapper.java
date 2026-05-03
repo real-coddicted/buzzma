@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.SecurityQuestionsRequestDto;
-import com.coddicted.buzzma.identity.api.SecurityQuestionsResponseDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionRequestDto;
+import com.coddicted.buzzma.identity.api.SecurityQuestionResponseDto;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,7 +19,7 @@ public interface SecurityAnswerMapper {
   @Mapping(target = "updatedBy", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "answer", target = "answerHash")
-  SecurityAnswer toEntity(SecurityQuestionsRequestDto request);
+  SecurityAnswer toEntity(SecurityQuestionRequestDto request);
 
-  SecurityQuestionsResponseDto toResponse(SecurityAnswer entity);
+  SecurityQuestionResponseDto toResponse(SecurityAnswer entity);
 }

@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class UsersResponseDto {
+public class UserResponseDto {
 
   UUID id;
 

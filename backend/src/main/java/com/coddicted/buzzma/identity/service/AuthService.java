@@ -1,6 +1,10 @@
 package com.coddicted.buzzma.identity.service;
 
-import com.coddicted.buzzma.identity.entity.*;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.Invite;
+import com.coddicted.buzzma.identity.entity.SecurityAnswer;
+import com.coddicted.buzzma.identity.entity.UserBankingDetails;
+import com.coddicted.buzzma.identity.entity.UserCredential;
 import java.util.UUID;
 
 public interface AuthService {

@@ -1,11 +1,10 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.api.InvitesRequestDto;
-import com.coddicted.buzzma.identity.api.InvitesResponseDto;
+import com.coddicted.buzzma.identity.api.InviteRequestDto;
+import com.coddicted.buzzma.identity.api.InviteResponseDto;
 import com.coddicted.buzzma.identity.entity.Invite;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
@@ -13,10 +12,16 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface InvitesMapper {
 
-  Invite toEntity(InvitesRequestDto request);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "code", ignore = true)
+  @Mapping(target = "ownerId", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "createdBy", ignore = true)
+  @Mapping(target = "updatedBy", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "isDeleted", ignore = true)
+  Invite toEntity(InviteRequestDto request);
 
-  InvitesResponseDto toResponse(Invite entity);
-
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void update(InvitesRequestDto request, @MappingTarget Invite entity);
+  InviteResponseDto toResponse(Invite entity);
 }

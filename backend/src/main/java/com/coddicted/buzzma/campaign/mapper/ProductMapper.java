@@ -26,7 +26,9 @@ public interface ProductMapper {
 
   @Named("stringToUrl")
   default URL stringToUrl(String value) {
-    if (value == null || value.isBlank()) return null;
+    if (value == null || value.isBlank()) {
+      return null;
+    }
     try {
       return URI.create(value).toURL();
     } catch (MalformedURLException e) {
@@ -36,7 +38,9 @@ public interface ProductMapper {
 
   @Named("stringToPlatform")
   default Platform stringToPlatform(String value) {
-    if (value == null || value.isBlank()) return null;
+    if (value == null || value.isBlank()) {
+      return null;
+    }
     return Platform.valueOf(value.toUpperCase());
   }
 }

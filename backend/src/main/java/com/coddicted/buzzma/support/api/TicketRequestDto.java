@@ -9,7 +9,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class TicketsRequestDto {
+public class TicketRequestDto {
 
   UUID userId;
 

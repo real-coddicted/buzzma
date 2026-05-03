@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.identity.api;
 
-import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
@@ -10,15 +9,21 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class SecurityQuestionsResponseDto {
+public class InviteResponseDto {
 
-  UUID id;
+  String code;
 
-  UUID userId;
+  String role;
 
-  UUID questionId;
+  String status;
 
-  @Nullable Instant createdAt;
+  int validTo;
 
-  @Nullable Instant updatedAt;
+  UUID createdBy;
+
+  Instant createdAt;
+
+  UUID updatedBy;
+
+  Instant updatedAt;
 }
