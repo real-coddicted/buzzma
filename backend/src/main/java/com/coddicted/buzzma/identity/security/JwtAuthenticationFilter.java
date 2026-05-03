@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           .findById(userId)
           .ifPresent(
               user -> {
-                MoboUserDetails userDetails = new MoboUserDetails(user);
+                BuzzmaUserDetails userDetails = new BuzzmaUserDetails(user);
                 UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());

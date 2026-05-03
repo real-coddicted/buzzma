@@ -1,8 +1,9 @@
 package com.coddicted.buzzma.support.service.impl;
 
+import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.common.OffsetBasedPageRequest;
-import com.coddicted.buzzma.support.api.TicketCommentsRequestDto;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentRequestDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
 import com.coddicted.buzzma.support.mapper.TicketCommentsMapper;
 import com.coddicted.buzzma.support.persistence.TicketCommentsEntity;
 import com.coddicted.buzzma.support.persistence.TicketCommentsRepository;
@@ -28,7 +29,7 @@ public class TicketCommentServiceImpl extends BaseCrudService implements TicketC
 
   @Override
   @Transactional(readOnly = true)
-  public List<TicketCommentsResponseDto> list(int limit, int offset) {
+  public List<TicketCommentResponseDto> list(int limit, int offset) {
     var pageable =
         new OffsetBasedPageRequest(limit, offset, Sort.by(Sort.Direction.DESC, "createdAt"));
     return repository.findAll(pageable).stream()
@@ -38,21 +39,21 @@ public class TicketCommentServiceImpl extends BaseCrudService implements TicketC
 
   @Override
   @Transactional(readOnly = true)
-  public TicketCommentsResponseDto getById(UUID id) {
+  public TicketCommentResponseDto getById(UUID id) {
     TicketCommentsEntity entity = mustFind(repository, id, "TicketComments");
     return mapper.toResponse(entity);
   }
 
   @Override
   @Transactional
-  public TicketCommentsResponseDto create(TicketCommentsRequestDto request) {
+  public TicketCommentResponseDto create(TicketCommentRequestDto request) {
     TicketCommentsEntity entity = mapper.toEntity(request);
     return mapper.toResponse(repository.save(entity));
   }
 
   @Override
   @Transactional
-  public TicketCommentsResponseDto update(UUID id, TicketCommentsRequestDto request) {
+  public TicketCommentResponseDto update(UUID id, TicketCommentRequestDto request) {
     TicketCommentsEntity entity = mustFind(repository, id, "TicketComments");
     mapper.update(request, entity);
     return mapper.toResponse(repository.save(entity));

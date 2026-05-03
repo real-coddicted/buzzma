@@ -1,8 +1,9 @@
 package com.coddicted.buzzma.support.service.impl;
 
+import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.common.OffsetBasedPageRequest;
-import com.coddicted.buzzma.support.api.TicketsRequestDto;
-import com.coddicted.buzzma.support.api.TicketsResponseDto;
+import com.coddicted.buzzma.support.api.TicketRequestDto;
+import com.coddicted.buzzma.support.api.TicketResponseDto;
 import com.coddicted.buzzma.support.mapper.TicketsMapper;
 import com.coddicted.buzzma.support.persistence.TicketsEntity;
 import com.coddicted.buzzma.support.persistence.TicketsRepository;
@@ -27,7 +28,7 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
 
   @Override
   @Transactional(readOnly = true)
-  public List<TicketsResponseDto> list(int limit, int offset) {
+  public List<TicketResponseDto> list(int limit, int offset) {
     var pageable =
         new OffsetBasedPageRequest(limit, offset, Sort.by(Sort.Direction.DESC, "createdAt"));
     return repository.findAllByIsDeletedFalse(pageable).stream()
@@ -37,21 +38,21 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
 
   @Override
   @Transactional(readOnly = true)
-  public TicketsResponseDto getById(UUID id) {
+  public TicketResponseDto getById(UUID id) {
     TicketsEntity entity = mustFind(repository, id, "Tickets");
     return mapper.toResponse(entity);
   }
 
   @Override
   @Transactional
-  public TicketsResponseDto create(TicketsRequestDto request) {
+  public TicketResponseDto create(TicketRequestDto request) {
     TicketsEntity entity = mapper.toEntity(request);
     return mapper.toResponse(repository.save(entity));
   }
 
   @Override
   @Transactional
-  public TicketsResponseDto update(UUID id, TicketsRequestDto request) {
+  public TicketResponseDto update(UUID id, TicketRequestDto request) {
     TicketsEntity entity = mustFind(repository, id, "Tickets");
     mapper.update(request, entity);
     return mapper.toResponse(repository.save(entity));

@@ -1,69 +1,9 @@
 export type Theme = 'light' | 'dark'
 
-export type NavPage = 'dashboard' | 'campaigns'
+export type NavPage = 'dashboard' | 'campaigns' | 'feedback' | 'profile'
 
-export type CampaignStatus = 'active' | 'paused' | 'completed' | 'draft'
-
-export type TrendDirection = 'up' | 'down' | 'neutral'
-
-export type StatCardAccent =
-  | 'red'
-  | 'orange'
-  | 'yellow'
-  | 'green'
-  | 'cyan'
-  | 'blue'
-  | 'purple'
-  | 'pink'
-
-export interface StatCardData {
-  id: string
-  label: string
-  value: string
-  subValue?: string
-  trend: TrendDirection
-  trendValue: string
-  accent: StatCardAccent
-  icon: StatCardIcon
-}
-
-export type StatCardIcon =
-  | 'megaphone'
-  | 'users'
-  | 'currency'
-  | 'chart'
-  | 'target'
-  | 'bolt'
-
-export interface ActivityItem {
-  id: string
-  type: 'campaign_launched' | 'campaign_paused' | 'goal_reached' | 'budget_alert' | 'new_user' | 'report_ready'
-  message: string
-  detail: string
-  timestamp: string
-  accent: StatCardAccent
-}
-
-export interface Campaign {
-  id: string
-  name: string
-  status: CampaignStatus
-  channel: CampaignChannel
-  budget: number
-  spent: number
-  impressions: number
-  clicks: number
-  conversions: number
-  ctr: number
-  startDate: string
-  endDate: string
-}
-
-export type CampaignChannel = 'email' | 'social' | 'search' | 'display' | 'video'
-
-export interface PerformanceBar {
-  label: string
-  value: number
-  max: number
-  accent: StatCardAccent
-}
+export * from './CampaignTypes'
+export * from './RegisterTypes'
+export * from './LoginTypes'
+export * from './ForgotPasswordTypes'
+export * from './ProfileTypes'

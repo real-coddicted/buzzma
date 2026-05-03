@@ -2,15 +2,27 @@ package com.coddicted.buzzma.campaign.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
-
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(name = "campaign_assignments")
@@ -18,52 +30,52 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class CampaignAssignment implements Auditable {
 
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    private UUID id;
+  @Id @GeneratedValue @UuidGenerator private UUID id;
 
-    @Column(name= "parent_id")
-    private UUID parentId;
+  @Column(name = "campaign_id", nullable = false)
+  private UUID campaignId;
 
-    @Column(name = "campaign_id", nullable = false)
-    private UUID campaignId;
+  @Column(name = "assignor_id", nullable = false)
+  private UUID assignorId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assigned_to_type", nullable = false)
-    private AssigneeType assignedToType;  // AGENCY | MEDIATOR
+  @Column(name = "assignee_id", nullable = false)
+  private UUID assigneeId; // agencyCode or mediatorCode
 
-    // human-readable unique code for agency or mediator to which the campaign is assigned.
-    // This will be used by the tracking system to attribute conversions to the correct assignee.
-    @Column(name = "assigned_to_code", nullable = false)
-    private String assignedToCode;   // agencyCode or mediatorCode
+  @Column(name = "slot_limit", nullable = false)
+  private Integer slotLimit;
 
-    @Column(name = "slot_limit", nullable = false)
-    private Integer slotLimit;
+  @Column(name = "campaign_price_paise", nullable = false)
+  private BigInteger campaignPricePaise;
 
-    // commission in paise that the assignee will get for each successful conversion tracked for this campaign assignment
-    @Column(name = "commission_offered_paise")
-    private BigInteger commissionOfferedPaise;
+  // commission in paise that the assignee will get for each successful conversion tracked for this
+  // campaign assignment
+  @Column(name = "commission_offered_paise")
+  private BigInteger commissionOfferedPaise;
 
-    // commission in paise that the assignee has charged for each successful conversion tracked for this campaign assignment.
-    @Column(name = "commission_charged_paise")
-    private BigInteger commissionChargedPaise;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private CampaignAssignmentStatus status;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+  @JoinColumn(name = "slot_id", referencedColumnName = "id", nullable = false)
+  private CampaignSlot campaignSlot;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
-    @Column(name = "created_by")
-    private UUID createdBy;
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 
-    @Column(name = "updated_by")
-    private UUID updatedBy;
+  @Column(name = "created_by")
+  private UUID createdBy;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+  @Column(name = "updated_by")
+  private UUID updatedBy;
+
+  @Column(name = "is_deleted")
+  private boolean isDeleted;
 }
-

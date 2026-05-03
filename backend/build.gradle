@@ -2,7 +2,7 @@ plugins {
   id 'java'
   id 'org.springframework.boot' version '3.3.4'
   id 'io.spring.dependency-management' version '1.1.6'
-  id 'com.diffplug.spotless' version '7.0.2'
+  id 'com.diffplug.spotless' version '8.4.0'
   id 'checkstyle'
 }
 
@@ -92,6 +92,10 @@ checkstyle {
   toolVersion = '10.17.0'
   configFile = file('config/checkstyle/google_checks.xml')
   checkstyleTest.enabled = false
+}
+
+tasks.named('check') {
+  dependsOn 'spotlessCheck'
 }
 
 tasks.named('test') {

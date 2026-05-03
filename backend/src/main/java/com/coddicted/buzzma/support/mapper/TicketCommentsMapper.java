@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.support.mapper;
 
-import com.coddicted.buzzma.support.api.TicketCommentsRequestDto;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentRequestDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
 import com.coddicted.buzzma.support.persistence.TicketCommentsEntity;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -13,10 +13,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TicketCommentsMapper {
 
-  TicketCommentsEntity toEntity(TicketCommentsRequestDto request);
+  TicketCommentsEntity toEntity(TicketCommentRequestDto request);
 
-  TicketCommentsResponseDto toResponse(TicketCommentsEntity entity);
+  TicketCommentResponseDto toResponse(TicketCommentsEntity entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void update(TicketCommentsRequestDto request, @MappingTarget TicketCommentsEntity entity);
+  void update(TicketCommentRequestDto request, @MappingTarget TicketCommentsEntity entity);
 }

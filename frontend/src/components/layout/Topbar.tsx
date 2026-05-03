@@ -6,12 +6,15 @@ import type { Theme, NavPage } from '../../types'
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Welcome back, Alex' },
   campaigns: { title: 'Campaigns', subtitle: 'Manage and monitor your campaigns' },
+  feedback:  { title: 'Feedback',  subtitle: 'Share your thoughts on Pulse' },
+  profile:   { title: 'Profile',   subtitle: 'Your account details' },
 }
 
 interface TopbarProps {
   theme: Theme
   onToggleTheme: () => void
   activePage: NavPage
+  onNavigate: (page: NavPage) => void
 }
 
 interface Notification {
@@ -71,7 +74,11 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   )
 }
 
-function ProfilePanel({ onClose }: { onClose: () => void }) {
+function ProfilePanel({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: NavPage) => void }) {
+  function handleItem(item: string) {
+    if (item === 'Profile') { onNavigate('profile'); onClose() }
+  }
+
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
@@ -93,6 +100,7 @@ function ProfilePanel({ onClose }: { onClose: () => void }) {
         {['Profile', 'Account Settings', 'Billing', 'Sign out'].map(item => (
           <button
             key={item}
+            onClick={() => handleItem(item)}
             className={[
               'w-full text-left px-4 py-2.5 text-xs font-medium transition-colors',
               item === 'Sign out'
@@ -108,7 +116,7 @@ function ProfilePanel({ onClose }: { onClose: () => void }) {
   )
 }
 
-export function Topbar({ theme, onToggleTheme, activePage }: TopbarProps) {
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -176,7 +184,7 @@ export function Topbar({ theme, onToggleTheme, activePage }: TopbarProps) {
             </div>
           </button>
           {showProfile && (
-            <ProfilePanel onClose={() => setShowProfile(false)} />
+            <ProfilePanel onClose={() => setShowProfile(false)} onNavigate={onNavigate} />
           )}
         </div>
       </div>

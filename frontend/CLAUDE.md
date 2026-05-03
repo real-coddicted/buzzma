@@ -28,9 +28,17 @@ This is a React 18 + TypeScript + Vite + Tailwind CSS v3 marketing dashboard cal
 
 Components that need per-accent Tailwind classes define local lookup maps (e.g. `accentText`, `accentDot`, `accentBar`) as `Record<StatCardAccent, string>` — this keeps full class strings in source so Tailwind's scanner can detect them. Never construct these class names dynamically (e.g. `` `text-neon-${accent}` ``) or they will be purged from the production bundle.
 
-**All shared types** are in `src/types/index.ts`. All mock data is in `src/data/mockData.ts`.
+**Types** are split by domain under `src/types/`:
+- `index.ts` — barrel file; defines `Theme` and `NavPage`, re-exports everything from the domain files. All existing imports from `../types` or `../../types` resolve here.
+- `CampaignTypes.ts` — campaign, stat card, platform, and performance types.
+- `RegisterTypes.ts` — `LoginAs` and `RegisterForm`.
+- When adding new types, create or update the appropriate domain file and let `index.ts` re-export it. Never add domain types directly to `index.ts`. Page-level components should import directly from the domain file (e.g. `from '../types/RegisterTypes'`); shared components may import from `index.ts`.
+
+All mock data is in `src/data/mockData.ts`.
 
 **Component layers:**
 - `src/components/layout/` — `AppLayout` (shell), `Sidebar` (fixed left nav), `Topbar` (fixed top bar).
 - `src/components/ui/` — primitives: `Card`, `Button`, `Badge`, `StatCard`, `NavItem`, `ThemeToggle`, `icons`.
-- `src/pages/` — `Dashboard` and `Campaigns` (page-level compositions, import from ui and data).
+- `src/pages/` — page-level compositions. Each page imports from `ui` and `data`. Pages that contain multiple related sub-views use a **container page** pattern (see below).
+
+**Container page pattern:** when a feature has multiple sub-views (e.g. login + register), create individual leaf pages (`Login.tsx`, `Register.tsx`) and a container page (`Auth.tsx`) that owns the view-switching state and wires the leaves together. The container exposes a single callback to `App.tsx` (e.g. `onAuth`). `App.tsx` only ever imports and renders the container — it has no knowledge of the internal sub-views. Apply this pattern whenever adding a new multi-view feature.

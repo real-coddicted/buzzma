@@ -1,13 +1,13 @@
 package com.coddicted.buzzma.support.web;
 
-import com.coddicted.buzzma.identity.entity.UsersEntity;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.enums.TicketStatus;
 import com.coddicted.buzzma.shared.exception.ApiException;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
-import com.coddicted.buzzma.support.api.TicketsRequestDto;
-import com.coddicted.buzzma.support.api.TicketsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
+import com.coddicted.buzzma.support.api.TicketRequestDto;
+import com.coddicted.buzzma.support.api.TicketResponseDto;
 import com.coddicted.buzzma.support.persistence.TicketCommentsRepository;
 import com.coddicted.buzzma.support.service.TicketDomainService;
 import com.coddicted.buzzma.support.service.TicketService;
@@ -57,26 +57,26 @@ public class TicketsController {
   }
 
   @GetMapping
-  public List<TicketsResponseDto> list(
+  public List<TicketResponseDto> list(
       @RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit,
       @RequestParam(defaultValue = "0") @Min(0) int offset) {
     return service.list(limit, offset);
   }
 
   @GetMapping("/{id}")
-  public TicketsResponseDto getById(@PathVariable UUID id) {
+  public TicketResponseDto getById(@PathVariable UUID id) {
     return service.getById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public TicketsResponseDto create(@Valid @RequestBody TicketsRequestDto request) {
+  public TicketResponseDto create(@Valid @RequestBody TicketRequestDto request) {
     return service.create(request);
   }
 
   @PatchMapping("/{id}")
   @PreAuthorize("isAuthenticated()")
-  public TicketsResponseDto update(
+  public TicketResponseDto update(
       @PathVariable UUID id,
       @RequestBody UpdateTicketRequest request,
       @CurrentUserId UUID actorId) {
@@ -102,8 +102,8 @@ public class TicketsController {
       // fall through to generic update
     }
 
-    TicketsRequestDto dto =
-        TicketsRequestDto.builder().status(status).resolutionNote(request.resolutionNote()).build();
+    TicketRequestDto dto =
+        TicketRequestDto.builder().status(status).resolutionNote(request.resolutionNote()).build();
     return service.update(id, dto);
   }
 
@@ -115,14 +115,14 @@ public class TicketsController {
 
   @PostMapping("/{id}/resolve")
   @PreAuthorize("isAuthenticated()")
-  public TicketsResponseDto resolveTicket(
+  public TicketResponseDto resolveTicket(
       @PathVariable UUID id, @RequestBody Map<String, String> body, @CurrentUserId UUID actorId) {
     return ticketDomainService.resolveTicket(id, body.get("note"), actorId);
   }
 
   @PostMapping("/{id}/reject")
   @PreAuthorize("isAuthenticated()")
-  public TicketsResponseDto rejectTicket(
+  public TicketResponseDto rejectTicket(
       @PathVariable UUID id, @RequestBody Map<String, String> body, @CurrentUserId UUID actorId) {
     return ticketDomainService.rejectTicket(id, body.get("note"), actorId);
   }
@@ -149,11 +149,11 @@ public class TicketsController {
   @PostMapping("/{id}/comments")
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("isAuthenticated()")
-  public TicketCommentsResponseDto addComment(
+  public TicketCommentResponseDto addComment(
       @PathVariable UUID id,
       @Valid @RequestBody AddCommentRequest request,
       @CurrentUserId UUID actorId) {
-    UsersEntity actor =
+    BuzzmaUser actor =
         usersRepository
             .findById(actorId)
             .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "USER_NOT_FOUND"));

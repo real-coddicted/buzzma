@@ -1,15 +1,13 @@
 package com.coddicted.buzzma.identity.persistence;
 
+import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
-import com.coddicted.buzzma.identity.entity.SecurityQuestionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface SecurityQuestionRepository extends JpaRepository<SecurityQuestionEntity, UUID> {
+@Repository
+public interface SecurityQuestionRepository extends JpaRepository<SecurityQuestion, UUID> {
 
-  List<SecurityQuestionEntity> findAllByUserId(UUID userId);
-
-  Optional<SecurityQuestionEntity> findByUserIdAndQuestionId(UUID userId, Integer questionId);
+  List<SecurityQuestion> findAllByIsDeletedFalse();
 }

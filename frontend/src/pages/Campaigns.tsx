@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../components/ui/Card'
-import { Button } from '../components/ui/Button'
 import { StatusBadge, Badge } from '../components/ui/Badge'
-import { IconSearch, IconFilter, IconPlus, IconEdit, IconPlay, IconPause } from '../components/ui/icons'
+import { IconSearch, IconFilter, IconEdit, IconPlay, IconPause } from '../components/ui/icons'
+import { NewCampaignButton, type CampaignRequestDto } from '../components/ui/NewCampaignModal'
 import { campaigns } from '../data/mockData'
 import type { Campaign, CampaignStatus, CampaignChannel } from '../types'
 
@@ -82,6 +82,9 @@ export function Campaigns() {
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortKey>('conversions')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  function handleCreateCampaign(dto: CampaignRequestDto) {
+    console.log('Create campaign:', dto)
+  }
 
   const filtered = useMemo(() => {
     return campaigns
@@ -141,9 +144,7 @@ export function Campaigns() {
             {campaigns.length} total campaigns · {activeCnt} active
           </p>
         </div>
-        <Button variant="primary" leftIcon={<IconPlus size={14} />}>
-          New Campaign
-        </Button>
+        <NewCampaignButton onSubmit={handleCreateCampaign} />
       </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -319,6 +320,8 @@ export function Campaigns() {
           </div>
         </div>
       </Card>
+
+
     </div>
   )
 }

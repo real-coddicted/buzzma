@@ -1,9 +1,20 @@
 package com.coddicted.buzzma.campaign.service;
 
-import com.coddicted.buzzma.campaign.api.CampaignRequestDto;
-import com.coddicted.buzzma.campaign.api.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import java.util.UUID;
 
 public interface CampaignService {
 
-  CampaignResponseDto create(CampaignRequestDto request);
+  Campaign getById(UUID campaignId);
+
+  Campaign create(Campaign campaign);
+
+  Campaign update(Campaign campaign);
+
+  Campaign delete(UUID campaignId, UUID requesterId);
+
+  Campaign action(UUID campaignId, CampaignAction action, UUID requesterId);
+
+  Campaign copy(UUID campaignId, UUID requesterId);
 }

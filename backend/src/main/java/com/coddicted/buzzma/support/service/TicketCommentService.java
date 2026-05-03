@@ -1,19 +1,19 @@
 package com.coddicted.buzzma.support.service;
 
-import com.coddicted.buzzma.support.api.TicketCommentsRequestDto;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentRequestDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
 import java.util.List;
 import java.util.UUID;
 
 public interface TicketCommentService {
 
-  List<TicketCommentsResponseDto> list(int limit, int offset);
+  List<TicketCommentResponseDto> list(int limit, int offset);
 
-  TicketCommentsResponseDto getById(UUID id);
+  TicketCommentResponseDto getById(UUID id);
 
-  TicketCommentsResponseDto create(TicketCommentsRequestDto request);
+  TicketCommentResponseDto create(TicketCommentRequestDto request);
 
-  TicketCommentsResponseDto update(UUID id, TicketCommentsRequestDto request);
+  TicketCommentResponseDto update(UUID id, TicketCommentRequestDto request);
 
   void delete(UUID id);
 }

@@ -1,5 +1,5 @@
 import { NavItem } from '../ui/NavItem'
-import { IconDashboard, IconCampaign, IconSettings, IconLogout } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconFeedback, IconSettings, IconLogout } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 interface SidebarProps {
@@ -57,6 +57,13 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         </div>
 
         <div className="flex-1" />
+
+        <NavItem
+          icon={<IconFeedback />}
+          label="Feedback"
+          active={activePage === 'feedback'}
+          onClick={() => onNavigate('feedback')}
+        />
 
         <SectionLabel label="Account" />
         <div className="flex flex-col gap-1">

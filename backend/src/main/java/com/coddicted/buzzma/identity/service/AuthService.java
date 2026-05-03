@@ -1,36 +1,24 @@
 package com.coddicted.buzzma.identity.service;
 
-import com.coddicted.buzzma.identity.api.auth.ForgotPasswordLookupRequest;
-import com.coddicted.buzzma.identity.api.auth.ForgotPasswordResetRequest;
-import com.coddicted.buzzma.identity.api.auth.LoginRequest;
-import com.coddicted.buzzma.identity.api.auth.LoginResponse;
-import com.coddicted.buzzma.identity.api.auth.RegisterBrandRequest;
-import com.coddicted.buzzma.identity.api.auth.RegisterOpsRequest;
-import com.coddicted.buzzma.identity.api.auth.RegisterRequest;
-import com.coddicted.buzzma.identity.api.auth.SecurityQuestionsRequest;
-import com.coddicted.buzzma.identity.api.auth.UpdateProfileRequest;
-import com.coddicted.buzzma.identity.api.auth.UserSummary;
+import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
+import java.util.List;
 import java.util.UUID;
 
 public interface AuthService {
 
-  LoginResponse register(RegisterRequest request);
+  BuzzmaUser register(
+      BuzzmaUser user,
+      UserCredential userCredential,
+      UserBankingDetail userBankingDetail,
+      List<SecurityAnswer> securityAnswerList,
+      Invite invite,
+      UUID requesterId);
 
-  LoginResponse login(LoginRequest request);
+  BuzzmaUser signIn(BuzzmaUser user, UserCredential userCredential);
 
-  LoginResponse refresh(String refreshToken);
+  List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile, UUID requesterId);
 
-  UserSummary me(UUID userId);
+  boolean resetPassword(String mobile, String newPassword, UUID requesterId);
 
-  LoginResponse registerOps(RegisterOpsRequest request);
-
-  LoginResponse registerBrand(RegisterBrandRequest request);
-
-  UserSummary updateProfile(UUID userId, UpdateProfileRequest request);
-
-  void saveSecurityQuestions(UUID userId, SecurityQuestionsRequest request);
-
-  UserSummary forgotPasswordLookup(ForgotPasswordLookupRequest request);
-
-  void forgotPasswordReset(ForgotPasswordResetRequest request);
+  BuzzmaUser refresh(String refreshToken);
 }

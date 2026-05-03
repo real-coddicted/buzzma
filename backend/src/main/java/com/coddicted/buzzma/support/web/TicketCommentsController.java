@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.support.web;
 
-import com.coddicted.buzzma.support.api.TicketCommentsRequestDto;
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentRequestDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
 import com.coddicted.buzzma.support.service.TicketCommentService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -33,26 +33,26 @@ public class TicketCommentsController {
   }
 
   @GetMapping
-  public List<TicketCommentsResponseDto> list(
+  public List<TicketCommentResponseDto> list(
       @RequestParam(defaultValue = "50") @Min(1) @Max(500) int limit,
       @RequestParam(defaultValue = "0") @Min(0) int offset) {
     return service.list(limit, offset);
   }
 
   @GetMapping("/{id}")
-  public TicketCommentsResponseDto getById(@PathVariable UUID id) {
+  public TicketCommentResponseDto getById(@PathVariable UUID id) {
     return service.getById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public TicketCommentsResponseDto create(@Valid @RequestBody TicketCommentsRequestDto request) {
+  public TicketCommentResponseDto create(@Valid @RequestBody TicketCommentRequestDto request) {
     return service.create(request);
   }
 
   @PatchMapping("/{id}")
-  public TicketCommentsResponseDto update(
-      @PathVariable UUID id, @Valid @RequestBody TicketCommentsRequestDto request) {
+  public TicketCommentResponseDto update(
+      @PathVariable UUID id, @Valid @RequestBody TicketCommentRequestDto request) {
     return service.update(id, request);
   }
 

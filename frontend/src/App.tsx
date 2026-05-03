@@ -2,12 +2,20 @@ import { useState } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
+import { Feedback } from './pages/Feedback'
+import { Profile } from './pages/Profile'
+import { Auth } from './pages/Auth'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage } from './types'
 
 export default function App() {
   const { theme, toggleTheme } = useTheme()
   const [activePage, setActivePage] = useState<NavPage>('dashboard')
+  const [isAuthenticated, setIsAuthenticated] = useState(import.meta.env.DEV)
+
+  if (!isAuthenticated) {
+    return <Auth onAuth={() => setIsAuthenticated(true)} />
+  }
 
   return (
     <AppLayout
@@ -18,6 +26,8 @@ export default function App() {
     >
       {activePage === 'dashboard' && <Dashboard />}
       {activePage === 'campaigns' && <Campaigns />}
+      {activePage === 'feedback' && <Feedback />}
+      {activePage === 'profile' && <Profile />}
     </AppLayout>
   )
 }

@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.shared.security;
 
 import com.coddicted.buzzma.identity.security.JwtAuthenticationFilter;
-import com.coddicted.buzzma.mediator.security.UpstreamSuspensionFilter;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,13 +24,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  private final UpstreamSuspensionFilter upstreamSuspensionFilter;
 
-  public SecurityConfig(
-      JwtAuthenticationFilter jwtAuthenticationFilter,
-      UpstreamSuspensionFilter upstreamSuspensionFilter) {
+  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    this.upstreamSuspensionFilter = upstreamSuspensionFilter;
   }
 
   @Bean
@@ -57,8 +52,7 @@ public class SecurityConfig {
                     .authenticated())
         .exceptionHandling(
             ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .addFilterAfter(upstreamSuspensionFilter, JwtAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 

@@ -1,12 +1,12 @@
 package com.coddicted.buzzma.support.service;
 
-import com.coddicted.buzzma.support.api.TicketCommentsResponseDto;
-import com.coddicted.buzzma.support.api.TicketsResponseDto;
+import com.coddicted.buzzma.support.api.TicketCommentResponseDto;
+import com.coddicted.buzzma.support.api.TicketResponseDto;
 import java.util.UUID;
 
 public interface TicketDomainService {
 
-  TicketsResponseDto createTicket(
+  TicketResponseDto createTicket(
       UUID userId,
       String userName,
       String role,
@@ -16,10 +16,10 @@ public interface TicketDomainService {
       String targetRole,
       String priority);
 
-  TicketsResponseDto resolveTicket(UUID ticketId, String note, UUID resolvedBy);
+  TicketResponseDto resolveTicket(UUID ticketId, String note, UUID resolvedBy);
 
-  TicketsResponseDto rejectTicket(UUID ticketId, String note, UUID rejectedBy);
+  TicketResponseDto rejectTicket(UUID ticketId, String note, UUID rejectedBy);
 
-  TicketCommentsResponseDto addComment(
+  TicketCommentResponseDto addComment(
       UUID ticketId, String message, UUID userId, String userName, String role);
 }
