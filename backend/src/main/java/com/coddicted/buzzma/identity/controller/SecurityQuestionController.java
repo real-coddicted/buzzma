@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/security-questions")
 @Validated
-public class SecurityQuestionsController {
+public class SecurityQuestionController {
 
   private final SecurityQuestionAnswerService service;
   private final SecurityAnswerMapper answerMapper;
 
-  public SecurityQuestionsController(
+  public SecurityQuestionController(
       final SecurityQuestionAnswerService service, final SecurityAnswerMapper answerMapper) {
     this.service = service;
     this.answerMapper = answerMapper;

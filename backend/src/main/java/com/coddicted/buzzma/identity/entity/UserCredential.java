@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +23,8 @@ import org.hibernate.annotations.UuidGenerator;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class UserCredential implements Auditable {
   @Id
   @GeneratedValue

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
+import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.persistence.SecurityAnswerRepository;
 import com.coddicted.buzzma.identity.persistence.SecurityQuestionRepository;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
@@ -76,6 +77,11 @@ public class SecurityQuestionAnswerServiceImpl extends BaseCrudService
                         .build())
             .toList();
     return answerRepository.saveAll(hashed);
+  }
+
+  @Override
+  public List<SecurityQuestionWrapper> getSecurityQuestionsByUserId(UUID userId) {
+    return this.answerRepository.findSecurityQuestionByUserId(userId);
   }
 
   @Override

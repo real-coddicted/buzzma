@@ -9,9 +9,13 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class ForgotPasswordLookupRequest {
+public class PasswordResetRequestDto {
 
   @NotBlank
   @Size(min = 10, max = 10)
   String mobile;
+
+  @NotBlank
+  @Size(min = 8, max = 200)
+  String newPassword;
 }

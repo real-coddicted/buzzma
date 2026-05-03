@@ -5,6 +5,7 @@ import com.coddicted.buzzma.identity.mapper.UsersMapper;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,5 +38,12 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   public BuzzmaUser update(BuzzmaUser entity) {
     BuzzmaUser existingEntity = mustFind(repository, entity.getId(), "Users");
     return repository.save(entity);
+  }
+
+  @Override
+  public BuzzmaUser getByMobile(String mobile) {
+    return this.repository
+        .findByMobileAndIsDeletedFalse(mobile)
+        .orElseThrow(() -> new NotFoundException("user" + " not found: " + mobile));
   }
 }

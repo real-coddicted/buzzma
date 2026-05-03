@@ -11,6 +11,8 @@ public interface UserService {
 
   BuzzmaUser update(BuzzmaUser user);
 
+  BuzzmaUser getByMobile(String mobile);
+
   //    void delete(UUID id, UUID requesterId);
   //
   //    boolean existsByMobile(String mobile);
