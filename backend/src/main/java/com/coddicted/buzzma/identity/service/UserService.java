@@ -13,7 +13,7 @@ public interface UserService {
 
   BuzzmaUser getByMobile(String mobile);
 
-  //    void delete(UUID id, UUID requesterId);
-  //
-  //    boolean existsByMobile(String mobile);
+  void delete(UUID id, UUID requesterId);
+
+  boolean existsByMobile(String mobile);
 }

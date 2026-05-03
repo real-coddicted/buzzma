@@ -6,13 +6,13 @@ import java.util.UUID;
 
 public interface AuthService {
 
-  //  BuzzmaUser register(
-  //      BuzzmaUser user,
-  //      UserCredential userCredential,
-  //      UserBankingDetails userBankingDetails,
-  //      SecurityAnswer securityAnswer,
-  //      Invite invite,
-  //      UUID requesterId);
+    BuzzmaUser register(
+        BuzzmaUser user,
+        UserCredential userCredential,
+        UserBankingDetail userBankingDetail,
+        List<SecurityAnswer> securityAnswerList,
+        Invite invite,
+        UUID requesterId);
 
   List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile, UUID requesterId);
 

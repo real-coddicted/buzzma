@@ -85,6 +85,11 @@ public class InviteServiceImpl extends BaseCrudService implements InviteService 
     inviteRepository.save(invite.toBuilder().isDeleted(true).updatedBy(requesterId).build());
   }
 
+  @Override
+  public boolean verify(UserRole inviteeRole, String inviteCode) {
+    return !inviteRepository.existsByRoleAndCodeAndIsDeletedFalse(inviteeRole, inviteCode);
+  }
+
   private String generateUniqueCode() {
     String code;
     do {

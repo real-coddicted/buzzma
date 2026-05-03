@@ -7,10 +7,11 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import java.time.Instant;
 import java.util.UUID;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
@@ -19,7 +20,9 @@ import org.hibernate.annotations.UuidGenerator;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserBankingDetails {
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class UserBankingDetail {
 
   @Id
   @GeneratedValue
@@ -38,4 +41,20 @@ public class UserBankingDetails {
 
   @Column(name = "account_holder_name")
   private String accountHolderName;
+
+  // Audit fields
+  @Column(name = "created_by")
+  private UUID createdBy;
+
+  @Column(name = "updated_by")
+  private UUID updatedBy;
+
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
+
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
+
+  @Column(name = "is_deleted", nullable = false)
+  private Boolean isDeleted = false;
 }

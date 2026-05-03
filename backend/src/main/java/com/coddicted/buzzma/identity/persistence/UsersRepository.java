@@ -13,5 +13,5 @@ public interface UsersRepository extends JpaRepository<BuzzmaUser, UUID> {
 
   Optional<BuzzmaUser> findByMobileAndIsDeletedFalse(String mobile);
 
-  boolean existsUserByMobile(String mobile);
+  boolean existsUserByMobileAndIsDeletedFalse(String mobile);
 }
