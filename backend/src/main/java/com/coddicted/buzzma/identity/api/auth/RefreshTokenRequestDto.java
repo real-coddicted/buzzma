@@ -8,6 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class RefreshRequest {
+public class RefreshTokenRequestDto {
+
   @NotBlank String refreshToken;
 }

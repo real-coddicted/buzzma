@@ -20,4 +20,6 @@ public interface AuthService {
     List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile, UUID requesterId);
 
     boolean resetPassword(String mobile, String newPassword, UUID requesterId);
+
+    BuzzmaUser refresh(String refreshToken);
 }

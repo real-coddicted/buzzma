@@ -98,6 +98,12 @@ public class AuthServiceImpl implements AuthService {
         return existingUser;
     }
 
+    @Override
+    public BuzzmaUser refresh(final String refreshToken) {
+        final UUID userId = jwtService.validateRefreshToken(refreshToken);
+        return userService.getById(userId);
+    }
+
     private boolean canRegister(final BuzzmaUser user,
                                 final UserCredential userCredential,
                                 final UserBankingDetail userBankingDetail,
