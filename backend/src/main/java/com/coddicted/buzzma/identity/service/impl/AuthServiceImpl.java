@@ -1,7 +1,19 @@
 package com.coddicted.buzzma.identity.service.impl;
 
-import com.coddicted.buzzma.identity.entity.*;
-import com.coddicted.buzzma.identity.service.*;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.Invite;
+import com.coddicted.buzzma.identity.entity.SecurityAnswer;
+import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
+import com.coddicted.buzzma.identity.entity.UserBankingDetail;
+import com.coddicted.buzzma.identity.entity.UserCredential;
+import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.service.AuthService;
+import com.coddicted.buzzma.identity.service.InviteService;
+import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
+import com.coddicted.buzzma.identity.service.UserBankingDetailService;
+import com.coddicted.buzzma.identity.service.UserCredentialService;
+import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -75,6 +87,15 @@ public class AuthServiceImpl implements AuthService {
 
 
         return null;
+    }
+
+    @Override
+    public BuzzmaUser signIn(final BuzzmaUser user, final UserCredential userCredential) {
+        final BuzzmaUser existingUser = userService.getByMobile(user.getMobile());
+        if (!userCredentialService.verify(existingUser.getId(), userCredential.getPasswordHash())) {
+            throw new ForbiddenException("Invalid credentials");
+        }
+        return existingUser;
     }
 
     private boolean canRegister(final BuzzmaUser user,

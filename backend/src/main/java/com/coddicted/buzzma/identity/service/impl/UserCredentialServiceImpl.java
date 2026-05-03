@@ -76,9 +76,10 @@ public class UserCredentialServiceImpl extends BaseCrudService implements UserCr
   @Override
   @Transactional(readOnly = true)
   public boolean verify(final UUID userId, final String password) {
+    final String hashedPassword = passwordService.hashPassword(password);
     return credentialRepository
         .findByUserIdAndIsDeletedFalse(userId)
-        .map(c -> passwordService.verifyPassword(password, c.getPasswordHash()))
+        .map(c -> passwordService.verifyPassword(hashedPassword, c.getPasswordHash()))
         .orElse(false);
   }
 }
