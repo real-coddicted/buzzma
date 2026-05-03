@@ -11,8 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class UserSignInRequestDto {
 
-  @NotBlank
-  String mobile;
+  @NotBlank String mobile;
 
   @Size(min = 8, max = 200)
   String password;

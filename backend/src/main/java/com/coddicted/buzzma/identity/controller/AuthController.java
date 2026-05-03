@@ -49,7 +49,8 @@ public class AuthController {
 
   @PostMapping("/sign-in")
   public UserSignInResponseDto signIn(@Valid @RequestBody final UserSignInRequestDto request) {
-    final BuzzmaUser user = authService.signIn(authMapper.toUser(request), authMapper.toCredential(request));
+    final BuzzmaUser user =
+        authService.signIn(authMapper.toUser(request), authMapper.toCredential(request));
     return buildUserSignInResponse(user);
   }
 

@@ -94,6 +94,10 @@ checkstyle {
   checkstyleTest.enabled = false
 }
 
+tasks.named('check') {
+  dependsOn 'spotlessCheck'
+}
+
 tasks.named('test') {
   useJUnitPlatform()
   // Docker 25+ rejects docker-java's default API version; pin to a supported one.
