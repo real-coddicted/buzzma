@@ -1,6 +1,5 @@
-package com.coddicted.buzzma.support.api;
+package com.coddicted.buzzma.support.dto;
 
-import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
@@ -13,18 +12,8 @@ import lombok.extern.jackson.Jacksonized;
 public class TicketCommentResponseDto {
 
   UUID id;
-
   UUID ticketId;
-
-  UUID userId;
-
-  String userName;
-
-  String role;
-
-  String message;
-
-  Boolean isDeleted;
-
-  @Nullable Instant createdAt;
+  UUID authorId;
+  String content;
+  Instant createdAt;
 }

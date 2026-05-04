@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.support.api;
+package com.coddicted.buzzma.support.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -12,15 +12,9 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class TicketCommentRequestDto {
 
-  UUID ticketId;
-
-  UUID userId;
-
-  @NotBlank String userName;
-
-  @NotBlank String role;
+  @NotBlank UUID ticketId;
 
   @NotBlank
   @Size(max = 2000)
-  String message;
+  String content;
 }
