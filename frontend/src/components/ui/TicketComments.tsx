@@ -99,12 +99,12 @@ export function TicketComments({ ticket }: Props) {
                   className={[
                     'rounded-lg px-3 py-2.5 border text-xs',
                     isSupport
-                      ? 'bg-neon-blue/5 border-neon-blue/20'
-                      : 'bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border',
+                      ? 'bg-neon-pink/5 border-neon-pink/20'
+                      : 'bg-neon-orange/5 border-neon-orange/20',
                   ].join(' ')}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className={['font-semibold', isSupport ? 'text-neon-blue' : 'text-ink-light-primary dark:text-ink-dark-primary'].join(' ')}>
+                    <span className={['font-semibold', isSupport ? 'text-neon-pink' : 'text-neon-orange'].join(' ')}>
                       {c.userName}
                     </span>
                     <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted">
@@ -146,7 +146,7 @@ export function TicketComments({ ticket }: Props) {
               : <span />
             }
             <Button
-              variant="primary"
+              variant="orange"
               size="sm"
               loading={posting}
               disabled={!newMessage.trim()}
