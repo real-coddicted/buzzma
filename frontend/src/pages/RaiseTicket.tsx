@@ -1,17 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { IconCheck } from '../components/ui/icons'
-
-type TicketCategory = 'bug' | 'feature' | 'billing' | 'access' | 'other'
-
-const CATEGORIES: { value: TicketCategory; label: string }[] = [
-  { value: 'bug',     label: 'Bug / Error' },
-  { value: 'feature', label: 'Feature Request' },
-  { value: 'billing', label: 'Billing' },
-  { value: 'access',  label: 'Access / Permissions' },
-  { value: 'other',   label: 'Other' },
-]
+import { fetchTicketCategories } from '../api/ticketApi'
+import type { TicketCategory } from '../types/TicketTypes'
 
 const labelClass =
   'block text-[11px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted mb-1.5'
@@ -27,11 +19,10 @@ const inputClass = [
 const errorClass = 'text-[10px] text-neon-red mt-1'
 
 const EMPTY = {
-  title: '',
-  category: '' as TicketCategory | '',
+  categoryId: '',
+  subCategoryId: '',
+  orderId: '',
   description: '',
-  stepsToReproduce: '',
-  email: '',
 }
 
 export function RaiseTicket() {
@@ -39,19 +30,38 @@ export function RaiseTicket() {
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState<TicketCategory[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoriesError, setCategoriesError] = useState(false)
+
+  useEffect(() => {
+    fetchTicketCategories()
+      .then(setCategories)
+      .catch(() => setCategoriesError(true))
+      .finally(() => setCategoriesLoading(false))
+  }, [])
+
+  const selectedCategory = categories.find(c => c.id === form.categoryId)
+  const subCategories = selectedCategory?.subCategories ?? []
+  const selectedSubCategory = subCategories.find(s => s.id === form.subCategoryId)
+  const showOrderId = selectedSubCategory?.requiresOrderId ?? false
 
   function set(field: keyof typeof EMPTY, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm(prev => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'categoryId' ? { subCategoryId: '', orderId: '' } : {}),
+    }))
     setErrors(prev => ({ ...prev, [field]: undefined }))
   }
 
   function validate() {
     const e: Partial<Record<string, string>> = {}
-    if (!form.title.trim())       e.title = 'Required'
-    if (!form.category)           e.category = 'Required'
-    if (!form.description.trim()) e.description = 'Required'
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = 'Enter a valid email'
+    if (!form.categoryId)           e.categoryId = 'Required'
+    if (subCategories.length > 0 && !form.subCategoryId) e.subCategoryId = 'Required'
+    if (showOrderId && !form.orderId.trim()) e.orderId = 'Required'
+    if (!form.description.trim())   e.description = 'Required'
+
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -98,34 +108,62 @@ export function RaiseTicket() {
 
       <Card>
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          {/* Title */}
-          <div>
-            <label className={labelClass}>Subject *</label>
-            <input
-              className={inputClass}
-              type="text"
-              placeholder="Brief summary of the issue"
-              value={form.title}
-              onChange={e => set('title', e.target.value)}
-            />
-            {errors.title && <p className={errorClass}>{errors.title}</p>}
+
+          {/* Category + Sub-category */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Category *</label>
+              <select
+                className={inputClass}
+                value={form.categoryId}
+                onChange={e => set('categoryId', e.target.value)}
+                disabled={categoriesLoading}
+              >
+                <option value="">
+                  {categoriesLoading ? 'Loading…' : categoriesError ? 'Failed to load' : '— Select —'}
+                </option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.displayName}</option>
+                ))}
+              </select>
+              {errors.categoryId && <p className={errorClass}>{errors.categoryId}</p>}
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Sub-category{subCategories.length > 0 ? ' *' : ''}
+              </label>
+              <select
+                className={inputClass}
+                value={form.subCategoryId}
+                onChange={e => set('subCategoryId', e.target.value)}
+                disabled={!form.categoryId || subCategories.length === 0}
+              >
+                <option value="">
+                  {!form.categoryId ? '— Select category first —' : subCategories.length === 0 ? '— None —' : '— Select —'}
+                </option>
+                {subCategories.map(s => (
+                  <option key={s.id} value={s.id}>{s.displayName}</option>
+                ))}
+              </select>
+              {errors.subCategoryId && <p className={errorClass}>{errors.subCategoryId}</p>}
+            </div>
           </div>
 
-          {/* Category */}
-          <div>
-            <label className={labelClass}>Category *</label>
-            <select
-              className={inputClass}
-              value={form.category}
-              onChange={e => set('category', e.target.value)}
-            >
-              <option value="">— Select —</option>
-              {CATEGORIES.map(c => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-            {errors.category && <p className={errorClass}>{errors.category}</p>}
-          </div>
+          {/* Order ID */}
+          {showOrderId && (
+            <div>
+              <label className={labelClass}>Order ID *</label>
+              <input
+                className={inputClass}
+                type="text"
+                placeholder="e.g. ORD-123456"
+                value={form.orderId}
+                onChange={e => set('orderId', e.target.value)}
+              />
+              {errors.orderId && <p className={errorClass}>{errors.orderId}</p>}
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -140,30 +178,6 @@ export function RaiseTicket() {
             {errors.description && <p className={errorClass}>{errors.description}</p>}
           </div>
 
-          {/* Steps to reproduce */}
-          <div>
-            <label className={labelClass}>Steps to reproduce <span className="normal-case font-normal">(optional)</span></label>
-            <textarea
-              className={[inputClass, 'resize-none'].join(' ')}
-              rows={3}
-              placeholder="1. Go to…&#10;2. Click on…&#10;3. See error"
-              value={form.stepsToReproduce}
-              onChange={e => set('stepsToReproduce', e.target.value)}
-            />
-          </div>
-
-          {/* Contact email */}
-          <div>
-            <label className={labelClass}>Contact email <span className="normal-case font-normal">(optional)</span></label>
-            <input
-              className={inputClass}
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={e => set('email', e.target.value)}
-            />
-            {errors.email && <p className={errorClass}>{errors.email}</p>}
-          </div>
 
           <div className="flex justify-end pt-1">
             <Button type="submit" variant="primary" size="sm" loading={loading}>
