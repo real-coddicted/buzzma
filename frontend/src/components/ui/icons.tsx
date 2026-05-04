@@ -261,3 +261,25 @@ export function IconFeedback({ size = 18, ...p }: IconProps) {
     </svg>
   )
 }
+
+export function IconTicket({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M2 9V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4Z" />
+      <path d="M10 12h4M10 8h4M10 16h4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function IconList({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <line x1="8" y1="6" x2="21" y2="6" strokeLinecap="round" />
+      <line x1="8" y1="12" x2="21" y2="12" strokeLinecap="round" />
+      <line x1="8" y1="18" x2="21" y2="18" strokeLinecap="round" />
+      <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
