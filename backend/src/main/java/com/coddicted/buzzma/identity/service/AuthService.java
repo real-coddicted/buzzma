@@ -1,6 +1,11 @@
 package com.coddicted.buzzma.identity.service;
 
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.Invite;
+import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
+import com.coddicted.buzzma.identity.entity.UserBankingDetail;
+import com.coddicted.buzzma.identity.entity.UserCredential;
 import java.util.List;
 import java.util.UUID;
 
