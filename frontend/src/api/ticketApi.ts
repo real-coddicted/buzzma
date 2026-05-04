@@ -142,3 +142,20 @@ export async function fetchTicketComments(ticketId: string): Promise<TicketComme
   await new Promise(resolve => setTimeout(resolve, 350))
   return MOCK_COMMENTS[ticketId] ?? []
 }
+
+export async function postTicketComment(ticketId: string, message: string): Promise<TicketComment> {
+  await new Promise(resolve => setTimeout(resolve, 400))
+  const comment: TicketComment = {
+    id: `c-${Date.now()}`,
+    userId: 'u-2',
+    userName: 'Alex Rivera',
+    role: 'shopper',
+    message,
+    createdAt: new Date().toISOString(),
+  }
+  if (!MOCK_COMMENTS[ticketId]) {
+    MOCK_COMMENTS[ticketId] = []
+  }
+  MOCK_COMMENTS[ticketId].push(comment)
+  return comment
+}
