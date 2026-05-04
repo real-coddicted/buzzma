@@ -22,6 +22,7 @@ export function TicketComments({ ticket }: Props) {
   const [commentsError, setCommentsError] = useState(false)
   const [newMessage, setNewMessage] = useState('')
   const [posting, setPosting] = useState(false)
+  const [postError, setPostError] = useState(false)
   const listEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,10 +42,13 @@ export function TicketComments({ ticket }: Props) {
     const msg = newMessage.trim()
     if (!msg) return
     setPosting(true)
+    setPostError(false)
     try {
       const comment = await postTicketComment(ticket.id, msg)
       setComments(prev => [...prev, comment])
       setNewMessage('')
+    } catch {
+      setPostError(true)
     } finally {
       setPosting(false)
     }
@@ -136,7 +140,11 @@ export function TicketComments({ ticket }: Props) {
             onKeyDown={handleKeyDown}
             disabled={posting}
           />
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            {postError
+              ? <p className="text-[10px] text-neon-red">Failed to send. Please try again.</p>
+              : <span />
+            }
             <Button
               variant="primary"
               size="sm"

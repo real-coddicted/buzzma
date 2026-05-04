@@ -143,7 +143,7 @@ export async function fetchTicketComments(ticketId: string): Promise<TicketComme
   return MOCK_COMMENTS[ticketId] ?? []
 }
 
-export async function postTicketComment(ticketId: string, message: string): Promise<TicketComment> {
+export async function postTicketComment(_ticketId: string, message: string): Promise<TicketComment> {
   await new Promise(resolve => setTimeout(resolve, 400))
   const comment: TicketComment = {
     id: `c-${Date.now()}`,
@@ -153,9 +153,5 @@ export async function postTicketComment(ticketId: string, message: string): Prom
     message,
     createdAt: new Date().toISOString(),
   }
-  if (!MOCK_COMMENTS[ticketId]) {
-    MOCK_COMMENTS[ticketId] = []
-  }
-  MOCK_COMMENTS[ticketId].push(comment)
   return comment
 }
