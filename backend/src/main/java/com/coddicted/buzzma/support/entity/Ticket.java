@@ -1,8 +1,7 @@
-package com.coddicted.buzzma.support.persistence;
+package com.coddicted.buzzma.support.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
-import com.coddicted.buzzma.shared.enums.TicketStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -13,6 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +25,9 @@ import org.hibernate.annotations.UuidGenerator;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TicketsEntity implements Auditable {
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class Ticket implements Auditable {
 
   @Id
   @GeneratedValue
@@ -32,42 +35,27 @@ public class TicketsEntity implements Auditable {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id;
 
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  @Column(name = "category_id", nullable = false)
+  private UUID categoryId;
 
-  @Column(name = "user_name", nullable = false)
-  private String userName;
+  @Column(name = "sub_category_id", nullable = false)
+  private UUID subCategoryId;
 
-  @Column(name = "role", nullable = false)
-  private String role;
+  @Column(name = "raised_by", nullable = false)
+  private UUID raisedBy;
+
+  @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+  private String description;
 
   @Column(name = "order_id")
   private String orderId;
 
-  @Column(name = "issue_type", nullable = false)
-  private String issueType;
-
-  @Column(name = "description", nullable = false)
-  private String description;
-
   @Enumerated(EnumType.STRING)
-  @Column(name = "status")
-  private TicketStatus status = TicketStatus.Open;
+  @Column(name = "status", nullable = false, length = 100)
+  private TicketStatus status;
 
-  @Column(name = "target_role")
-  private String targetRole;
-
-  @Column(name = "priority")
-  private String priority = "medium";
-
-  @Column(name = "resolved_by")
-  private UUID resolvedBy;
-
-  @Column(name = "resolved_at")
-  private Instant resolvedAt;
-
-  @Column(name = "resolution_note", length = 1000)
-  private String resolutionNote;
+  @Column(name = "assignee_id")
+  private UUID assigneeId;
 
   @Column(name = "created_by")
   private UUID createdBy;
@@ -75,12 +63,12 @@ public class TicketsEntity implements Auditable {
   @Column(name = "updated_by")
   private UUID updatedBy;
 
-  @Column(name = "is_deleted", nullable = false)
-  private Boolean isDeleted = false;
-
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
+
+  @Column(name = "deleted", nullable = false)
+  private Boolean isDeleted;
 }
