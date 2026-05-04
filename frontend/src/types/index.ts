@@ -1,6 +1,6 @@
 export type Theme = 'light' | 'dark'
 
-export type NavPage = 'dashboard' | 'campaigns' | 'feedback' | 'profile' | 'raise-ticket'
+export type NavPage = 'dashboard' | 'campaigns' | 'feedback' | 'profile' | 'raise-ticket' | 'my-tickets'
 
 export * from './CampaignTypes'
 export * from './RegisterTypes'

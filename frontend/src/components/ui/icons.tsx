@@ -270,3 +270,16 @@ export function IconTicket({ size = 18, ...p }: IconProps) {
     </svg>
   )
 }
+
+export function IconList({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <line x1="8" y1="6" x2="21" y2="6" strokeLinecap="round" />
+      <line x1="8" y1="12" x2="21" y2="12" strokeLinecap="round" />
+      <line x1="8" y1="18" x2="21" y2="18" strokeLinecap="round" />
+      <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}

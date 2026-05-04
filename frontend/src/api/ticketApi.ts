@@ -1,4 +1,4 @@
-import type { TicketCategory } from '../types/TicketTypes'
+import type { Ticket, TicketCategory, TicketComment } from '../types/TicketTypes'
 
 const MOCK_CATEGORIES: TicketCategory[] = [
   {
@@ -57,4 +57,88 @@ const MOCK_CATEGORIES: TicketCategory[] = [
 export async function fetchTicketCategories(): Promise<TicketCategory[]> {
   await new Promise(resolve => setTimeout(resolve, 400))
   return MOCK_CATEGORIES
+}
+
+const MOCK_TICKETS: Ticket[] = [
+  {
+    id: 'tkt-001',
+    categoryDisplayName: 'Order Issue',
+    subCategoryDisplayName: 'Missing Item',
+    orderId: 'ORD-100234',
+    description: 'I placed an order last week but one of the items was missing from the delivery.',
+    status: 'Open',
+    createdAt: '2026-04-20T10:30:00Z',
+    updatedAt: '2026-04-20T10:30:00Z',
+  },
+  {
+    id: 'tkt-002',
+    categoryDisplayName: 'Payment & Billing',
+    subCategoryDisplayName: 'Refund Request',
+    orderId: 'ORD-99871',
+    description: 'I returned the product two weeks ago but have not received the refund yet.',
+    status: 'InProgress',
+    createdAt: '2026-04-15T08:14:00Z',
+    updatedAt: '2026-04-18T14:22:00Z',
+  },
+  {
+    id: 'tkt-003',
+    categoryDisplayName: 'Account & Access',
+    subCategoryDisplayName: 'Login Issue',
+    orderId: null,
+    description: 'Unable to log in after changing my phone number.',
+    status: 'Resolved',
+    createdAt: '2026-04-10T17:45:00Z',
+    updatedAt: '2026-04-12T09:00:00Z',
+  },
+  {
+    id: 'tkt-004',
+    categoryDisplayName: 'Campaign',
+    subCategoryDisplayName: 'Commission Dispute',
+    orderId: 'ORD-88820',
+    description: 'Commission for order ORD-88820 was not credited to my account after campaign completion.',
+    status: 'Rejected',
+    createdAt: '2026-04-05T12:00:00Z',
+    updatedAt: '2026-04-07T16:30:00Z',
+  },
+  {
+    id: 'tkt-005',
+    categoryDisplayName: 'Order Issue',
+    subCategoryDisplayName: 'Damaged Item',
+    orderId: 'ORD-112045',
+    description: 'The product arrived with visible damage to the packaging and the item inside.',
+    status: 'Open',
+    createdAt: '2026-04-25T09:00:00Z',
+    updatedAt: '2026-04-25T09:00:00Z',
+  },
+]
+
+export async function fetchMyTickets(): Promise<Ticket[]> {
+  await new Promise(resolve => setTimeout(resolve, 500))
+  return MOCK_TICKETS
+}
+
+const MOCK_COMMENTS: Record<string, TicketComment[]> = {
+  'tkt-001': [
+    { id: 'c-1-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Hi, could you please share the order confirmation number?', createdAt: '2026-04-20T11:00:00Z' },
+    { id: 'c-1-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: 'Sure, it is ORD-100234. The missing item was the phone case.', createdAt: '2026-04-20T11:45:00Z' },
+    { id: 'c-1-3', userId: 'u-1', userName: 'Support Agent', role: 'support', message: "We've raised a replacement request. You'll receive it within 3–5 business days.", createdAt: '2026-04-21T09:10:00Z' },
+  ],
+  'tkt-002': [
+    { id: 'c-2-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'We can see the return was received. The refund is being processed.', createdAt: '2026-04-16T10:00:00Z' },
+    { id: 'c-2-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: 'How long will it take to reflect in my account?', createdAt: '2026-04-16T10:30:00Z' },
+    { id: 'c-2-3', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Typically 5–7 business days depending on your bank.', createdAt: '2026-04-16T11:00:00Z' },
+  ],
+  'tkt-003': [
+    { id: 'c-3-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Your account has been unlinked from the old number. Please try logging in with OTP on the new number.', createdAt: '2026-04-11T08:00:00Z' },
+    { id: 'c-3-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: "It's working now, thank you!", createdAt: '2026-04-11T08:30:00Z' },
+  ],
+  'tkt-004': [],
+  'tkt-005': [
+    { id: 'c-5-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Please share a photo of the damaged packaging so we can escalate this.', createdAt: '2026-04-25T10:00:00Z' },
+  ],
+}
+
+export async function fetchTicketComments(ticketId: string): Promise<TicketComment[]> {
+  await new Promise(resolve => setTimeout(resolve, 350))
+  return MOCK_COMMENTS[ticketId] ?? []
 }

@@ -9,6 +9,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   feedback:      { title: 'Feedback',       subtitle: 'Share your thoughts on Pulse' },
   profile:       { title: 'Profile',        subtitle: 'Your account details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
+  'my-tickets':   { title: 'My Tickets',     subtitle: 'Track the status of your support tickets' },
 }
 
 interface TopbarProps {
