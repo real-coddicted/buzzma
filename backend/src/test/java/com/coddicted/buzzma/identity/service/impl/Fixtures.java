@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.util.FileUtils;
 import java.util.UUID;
 
@@ -27,6 +28,20 @@ public final class Fixtures {
   static final BuzzmaUser EXPECTED_USER_2 =
       FileUtils.loadResourceAsObject(
           "/fixtures/output/identity/buzzma-user-2.json", BuzzmaUser.class);
+
+  static final String PLAIN_PASSWORD = "plain-password";
+
+  static final String STORED_HASH = "stored-hash";
+
+  static final String NEW_HASH = "new-hashed-password";
+
+  static final UserCredential USER_CREDENTIAL_1 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/user-credential-1.json", UserCredential.class);
+
+  static final UserCredential USER_CREDENTIAL_2 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/user-credential-2.json", UserCredential.class);
 
   private Fixtures() {}
 }
