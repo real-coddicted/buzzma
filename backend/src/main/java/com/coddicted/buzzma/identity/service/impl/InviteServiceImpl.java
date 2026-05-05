@@ -11,90 +11,97 @@ import com.coddicted.buzzma.shared.common.CodeGenerator;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
-import java.time.LocalDate;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Service
 public class InviteServiceImpl extends BaseCrudService implements InviteService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(InviteServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InviteServiceImpl.class);
 
-  private final InviteRepository inviteRepository;
-  private final CodeGenerator codeGenerator;
+    private final InviteRepository inviteRepository;
+    private final CodeGenerator codeGenerator;
 
-  public InviteServiceImpl(
-      final InviteRepository inviteRepository, final CodeGenerator codeGenerator) {
-    this.inviteRepository = inviteRepository;
-    this.codeGenerator = codeGenerator;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Invite getByRoleAndCode(final UserRole inviteeRole, final String inviteCode) {
-    return inviteRepository
-        .findByRoleAndCodeAndIsDeletedFalse(inviteeRole, inviteCode)
-        .orElseThrow(() -> new NotFoundException("Invite not found: " + inviteCode));
-  }
-
-  @Override
-  @Transactional
-  public Invite create(final Invite invite, final UUID requesterId) {
-    final String code = generateUniqueCode();
-    return inviteRepository.save(
-        invite.toBuilder()
-            .code(code)
-            .status(InviteStatus.INVITE_STATUS_ACTIVE)
-            .ownerId(requesterId)
-            .createdBy(requesterId)
-            .updatedBy(requesterId)
-            .build());
-  }
-
-  @Override
-  @Transactional
-  public void consume(final Invite invite, final UUID requesterId) {
-    if (invite.getIsDeleted()) {
-      LOG.warn("Invite verification failed: invite {} is deleted", invite.getCode());
-      throw new BusinessRuleViolationException("Invite is not valid");
+    public InviteServiceImpl(
+            final InviteRepository inviteRepository, final CodeGenerator codeGenerator) {
+        this.inviteRepository = inviteRepository;
+        this.codeGenerator = codeGenerator;
     }
-    if (invite.getStatus() != InviteStatus.INVITE_STATUS_ACTIVE) {
-      LOG.warn(
-          "Invite verification failed: invite {} has status {}",
-          invite.getCode(),
-          invite.getStatus());
-      throw new BusinessRuleViolationException("Invite is not active");
+
+    @Override
+    @Transactional(readOnly = true)
+    public Invite getByRoleAndCode(final UserRole inviteeRole, final String inviteCode) {
+        return fetchByRoleAndCode(inviteeRole, inviteCode);
     }
-    final LocalDate validTo = DateTimeUtils.toLocalDate(invite.getValidTo());
-    if (validTo.isBefore(LocalDate.now())) {
-      LOG.warn("Invite verification failed: invite {} expired on {}", invite.getCode(), validTo);
-      throw new BusinessRuleViolationException("Invite has expired");
+
+    @Override
+    @Transactional
+    public Invite create(final Invite invite, final UUID requesterId) {
+        final String code = generateUniqueCode();
+        return this.inviteRepository.save(
+                invite.toBuilder()
+                        .code(code)
+                        .status(InviteStatus.INVITE_STATUS_ACTIVE)
+                        .ownerId(requesterId)
+                        .createdBy(requesterId)
+                        .updatedBy(requesterId)
+                        .build());
     }
-    inviteRepository.save(
-        invite.toBuilder().status(InviteStatus.INVITE_STATUS_USED).updatedBy(requesterId).build());
-    LOG.debug("Invite consumed: code={}", invite.getCode());
-  }
 
-  @Override
-  @Transactional
-  public void delete(final UUID id, final UUID requesterId) {
-    final Invite invite = mustFind(inviteRepository, id, "Invite");
-    inviteRepository.save(invite.toBuilder().isDeleted(true).updatedBy(requesterId).build());
-  }
+    @Override
+    @Transactional
+    public void consume(final Invite invite, final UUID requesterId) {
+        if (invite.getIsDeleted()) {
+            LOG.warn("Invite verification failed: invite {} is deleted", invite.getCode());
+            throw new BusinessRuleViolationException("Invite is not valid");
+        }
+        if (invite.getStatus() != InviteStatus.INVITE_STATUS_ACTIVE) {
+            LOG.warn(
+                    "Invite verification failed: invite {} has status {}",
+                    invite.getCode(),
+                    invite.getStatus());
+            throw new BusinessRuleViolationException("Invite is not active");
+        }
+        final LocalDate validTo = DateTimeUtils.toLocalDate(invite.getValidTo());
+        if (validTo.isBefore(LocalDate.now())) {
+            LOG.warn("Invite verification failed: invite {} expired on {}", invite.getCode(), validTo);
+            throw new BusinessRuleViolationException("Invite has expired");
+        }
+        this.inviteRepository.save(
+                invite.toBuilder().status(InviteStatus.INVITE_STATUS_USED).updatedBy(requesterId).build());
+        LOG.debug("Invite consumed: code={}", invite.getCode());
+    }
 
-  @Override
-  public boolean verify(UserRole inviteeRole, String inviteCode) {
-    return !inviteRepository.existsByRoleAndCodeAndIsDeletedFalse(inviteeRole, inviteCode);
-  }
+    @Override
+    @Transactional
+    public void delete(final UUID id, final UUID requesterId) {
+        final Invite invite = mustFind(this.inviteRepository, id, "Invite");
+        this.inviteRepository.save(invite.toBuilder().isDeleted(true).updatedBy(requesterId).build());
+    }
 
-  private String generateUniqueCode() {
-    String code;
-    do {
-      code = codeGenerator.generateHumanCode(WellKnownInvitePrefix.GENERAL_INVITE_PREFIX);
-    } while (inviteRepository.existsByCode(code));
-    return code;
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public boolean verify(final UserRole inviteeRole, final String inviteCode) {
+        return fetchByRoleAndCode(inviteeRole, inviteCode).getStatus()
+                == InviteStatus.INVITE_STATUS_ACTIVE;
+    }
+
+    private Invite fetchByRoleAndCode(final UserRole inviteeRole, final String inviteCode) {
+        return this.inviteRepository
+                .findByRoleAndCodeAndIsDeletedFalse(inviteeRole, inviteCode)
+                .orElseThrow(() -> new NotFoundException("Invite not found: " + inviteCode));
+    }
+
+    private String generateUniqueCode() {
+        String code;
+        do {
+            code = this.codeGenerator.generateHumanCode(WellKnownInvitePrefix.GENERAL_INVITE_PREFIX);
+        } while (this.inviteRepository.existsByCode(code));
+        return code;
+    }
 }

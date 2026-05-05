@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
@@ -81,6 +82,32 @@ public final class Fixtures {
   static final SecurityAnswer EXPECTED_SECURITY_ANSWER_1 =
       FileUtils.loadResourceAsObject(
           "/fixtures/output/identity/security-answer-2.json", SecurityAnswer.class);
+
+  static final UUID INVITE_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
+
+  static final String INVITE_CODE = "INV-TESTCODE";
+
+  static final String GENERATED_CODE = "INV-GENCODE1";
+
+  static final Invite INVITE_1 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/invite-1.json", Invite.class);
+
+  static final Invite INVITE_2 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/invite-2.json", Invite.class);
+
+  static final Invite INVITE_3 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/invite-3.json", Invite.class);
+
+  static final Invite INVITE_4 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/invite-4.json", Invite.class);
+
+  static final Invite INVITE_5 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/invite-5.json", Invite.class);
 
   private Fixtures() {}
 }
