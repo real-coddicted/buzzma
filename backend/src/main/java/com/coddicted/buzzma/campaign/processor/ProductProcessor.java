@@ -8,18 +8,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductProcessor {
 
-    private final ProductService productService;
+  private final ProductService productService;
 
-    public ProductProcessor(ProductService productService) {
-        this.productService = productService;
-    }
+  public ProductProcessor(ProductService productService) {
+    this.productService = productService;
+  }
 
+  public Product saveProduct(CampaignRequestDto request) {
+    Product newProduct = Product.builder().name(request.getProductName()).build();
 
-    public Product saveProduct(CampaignRequestDto request) {
-        Product newProduct = Product.builder()
-                .name(request.getProductName())
-                .build();
-
-        return productService.create(newProduct);
-    }
+    return productService.create(newProduct);
+  }
 }

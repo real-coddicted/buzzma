@@ -30,12 +30,13 @@ public class CampaignController {
   private final CampaignMapper campaignMapper;
   private final CampaignProcessor campaignProcessor;
 
-  public CampaignController(final CampaignService service,
-                            final CampaignMapper campaignMapper,
-                            CampaignProcessor campaignProcessor) {
+  public CampaignController(
+      final CampaignService service,
+      final CampaignMapper campaignMapper,
+      CampaignProcessor campaignProcessor) {
     this.service = service;
     this.campaignMapper = campaignMapper;
-      this.campaignProcessor = campaignProcessor;
+    this.campaignProcessor = campaignProcessor;
   }
 
   @GetMapping("/{id}")

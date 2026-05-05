@@ -7,40 +7,39 @@ import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Component;
-
 import java.util.UUID;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CampaignProcessor {
 
-    private final CampaignService service;
-    private final CampaignMapper campaignMapper;
+  private final CampaignService service;
+  private final CampaignMapper campaignMapper;
 
-    private final ProductProcessor productProcessor;
+  private final ProductProcessor productProcessor;
 
-    public CampaignProcessor(
-            CampaignService service, CampaignMapper campaignMapper, ProductProcessor productProcessor) {
-        this.service = service;
-        this.campaignMapper = campaignMapper;
-        this.productProcessor = productProcessor;
-    }
+  public CampaignProcessor(
+      CampaignService service, CampaignMapper campaignMapper, ProductProcessor productProcessor) {
+    this.service = service;
+    this.campaignMapper = campaignMapper;
+    this.productProcessor = productProcessor;
+  }
 
-    @Transactional
-    public CampaignResponseDto create(final CampaignRequestDto request) {
+  @Transactional
+  public CampaignResponseDto create(final CampaignRequestDto request) {
 
-        // save product for this campaign first
-        Product newProduct = productProcessor.saveProduct(request);
+    // save product for this campaign first
+    Product newProduct = productProcessor.saveProduct(request);
 
-        Campaign newCampaign = service.create(campaignMapper.toCampaignEntity(request));
+    Campaign newCampaign = service.create(campaignMapper.toCampaignEntity(request));
 
-        return campaignMapper.toResponse(newCampaign);
-    }
+    return campaignMapper.toResponse(newCampaign);
+  }
 
-    public CampaignResponseDto updateCampaign(UUID id, CampaignRequestDto request) {
-        // TODO validation need to be added and handling of not found scenario
-        final var campaignToUpdate = service.getById(id);
-        campaignMapper.updateCampaign(request, campaignToUpdate);
-        return campaignMapper.toResponse(service.update(campaignToUpdate));
-    }
+  public CampaignResponseDto updateCampaign(UUID id, CampaignRequestDto request) {
+    // TODO validation need to be added and handling of not found scenario
+    final var campaignToUpdate = service.getById(id);
+    campaignMapper.updateCampaign(request, campaignToUpdate);
+    return campaignMapper.toResponse(service.update(campaignToUpdate));
+  }
 }

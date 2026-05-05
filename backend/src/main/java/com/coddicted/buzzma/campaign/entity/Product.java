@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
