@@ -4,7 +4,7 @@ import { IconBell, IconSearch, IconChevronRight } from '../ui/icons'
 import type { Theme, NavPage } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
-  dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back, Alex' },
+  dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back' },
   campaigns:   { title: 'Campaigns',   subtitle: 'Manage and monitor your campaigns' },
   connections: { title: 'Connections', subtitle: 'Manage your brand and agency connections' },
   feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Pulse' },
@@ -134,6 +134,10 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate }: TopbarP
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium">{title}</span>
       </div>
 
+      <div className="absolute left-[40%] -translate-x-1/2 text-center pointer-events-none">
+        <p className="text-xs font-bold text-ink-light-muted dark:text-ink-dark-muted">{subtitle}</p>
+      </div>
+
       <div className="hidden md:flex items-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border rounded-lg px-3 py-1.5 w-48">
         <IconSearch size={14} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
         <input
@@ -182,7 +186,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate }: TopbarP
                 Alex Rivera
               </p>
               <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted leading-none mt-0.5">
-                {subtitle}
+                Marketing Lead
               </p>
             </div>
           </button>
