@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.util.FileUtils;
 import java.util.UUID;
@@ -42,6 +43,10 @@ public final class Fixtures {
   static final UserCredential USER_CREDENTIAL_2 =
       FileUtils.loadResourceAsObject(
           "/fixtures/input/identity/user-credential-2.json", UserCredential.class);
+
+  static final UserBankingDetail BANKING_DETAIL_1 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/user-banking-detail-1.json", UserBankingDetail.class);
 
   private Fixtures() {}
 }
