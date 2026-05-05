@@ -3,7 +3,8 @@ import { Card } from '../components/ui/Card'
 import { StatusBadge, Badge } from '../components/ui/Badge'
 import { IconSearch, IconFilter, IconEdit, IconPlay, IconPause } from '../components/ui/icons'
 import { NewCampaignButton, type CampaignRequestDto } from '../components/ui/NewCampaignModal'
-import { campaigns } from '../data/mockData'
+import { LaunchCampaignModal } from '../components/ui/LaunchCampaignModal'
+import { campaigns, linkedEntities, availableEntities } from '../data/mockData'
 import type { Campaign, CampaignStatus, CampaignChannel } from '../types'
 
 const channelColors: Record<CampaignChannel, string> = {
@@ -82,8 +83,34 @@ export function Campaigns() {
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortKey>('conversions')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [launchModalOpen, setLaunchModalOpen] = useState(false)
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
+
+  const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId)
+  const selectedLinkedEntities = selectedCampaignId ? linkedEntities[selectedCampaignId] || [] : []
+
   function handleCreateCampaign(dto: CampaignRequestDto) {
     console.log('Create campaign:', dto)
+  }
+
+  function handleOpenLaunchModal(campaignId: string) {
+    const campaign = campaigns.find(c => c.id === campaignId)
+    if (campaign?.status !== 'draft') {
+      return
+    }
+    setSelectedCampaignId(campaignId)
+    setLaunchModalOpen(true)
+  }
+
+  function handleCloseLaunchModal() {
+    setLaunchModalOpen(false)
+    setSelectedCampaignId(null)
+  }
+
+  function handleLaunchCampaign() {
+    console.log('Launching campaign:', selectedCampaignId)
+    // Here you would make an API call to launch the campaign
+    handleCloseLaunchModal()
   }
 
   const filtered = useMemo(() => {
@@ -286,6 +313,7 @@ export function Campaigns() {
                         ) : c.status === 'paused' || c.status === 'draft' ? (
                           <button
                             title="Launch"
+                            onClick={() => handleOpenLaunchModal(c.id)}
                             className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-green hover:bg-neon-green/10 transition-colors"
                           >
                             <IconPlay size={13} />
@@ -321,7 +349,14 @@ export function Campaigns() {
         </div>
       </Card>
 
-
+      <LaunchCampaignModal
+        open={launchModalOpen}
+        campaignName={selectedCampaign?.name || ''}
+        linkedEntities={selectedLinkedEntities}
+        availableEntities={availableEntities}
+        onClose={handleCloseLaunchModal}
+        onLaunch={handleLaunchCampaign}
+      />
     </div>
   )
 }

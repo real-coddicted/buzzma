@@ -92,3 +92,10 @@ export interface PerformanceBar {
   max: number
   accent: StatCardAccent
 }
+
+export interface LinkedEntity {
+  id: string
+  name: string
+  slotsAvailable: number
+  commissionOffered: number
+}

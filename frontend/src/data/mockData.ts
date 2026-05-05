@@ -9,6 +9,7 @@ import type {
   Deal,
   PlatformOption,
   DealTypeOption,
+  LinkedEntity,
 } from '../types'
 
 type RawDeal = Omit<Deal, 'platformLabel' | 'dealTypeLabel'>
@@ -219,6 +220,136 @@ export const campaigns: Campaign[] = [
     ctr: 6.55,
     startDate: '2025-03-01',
     endDate: '2025-03-31',
+  },
+]
+
+export const linkedEntities: Record<string, LinkedEntity[]> = {
+  'cmp-7': [
+    {
+      id: 'le-1',
+      name: 'Influencer Agency Pro',
+      slotsAvailable: 45,
+      commissionOffered: 35,
+    },
+    {
+      id: 'le-2',
+      name: 'Creative Collective Ltd',
+      slotsAvailable: 32,
+      commissionOffered: 28,
+    },
+    {
+      id: 'le-3',
+      name: 'Digital Stars Network',
+      slotsAvailable: 58,
+      commissionOffered: 42,
+    },
+    {
+      id: 'le-4',
+      name: 'Content Kings Media',
+      slotsAvailable: 28,
+      commissionOffered: 22,
+    },
+    {
+      id: 'le-5',
+      name: 'Social Connect Agency',
+      slotsAvailable: 41,
+      commissionOffered: 38,
+    },
+  ],
+  'cmp-6': [
+    {
+      id: 'le-6',
+      name: 'Email Marketing Experts',
+      slotsAvailable: 12,
+      commissionOffered: 18,
+    },
+    {
+      id: 'le-7',
+      name: 'Outreach Specialists',
+      slotsAvailable: 18,
+      commissionOffered: 25,
+    },
+    {
+      id: 'le-8',
+      name: 'Campaign Masters',
+      slotsAvailable: 25,
+      commissionOffered: 32,
+    },
+  ],
+}
+
+export const availableEntities: LinkedEntity[] = [
+  {
+    id: 'le-1',
+    name: 'Influencer Agency Pro',
+    slotsAvailable: 45,
+    commissionOffered: 35,
+  },
+  {
+    id: 'le-2',
+    name: 'Creative Collective Ltd',
+    slotsAvailable: 32,
+    commissionOffered: 28,
+  },
+  {
+    id: 'le-3',
+    name: 'Digital Stars Network',
+    slotsAvailable: 58,
+    commissionOffered: 42,
+  },
+  {
+    id: 'le-4',
+    name: 'Content Kings Media',
+    slotsAvailable: 28,
+    commissionOffered: 22,
+  },
+  {
+    id: 'le-5',
+    name: 'Social Connect Agency',
+    slotsAvailable: 41,
+    commissionOffered: 38,
+  },
+  {
+    id: 'le-6',
+    name: 'Email Marketing Experts',
+    slotsAvailable: 12,
+    commissionOffered: 18,
+  },
+  {
+    id: 'le-7',
+    name: 'Outreach Specialists',
+    slotsAvailable: 18,
+    commissionOffered: 25,
+  },
+  {
+    id: 'le-8',
+    name: 'Campaign Masters',
+    slotsAvailable: 25,
+    commissionOffered: 32,
+  },
+  {
+    id: 'le-9',
+    name: 'Brand Boost Network',
+    slotsAvailable: 35,
+    commissionOffered: 30,
+  },
+  {
+    id: 'le-10',
+    name: 'Performance Partners Inc',
+    slotsAvailable: 50,
+    commissionOffered: 40,
+  },
+  {
+    id: 'le-11',
+    name: 'Social Media Syndicate',
+    slotsAvailable: 22,
+    commissionOffered: 26,
+  },
+  {
+    id: 'le-12',
+    name: 'Viral Campaigns Ltd',
+    slotsAvailable: 40,
+    commissionOffered: 33,
   },
 ]
 
