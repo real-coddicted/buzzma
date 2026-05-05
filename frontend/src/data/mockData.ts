@@ -5,6 +5,7 @@ import type {
   PerformanceBar,
   SecurityQuestion,
   UserDetails,
+  Connection,
 } from '../types'
 
 export const statCards: StatCardData[] = [
@@ -241,4 +242,14 @@ export const currentUser: UserDetails = {
   name: 'Acme Corp',
   mobile: '+91 9876543210',
 }
+
+export const connections: Connection[] = [
+  { id: 'c-1',  name: 'Nova Retail',       type: 'brand',  category: 'Fashion & Apparel', status: 'connected', since: 'Jan 2025', avatar: 'N', avatarColor: '#57c7ff' },
+  { id: 'c-2',  name: 'Apex Media',        type: 'agency', category: 'Performance',       status: 'connected', since: 'Mar 2025', avatar: 'A', avatarColor: '#bd93f9' },
+  { id: 'c-3',  name: 'GreenLeaf Co.',     type: 'brand',  category: 'Health & Wellness', status: 'connected', since: 'Apr 2025', avatar: 'G', avatarColor: '#50fa7b' },
+  { id: 'c-4',  name: 'Luminary Agency',   type: 'agency', category: 'Influencer',        status: 'pending',                     avatar: 'L', avatarColor: '#ffb86c' },
+  { id: 'c-5',  name: 'Orbit Electronics', type: 'brand',  category: 'Consumer Tech',     status: 'pending',                     avatar: 'O', avatarColor: '#ff79c6' },
+  { id: 'c-6',  name: 'Stride Sports',     type: 'brand',  category: 'Sports & Fitness',  status: 'invited',                     avatar: 'S', avatarColor: '#ff5555' },
+  { id: 'c-7',  name: 'Beacon Digital',    type: 'agency', category: 'Content',           status: 'invited',                     avatar: 'B', avatarColor: '#8be9fd' },
+]
 

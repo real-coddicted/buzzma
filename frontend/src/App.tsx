@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
+import { Connections } from './pages/Connections'
 import { Feedback } from './pages/Feedback'
 import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
@@ -26,10 +27,11 @@ export default function App() {
       activePage={activePage}
       onNavigate={setActivePage}
     >
-      {activePage === 'dashboard' && <Dashboard />}
-      {activePage === 'campaigns' && <Campaigns />}
-      {activePage === 'feedback' && <Feedback />}
-      {activePage === 'profile' && <Profile />}
+      {activePage === 'dashboard'   && <Dashboard />}
+      {activePage === 'campaigns'   && <Campaigns />}
+      {activePage === 'connections' && <Connections />}
+      {activePage === 'feedback'    && <Feedback />}
+      {activePage === 'profile'     && <Profile />}
       {activePage === 'raise-ticket' && <RaiseTicket />}
       {activePage === 'my-tickets' && <MyTickets />}
     </AppLayout>

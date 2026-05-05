@@ -42,3 +42,5 @@ All mock data is in `src/data/mockData.ts`.
 - `src/pages/` — page-level compositions. Each page imports from `ui` and `data`. Pages that contain multiple related sub-views use a **container page** pattern (see below).
 
 **Container page pattern:** when a feature has multiple sub-views (e.g. login + register), create individual leaf pages (`Login.tsx`, `Register.tsx`) and a container page (`Auth.tsx`) that owns the view-switching state and wires the leaves together. The container exposes a single callback to `App.tsx` (e.g. `onAuth`). `App.tsx` only ever imports and renders the container — it has no knowledge of the internal sub-views. Apply this pattern whenever adding a new multi-view feature.
+
+**Component decomposition:** always build pages by composing small, focused components — never write a large monolithic page file. Each distinct UI section (header, summary cards, toolbar, grid, etc.) belongs in its own file under `src/components/ui/`. The page file in `src/pages/` is only responsible for state, data fetching, filtering logic, and stitching the components together. A page that grows beyond ~60 lines of JSX is a sign that something should be extracted.

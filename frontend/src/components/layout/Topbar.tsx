@@ -4,10 +4,11 @@ import { IconBell, IconSearch, IconChevronRight } from '../ui/icons'
 import type { Theme, NavPage } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
-  dashboard: { title: 'Dashboard', subtitle: 'Welcome back, Alex' },
-  campaigns: { title: 'Campaigns', subtitle: 'Manage and monitor your campaigns' },
-  feedback:      { title: 'Feedback',       subtitle: 'Share your thoughts on Pulse' },
-  profile:       { title: 'Profile',        subtitle: 'Your account details' },
+  dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back, Alex' },
+  campaigns:   { title: 'Campaigns',   subtitle: 'Manage and monitor your campaigns' },
+  connections: { title: 'Connections', subtitle: 'Manage your brand and agency connections' },
+  feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Pulse' },
+  profile:         { title: 'Profile',          subtitle: 'Your account details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
   'my-tickets':   { title: 'My Tickets',     subtitle: 'Track the status of your support tickets' },
 }
