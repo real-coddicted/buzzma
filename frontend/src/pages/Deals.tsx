@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { DealCard } from '../components/ui/DealCard'
+import { DealDetail } from '../components/ui/DealDetail'
 import { DealTabs } from '../components/ui/DealTabs'
 import type { DealTab } from '../components/ui/DealTabs'
 import { DealFilterBar } from '../components/ui/DealFilterBar'
@@ -10,6 +11,7 @@ import { fetchDeals } from '../api/dealApi'
 export function Deals() {
   const [deals, setDeals]                   = useState<Deal[]>([])
   const [loading, setLoading]               = useState(true)
+  const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
   const [activeTab, setActiveTab]           = useState<DealTab>('explore')
   const [search, setSearch]                 = useState('')
   const [typeFilter, setTypeFilter]         = useState<DealTypeFilter>('all')
@@ -34,6 +36,10 @@ export function Deals() {
       return matchesTab && matchesType && matchesPlatform && matchesSearch
     })
   }, [deals, activeTab, search, typeFilter, platformFilter])
+
+  if (selectedDeal) {
+    return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -70,7 +76,7 @@ export function Deals() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map(deal => (
-            <DealCard key={deal.id} deal={deal} />
+            <DealCard key={deal.id} deal={deal} onClick={() => setSelectedDeal(deal)} />
           ))}
         </div>
       )}

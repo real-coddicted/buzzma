@@ -14,7 +14,9 @@ export interface Deal {
   productName: string
   productImageUrl: string
   platform: Platform
+  platformLabel: string
   dealType: CampaignType
+  dealTypeLabel: string
   originalPricePaise: number
   offeredPricePaise: number
   status: DealStatus

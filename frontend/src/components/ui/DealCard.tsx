@@ -1,25 +1,10 @@
 import type { Deal, Platform, CampaignType } from '../../types/DealTypes'
 
-const platformLabel: Record<Platform, string> = {
-  PLATFORM_AMAZON:   'Amazon',
-  PLATFORM_FLIPKART: 'Flipkart',
-  PLATFORM_NYKAA:    'Nykaa',
-  PLATFORM_MYNTRA:   'Myntra',
-}
-
 const platformColors: Record<Platform, string> = {
   PLATFORM_AMAZON:   'text-neon-orange bg-neon-orange/10 border-neon-orange/25',
   PLATFORM_FLIPKART: 'text-neon-blue   bg-neon-blue/10   border-neon-blue/25',
   PLATFORM_NYKAA:    'text-neon-pink   bg-neon-pink/10   border-neon-pink/25',
   PLATFORM_MYNTRA:   'text-neon-purple bg-neon-purple/10 border-neon-purple/25',
-}
-
-const dealTypeLabel: Record<CampaignType, string> = {
-  CAMPAIGN_TYPE_RATING:           'Rating',
-  CAMPAIGN_TYPE_REVIEW:           'Review',
-  CAMPAIGN_TYPE_ORDER:            'Order',
-  CAMPAIGN_TYPE_DISCOUNT:         'Discount',
-  CAMPAIGN_TYPE_AGENCY_DISCRETION:'Agency',
 }
 
 const dealTypeColors: Record<CampaignType, string> = {
@@ -36,13 +21,14 @@ function paise(amount: number) {
 
 interface DealCardProps {
   deal: Deal
+  onClick: () => void
 }
 
-export function DealCard({ deal }: DealCardProps) {
+export function DealCard({ deal, onClick }: DealCardProps) {
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
   return (
-    <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden hover:border-neon-blue/30 transition-colors group">
+    <div onClick={onClick} className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden hover:border-neon-blue/30 transition-colors group cursor-pointer">
       {/* Product image */}
       <div className="relative h-44 bg-surface-light-hover dark:bg-surface-dark-hover overflow-hidden">
         <img
@@ -66,13 +52,13 @@ export function DealCard({ deal }: DealCardProps) {
             'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
             platformColors[deal.platform],
           ].join(' ')}>
-            {platformLabel[deal.platform]}
+            {deal.platformLabel}
           </span>
           <span className={[
             'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
             dealTypeColors[deal.dealType],
           ].join(' ')}>
-            {dealTypeLabel[deal.dealType]}
+            {deal.dealTypeLabel}
           </span>
         </div>
 

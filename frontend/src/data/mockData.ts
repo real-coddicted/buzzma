@@ -11,6 +11,8 @@ import type {
   DealTypeOption,
 } from '../types'
 
+type RawDeal = Omit<Deal, 'platformLabel' | 'dealTypeLabel'>
+
 export const statCards: StatCardData[] = [
   {
     id: 'total-campaigns',
@@ -246,7 +248,7 @@ export const currentUser: UserDetails = {
   mobile: '+91 9876543210',
 }
 
-export const deals: Deal[] = [
+export const deals: RawDeal[] = [
   {
     id: 'd-1',
     productName: 'boAt Rockerz 450 Bluetooth On-Ear Headphones',
