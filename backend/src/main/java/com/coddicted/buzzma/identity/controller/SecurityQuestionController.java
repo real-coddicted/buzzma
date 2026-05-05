@@ -43,12 +43,13 @@ public class SecurityQuestionController {
   @ResponseStatus(HttpStatus.CREATED)
   public SecurityQuestionResponseDto createAnswer(
       @Valid @RequestBody final SecurityQuestionRequestDto request) {
-    return this.answerMapper.toResponse(this.service.createSecurityAnswer(this.answerMapper.toEntity(request)));
+    return this.answerMapper.toResponse(
+        this.service.createSecurityAnswer(this.answerMapper.toEntity(request)));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteQuestion(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
-      this.service.deleteSecurityQuestion(id, requesterId);
+    this.service.deleteSecurityQuestion(id, requesterId);
   }
 }

@@ -41,21 +41,22 @@ public class CampaignController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
-    return this.campaignMapper.toResponse(this.service.create(this.campaignMapper.toCampaignEntity(request)));
+    return this.campaignMapper.toResponse(
+        this.service.create(this.campaignMapper.toCampaignEntity(request)));
   }
 
   @PatchMapping("/{id}")
   public CampaignResponseDto update(
       @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
     final var existing = this.service.getById(id);
-      this.campaignMapper.updateCampaign(request, existing);
+    this.campaignMapper.updateCampaign(request, existing);
     return this.campaignMapper.toResponse(this.service.update(existing));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
-      this.service.delete(id, requesterId);
+    this.service.delete(id, requesterId);
   }
 
   @PostMapping("/{id}/action/{action}")

@@ -47,14 +47,14 @@ public class InviteController {
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final ConsumeInviteRequestDto request) {
     final Invite invite =
-            this.service.getByRoleAndCode(
+        this.service.getByRoleAndCode(
             UserRole.valueOf(request.getInviteeRole()), request.getInviteCode());
-      this.service.consume(invite, requesterId);
+    this.service.consume(invite, requesterId);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-      this.service.delete(id, requesterId);
+    this.service.delete(id, requesterId);
   }
 }
