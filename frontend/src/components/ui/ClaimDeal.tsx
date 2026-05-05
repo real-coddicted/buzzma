@@ -1,19 +1,23 @@
-import { useState } from 'react'
-import type { Deal, Platform } from '../../types/DealTypes'
-
-const platformLabel: Record<Platform, string> = {
-  PLATFORM_AMAZON:   'Amazon',
-  PLATFORM_FLIPKART: 'Flipkart',
-  PLATFORM_NYKAA:    'Nykaa',
-  PLATFORM_MYNTRA:   'Myntra',
-}
+import { useRef, useState } from 'react'
+import type { Deal } from '../../types/DealTypes'
+import { DealOrderForm } from './DealOrderForm'
 
 interface ClaimDealProps {
   deal: Deal
 }
 
 export function ClaimDeal({ deal }: ClaimDealProps) {
-  const [orderId, setOrderId] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
+
+  function handleFile(file: File | undefined) {
+    if (file) setFileName(file.name)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    handleFile(e.dataTransfer.files[0])
+  }
 
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-6 space-y-5">
@@ -22,41 +26,33 @@ export function ClaimDeal({ deal }: ClaimDealProps) {
       </h3>
 
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Purchase this product on {platformLabel[deal.platform]} at the offered price and submit your order details to claim the deal.
+        Purchase this product on {deal.platformLabel} at the offered price and submit your order details to claim the deal.
       </p>
 
-      <div className="space-y-3">
-        <div>
-          <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-            Order ID
-          </label>
-          <input
-            type="text"
-            placeholder="Enter your order ID"
-            value={orderId}
-            onChange={e => setOrderId(e.target.value)}
-            className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
-          />
+      <div>
+        <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+          Screenshot <span className="text-neon-red">*</span>
+        </label>
+        <div
+          onClick={() => inputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={e => e.preventDefault()}
+          className="w-full rounded-lg border-2 border-dashed border-surface-light-border dark:border-surface-dark-border hover:border-neon-blue/40 transition-colors px-4 py-6 flex flex-col items-center gap-2 cursor-pointer"
+        >
+          <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            {fileName ?? 'Drop image here or click to upload'}
+          </span>
         </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-            Screenshot (optional)
-          </label>
-          <div className="w-full rounded-lg border-2 border-dashed border-surface-light-border dark:border-surface-dark-border hover:border-neon-blue/40 transition-colors px-4 py-6 flex flex-col items-center gap-2 cursor-pointer">
-            <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-              Drop file here or click to upload
-            </span>
-          </div>
-        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={e => handleFile(e.target.files?.[0])}
+        />
       </div>
 
-      <button
-        disabled={!orderId.trim()}
-        className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Submit Claim
-      </button>
+      <DealOrderForm onSubmit={fields => console.log('claim submitted', fields)} />
     </div>
   )
 }
