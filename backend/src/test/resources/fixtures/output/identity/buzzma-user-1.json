@@ -1,0 +1,8 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "Bob",
+  "mobile": "9000000001",
+  "role": "ROLE_MEDIATOR",
+  "status": "USER_STATUS_VERIFICATION_PENDING",
+  "isDeleted": false
+}

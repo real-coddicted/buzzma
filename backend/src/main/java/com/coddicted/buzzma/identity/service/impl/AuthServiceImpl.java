@@ -49,18 +49,19 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(
       final String mobile, final UUID requesterId) {
-    final BuzzmaUser existingUser = userService.getByMobile(mobile);
-    return securityQuestionAnswerService.getSecurityQuestionsByUserId(existingUser.getId());
+    final BuzzmaUser existingUser = this.userService.getByMobile(mobile);
+    return this.securityQuestionAnswerService.getSecurityQuestionsByUserId(existingUser.getId());
   }
 
   @Override
-  public boolean resetPassword(String mobile, String newPassword, UUID requesterId) {
-    final BuzzmaUser existingUser = userService.getByMobile(mobile);
+  public boolean resetPassword(
+      final String mobile, final String newPassword, final UUID requesterId) {
+    final BuzzmaUser existingUser = this.userService.getByMobile(mobile);
     final UserCredential existingUserCredential =
-        userCredentialService.getByUserId(existingUser.getId(), requesterId);
+        this.userCredentialService.getByUserId(existingUser.getId(), requesterId);
     final UserCredential updatedUserCredential =
         existingUserCredential.toBuilder().passwordHash(newPassword).build();
-    return userCredentialService.update(updatedUserCredential, requesterId);
+    return this.userCredentialService.update(updatedUserCredential, requesterId);
   }
 
   @Override
@@ -76,17 +77,17 @@ public class AuthServiceImpl implements AuthService {
     if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, invite)) {
 
       // Save user
-      final BuzzmaUser savedUser = userService.create(user);
+      final BuzzmaUser savedUser = this.userService.create(user);
       // Save User Credential
-      userCredentialService.create(
+      this.userCredentialService.create(
           userCredential.toBuilder().userId(savedUser.getId()).build(), requesterId);
       // Save user banking detail
       final UserBankingDetail savedUserBankingDetail =
-          userBankingDetailService.create(userBankingDetail, requesterId);
+          this.userBankingDetailService.create(userBankingDetail, requesterId);
       // Save security answer
-      securityAnswerList.forEach(securityQuestionAnswerService::createSecurityAnswer);
+      securityAnswerList.forEach(this.securityQuestionAnswerService::createSecurityAnswer);
       // Consume invite
-      inviteService.consume(invite, requesterId);
+      this.inviteService.consume(invite, requesterId);
       return savedUser;
     }
 
@@ -95,8 +96,9 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public BuzzmaUser signIn(final BuzzmaUser user, final UserCredential userCredential) {
-    final BuzzmaUser existingUser = userService.getByMobile(user.getMobile());
-    if (!userCredentialService.verify(existingUser.getId(), userCredential.getPasswordHash())) {
+    final BuzzmaUser existingUser = this.userService.getByMobile(user.getMobile());
+    if (!this.userCredentialService.verify(
+        existingUser.getId(), userCredential.getPasswordHash())) {
       throw new ForbiddenException("Invalid credentials");
     }
     return existingUser;
@@ -104,8 +106,8 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public BuzzmaUser refresh(final String refreshToken) {
-    final UUID userId = jwtService.validateRefreshToken(refreshToken);
-    return userService.getById(userId);
+    final UUID userId = this.jwtService.validateRefreshToken(refreshToken);
+    return this.userService.getById(userId);
   }
 
   private boolean canRegister(
@@ -114,11 +116,11 @@ public class AuthServiceImpl implements AuthService {
       final UserBankingDetail userBankingDetail,
       final List<SecurityAnswer> securityAnswerList,
       final Invite invite) {
-    boolean validUser = validateUser(user);
-    boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
-    boolean validInvite = inviteService.verify(user.getRole(), invite.getCode());
-    boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
-    boolean validPassword = validateUserCredential(userCredential);
+    final boolean validUser = validateUser(user);
+    final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
+    final boolean validInvite = this.inviteService.verify(user.getRole(), invite.getCode());
+    final boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
+    final boolean validPassword = validateUserCredential(userCredential);
     return validUser
         && validBankingDetails
         && validSecurityAnswerList
@@ -127,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private boolean validateUser(final BuzzmaUser user) {
-    return !userService.existsByMobile(user.getMobile());
+    return !this.userService.existsByMobile(user.getMobile());
   }
 
   private boolean validateUserBankingDetails(
@@ -141,8 +143,8 @@ public class AuthServiceImpl implements AuthService {
     return true;
   }
 
-  private boolean validateSecurityAnswer(List<SecurityAnswer> securityAnswerList) {
-    for (SecurityAnswer securityAnswer : securityAnswerList) {
+  private boolean validateSecurityAnswer(final List<SecurityAnswer> securityAnswerList) {
+    for (final SecurityAnswer securityAnswer : securityAnswerList) {
       if (!StringUtils.hasText(securityAnswer.getAnswerHash())) {
         return false;
       }
