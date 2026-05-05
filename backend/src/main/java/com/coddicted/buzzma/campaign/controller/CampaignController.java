@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
+import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
@@ -27,10 +28,14 @@ public class CampaignController {
 
   private final CampaignService service;
   private final CampaignMapper campaignMapper;
+  private final CampaignProcessor campaignProcessor;
 
-  public CampaignController(final CampaignService service, final CampaignMapper campaignMapper) {
+  public CampaignController(final CampaignService service,
+                            final CampaignMapper campaignMapper,
+                            CampaignProcessor campaignProcessor) {
     this.service = service;
     this.campaignMapper = campaignMapper;
+      this.campaignProcessor = campaignProcessor;
   }
 
   @GetMapping("/{id}")
@@ -41,16 +46,13 @@ public class CampaignController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
-    return this.campaignMapper.toResponse(
-        this.service.create(this.campaignMapper.toCampaignEntity(request)));
+    return campaignProcessor.create(request);
   }
 
   @PatchMapping("/{id}")
   public CampaignResponseDto update(
       @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
-    final var existing = this.service.getById(id);
-    this.campaignMapper.updateCampaign(request, existing);
-    return this.campaignMapper.toResponse(this.service.update(existing));
+    return campaignProcessor.updateCampaign(id, request);
   }
 
   @DeleteMapping("/{id}")

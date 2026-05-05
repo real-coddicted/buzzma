@@ -9,4 +9,6 @@ import java.util.UUID;
  */
 public interface ProductService {
   Product getById(UUID productId);
+
+  Product create(Product product);
 }

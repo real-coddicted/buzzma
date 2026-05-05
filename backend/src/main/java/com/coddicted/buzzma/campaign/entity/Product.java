@@ -10,6 +10,9 @@ import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.UUID;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +24,8 @@ import org.hibernate.annotations.UuidGenerator;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Product {
   @Id
   @GeneratedValue
