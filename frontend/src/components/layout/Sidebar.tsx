@@ -1,5 +1,5 @@
 import { NavItem } from '../ui/NavItem'
-import { IconDashboard, IconCampaign, IconUsers, IconFeedback, IconList, IconSettings, IconLogout } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconLogout } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 interface SidebarProps {
@@ -59,6 +59,12 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             label="Connections"
             active={activePage === 'connections'}
             onClick={() => onNavigate('connections')}
+          />
+          <NavItem
+            icon={<IconBolt />}
+            label="Deals"
+            active={activePage === 'deals'}
+            onClick={() => onNavigate('deals')}
           />
         </div>
 

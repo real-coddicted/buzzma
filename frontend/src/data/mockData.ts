@@ -6,6 +6,9 @@ import type {
   SecurityQuestion,
   UserDetails,
   Connection,
+  Deal,
+  PlatformOption,
+  DealTypeOption,
 } from '../types'
 
 export const statCards: StatCardData[] = [
@@ -242,6 +245,83 @@ export const currentUser: UserDetails = {
   name: 'Acme Corp',
   mobile: '+91 9876543210',
 }
+
+export const deals: Deal[] = [
+  {
+    id: 'd-1',
+    productName: 'boAt Rockerz 450 Bluetooth On-Ear Headphones',
+    productImageUrl: 'https://m.media-amazon.com/images/I/61eD3sEoJKL._SX679_.jpg',
+    platform: 'PLATFORM_AMAZON',
+    dealType: 'CAMPAIGN_TYPE_REVIEW',
+    originalPricePaise: 299900,
+    offeredPricePaise: 149900,
+    status: 'explore',
+  },
+  {
+    id: 'd-2',
+    productName: 'Lakme Absolute Matte Revolution Lip Color',
+    productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/5/35014_1.jpg',
+    platform: 'PLATFORM_NYKAA',
+    dealType: 'CAMPAIGN_TYPE_RATING',
+    originalPricePaise: 79900,
+    offeredPricePaise: 63900,
+    status: 'explore',
+  },
+  {
+    id: 'd-3',
+    productName: 'Nike Air Max 270 React Running Shoes',
+    productImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    platform: 'PLATFORM_MYNTRA',
+    dealType: 'CAMPAIGN_TYPE_DISCOUNT',
+    originalPricePaise: 1299900,
+    offeredPricePaise: 779900,
+    status: 'explore',
+  },
+  {
+    id: 'd-4',
+    productName: 'Samsung 65" QLED 4K Smart TV',
+    productImageUrl: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&q=80',
+    platform: 'PLATFORM_FLIPKART',
+    dealType: 'CAMPAIGN_TYPE_ORDER',
+    originalPricePaise: 12999900,
+    offeredPricePaise: 9999900,
+    status: 'explore',
+  },
+  {
+    id: 'd-5',
+    productName: 'The Ordinary Niacinamide 10% + Zinc 1% Serum',
+    productImageUrl: 'https://www.nykaa.com/media/catalog/product/8/4/8432592_1.jpg',
+    platform: 'PLATFORM_NYKAA',
+    dealType: 'CAMPAIGN_TYPE_REVIEW',
+    originalPricePaise: 69900,
+    offeredPricePaise: 55900,
+    status: 'explore',
+  },
+  {
+    id: 'd-6',
+    productName: 'Instant Pot Duo 7-in-1 Electric Pressure Cooker',
+    productImageUrl: 'https://images.unsplash.com/photo-1585515320310-259814833e62?w=400&q=80',
+    platform: 'PLATFORM_AMAZON',
+    dealType: 'CAMPAIGN_TYPE_RATING',
+    originalPricePaise: 899900,
+    offeredPricePaise: 674900,
+    status: 'explore',
+  },
+]
+
+export const dealTypes: DealTypeOption[] = [
+  { value: 'CAMPAIGN_TYPE_RATING',   label: 'Rating'   },
+  { value: 'CAMPAIGN_TYPE_REVIEW',   label: 'Review'   },
+  { value: 'CAMPAIGN_TYPE_DISCOUNT', label: 'Discount' },
+  { value: 'CAMPAIGN_TYPE_ORDER',    label: 'Order'    },
+]
+
+export const platforms: PlatformOption[] = [
+  { value: 'PLATFORM_AMAZON',   label: 'Amazon'   },
+  { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
+  { value: 'PLATFORM_NYKAA',    label: 'Nykaa'    },
+  { value: 'PLATFORM_MYNTRA',   label: 'Myntra'   },
+]
 
 export const connections: Connection[] = [
   { id: 'c-1',  name: 'Nova Retail',       type: 'brand',  category: 'Fashion & Apparel', status: 'connected', since: 'Jan 2025', avatar: 'N', avatarColor: '#57c7ff' },

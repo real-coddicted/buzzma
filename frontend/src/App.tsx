@@ -3,6 +3,7 @@ import { AppLayout } from './components/layout/AppLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
 import { Connections } from './pages/Connections'
+import { Deals } from './pages/Deals'
 import { Feedback } from './pages/Feedback'
 import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
@@ -30,6 +31,7 @@ export default function App() {
       {activePage === 'dashboard'   && <Dashboard />}
       {activePage === 'campaigns'   && <Campaigns />}
       {activePage === 'connections' && <Connections />}
+      {activePage === 'deals'       && <Deals />}
       {activePage === 'feedback'    && <Feedback />}
       {activePage === 'profile'     && <Profile />}
       {activePage === 'raise-ticket' && <RaiseTicket />}
