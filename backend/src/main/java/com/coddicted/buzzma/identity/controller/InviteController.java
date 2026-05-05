@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/invite")
+@RequestMapping("/api/v1/invites")
 @Validated
 public class InviteController {
 
@@ -37,8 +37,8 @@ public class InviteController {
   @ResponseStatus(HttpStatus.CREATED)
   public InviteResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final InviteRequestDto request) {
-    final Invite invite = service.create(mapper.toEntity(request), requesterId);
-    return mapper.toResponse(invite);
+    final Invite invite = this.service.create(this.mapper.toEntity(request), requesterId);
+    return this.mapper.toResponse(invite);
   }
 
   @PostMapping("/consume")
@@ -47,14 +47,14 @@ public class InviteController {
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final ConsumeInviteRequestDto request) {
     final Invite invite =
-        service.getByRoleAndCode(
+        this.service.getByRoleAndCode(
             UserRole.valueOf(request.getInviteeRole()), request.getInviteCode());
-    service.consume(invite, requesterId);
+    this.service.consume(invite, requesterId);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    service.delete(id, requesterId);
+    this.service.delete(id, requesterId);
   }
 }

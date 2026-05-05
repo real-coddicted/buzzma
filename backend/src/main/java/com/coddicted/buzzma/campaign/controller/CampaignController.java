@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/campaigns")
+@RequestMapping("/api/v1/campaigns")
 @Validated
 public class CampaignController {
 
@@ -35,27 +35,28 @@ public class CampaignController {
 
   @GetMapping("/{id}")
   public CampaignResponseDto getById(@PathVariable final UUID id) {
-    return campaignMapper.toResponse(service.getById(id));
+    return this.campaignMapper.toResponse(this.service.getById(id));
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
-    return campaignMapper.toResponse(service.create(campaignMapper.toCampaignEntity(request)));
+    return this.campaignMapper.toResponse(
+        this.service.create(this.campaignMapper.toCampaignEntity(request)));
   }
 
   @PatchMapping("/{id}")
   public CampaignResponseDto update(
       @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
-    final var existing = service.getById(id);
-    campaignMapper.updateCampaign(request, existing);
-    return campaignMapper.toResponse(service.update(existing));
+    final var existing = this.service.getById(id);
+    this.campaignMapper.updateCampaign(request, existing);
+    return this.campaignMapper.toResponse(this.service.update(existing));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
-    service.delete(id, requesterId);
+    this.service.delete(id, requesterId);
   }
 
   @PostMapping("/{id}/action/{action}")
@@ -63,6 +64,6 @@ public class CampaignController {
       @PathVariable final UUID id,
       @PathVariable final CampaignAction action,
       @CurrentUserId final UUID requesterId) {
-    return campaignMapper.toResponse(service.action(id, action, requesterId));
+    return this.campaignMapper.toResponse(this.service.action(id, action, requesterId));
   }
 }

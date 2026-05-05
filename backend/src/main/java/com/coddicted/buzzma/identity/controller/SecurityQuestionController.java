@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/security-questions")
+@RequestMapping("/api/v1/security-questions")
 @Validated
 public class SecurityQuestionController {
 
@@ -36,19 +36,20 @@ public class SecurityQuestionController {
 
   @GetMapping
   public List<SecurityQuestion> list() {
-    return service.listSecurityQuestions();
+    return this.service.listSecurityQuestions();
   }
 
   @PostMapping("/answers")
   @ResponseStatus(HttpStatus.CREATED)
   public SecurityQuestionResponseDto createAnswer(
       @Valid @RequestBody final SecurityQuestionRequestDto request) {
-    return answerMapper.toResponse(service.createSecurityAnswer(answerMapper.toEntity(request)));
+    return this.answerMapper.toResponse(
+        this.service.createSecurityAnswer(this.answerMapper.toEntity(request)));
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteQuestion(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
-    service.deleteSecurityQuestion(id, requesterId);
+    this.service.deleteSecurityQuestion(id, requesterId);
   }
 }
