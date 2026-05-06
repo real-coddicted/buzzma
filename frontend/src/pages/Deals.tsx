@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
-import { DealCard } from '../components/ui/DealCard'
-import { DealDetail } from '../components/ui/DealDetail'
-import { DealTabs } from '../components/ui/DealTabs'
-import type { DealTab } from '../components/ui/DealTabs'
-import { DealFilterBar } from '../components/ui/DealFilterBar'
-import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/DealFilterBar'
-import type { Deal } from '../types/DealTypes'
-import { fetchDeals } from '../api/dealApi'
+import { DealCard }          from '../components/ui/deal/DealCard'
+import { DealDetail }        from '../components/ui/deal/DealDetail'
+import { ClaimedDealCard }   from '../components/ui/deal/ClaimedDealCard'
+import { ClaimedDealDetail } from '../components/ui/deal/ClaimedDealDetail'
+import { DealTabs }          from '../components/ui/deal/DealTabs'
+import type { DealTab }      from '../components/ui/deal/DealTabs'
+import { DealFilterBar }     from '../components/ui/deal/DealFilterBar'
+import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
+import type { Deal }         from '../types/DealTypes'
+import { fetchDeals }        from '../api/dealApi'
 
 export function Deals() {
   const [deals, setDeals]                   = useState<Deal[]>([])
@@ -20,6 +22,11 @@ export function Deals() {
   useEffect(() => {
     fetchDeals().then(data => { setDeals(data); setLoading(false) })
   }, [])
+
+  function handleTabChange(tab: DealTab) {
+    setActiveTab(tab)
+    setSelectedDeal(null)
+  }
 
   const counts: Record<DealTab, number> = useMemo(() => ({
     explore:     deals.filter(d => d.status === 'explore').length,
@@ -38,7 +45,9 @@ export function Deals() {
   }, [deals, activeTab, search, typeFilter, platformFilter])
 
   if (selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
+    return activeTab === 'in_progress'
+      ? <ClaimedDealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
+      : <DealDetail        deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
   }
 
   return (
@@ -52,7 +61,7 @@ export function Deals() {
         </p>
       </div>
 
-      <DealTabs value={activeTab} counts={counts} onChange={setActiveTab} />
+      <DealTabs value={activeTab} counts={counts} onChange={handleTabChange} />
 
       {activeTab === 'explore' && (
         <DealFilterBar
@@ -71,7 +80,13 @@ export function Deals() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
-          No deals match your filters.
+          No deals found.
+        </div>
+      ) : activeTab === 'in_progress' ? (
+        <div className="flex flex-col gap-3">
+          {filtered.map(deal => (
+            <ClaimedDealCard key={deal.id} deal={deal} onClick={() => setSelectedDeal(deal)} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
