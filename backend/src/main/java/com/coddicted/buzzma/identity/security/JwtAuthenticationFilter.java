@@ -24,31 +24,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
   private final UsersRepository usersRepository;
 
-  public JwtAuthenticationFilter(JwtService jwtService, UsersRepository usersRepository) {
+  public JwtAuthenticationFilter(
+      final JwtService jwtService, final UsersRepository usersRepository) {
     this.jwtService = jwtService;
     this.usersRepository = usersRepository;
   }
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final FilterChain filterChain)
       throws ServletException, IOException {
 
-    String authHeader = request.getHeader("Authorization");
+    final String authHeader = request.getHeader("Authorization");
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    String token = authHeader.substring(7);
+    final String token = authHeader.substring(7);
     try {
-      UUID userId = jwtService.validateAccessToken(token);
-      usersRepository
+      final UUID userId = this.jwtService.validateAccessToken(token);
+      this.usersRepository
           .findById(userId)
           .ifPresent(
               user -> {
-                BuzzmaUserDetails userDetails = new BuzzmaUserDetails(user);
-                UsernamePasswordAuthenticationToken auth =
+                final BuzzmaUserDetails userDetails = new BuzzmaUserDetails(user);
+                final UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);

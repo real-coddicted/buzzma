@@ -252,12 +252,128 @@ final CampaignStatus target = switch (action) {
 - `@CurrentUserId` injects the authenticated user's `UUID` into controller parameters.
 - Use it to pass the caller identity into service methods that need ownership checks.
 
+## Unit testing
+
+### Stack
+
+- JUnit 5 (`@ExtendWith(MockitoExtension.class)`) + Mockito for service unit tests.
+- Assertions: JUnit 5 only (`assertEquals`, `assertTrue`, `assertFalse`, `assertThrows`). Do not use AssertJ.
+- No `any()` or other generic/lenient Mockito matchers — always pass exact arguments.
+- Use `doReturn(...).when(mock).method(args)` — not `when(mock.method(args)).thenReturn(...)`.
+
+### Fixtures
+
+Fixture files are split into two directories under `src/test/resources/fixtures/`:
+
+```
+fixtures/
+  input/<module>/    raw inputs passed into the service
+  output/<module>/   expected results returned by the service
+```
+
+Load them with `FileUtils.loadResourceAsObject(path, Type.class)` — resource paths must start with `/`.
+
+Each module has a `Fixtures` class (`final`, private constructor, package-private constants) co-located with the test in `src/test/java/.../service/impl/`:
+
+```java
+public final class Fixtures {
+
+  static final UUID USER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+  static final UUID REQUESTER_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
+  static final String MOBILE = "9876543210";
+
+  static final BuzzmaUser USER_1 =
+      FileUtils.loadResourceAsObject("/fixtures/input/identity/buzzma-user-1.json", BuzzmaUser.class);
+
+  static final BuzzmaUser EXPECTED_USER_1 =
+      FileUtils.loadResourceAsObject("/fixtures/output/identity/buzzma-user-1.json", BuzzmaUser.class);
+
+  static final BuzzmaUser USER_2 =
+      FileUtils.loadResourceAsObject("/fixtures/input/identity/buzzma-user-2.json", BuzzmaUser.class);
+
+  static final BuzzmaUser EXPECTED_USER_2 =
+      FileUtils.loadResourceAsObject("/fixtures/output/identity/buzzma-user-2.json", BuzzmaUser.class);
+
+  private Fixtures() {}
+}
+```
+
+Rules:
+- Input fixtures (`USER_*`) and output fixtures (`EXPECTED_*`) are both loaded from JSON — never compute expected values in code via `toBuilder()`.
+- `USER_ID` must match the `id` field of the entity fixture used for lookups (so mock stub and assertion stay consistent).
+- Shared identifiers (`USER_ID`, `REQUESTER_ID`, primitive values) live in `Fixtures`, not in the test class.
+
+### JSON fixture format
+
+Enums are serialized as their string name. Timestamps use ISO-8601. Omit fields that are `null` or not relevant to the test:
+
+```json
+{
+  "id": "22222222-2222-2222-2222-222222222222",
+  "name": "Alice",
+  "mobile": "9876543210",
+  "role": "ROLE_BUYER",
+  "status": "USER_STATUS_ACTIVE",
+  "isDeleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
+```
+
+### Test class structure
+
+```java
+@ExtendWith(MockitoExtension.class)
+class UserServiceImplTest {
+
+  @Mock private UsersRepository mockUsersRepository;
+  private UserServiceImpl userService;
+
+  @BeforeEach
+  void setUp() {
+    this.userService = new UserServiceImpl(this.mockUsersRepository);
+  }
+
+  @Test
+  void testGetByIdWhenFound() {
+    doReturn(Optional.of(USER_2)).when(this.mockUsersRepository).findById(USER_ID);
+
+    final BuzzmaUser result = this.userService.getById(USER_ID);
+
+    assertEquals(USER_2, result);
+  }
+
+  @Test
+  void testGetByIdWhenNotFound() {
+    doReturn(Optional.empty()).when(this.mockUsersRepository).findById(USER_ID);
+
+    final NotFoundException ex =
+        assertThrows(NotFoundException.class, () -> this.userService.getById(USER_ID));
+    assertEquals("Users not found: " + USER_ID, ex.getMessage());
+  }
+
+  @Test
+  void testCreate() {
+    doReturn(EXPECTED_USER_1).when(this.mockUsersRepository).save(USER_1);
+
+    assertEquals(EXPECTED_USER_1, this.userService.create(USER_1));
+  }
+}
+```
+
+- Instantiate the service under test manually in `@BeforeEach setUp()` — do not use `@InjectMocks`.
+- Mock fields use the `mock` prefix: `mockUsersRepository`, `mockInviteService`, etc.
+- Wildcard static imports are allowed in test files for `Fixtures.*` and `Assertions.*`.
+- Test method names follow `test` + `MethodName` + `When` + `Condition` (e.g. `testGetByIdWhenFound`, `testDeleteWhenNotFound`). Omit `When...` when there is only one path (e.g. `testCreate`).
+- For methods that build objects internally (e.g. soft delete via `toBuilder()`), use `ArgumentCaptor` and assert individual fields rather than constructing an expected object.
+- No fixture constants defined directly in the test class — all shared data goes in `Fixtures`.
+
 ## Code style
 
 - Spotless with Google Java Format is enforced (`./gradlew spotlessApply`).
 - Checkstyle uses `google_checks.xml` (test sources excluded).
 - Annotation processor order in `build.gradle` must be: lombok → lombok-mapstruct-binding → mapstruct-processor.
 - All method parameters and local variables that are never reassigned use `final`.
-- No wildcard imports (`import foo.*`) — always use explicit imports, including `static` imports and `org.mapstruct.*`, `jakarta.persistence.*`, `lombok.*`.
+- No wildcard imports (`import foo.*`) in main sources — always use explicit imports, including `static` imports and `org.mapstruct.*`, `jakarta.persistence.*`, `lombok.*`. Exception: test files may use wildcard static imports for `Fixtures.*` and `Assertions.*`.
 - Always use braces on `if`/`else`/`for`/`while` — even single-line bodies.
 - No comments unless the WHY is non-obvious.
