@@ -43,24 +43,22 @@ export function ClaimedDealCard({ deal, onClick }: ClaimedDealCardProps) {
         <div className="flex-1 min-w-0 space-y-2">
           {/* Top row: name + status badge */}
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary line-clamp-2 leading-tight">
-              {deal.productName}
-            </p>
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary leading-tight truncate">
+                {deal.productName}
+              </p>
+              <span className={['text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0', platformColors[deal.platform]].join(' ')}>
+                {deal.platformLabel}
+              </span>
+              <span className={['text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0', dealTypeColors[deal.dealType]].join(' ')}>
+                {deal.dealTypeLabel}
+              </span>
+            </div>
             {deal.claimStatus && (
               <div className="flex-shrink-0">
                 <ClaimStatusBadge status={deal.claimStatus} />
               </div>
             )}
-          </div>
-
-          {/* Badges */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={['text-[10px] font-semibold px-2 py-0.5 rounded-full border', platformColors[deal.platform]].join(' ')}>
-              {deal.platformLabel}
-            </span>
-            <span className={['text-[10px] font-semibold px-2 py-0.5 rounded-full border', dealTypeColors[deal.dealType]].join(' ')}>
-              {deal.dealTypeLabel}
-            </span>
           </div>
 
           {/* Mini stepper */}
@@ -73,7 +71,7 @@ export function ClaimedDealCard({ deal, onClick }: ClaimedDealCardProps) {
 
 function MiniStepper({ claimStep }: { claimStep: ClaimStep }) {
   return (
-    <div className="flex items-center gap-0">
+    <div className="flex items-center">
       {CLAIM_STEPS.map((step, i) => {
         const done   = step.number < claimStep
         const active = step.number === claimStep
@@ -82,7 +80,7 @@ function MiniStepper({ claimStep }: { claimStep: ClaimStep }) {
         return (
           <div key={step.number} className="flex items-center">
             <div className={[
-              'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0',
+              'w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0',
               done   ? 'bg-neon-blue text-white'                                              : '',
               active ? 'bg-neon-blue/20 border-2 border-neon-blue text-neon-blue'            : '',
               locked ? 'bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border text-ink-light-muted dark:text-ink-dark-muted' : '',
@@ -91,7 +89,7 @@ function MiniStepper({ claimStep }: { claimStep: ClaimStep }) {
             </div>
             {i < CLAIM_STEPS.length - 1 && (
               <div className={[
-                'w-5 h-px',
+                'w-8 h-px',
                 step.number < claimStep ? 'bg-neon-blue' : 'bg-surface-light-border dark:bg-surface-dark-border',
               ].join(' ')} />
             )}

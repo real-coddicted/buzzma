@@ -7,17 +7,42 @@ import { DealTabs }          from '../components/ui/deal/DealTabs'
 import type { DealTab }      from '../components/ui/deal/DealTabs'
 import { DealFilterBar }     from '../components/ui/deal/DealFilterBar'
 import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
-import type { Deal }         from '../types/DealTypes'
+import { StatusFilterPills } from '../components/ui/StatusFilterPills'
+import type { FilterOption } from '../components/ui/StatusFilterPills'
+import type { Deal, ClaimStatus } from '../types/DealTypes'
 import { fetchDeals }        from '../api/dealApi'
 
+type ClaimStatusFilter = ClaimStatus | 'all'
+
+const CLAIM_STATUS_OPTIONS: FilterOption<ClaimStatusFilter>[] = [
+  { value: 'all',      label: 'All'      },
+  { value: 'pending',  label: 'Pending',  activeClass: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30' },
+  { value: 'approved', label: 'Approved', activeClass: 'bg-neon-green/10  text-neon-green  border-neon-green/30'  },
+  { value: 'rejected', label: 'Rejected', activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
+]
+
+interface ExploreFilters {
+  search:         string
+  typeFilter:     DealTypeFilter
+  platformFilter: DealPlatformFilter
+}
+
+interface ClaimedFilters {
+  claimStatusFilter: ClaimStatusFilter
+}
+
 export function Deals() {
-  const [deals, setDeals]                   = useState<Deal[]>([])
-  const [loading, setLoading]               = useState(true)
-  const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
-  const [activeTab, setActiveTab]           = useState<DealTab>('explore')
-  const [search, setSearch]                 = useState('')
-  const [typeFilter, setTypeFilter]         = useState<DealTypeFilter>('all')
-  const [platformFilter, setPlatformFilter] = useState<DealPlatformFilter>('all')
+  const [deals, setDeals]               = useState<Deal[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
+  const [activeTab, setActiveTab]       = useState<DealTab>('explore')
+
+  const [exploreFilters, setExploreFilters] = useState<ExploreFilters>({
+    search: '', typeFilter: 'all', platformFilter: 'all',
+  })
+  const [claimedFilters, setClaimedFilters] = useState<ClaimedFilters>({
+    claimStatusFilter: 'all',
+  })
 
   useEffect(() => {
     fetchDeals().then(data => { setDeals(data); setLoading(false) })
@@ -35,14 +60,17 @@ export function Deals() {
   }), [deals])
 
   const filtered = useMemo(() => {
+    const { search, typeFilter, platformFilter } = exploreFilters
+    const { claimStatusFilter } = claimedFilters
     return deals.filter(d => {
-      const matchesTab      = d.status === activeTab
-      const matchesType     = typeFilter     === 'all' || d.dealType === typeFilter
-      const matchesPlatform = platformFilter === 'all' || d.platform === platformFilter
-      const matchesSearch   = d.productName.toLowerCase().includes(search.toLowerCase())
-      return matchesTab && matchesType && matchesPlatform && matchesSearch
+      const matchesTab         = d.status === activeTab
+      const matchesType        = activeTab !== 'explore'      || typeFilter        === 'all' || d.dealType    === typeFilter
+      const matchesPlatform    = activeTab !== 'explore'      || platformFilter    === 'all' || d.platform    === platformFilter
+      const matchesClaimStatus = activeTab !== 'in_progress'  || claimStatusFilter === 'all' || d.claimStatus === claimStatusFilter
+      const matchesSearch      = d.productName.toLowerCase().includes(search.toLowerCase())
+      return matchesTab && matchesType && matchesPlatform && matchesClaimStatus && matchesSearch
     })
-  }, [deals, activeTab, search, typeFilter, platformFilter])
+  }, [deals, activeTab, exploreFilters, claimedFilters])
 
   if (selectedDeal) {
     return activeTab === 'in_progress'
@@ -65,12 +93,20 @@ export function Deals() {
 
       {activeTab === 'explore' && (
         <DealFilterBar
-          search={search}
-          onSearchChange={setSearch}
-          typeFilter={typeFilter}
-          platformFilter={platformFilter}
-          onTypeChange={setTypeFilter}
-          onPlatformChange={setPlatformFilter}
+          search={exploreFilters.search}
+          onSearchChange={v => setExploreFilters(f => ({ ...f, search: v }))}
+          typeFilter={exploreFilters.typeFilter}
+          platformFilter={exploreFilters.platformFilter}
+          onTypeChange={v => setExploreFilters(f => ({ ...f, typeFilter: v }))}
+          onPlatformChange={v => setExploreFilters(f => ({ ...f, platformFilter: v }))}
+        />
+      )}
+
+      {activeTab === 'in_progress' && (
+        <StatusFilterPills
+          options={CLAIM_STATUS_OPTIONS}
+          value={claimedFilters.claimStatusFilter}
+          onChange={v => setClaimedFilters(f => ({ ...f, claimStatusFilter: v }))}
         />
       )}
 

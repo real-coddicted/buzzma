@@ -8,9 +8,8 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { value: 'explore',     label: 'Explore'     },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed',   label: 'Completed'   },
+  { value: 'explore',     label: 'Explore'  },
+  { value: 'in_progress', label: 'Claimed'  },
 ]
 
 interface DealTabsProps {
