@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { fetchTicketActivity } from '../../api/ticketApi'
-import type { Ticket, TicketActivityEvent } from '../../types/TicketTypes'
+import { fetchTicketActivity } from '../../../api/ticketApi'
+import type { Ticket, TicketActivityEvent } from '../../../types/TicketTypes'
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString('en-IN', {

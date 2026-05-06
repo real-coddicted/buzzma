@@ -1,19 +1,5 @@
-import type { Deal, Platform, CampaignType } from '../../types/DealTypes'
-
-const platformColors: Record<Platform, string> = {
-  PLATFORM_AMAZON:   'text-neon-orange bg-neon-orange/10 border-neon-orange/25',
-  PLATFORM_FLIPKART: 'text-neon-blue   bg-neon-blue/10   border-neon-blue/25',
-  PLATFORM_NYKAA:    'text-neon-pink   bg-neon-pink/10   border-neon-pink/25',
-  PLATFORM_MYNTRA:   'text-neon-purple bg-neon-purple/10 border-neon-purple/25',
-}
-
-const dealTypeColors: Record<CampaignType, string> = {
-  CAMPAIGN_TYPE_RATING:           'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/25',
-  CAMPAIGN_TYPE_REVIEW:           'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/25',
-  CAMPAIGN_TYPE_ORDER:            'text-neon-green  bg-neon-green/10  border-neon-green/25',
-  CAMPAIGN_TYPE_DISCOUNT:         'text-neon-red    bg-neon-red/10    border-neon-red/25',
-  CAMPAIGN_TYPE_AGENCY_DISCRETION:'text-neon-purple bg-neon-purple/10 border-neon-purple/25',
-}
+import type { Deal } from '../../../types/DealTypes'
+import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 
 function paise(amount: number) {
   return `₹${(amount / 100).toLocaleString('en-IN')}`
@@ -50,13 +36,13 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className={[
             'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-            platformColors[deal.platform],
+            PLATFORM_COLORS[deal.platform],
           ].join(' ')}>
             {deal.platformLabel}
           </span>
           <span className={[
             'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-            dealTypeColors[deal.dealType],
+            DEAL_TYPE_COLORS[deal.dealType],
           ].join(' ')}>
             {deal.dealTypeLabel}
           </span>

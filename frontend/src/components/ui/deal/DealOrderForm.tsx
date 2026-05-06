@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IconCalendar } from './icons'
+import { IconCalendar } from '../icons'
 
 interface DealOrderFormFields {
   orderId: string

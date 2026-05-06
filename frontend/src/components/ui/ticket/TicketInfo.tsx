@@ -1,5 +1,5 @@
 import { TicketStatusBadge } from './TicketStatusBadge'
-import type { Ticket } from '../../types/TicketTypes'
+import type { Ticket } from '../../../types/TicketTypes'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Button } from './Button'
-import { fetchTicketComments, postTicketComment } from '../../api/ticketApi'
-import type { Ticket, TicketComment } from '../../types/TicketTypes'
+import { Button } from '../Button'
+import { fetchTicketComments, postTicketComment } from '../../../api/ticketApi'
+import type { Ticket, TicketComment } from '../../../types/TicketTypes'
 
 const canComment = (status: Ticket['status']) => status === 'Open' || status === 'InProgress'
 

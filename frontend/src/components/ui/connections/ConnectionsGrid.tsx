@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Card } from './Card'
-import { IconUsers, IconCheck } from './icons'
-import type { Connection, ConnectionStatus, ConnectionSortKey } from '../../types/ConnectionTypes'
+import { Card } from '../Card'
+import { IconUsers, IconCheck } from '../icons'
+import type { Connection, ConnectionStatus, ConnectionSortKey } from '../../../types/ConnectionTypes'
 
 export type { Connection, ConnectionStatus, ConnectionSortKey }
 
