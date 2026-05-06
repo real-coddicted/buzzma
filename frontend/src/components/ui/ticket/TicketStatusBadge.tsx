@@ -1,5 +1,5 @@
-import { TICKET_STATUS_CONFIG } from '../../constants/ticketStatus'
-import type { TicketStatus } from '../../types/TicketTypes'
+import { TICKET_STATUS_CONFIG } from '../../../constants/ticketStatus'
+import type { TicketStatus } from '../../../types/TicketTypes'
 
 interface Props {
   status: TicketStatus

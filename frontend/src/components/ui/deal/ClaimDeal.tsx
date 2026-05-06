@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { Deal } from '../../types/DealTypes'
+import type { Deal } from '../../../types/DealTypes'
 import { DealOrderForm } from './DealOrderForm'
 
 interface ClaimDealProps {

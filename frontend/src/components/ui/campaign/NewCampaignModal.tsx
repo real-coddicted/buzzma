@@ -1,8 +1,8 @@
 import { useState, useEffect, type FormEvent, type KeyboardEvent } from 'react'
-import { Button } from './Button'
-import { IconPlus } from './icons'
-import type { Platform, CampaignType, CampaignRequestDto } from '../../types'
-import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../constants/campaigns'
+import { Button } from '../Button'
+import { IconPlus } from '../icons'
+import type { Platform, CampaignType, CampaignRequestDto } from '../../../types'
+import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
 
 export type { CampaignRequestDto }
 

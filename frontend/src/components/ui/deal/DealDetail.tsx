@@ -1,5 +1,5 @@
-import type { Deal } from '../../types/DealTypes'
-import { IconChevronRight } from './icons'
+import type { Deal } from '../../../types/DealTypes'
+import { IconChevronRight } from '../icons'
 import { DealInfo } from './DealInfo'
 import { ClaimDeal } from './ClaimDeal'
 

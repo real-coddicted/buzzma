@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react'
-import { StatusFilterPills } from './StatusFilterPills'
-import type { FilterOption } from './StatusFilterPills'
-import { SearchInput } from './SearchInput'
-import type { Platform, CampaignType } from '../../types/DealTypes'
-import { fetchPlatforms } from '../../api/platformApi'
-import { fetchDealTypes } from '../../api/dealTypeApi'
+import { StatusFilterPills } from '../StatusFilterPills'
+import type { FilterOption } from '../StatusFilterPills'
+import { SearchInput } from '../SearchInput'
+import type { DealTypeFilter, DealPlatformFilter } from '../../../types/DealTypes'
+import { fetchPlatforms } from '../../../api/platformApi'
+import { fetchDealTypes } from '../../../api/dealTypeApi'
+import { ALL_TYPES_OPTION, ALL_PLATFORMS_OPTION } from '../../../constants/deal'
 
-export type DealTypeFilter     = CampaignType | 'all'
-export type DealPlatformFilter = Platform     | 'all'
-
-const ALL_TYPES_OPTION: FilterOption<DealTypeFilter> = { value: 'all', label: 'All Types' }
-const ALL_PLATFORMS_OPTION: FilterOption<DealPlatformFilter> = { value: 'all', label: 'All Platforms' }
+export type { DealTypeFilter, DealPlatformFilter }
 
 interface DealFilterBarProps {
   search:           string

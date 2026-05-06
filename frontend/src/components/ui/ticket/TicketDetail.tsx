@@ -1,7 +1,7 @@
 import { TicketInfo } from './TicketInfo'
 import { TicketActivity } from './TicketActivity'
 import { TicketComments } from './TicketComments'
-import type { Ticket } from '../../types/TicketTypes'
+import type { Ticket } from '../../../types/TicketTypes'
 
 interface Props {
   ticket: Ticket

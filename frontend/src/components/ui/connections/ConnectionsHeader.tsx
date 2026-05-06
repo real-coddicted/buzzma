@@ -1,4 +1,4 @@
-import { IconPlus } from './icons'
+import { IconPlus } from '../icons'
 
 interface ConnectionsHeaderProps {
   total: number

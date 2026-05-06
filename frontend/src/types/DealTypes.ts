@@ -4,6 +4,9 @@ export type { Platform, CampaignType }
 
 export type DealStatus = 'explore' | 'in_progress' | 'completed'
 
+export type DealTypeFilter     = CampaignType | 'all'
+export type DealPlatformFilter = Platform     | 'all'
+
 export interface DealTypeOption {
   value: CampaignType
   label: string

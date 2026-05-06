@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import type { LinkedEntity } from '../../types'
-import { Button } from './Button'
-import { IconX, IconTrash, IconPlus } from './icons'
+import type { LinkedEntity } from '../../../types'
+import { Button } from '../Button'
+import { IconX, IconTrash, IconPlus } from '../icons'
 import { SearchEntityModal } from './SearchEntityModal'
 
 interface LaunchCampaignModalProps {

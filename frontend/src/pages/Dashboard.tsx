@@ -3,7 +3,7 @@ import { StatCard } from '../components/ui/StatCard'
 import { Button } from '../components/ui/Button'
 import { StatusBadge } from '../components/ui/Badge'
 import { IconChevronRight } from '../components/ui/icons'
-import { NewCampaignButton } from '../components/ui/NewCampaignModal'
+import { NewCampaignButton } from '../components/ui/campaign/NewCampaignModal'
 import { statCards, recentActivity, campaigns, performanceBars } from '../data/mockData'
 import type { StatCardAccent, ActivityItem, PerformanceBar } from '../types'
 

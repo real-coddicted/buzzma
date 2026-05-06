@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import type { LinkedEntity } from '../../types'
-import { Button } from './Button'
-import { IconX, IconSearch } from './icons'
+import type { LinkedEntity } from '../../../types'
+import { Button } from '../Button'
+import { IconX, IconSearch } from '../icons'
 
 interface SearchEntityModalProps {
   open: boolean

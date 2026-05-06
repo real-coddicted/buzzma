@@ -1,4 +1,4 @@
-import type { DealStatus } from '../../types/DealTypes'
+import type { DealStatus } from '../../../types/DealTypes'
 
 export type DealTab = DealStatus
 
