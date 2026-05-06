@@ -10,6 +10,7 @@ export type DealPlatformFilter = Platform     | 'all'
 export interface DealTypeOption {
   value: CampaignType
   label: string
+  activeClasses?: string
 }
 
 export interface Deal {

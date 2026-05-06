@@ -10,10 +10,10 @@ import { fetchConnections, fetchConnectionSummary } from '../api/connectionApi'
 import type { ConnectionSummary } from '../api/connectionApi'
 
 const statusFilters: FilterOption<ConnectionStatus | 'all'>[] = [
-  { value: 'all',       label: 'All'       },
-  { value: 'connected', label: 'Connected' },
-  { value: 'pending',   label: 'Pending'   },
-  { value: 'invited',   label: 'Invited'   },
+  { value: 'all',       label: 'All',       activeClasses: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/30'   },
+  { value: 'connected', label: 'Connected', activeClasses: 'bg-neon-green/10  text-neon-green  border-neon-green/30'  },
+  { value: 'pending',   label: 'Pending',   activeClasses: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30' },
+  { value: 'invited',   label: 'Invited',   activeClasses: 'bg-neon-orange/10 text-neon-orange border-neon-orange/30' },
 ]
 
 export function Connections() {

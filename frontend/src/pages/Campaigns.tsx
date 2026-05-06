@@ -68,12 +68,12 @@ function SummaryCard({ label, value, accent }: SummaryCardProps) {
   )
 }
 
-const statusFilters: { value: CampaignStatus | 'all'; label: string }[] = [
-  { value: 'all',       label: 'All' },
-  { value: 'active',    label: 'Active' },
-  { value: 'paused',    label: 'Paused' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'draft',     label: 'Draft' },
+const statusFilters: { value: CampaignStatus | 'all'; label: string; activeClasses: string }[] = [
+  { value: 'all',       label: 'All',       activeClasses: 'bg-neon-blue/10    text-neon-blue    border-neon-blue/30'    },
+  { value: 'active',    label: 'Active',    activeClasses: 'bg-neon-green/10   text-neon-green   border-neon-green/30'   },
+  { value: 'paused',    label: 'Paused',    activeClasses: 'bg-neon-yellow/10  text-neon-yellow  border-neon-yellow/30'  },
+  { value: 'completed', label: 'Completed', activeClasses: 'bg-neon-purple/10  text-neon-purple  border-neon-purple/30'  },
+  { value: 'draft',     label: 'Draft',     activeClasses: 'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border' },
 ]
 
 type SortKey = keyof Pick<Campaign, 'name' | 'budget' | 'spent' | 'impressions' | 'ctr' | 'conversions'>
@@ -202,7 +202,7 @@ export function Campaigns() {
                 className={[
                   'px-3 py-1 rounded-full text-xs font-medium border transition-all',
                   statusFilter === f.value
-                    ? 'bg-neon-blue/10 text-neon-blue border-neon-blue/30'
+                    ? f.activeClasses
                     : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
                 ].join(' ')}
               >

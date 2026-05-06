@@ -16,5 +16,5 @@ export const DEAL_TYPE_COLORS: Record<CampaignType, string> = {
   CAMPAIGN_TYPE_AGENCY_DISCRETION: 'text-neon-purple bg-neon-purple/10 border-neon-purple/25',
 }
 
-export const ALL_TYPES_OPTION: FilterOption<DealTypeFilter> = { value: 'all', label: 'All Types' }
+export const ALL_TYPES_OPTION: FilterOption<DealTypeFilter> = { value: 'all', label: 'All Types', activeClasses: 'bg-neon-blue/10 text-neon-blue border-neon-blue/30' }
 export const ALL_PLATFORMS_OPTION: FilterOption<DealPlatformFilter> = { value: 'all', label: 'All Platforms' }

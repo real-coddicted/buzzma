@@ -443,10 +443,10 @@ export const deals: RawDeal[] = [
 ]
 
 export const dealTypes: DealTypeOption[] = [
-  { value: 'CAMPAIGN_TYPE_RATING',   label: 'Rating'   },
-  { value: 'CAMPAIGN_TYPE_REVIEW',   label: 'Review'   },
-  { value: 'CAMPAIGN_TYPE_DISCOUNT', label: 'Discount' },
-  { value: 'CAMPAIGN_TYPE_ORDER',    label: 'Order'    },
+  { value: 'CAMPAIGN_TYPE_RATING',   label: 'Rating',   activeClasses: 'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/30' },
+  { value: 'CAMPAIGN_TYPE_REVIEW',   label: 'Review',   activeClasses: 'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/30'   },
+  { value: 'CAMPAIGN_TYPE_DISCOUNT', label: 'Discount', activeClasses: 'text-neon-red    bg-neon-red/10    border-neon-red/30'    },
+  { value: 'CAMPAIGN_TYPE_ORDER',    label: 'Order',    activeClasses: 'text-neon-green  bg-neon-green/10  border-neon-green/30'  },
 ]
 
 export const platforms: PlatformOption[] = [

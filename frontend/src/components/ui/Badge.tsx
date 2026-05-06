@@ -34,7 +34,7 @@ export function Badge({ children, variant }: BadgeProps) {
 const statusMap: Record<CampaignStatus, { label: string; variant: StatCardAccent | 'neutral'; dot: string }> = {
   active:    { label: 'Active',    variant: 'green',   dot: 'bg-neon-green' },
   paused:    { label: 'Paused',    variant: 'yellow',  dot: 'bg-neon-yellow' },
-  completed: { label: 'Completed', variant: 'cyan',    dot: 'bg-neon-cyan' },
+  completed: { label: 'Completed', variant: 'purple',  dot: 'bg-neon-purple' },
   draft:     { label: 'Draft',     variant: 'neutral', dot: 'bg-ink-light-muted dark:bg-ink-dark-muted' },
 }
 

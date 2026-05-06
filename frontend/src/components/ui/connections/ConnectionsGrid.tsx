@@ -13,7 +13,7 @@ interface ConnectionsGridProps {
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
   connected: { label: 'Connected', classes: 'text-neon-green  bg-neon-green/10  border-neon-green/30'  },
   pending:   { label: 'Pending',   classes: 'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/30' },
-  invited:   { label: 'Invited',   classes: 'text-neon-blue   bg-neon-blue/10   border-neon-blue/30'   },
+  invited:   { label: 'Invited',   classes: 'text-neon-orange bg-neon-orange/10 border-neon-orange/30' },
 }
 
 const cols: { key: ConnectionSortKey; label: string }[] = [
