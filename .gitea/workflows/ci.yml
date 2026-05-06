@@ -2,10 +2,8 @@ name: Build, Test, and Publish Docker Image
 
 on:
   push:
-    branches:
-      - "**"
-    tags:
-      - "v*.*.*"
+    branches: ["**"]
+    tags: ["v*.*.*"]
 
 env:
   REGISTRY: gitea.local.coddicted.com
@@ -13,7 +11,7 @@ env:
 
 jobs:
   backend:
-    name: Build, Test, and Publish Backend
+    name: Build and Push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,12 +24,14 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Ensure Gradle wrapper is executable
-        run: chmod +x ./gradlew
+      # ⚡ CRITICAL: Build the JAR here so Docker doesn't have to re-compile
+      - name: Build with Gradle
+        # 'bootJar' creates the executable JAR, '-x test' skips tests since you run them separately
+        run: ./gradlew bootJar -x test --no-daemon
         working-directory: backend
 
       - name: Run tests
-        run: ./gradlew --no-daemon test
+        run: ./gradlew test --no-daemon
         working-directory: backend
 
       - name: Log in to the Container registry
@@ -41,31 +41,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=sha,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=branch,suffix=-beta,enable=${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
-            type=sha,suffix=-beta,enable=${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
             type=semver,pattern={{version}}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          # ⚡ OPTIMIZATION: Only do multi-arch on main/tags to save 20+ mins
+          platforms: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # ⚡ OPTIMIZATION: Enable GitHub Actions native caching
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           provenance: false

@@ -1,22 +1,12 @@
-FROM eclipse-temurin:21-jdk-jammy AS builder
-
-WORKDIR /workspace
-
-COPY gradlew gradlew
-COPY gradle gradle
-COPY build.gradle settings.gradle ./
-COPY src src
-
-RUN chmod +x ./gradlew \
-    && ./gradlew --no-daemon bootJar -x test
-
 FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
+# Add security layer
 RUN useradd --create-home --shell /usr/sbin/nologin spring
 
-COPY --from=builder /workspace/build/libs/*.jar /app/app.jar
+# Copy the JAR already built by the GitHub Action runner
+COPY build/libs/*.jar /app/app.jar
 
 USER spring
 
