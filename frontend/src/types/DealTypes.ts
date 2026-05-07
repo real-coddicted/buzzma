@@ -23,4 +23,5 @@ export interface Deal {
   originalPricePaise: number
   offeredPricePaise: number
   status: DealStatus
+  currentStep?: number
 }

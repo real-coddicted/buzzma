@@ -1,6 +1,4 @@
-import type { DealStatus } from '../../../types/DealTypes'
-
-export type DealTab = DealStatus
+export type DealTab = 'explore' | 'in_progress'
 
 interface Tab {
   value: DealTab
@@ -9,8 +7,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { value: 'explore',     label: 'Explore'     },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed',   label: 'Completed'   },
+  { value: 'in_progress', label: 'Claimed' },
 ]
 
 interface DealTabsProps {

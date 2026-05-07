@@ -1,5 +1,6 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
+import { ProductThumbnail } from './ProductThumbnail'
 
 function paise(amount: number) {
   return `₹${(amount / 100).toLocaleString('en-IN')}`
@@ -23,12 +24,8 @@ export function DealInfo({ deal }: DealInfoProps) {
 
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden flex flex-col">
-      <div className="relative h-64 flex-shrink-0 bg-surface-light-hover dark:bg-surface-dark-hover">
-        <img
-          src={deal.productImageUrl}
-          alt={deal.productName}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative h-64 flex-shrink-0">
+        <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
         {discount > 0 && (
           <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
             -{discount}%
