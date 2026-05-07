@@ -5,7 +5,7 @@ import { SearchInput } from '../SearchInput'
 import type { DealTypeFilter, DealPlatformFilter } from '../../../types/DealTypes'
 import { fetchPlatforms } from '../../../api/platformApi'
 import { fetchDealTypes } from '../../../api/dealTypeApi'
-import { ALL_TYPES_OPTION, ALL_PLATFORMS_OPTION } from '../../../constants/deal'
+import { ALL_TYPES_OPTION, ALL_PLATFORMS_OPTION, DEAL_TYPE_ACTIVE_CLASSES } from '../../../constants/deal'
 
 export type { DealTypeFilter, DealPlatformFilter }
 
@@ -30,7 +30,10 @@ export function DealFilterBar({
   const [platformOptions, setPlatformOptions] = useState<FilterOption<DealPlatformFilter>[]>([ALL_PLATFORMS_OPTION])
 
   useEffect(() => {
-    fetchDealTypes().then(data => setTypeOptions([ALL_TYPES_OPTION, ...data]))
+    fetchDealTypes().then(data => setTypeOptions([
+      ALL_TYPES_OPTION,
+      ...data.map(opt => ({ ...opt, activeClass: DEAL_TYPE_ACTIVE_CLASSES[opt.value] })),
+    ]))
     fetchPlatforms().then(data => setPlatformOptions([ALL_PLATFORMS_OPTION, ...data]))
   }, [])
 

@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { Card } from '../Card'
-import { IconUsers, IconCheck } from '../icons'
+import { IconUsers, IconCheck, IconSearch, IconFilter } from '../icons'
 import type { Connection, ConnectionStatus, ConnectionSortKey } from '../../../types/ConnectionTypes'
 
 export type { Connection, ConnectionStatus, ConnectionSortKey }
 
+export interface ConnectionFilterOption {
+  value: ConnectionStatus | 'all'
+  label: string
+}
+
 interface ConnectionsGridProps {
   rows: Connection[]
   total: number
+  search: string
+  onSearch: (value: string) => void
+  statusFilter: ConnectionStatus | 'all'
+  onStatusFilter: (value: ConnectionStatus | 'all') => void
+  filterOptions: ConnectionFilterOption[]
 }
 
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
@@ -16,12 +26,27 @@ const statusConfig: Record<ConnectionStatus, { label: string; classes: string }>
   invited:   { label: 'Invited',   classes: 'text-neon-blue   bg-neon-blue/10   border-neon-blue/30'   },
 }
 
+const filterActiveClasses: Record<ConnectionStatus | 'all', string> = {
+  all:       'bg-neon-blue/10   text-neon-blue   border-neon-blue/30',
+  connected: 'bg-neon-green/10  text-neon-green  border-neon-green/30',
+  pending:   'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30',
+  invited:   'bg-neon-blue/10   text-neon-blue   border-neon-blue/30',
+}
+
 const cols: { key: ConnectionSortKey; label: string }[] = [
   { key: 'name',   label: 'Connection' },
   { key: 'status', label: 'Status'     },
 ]
 
-export function ConnectionsGrid({ rows, total }: ConnectionsGridProps) {
+export function ConnectionsGrid({
+  rows,
+  total,
+  search,
+  onSearch,
+  statusFilter,
+  onStatusFilter,
+  filterOptions,
+}: ConnectionsGridProps) {
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
@@ -48,6 +73,36 @@ export function ConnectionsGrid({ rows, total }: ConnectionsGridProps) {
 
   return (
     <Card padded={false}>
+      <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
+        <div className="flex items-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border rounded-lg px-3 py-2 flex-1 min-w-0 max-w-xs">
+          <IconSearch size={14} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="Search connections…"
+            value={search}
+            onChange={e => onSearch(e.target.value)}
+            className="bg-transparent text-xs outline-none flex-1 text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <IconFilter size={13} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
+          {filterOptions.map(f => (
+            <button
+              key={f.value}
+              onClick={() => onStatusFilter(f.value)}
+              className={[
+                'px-3 py-1 rounded-full text-xs font-medium border transition-all',
+                statusFilter === f.value
+                  ? filterActiveClasses[f.value]
+                  : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
+              ].join(' ')}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
