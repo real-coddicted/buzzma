@@ -1,0 +1,19 @@
+{
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "userId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "settings": {
+    "isDashboardTabEnabled": true,
+    "isCampaignsTabEnabled": true,
+    "isAssignmentsTabEnabled": true,
+    "isConnectionsTabEnabled": true,
+    "isDealTabEnabled": true,
+    "isTicketsTabEnabled": true,
+    "isFeedbackTabEnabled": true,
+    "isSettingsTabEnabled": true
+  },
+  "isDeleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "updatedBy": "cccccccc-cccc-cccc-cccc-cccccccccccc"
+}
