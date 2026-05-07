@@ -76,6 +76,14 @@ const statusFilters: { value: CampaignStatus | 'all'; label: string }[] = [
   { value: 'draft',     label: 'Draft' },
 ]
 
+const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
+  all:       'bg-neon-blue/10   text-neon-blue   border-neon-blue/30',
+  active:    'bg-neon-green/10  text-neon-green  border-neon-green/30',
+  paused:    'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30',
+  completed: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/30',
+  draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
+}
+
 type SortKey = keyof Pick<Campaign, 'name' | 'budget' | 'spent' | 'impressions' | 'ctr' | 'conversions'>
 
 export function Campaigns() {
@@ -202,7 +210,7 @@ export function Campaigns() {
                 className={[
                   'px-3 py-1 rounded-full text-xs font-medium border transition-all',
                   statusFilter === f.value
-                    ? 'bg-neon-blue/10 text-neon-blue border-neon-blue/30'
+                    ? filterActiveClasses[f.value]
                     : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
                 ].join(' ')}
               >

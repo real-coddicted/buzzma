@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ConnectionsHeader } from '../components/ui/connections/ConnectionsHeader'
-import { SearchInput } from '../components/ui/SearchInput'
-import { StatusFilterPills } from '../components/ui/StatusFilterPills'
-import type { FilterOption } from '../components/ui/StatusFilterPills'
 import { ConnectionsGrid } from '../components/ui/connections/ConnectionsGrid'
-import type { ConnectionStatus } from '../components/ui/connections/ConnectionsGrid'
+import type { ConnectionStatus, ConnectionFilterOption } from '../components/ui/connections/ConnectionsGrid'
 import type { Connection } from '../types/ConnectionTypes'
 import { fetchConnections, fetchConnectionSummary } from '../api/connectionApi'
 import type { ConnectionSummary } from '../api/connectionApi'
 
-const statusFilters: FilterOption<ConnectionStatus | 'all'>[] = [
+const statusFilters: ConnectionFilterOption[] = [
   { value: 'all',       label: 'All'       },
   { value: 'connected', label: 'Connected' },
   { value: 'pending',   label: 'Pending'   },
@@ -52,25 +49,20 @@ export function Connections() {
         onAddConnection={() => {}}
       />
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Search connections…"
-        />
-        <StatusFilterPills
-          options={statusFilters}
-          value={statusFilter}
-          onChange={setStatusFilter}
-        />
-      </div>
-
       {loading ? (
         <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
           Loading…
         </div>
       ) : (
-        <ConnectionsGrid rows={filtered} total={summary.total} />
+        <ConnectionsGrid
+          rows={filtered}
+          total={summary.total}
+          search={search}
+          onSearch={setSearch}
+          statusFilter={statusFilter}
+          onStatusFilter={setStatusFilter}
+          filterOptions={statusFilters}
+        />
       )}
     </div>
   )
