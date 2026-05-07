@@ -7,6 +7,7 @@ public interface UserService {
 
   BuzzmaUser getById(UUID id);
 
+  // Todo: pass requesterId in write methods
   BuzzmaUser create(BuzzmaUser user);
 
   BuzzmaUser update(BuzzmaUser user);

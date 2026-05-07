@@ -1,0 +1,14 @@
+{
+  "userId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "settings": {
+    "isDashboardTabEnabled": true,
+    "isCampaignsTabEnabled": false,
+    "isAssignmentsTabEnabled": true,
+    "isConnectionsTabEnabled": true,
+    "isDealTabEnabled": true,
+    "isTicketsTabEnabled": true,
+    "isFeedbackTabEnabled": true,
+    "isSettingsTabEnabled": true
+  },
+  "isDeleted": false
+}

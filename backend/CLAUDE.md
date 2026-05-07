@@ -41,6 +41,29 @@ shared/util/        Utility classes (CodeGenerator, DateTimeUtils, PasswordServi
 - Soft delete via `isDeleted` boolean field — never hard-delete.
 - Enums stored as `@Enumerated(EnumType.STRING)`.
 
+### JSONB columns
+
+Store structured sub-objects as PostgreSQL `jsonb` using `@JdbcTypeCode(SqlTypes.JSON)`:
+
+```java
+@JdbcTypeCode(SqlTypes.JSON)
+@Column(name = "settings", columnDefinition = "jsonb")
+private Settings settings;
+```
+
+The embedded value type uses the same annotations as a DTO — immutable, builder-friendly, Jackson-deserializable:
+
+```java
+@Value
+@Builder
+@Jacksonized
+public class Settings {
+    boolean isDashboardTabEnabled;
+    boolean isCampaignsTabEnabled;
+    // ...
+}
+```
+
 ## Naming conventions
 
 ### Enum values
@@ -145,6 +168,11 @@ Rules:
 - Mappers are pure structural transformations: no business logic, no side effects, no service/component injection.
 - Field name mismatches between DTO and entity (e.g. `answer` → `answerHash`) are handled with explicit `@Mapping(source = "answer", target = "answerHash")`.
 - Always explicitly `@Mapping(target = "id", ignore = true)` and ignore audit fields in write mappers.
+- **Boolean `is`-prefix stripping in source paths**: MapStruct strips the `is` prefix from boolean property names when resolving source paths. A field named `isDashboardTabEnabled` must be referenced as `dashboardTabEnabled` in `source`, even though the full name is used in `target`:
+  ```java
+  @Mapping(source = "settings.dashboardTabEnabled", target = "isDashboardTabEnabled")
+  ```
+- **Flattening nested objects**: when an entity holds an embedded value object (e.g. `UserSettings.settings`) that maps to a flat DTO, declare explicit `@Mapping` for each nested field using dot notation in `source`.
 
 ## Services
 
@@ -195,22 +223,22 @@ Use manual SLF4J — do not use Lombok `@Slf4j`:
 private static final Logger LOGGER = LoggerFactory.getLogger(InviteServiceImpl.class);
 ```
 
-The field must be named `LOG` (uppercase) to satisfy the Checkstyle `ConstantName` rule.
+The field must be named `LOGGER` (all caps) to satisfy the Checkstyle `ConstantName` rule.
 
 Log levels:
-- `log.debug(...)` — method entry, successful path milestones.
-- `log.warn(...)` — business rule failures (invalid invite, wrong role, expired code). Always include the key identifier (e.g. code, id) and the reason.
-- `log.error(...)` — unexpected exceptions (in `GlobalExceptionHandler`).
+- `LOGGER.debug(...)` — method entry, successful path milestones.
+- `LOGGER.warn(...)` — business rule failures (invalid invite, wrong role, expired code). Always include the key identifier (e.g. code, id) and the reason.
+- `LOGGER.error(...)` — unexpected exceptions (in `GlobalExceptionHandler`).
 
 Example pattern from `InviteServiceImpl.verify()`:
 
 ```java
 if (invite.isDeleted()) {
-  log.warn("Invite {} is deleted", invite.getCode());
+  LOGGER.warn("Invite {} is deleted", invite.getCode());
   return false;
 }
 if (invite.getStatus() != INVITE_STATUS_ACTIVE) {
-  log.warn("Invite {} has status {}", invite.getCode(), invite.getStatus());
+  LOGGER.warn("Invite {} has status {}", invite.getCode(), invite.getStatus());
   return false;
 }
 ```
@@ -243,9 +271,29 @@ final CampaignStatus target = switch (action) {
 
 ## Utilities
 
+### Shared utilities (`shared/util/`)
+
 - `CodeGenerator.generateHumanCode("PREFIX")` — generates a human-readable unique code (e.g. `INV-ABCD1234`). Use for invite codes, coupon codes, and any user-facing identifiers.
 - `DateTimeUtils.toLocalDate(int date)` — parses an integer in `YYYYMMDD` format to `LocalDate` using `DateTimeFormatter.BASIC_ISO_DATE`. Use for date fields stored as `int` (e.g. `validTo`).
 - `PasswordService.hashPassword(String)` / `verifyPassword(String, String)` — BCrypt hash and verify. Hashing always happens in the service layer via `toBuilder()`, never in a mapper.
+
+### Module utilities (`<module>/util/`)
+
+Modules may have their own utility classes under `<module>/util/`. Follow the same pattern as `shared/util/`: `final` class, `private` constructor, static methods only. Use for module-specific helpers such as building default domain objects by role:
+
+```java
+public final class SettingsUtils {
+
+  private SettingsUtils() {}
+
+  public static Settings getAdminSettings() {
+    return Settings.builder()
+        .isDashboardTabEnabled(true)
+        // ...
+        .build();
+  }
+}
+```
 
 ## Security
 
@@ -259,7 +307,7 @@ final CampaignStatus target = switch (action) {
 - JUnit 5 (`@ExtendWith(MockitoExtension.class)`) + Mockito for service unit tests.
 - Assertions: JUnit 5 only (`assertEquals`, `assertTrue`, `assertFalse`, `assertThrows`). Do not use AssertJ.
 - No `any()` or other generic/lenient Mockito matchers — always pass exact arguments.
-- Use `doReturn(...).when(mock).method(args)` — not `when(mock.method(args)).thenReturn(...)`.
+- Use `when(mock.method(args)).thenReturn(...)` for stubbing.
 
 ### Fixtures
 
