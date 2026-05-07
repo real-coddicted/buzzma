@@ -13,10 +13,10 @@ interface ClaimedDealsListProps {
 }
 
 export function ClaimedDealsList({ onSelect }: ClaimedDealsListProps) {
-  const [deals, setDeals]           = useState<Deal[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [search, setSearch]         = useState('')
-  const [typeFilter, setTypeFilter] = useState<DealTypeFilter>('all')
+  const [deals, setDeals]             = useState<Deal[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [search, setSearch]           = useState('')
+  const [typeFilter, setTypeFilter]   = useState<DealTypeFilter>('all')
   const [typeOptions, setTypeOptions] = useState<FilterOption<DealTypeFilter>[]>([ALL_TYPES_OPTION])
 
   useEffect(() => {

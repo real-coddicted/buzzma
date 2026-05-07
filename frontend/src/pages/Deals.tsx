@@ -3,6 +3,7 @@ import { Card } from '../components/ui/Card'
 import { DealCard } from '../components/ui/deal/DealCard'
 import { ClaimedDealsList } from '../components/ui/deal/ClaimedDealsList'
 import { DealDetail } from '../components/ui/deal/DealDetail'
+import { ClaimedDealDetail } from '../components/ui/deal/ClaimedDealDetail'
 import { DealTabs } from '../components/ui/deal/DealTabs'
 import type { DealTab } from '../components/ui/deal/DealTabs'
 import { DealFilterBar } from '../components/ui/deal/DealFilterBar'
@@ -13,7 +14,8 @@ import type { ExploreDealsPage } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
 
 export function Deals() {
-  const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
+  const [selectedDeal, setSelectedDeal]         = useState<Deal | null>(null)
+  const [selectedClaimed, setSelectedClaimed]   = useState<Deal | null>(null)
   const [activeTab, setActiveTab]           = useState<DealTab>('explore')
   const [search, setSearch]                 = useState('')
   const [typeFilter, setTypeFilter]         = useState<DealTypeFilter>('all')
@@ -58,6 +60,10 @@ export function Deals() {
     in_progress: 5,
   }
 
+  if (selectedClaimed) {
+    return <ClaimedDealDetail deal={selectedClaimed} onBack={() => setSelectedClaimed(null)} />
+  }
+
   if (selectedDeal) {
     return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
   }
@@ -99,7 +105,7 @@ export function Deals() {
 
         <div className="p-4">
           {activeTab === 'in_progress' ? (
-            <ClaimedDealsList onSelect={setSelectedDeal} />
+            <ClaimedDealsList onSelect={setSelectedClaimed} />
           ) : exploreLoading ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
               Loading…
