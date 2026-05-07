@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
@@ -14,7 +13,6 @@ interface DealCardProps {
 }
 
 export function DealCard({ deal, onClick }: DealCardProps) {
-  const [imgError, setImgError] = useState(false)
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
   return (
