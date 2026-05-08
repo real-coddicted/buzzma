@@ -21,10 +21,8 @@ export function Assignments() {
       <AssignmentTabs value={activeTab} onChange={setActiveTab} />
 
       <Card padded={false}>
-        <div className="p-4">
-          {activeTab === 'unpublished' && <UnpublishedAssignments />}
-          {activeTab === 'published'   && <PublishedAssignments />}
-        </div>
+        {activeTab === 'unpublished' && <UnpublishedAssignments />}
+        {activeTab === 'published'   && <PublishedAssignments />}
       </Card>
     </div>
   )
