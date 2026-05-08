@@ -12,5 +12,6 @@ export interface AssignmentItem {
   dealTypeLabel: string
   originalPricePaise: number
   offeredPricePaise: number
+  commissionOfferedPaise: number
   slotsOffered: number
 }

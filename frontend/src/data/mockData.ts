@@ -649,6 +649,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
     dealTypeLabel: 'Review',
     originalPricePaise: 299900,
     offeredPricePaise: 149900,
+    commissionOfferedPaise: 14990,
     slotsOffered: 20,
   },
   {
@@ -661,6 +662,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
     dealTypeLabel: 'Rating',
     originalPricePaise: 79900,
     offeredPricePaise: 63900,
+    commissionOfferedPaise: 6390,
     slotsOffered: 50,
   },
   {
@@ -673,6 +675,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
     dealTypeLabel: 'Discount',
     originalPricePaise: 1299900,
     offeredPricePaise: 779900,
+    commissionOfferedPaise: 77990,
     slotsOffered: 10,
   },
   {
@@ -685,6 +688,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
     dealTypeLabel: 'Order',
     originalPricePaise: 12999900,
     offeredPricePaise: 9999900,
+    commissionOfferedPaise: 999990,
     slotsOffered: 5,
   },
   {
@@ -697,6 +701,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
     dealTypeLabel: 'Review',
     originalPricePaise: 69900,
     offeredPricePaise: 55900,
+    commissionOfferedPaise: 5590,
     slotsOffered: 35,
   },
 ]

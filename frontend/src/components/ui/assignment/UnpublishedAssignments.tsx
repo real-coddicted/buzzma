@@ -5,12 +5,15 @@ import { AssignmentFilterBar } from './AssignmentFilterBar'
 import type { AssignmentTypeFilter } from './AssignmentFilterBar'
 import { AssignmentListView } from './AssignmentListView'
 
-export function UnpublishedAssignments() {
-  const [items, setItems]               = useState<AssignmentItem[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [search, setSearch]             = useState('')
-  const [typeFilter, setTypeFilter]     = useState<AssignmentTypeFilter>('all')
-  const [_selected, setSelected]        = useState<AssignmentItem | null>(null)
+interface UnpublishedAssignmentsProps {
+  onSelect: (item: AssignmentItem) => void
+}
+
+export function UnpublishedAssignments({ onSelect }: UnpublishedAssignmentsProps) {
+  const [items, setItems]           = useState<AssignmentItem[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [search, setSearch]         = useState('')
+  const [typeFilter, setTypeFilter] = useState<AssignmentTypeFilter>('all')
 
   useEffect(() => {
     fetchUnpublishedAssignments().then(data => {
@@ -41,7 +44,7 @@ export function UnpublishedAssignments() {
             <p className="text-ink-light-muted dark:text-ink-dark-muted text-sm">Loading…</p>
           </div>
         ) : (
-          <AssignmentListView items={filtered} onSelect={setSelected} />
+          <AssignmentListView items={filtered} onSelect={onSelect} />
         )}
       </div>
     </>

@@ -3,9 +3,16 @@ import { Card } from '../components/ui/Card'
 import { AssignmentTabs, type AssignmentTab } from '../components/ui/assignment/AssignmentTabs'
 import { UnpublishedAssignments } from '../components/ui/assignment/UnpublishedAssignments'
 import { PublishedAssignments } from '../components/ui/assignment/PublishedAssignments'
+import { AssignmentDetail } from '../components/ui/assignment/AssignmentDetail'
+import type { AssignmentItem } from '../types/AssignmentTypes'
 
 export function Assignments() {
   const [activeTab, setActiveTab] = useState<AssignmentTab>('unpublished')
+  const [selected, setSelected]   = useState<AssignmentItem | null>(null)
+
+  if (selected) {
+    return <AssignmentDetail item={selected} onBack={() => setSelected(null)} />
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -21,7 +28,7 @@ export function Assignments() {
       <AssignmentTabs value={activeTab} onChange={setActiveTab} />
 
       <Card padded={false}>
-        {activeTab === 'unpublished' && <UnpublishedAssignments />}
+        {activeTab === 'unpublished' && <UnpublishedAssignments onSelect={setSelected} />}
         {activeTab === 'published'   && <PublishedAssignments />}
       </Card>
     </div>
