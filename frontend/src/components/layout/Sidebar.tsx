@@ -61,6 +61,12 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             onClick={() => onNavigate('connections')}
           />
           <NavItem
+            icon={<IconList />}
+            label="Assignments"
+            active={activePage === 'assignments'}
+            onClick={() => onNavigate('assignments')}
+          />
+          <NavItem
             icon={<IconBolt />}
             label="Deals"
             active={activePage === 'deals'}
