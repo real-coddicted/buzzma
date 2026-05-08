@@ -7,10 +7,14 @@ import type { NotificationTab } from './NotificationTabs'
 interface NotificationListProps {
   notifications: Notification[]
   activeTab: NotificationTab
+  onToggleRead: (id: string) => void
+  onTogglePin: (id: string) => void
 }
 
-export function NotificationList({ notifications, activeTab }: NotificationListProps) {
-  const filtered = notifications.filter(n => activeTab === 'unread' ? n.unread : !n.unread)
+export function NotificationList({ notifications, activeTab, onToggleRead, onTogglePin }: NotificationListProps) {
+  const filtered = notifications
+    .filter(n => activeTab === 'unread' ? n.unread : !n.unread)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned))
 
   if (filtered.length === 0) {
     return (
@@ -34,7 +38,12 @@ export function NotificationList({ notifications, activeTab }: NotificationListP
     <Card padded={false}>
       <div className="flex flex-col divide-y divide-surface-light-border dark:divide-surface-dark-border max-h-[32rem] overflow-y-auto">
         {filtered.map(n => (
-          <NotificationItem key={n.id} notification={n} />
+          <NotificationItem
+            key={n.id}
+            notification={n}
+            onToggleRead={onToggleRead}
+            onTogglePin={onTogglePin}
+          />
         ))}
       </div>
     </Card>

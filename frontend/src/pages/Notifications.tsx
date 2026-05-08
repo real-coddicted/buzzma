@@ -52,7 +52,12 @@ export function Notifications() {
           Failed to load notifications.
         </div>
       ) : (
-        <NotificationList notifications={notifications} activeTab={activeTab} />
+        <NotificationList
+          notifications={notifications}
+          activeTab={activeTab}
+          onToggleRead={id => setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: !n.unread } : n))}
+          onTogglePin={id => setNotifications(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n))}
+        />
       )}
     </div>
   )

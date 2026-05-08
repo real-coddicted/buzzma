@@ -4,5 +4,6 @@ export interface Notification {
   message: string
   time: string
   unread: boolean
+  pinned: boolean
   accent: string
 }

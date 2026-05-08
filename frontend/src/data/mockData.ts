@@ -732,9 +732,9 @@ export const connections: Connection[] = [
 ]
 
 export const notifications: Notification[] = [
-  { id: 'n1', title: 'Summer Sale 2025 went live',  message: 'Your campaign is now active and reaching audiences.',          time: '2m ago',  unread: true,  accent: 'text-neon-green'  },
-  { id: 'n2', title: 'Conversion goal reached!',    message: 'The Summer Sale campaign hit its 500 conversion target.',     time: '18m ago', unread: true,  accent: 'text-neon-cyan'   },
-  { id: 'n3', title: 'Budget threshold hit (85%)',  message: 'You have used 85% of the budget for Winter Deals.',           time: '1h ago',  unread: false, accent: 'text-neon-orange' },
-  { id: 'n4', title: 'New connection request',      message: 'StyleHub Brand wants to connect with your agency.',           time: '3h ago',  unread: false, accent: 'text-neon-blue'   },
+  { id: 'n1', title: 'Summer Sale 2025 went live',  message: 'Your campaign is now active and reaching audiences.',          time: '2m ago',  unread: true,  pinned: false, accent: 'text-neon-green'  },
+  { id: 'n2', title: 'Conversion goal reached!',    message: 'The Summer Sale campaign hit its 500 conversion target.',     time: '18m ago', unread: true,  pinned: false, accent: 'text-neon-cyan'   },
+  { id: 'n3', title: 'Budget threshold hit (85%)',  message: 'You have used 85% of the budget for Winter Deals.',           time: '1h ago',  unread: false, pinned: false, accent: 'text-neon-orange' },
+  { id: 'n4', title: 'New connection request',      message: 'StyleHub Brand wants to connect with your agency.',           time: '3h ago',  unread: false, pinned: false, accent: 'text-neon-blue'   },
 ]
 
