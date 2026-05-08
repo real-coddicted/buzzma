@@ -3,34 +3,16 @@ import { Card } from '../Card'
 import { IconOrderInProgress, IconOrderCompleted } from '../icons'
 import { OrderReviewToolbar } from './OrderReviewToolbar'
 import { OrderReviewActions } from './OrderReviewActions'
-import { ORDER_STATUS_CONFIG, REVIEW_STATUS_CONFIG, APPROVAL_METHOD_CONFIG, ORDER_REVIEW_COLUMNS } from './orderReviewConstants'
+import { ORDER_STATUS_CONFIG, ORDER_REVIEW_COLUMNS } from './orderReviewConstants'
+import { ReviewStatusCell } from './ReviewStatusCell'
 import { orderReviews } from '../../../data/mockData'
-import type { OrderReviewItem, OrderStatus, ReviewStatus, ApprovalMethod } from '../../../types'
+import type { OrderReviewItem, OrderStatus, ReviewStatus } from '../../../types'
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const { label, colorClass } = ORDER_STATUS_CONFIG[status]
   return (
     <span className={colorClass} title={label}>
       {status === 'in-progress' ? <IconOrderInProgress /> : <IconOrderCompleted />}
-    </span>
-  )
-}
-
-function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
-  const { label, classes, dot } = REVIEW_STATUS_CONFIG[status]
-  return (
-    <span className={['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
-      <span className={['w-1.5 h-1.5 rounded-full inline-block flex-shrink-0', dot].join(' ')} />
-      {label}
-    </span>
-  )
-}
-
-function ApprovalMethodBadge({ method }: { method: ApprovalMethod }) {
-  const { label, classes } = APPROVAL_METHOD_CONFIG[method]
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
-      {label}
     </span>
   )
 }
@@ -117,10 +99,7 @@ export function OrderReviewGrid() {
                     <OrderStatusBadge status={row.orderStatus} />
                   </td>
                   <td className="px-5 py-4">
-                    <ReviewStatusBadge status={row.reviewStatus} />
-                  </td>
-                  <td className="px-5 py-4">
-                    <ApprovalMethodBadge method={row.approvalMethod} />
+                    <ReviewStatusCell status={row.reviewStatus} approvalMethod={row.approvalMethod} />
                   </td>
                   <td className="px-5 py-4 text-center">
                     {row.mediatorVerified

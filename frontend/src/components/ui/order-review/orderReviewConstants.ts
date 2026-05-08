@@ -32,7 +32,6 @@ export const ORDER_REVIEW_COLUMNS = [
   'Mediator Name',
   'Order Status',
   'Review Status',
-  'Approval Method',
   'Verified',
   'Match %',
   'Actions',
