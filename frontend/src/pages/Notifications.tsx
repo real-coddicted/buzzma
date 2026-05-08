@@ -36,7 +36,12 @@ export function Notifications() {
         </div>
       </div>
 
-      <NotificationTabs value={activeTab} counts={counts} onChange={setActiveTab} />
+      <NotificationTabs
+        value={activeTab}
+        counts={counts}
+        onChange={setActiveTab}
+        onMarkAllRead={() => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))}
+      />
 
       {loading ? (
         <div className="flex justify-center py-16 text-sm text-ink-light-muted dark:text-ink-dark-muted">
