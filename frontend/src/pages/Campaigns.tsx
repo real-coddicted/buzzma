@@ -1,29 +1,30 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../components/ui/Card'
 import { StatusBadge, Badge } from '../components/ui/Badge'
-import { IconSearch, IconFilter, IconEdit, IconPlay, IconPause } from '../components/ui/icons'
+import { IconSearch, IconFilter, IconEdit, IconPlay, IconPause, IconInfo } from '../components/ui/icons'
 import { NewCampaignButton, type CampaignRequestDto } from '../components/ui/campaign/NewCampaignModal'
 import { LaunchCampaignModal } from '../components/ui/campaign/LaunchCampaignModal'
+import { CampaignDetailsModal } from '../components/ui/campaign/CampaignDetailsModal'
 import { campaigns, linkedEntities, availableEntities } from '../data/mockData'
-import type { Campaign, CampaignStatus, CampaignChannel } from '../types'
+import { PLATFORM_LABELS } from '../constants/campaigns'
+import type { Campaign, CampaignStatus, Platform } from '../types'
 
-const channelColors: Record<CampaignChannel, string> = {
-  email:   'text-neon-cyan border-neon-cyan/25 bg-neon-cyan/10',
-  social:  'text-neon-purple border-neon-purple/25 bg-neon-purple/10',
-  search:  'text-neon-green border-neon-green/25 bg-neon-green/10',
-  display: 'text-neon-blue border-neon-blue/25 bg-neon-blue/10',
-  video:   'text-neon-orange border-neon-orange/25 bg-neon-orange/10',
+const platformColors: Record<Platform, string> = {
+  PLATFORM_AMAZON:  'text-neon-orange border-neon-orange/25 bg-neon-orange/10',
+  PLATFORM_FLIPKART: 'text-neon-blue border-neon-blue/25 bg-neon-blue/10',
+  PLATFORM_NYKAA:   'text-neon-pink border-neon-pink/25 bg-neon-pink/10',
+  PLATFORM_MYNTRA:  'text-neon-purple border-neon-purple/25 bg-neon-purple/10',
 }
 
-function ChannelBadge({ channel }: { channel: CampaignChannel }) {
+function PlatformBadge({ platform }: { platform: Platform }) {
   return (
     <span
       className={[
-        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize',
-        channelColors[channel],
+        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border',
+        platformColors[platform],
       ].join(' ')}
     >
-      {channel}
+      {PLATFORM_LABELS[platform]}
     </span>
   )
 }
@@ -84,7 +85,7 @@ const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
   draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
 }
 
-type SortKey = keyof Pick<Campaign, 'name' | 'budget' | 'spent' | 'impressions' | 'ctr' | 'conversions'>
+type SortKey = keyof Pick<Campaign, 'title' | 'budget' | 'spent' | 'impressions' | 'ctr' | 'conversions'>
 
 export function Campaigns() {
   const [search, setSearch] = useState('')
@@ -92,6 +93,7 @@ export function Campaigns() {
   const [sortBy, setSortBy] = useState<SortKey>('conversions')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [launchModalOpen, setLaunchModalOpen] = useState(false)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
 
   const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId)
@@ -121,11 +123,21 @@ export function Campaigns() {
     handleCloseLaunchModal()
   }
 
+  function handleOpenDetailsModal(campaignId: string) {
+    setSelectedCampaignId(campaignId)
+    setDetailsModalOpen(true)
+  }
+
+  function handleCloseDetailsModal() {
+    setDetailsModalOpen(false)
+    setSelectedCampaignId(null)
+  }
+
   const filtered = useMemo(() => {
     return campaigns
       .filter(c => {
         const matchStatus = statusFilter === 'all' || c.status === statusFilter
-        const matchSearch = c.name.toLowerCase().includes(search.toLowerCase())
+        const matchSearch = c.title.toLowerCase().includes(search.toLowerCase())
         return matchStatus && matchSearch
       })
       .sort((a, b) => {
@@ -160,7 +172,7 @@ export function Campaigns() {
   const activeCnt     = campaigns.filter(c => c.status === 'active').length
 
   const cols: { key: SortKey; label: string; sortable: boolean }[] = [
-    { key: 'name',        label: 'Campaign',    sortable: true },
+    { key: 'title',       label: 'Campaign',    sortable: true },
     { key: 'budget',      label: 'Budget',      sortable: true },
     { key: 'spent',       label: 'Spent',       sortable: true },
     { key: 'impressions', label: 'Impressions', sortable: true },
@@ -243,7 +255,7 @@ export function Campaigns() {
                   Status
                 </th>
                 <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">
-                  Channel
+                  Platform
                 </th>
                 <th className="px-5 py-3 text-right font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">
                   Actions
@@ -266,7 +278,7 @@ export function Campaigns() {
                     <td className="px-5 py-4">
                       <div>
                         <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-                          {c.name}
+                          {c.title}
                         </span>
                         <div className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-0.5 font-mono">
                           {c.startDate} – {c.endDate}
@@ -301,16 +313,26 @@ export function Campaigns() {
                       <StatusBadge status={c.status} />
                     </td>
                     <td className="px-5 py-4">
-                      <ChannelBadge channel={c.channel} />
+                      <PlatformBadge platform={c.platform} />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          title="Edit"
-                          className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-                        >
-                          <IconEdit size={13} />
-                        </button>
+                        {c.status === 'draft' ? (
+                          <button
+                            title="Edit"
+                            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
+                          >
+                            <IconEdit size={13} />
+                          </button>
+                        ) : (
+                          <button
+                            title="View Details"
+                            onClick={() => handleOpenDetailsModal(c.id)}
+                            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-cyan hover:bg-neon-cyan/10 transition-colors"
+                          >
+                            <IconInfo size={13} />
+                          </button>
+                        )}
                         {c.status === 'active' ? (
                           <button
                             title="Pause"
@@ -359,11 +381,17 @@ export function Campaigns() {
 
       <LaunchCampaignModal
         open={launchModalOpen}
-        campaignName={selectedCampaign?.name || ''}
+        campaignName={selectedCampaign?.title || ''}
         linkedEntities={selectedLinkedEntities}
         availableEntities={availableEntities}
         onClose={handleCloseLaunchModal}
         onLaunch={handleLaunchCampaign}
+      />
+
+      <CampaignDetailsModal
+        open={detailsModalOpen}
+        campaign={selectedCampaign || null}
+        onClose={handleCloseDetailsModal}
       />
     </div>
   )

@@ -40,13 +40,22 @@ export interface ActivityItem {
   accent: StatCardAccent
 }
 
-export type CampaignChannel = 'email' | 'social' | 'search' | 'display' | 'video'
-
 export interface Campaign {
   id: string
-  name: string
+  title: string
   status: CampaignStatus
-  channel: CampaignChannel
+  platform: Platform
+  productBrandName: string
+  productImageUrl: string
+  productUrl: string
+  originalPricePaise: number
+  campaignPricePaise: number
+  commissionOfferedPaise: number
+  returnWindowDays: number | null
+  campaignType: CampaignType | null
+  totalSlots: number | null
+  allowedAgencies: string[] | null
+  openToAll: boolean
   budget: number
   spent: number
   impressions: number
