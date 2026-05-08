@@ -10,6 +10,7 @@ export interface AssignmentItem {
   platformLabel: string
   dealType: CampaignType
   dealTypeLabel: string
+  originalPricePaise: number
   offeredPricePaise: number
   slotsOffered: number
 }

@@ -51,11 +51,14 @@ export function AssignmentListItem({ item, onClick }: AssignmentListItemProps) {
       </div>
 
       {/* Right-side stats */}
-      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+      <div className="flex flex-col items-end gap-1 flex-shrink-0">
         <span className="text-base font-bold text-neon-green">
           {paise(item.offeredPricePaise)}
         </span>
-        <span className="text-[11px] font-semibold text-ink-light-muted dark:text-ink-dark-muted">
+        <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
+          {paise(item.originalPricePaise)}
+        </span>
+        <span className="text-[11px] font-semibold text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
           {item.slotsOffered} {item.slotsOffered === 1 ? 'slot' : 'slots'}
         </span>
       </div>
