@@ -34,7 +34,7 @@ export function UnpublishedAssignments() {
           onTypeChange={setTypeFilter}
         />
       </div>
-      <div className="p-4">
+      <div className="p-4 max-h-[560px] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <p className="text-ink-light-muted dark:text-ink-dark-muted text-sm">Loading…</p>
