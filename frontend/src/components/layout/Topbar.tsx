@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconSearch, IconChevronRight } from '../ui/icons'
-import type { Theme, NavPage } from '../../types'
+import type { Theme, NavPage, Notification } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back' },
@@ -21,23 +21,11 @@ interface TopbarProps {
   onToggleTheme: () => void
   activePage: NavPage
   onNavigate: (page: NavPage) => void
+  notifications: Notification[]
+  onMarkAllRead: () => void
 }
 
-interface Notification {
-  id: string
-  title: string
-  time: string
-  unread: boolean
-  accent: string
-}
-
-const notifications: Notification[] = [
-  { id: 'n1', title: 'Summer Sale 2025 went live', time: '2m ago', unread: true, accent: 'text-neon-green' },
-  { id: 'n2', title: 'Conversion goal reached!', time: '18m ago', unread: true, accent: 'text-neon-cyan' },
-  { id: 'n3', title: 'Budget threshold hit (85%)', time: '1h ago', unread: false, accent: 'text-neon-orange' },
-]
-
-function NotificationPanel({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: NavPage) => void }) {
+function NotificationPanel({ notifications, onClose, onNavigate, onMarkAllRead }: { notifications: Notification[]; onClose: () => void; onNavigate: (page: NavPage) => void; onMarkAllRead: () => void }) {
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
@@ -46,7 +34,7 @@ function NotificationPanel({ onClose, onNavigate }: { onClose: () => void; onNav
           <span className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">
             Notifications
           </span>
-          <span className="text-xs text-neon-blue cursor-pointer hover:underline">Mark all read</span>
+          <span onClick={onMarkAllRead} className="text-xs text-neon-blue cursor-pointer hover:underline">Mark all read</span>
         </div>
         <div className="divide-y divide-surface-light-border dark:divide-surface-dark-border max-h-64 overflow-y-auto">
           {notifications.map(n => (
@@ -125,7 +113,7 @@ function ProfilePanel({ onClose, onNavigate }: { onClose: () => void; onNavigate
   )
 }
 
-export function Topbar({ theme, onToggleTheme, activePage, onNavigate }: TopbarProps) {
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications, onMarkAllRead }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -172,7 +160,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate }: TopbarP
             )}
           </button>
           {showNotifications && (
-            <NotificationPanel onClose={() => setShowNotifications(false)} onNavigate={onNavigate} />
+            <NotificationPanel notifications={notifications} onMarkAllRead={onMarkAllRead} onClose={() => setShowNotifications(false)} onNavigate={onNavigate} />
           )}
         </div>
 

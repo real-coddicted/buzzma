@@ -1,23 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { IconBell } from '../components/ui/icons'
 import { NotificationTabs } from '../components/ui/notifications/NotificationTabs'
 import { NotificationList } from '../components/ui/notifications/NotificationList'
-import { fetchNotifications } from '../api/notificationApi'
 import type { NotificationTab } from '../components/ui/notifications/NotificationTabs'
 import type { Notification } from '../types/NotificationTypes'
 
-export function Notifications() {
-  const [activeTab, setActiveTab]       = useState<NotificationTab>('unread')
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState(false)
+interface NotificationsProps {
+  notifications: Notification[]
+  onMarkAllRead: () => void
+  onToggleRead: (id: string) => void
+  onTogglePin: (id: string) => void
+}
 
-  useEffect(() => {
-    fetchNotifications()
-      .then(setNotifications)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [])
+export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTogglePin }: NotificationsProps) {
+  const [activeTab, setActiveTab] = useState<NotificationTab>('unread')
 
   const counts: Record<NotificationTab, number> = {
     unread: notifications.filter(n => n.unread).length,
@@ -36,29 +32,14 @@ export function Notifications() {
         </div>
       </div>
 
-      <NotificationTabs
-        value={activeTab}
-        counts={counts}
-        onChange={setActiveTab}
-        onMarkAllRead={() => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))}
-      />
+      <NotificationTabs value={activeTab} counts={counts} onChange={setActiveTab} onMarkAllRead={onMarkAllRead} />
 
-      {loading ? (
-        <div className="flex justify-center py-16 text-sm text-ink-light-muted dark:text-ink-dark-muted">
-          Loading…
-        </div>
-      ) : error ? (
-        <div className="flex justify-center py-16 text-sm text-neon-red">
-          Failed to load notifications.
-        </div>
-      ) : (
-        <NotificationList
-          notifications={notifications}
-          activeTab={activeTab}
-          onToggleRead={id => setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: !n.unread } : n))}
-          onTogglePin={id => setNotifications(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n))}
-        />
-      )}
+      <NotificationList
+        notifications={notifications}
+        activeTab={activeTab}
+        onToggleRead={onToggleRead}
+        onTogglePin={onTogglePin}
+      />
     </div>
   )
 }
