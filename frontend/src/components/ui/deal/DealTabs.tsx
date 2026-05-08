@@ -1,4 +1,4 @@
-export type DealTab = 'explore' | 'in_progress'
+export type DealTab = 'explore' | 'claimed'
 
 interface Tab {
   value: DealTab
@@ -7,7 +7,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { value: 'explore',     label: 'Explore'     },
-  { value: 'in_progress', label: 'Claimed' },
+  { value: 'claimed', label: 'Claimed' },
 ]
 
 interface DealTabsProps {

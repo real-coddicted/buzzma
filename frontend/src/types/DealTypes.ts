@@ -2,7 +2,7 @@ import type { Platform, CampaignType } from './CampaignTypes'
 
 export type { Platform, CampaignType }
 
-export type DealStatus = 'explore' | 'in_progress' | 'completed'
+export type DealStatus = 'explore' | 'claimed' 
 
 export type DealTypeFilter     = CampaignType | 'all'
 export type DealPlatformFilter = Platform     | 'all'

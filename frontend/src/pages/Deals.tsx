@@ -57,7 +57,7 @@ export function Deals() {
 
   const counts: Record<DealTab, number> = {
     explore:     explorePage?.total ?? 0,
-    in_progress: 5,
+    claimed: 5,
   }
 
   if (selectedClaimed) {
@@ -104,7 +104,7 @@ export function Deals() {
         )}
 
         <div className="p-4">
-          {activeTab === 'in_progress' ? (
+          {activeTab === 'claimed' ? (
             <ClaimedDealsList onSelect={setSelectedClaimed} />
           ) : exploreLoading ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
