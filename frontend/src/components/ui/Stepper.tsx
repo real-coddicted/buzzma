@@ -8,14 +8,16 @@ export interface StepperStep {
 interface StepperProps {
   steps: StepperStep[]
   currentStep: number
+  onStepClick?: (index: number) => void
 }
 
-export function Stepper({ steps, currentStep }: StepperProps) {
+export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
   return (
     <div className="flex items-center">
       {steps.map((step, i) => {
         const done    = i < currentStep
         const active  = i === currentStep
+        const clickable = !!onStepClick
 
         return (
           <div
@@ -23,16 +25,21 @@ export function Stepper({ steps, currentStep }: StepperProps) {
             className="flex items-center"
             style={{ flex: i < steps.length - 1 ? '1' : undefined }}
           >
-            <div className="flex flex-col items-center gap-1 shrink-0">
+            <div
+              className={['flex flex-col items-center gap-1 shrink-0', clickable ? 'cursor-pointer group' : ''].join(' ')}
+              onClick={() => onStepClick?.(i)}
+            >
               <div className={[
                 'w-3 h-3 rounded-full border-2 transition-colors',
                 done   ? `${step.dotColor} border-transparent` : '',
                 active ? `border-current ${step.color} bg-transparent ring-2 ring-current ring-offset-1 ring-offset-surface-light-card dark:ring-offset-surface-dark-card` : '',
                 !done && !active ? 'bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border' : '',
+                clickable && !active ? 'group-hover:scale-125' : '',
               ].join(' ')} />
               <span className={[
-                'text-[9px] font-medium whitespace-nowrap',
+                'text-[9px] font-medium whitespace-nowrap transition-colors',
                 done || active ? step.color : 'text-ink-light-muted dark:text-ink-dark-muted',
+                clickable && !active ? `group-hover:${step.color}` : '',
               ].join(' ')}>
                 {step.label}
               </span>

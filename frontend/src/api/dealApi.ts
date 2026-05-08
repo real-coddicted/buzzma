@@ -16,7 +16,7 @@ export async function fetchDeals(): Promise<Deal[]> {
 
 export async function fetchClaimedDeals(): Promise<Deal[]> {
   await new Promise(resolve => setTimeout(resolve, 400))
-  return deals.filter(d => d.status === 'in_progress').map(toFullDeal)
+  return deals.filter(d => d.status === 'claimed').map(toFullDeal)
 }
 
 export interface ExploreDealsPage {

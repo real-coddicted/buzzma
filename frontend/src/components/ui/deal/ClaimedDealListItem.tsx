@@ -1,5 +1,5 @@
 import type { Deal } from '../../../types/DealTypes'
-import { PLATFORM_COLORS } from '../../../constants/deal'
+import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { CLAIM_STEPS } from '../../../constants/claimSteps'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Stepper } from '../Stepper'
@@ -44,7 +44,10 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
               ].join(' ')}>
                 {deal.platformLabel}
               </span>
-              <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted">
+              <span className={[
+                'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                DEAL_TYPE_COLORS[deal.dealType],
+              ].join(' ')}>
                 {deal.dealTypeLabel}
               </span>
             </div>
