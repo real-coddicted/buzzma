@@ -1,12 +1,9 @@
 import type { FilterOption } from '../StatusFilterPills'
 import type { OrderStatus, ReviewStatus, ApprovalMethod } from '../../../types'
 
-export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; classes: string; dot: string }> = {
-  pending:    { label: 'Pending',    classes: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', dot: 'bg-neon-yellow' },
-  processing: { label: 'Processing', classes: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/25',   dot: 'bg-neon-blue animate-pulse-slow' },
-  shipped:    { label: 'Shipped',    classes: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/25',   dot: 'bg-neon-cyan' },
-  delivered:  { label: 'Delivered',  classes: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  dot: 'bg-neon-green' },
-  cancelled:  { label: 'Cancelled',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    dot: 'bg-neon-red' },
+export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; colorClass: string }> = {
+  'in-progress': { label: 'In Progress', colorClass: 'text-neon-blue' },
+  'completed':   { label: 'Completed',   colorClass: 'text-neon-green' },
 }
 
 export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; classes: string; dot: string }> = {

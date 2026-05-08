@@ -1,4 +1,4 @@
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+export type OrderStatus = 'in-progress' | 'completed'
 export type ReviewStatus = 'pending' | 'in-review' | 'approved' | 'rejected'
 export type ApprovalMethod = 'manual' | 'auto'
 

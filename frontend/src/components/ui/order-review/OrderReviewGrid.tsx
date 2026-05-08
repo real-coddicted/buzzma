@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../Card'
+import { IconOrderInProgress, IconOrderCompleted } from '../icons'
 import { OrderReviewToolbar } from './OrderReviewToolbar'
 import { OrderReviewActions } from './OrderReviewActions'
 import { ORDER_STATUS_CONFIG, REVIEW_STATUS_CONFIG, APPROVAL_METHOD_CONFIG, ORDER_REVIEW_COLUMNS } from './orderReviewConstants'
@@ -7,11 +8,10 @@ import { orderReviews } from '../../../data/mockData'
 import type { OrderReviewItem, OrderStatus, ReviewStatus, ApprovalMethod } from '../../../types'
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  const { label, classes, dot } = ORDER_STATUS_CONFIG[status]
+  const { label, colorClass } = ORDER_STATUS_CONFIG[status]
   return (
-    <span className={['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
-      <span className={['w-1.5 h-1.5 rounded-full inline-block flex-shrink-0', dot].join(' ')} />
-      {label}
+    <span className={colorClass} title={label}>
+      {status === 'in-progress' ? <IconOrderInProgress /> : <IconOrderCompleted />}
     </span>
   )
 }
