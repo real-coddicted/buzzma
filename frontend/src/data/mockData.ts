@@ -589,7 +589,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_REVIEW',
     originalPricePaise: 299900,
     offeredPricePaise: 149900,
-    status: 'claimed',
+    status: 'in_progress',
     currentStep: 2,
   },
   {
@@ -600,7 +600,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_RATING',
     originalPricePaise: 59900,
     offeredPricePaise: 47900,
-    status: 'claimed',
+    status: 'in_progress',
     currentStep: 0,
   },
   {
@@ -611,7 +611,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_DISCOUNT',
     originalPricePaise: 699900,
     offeredPricePaise: 489900,
-    status: 'claimed',
+    status: 'in_progress',
     currentStep: 3,
   },
   {
@@ -622,7 +622,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_ORDER',
     originalPricePaise: 399900,
     offeredPricePaise: 299900,
-    status: 'claimed',
+    status: 'in_progress',
     currentStep: 1,
   },
   {
@@ -633,7 +633,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_REVIEW',
     originalPricePaise: 79900,
     offeredPricePaise: 63900,
-    status: 'claimed',
+    status: 'in_progress',
     currentStep: 3,
   },
 ]
