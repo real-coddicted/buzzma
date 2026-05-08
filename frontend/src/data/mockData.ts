@@ -10,6 +10,7 @@ import type {
   PlatformOption,
   DealTypeOption,
   LinkedEntity,
+  AssignmentItem,
 } from '../types'
 
 type RawDeal = Omit<Deal, 'platformLabel' | 'dealTypeLabel'>
@@ -588,7 +589,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_REVIEW',
     originalPricePaise: 299900,
     offeredPricePaise: 149900,
-    status: 'in_progress',
+    status: 'claimed',
     currentStep: 2,
   },
   {
@@ -599,7 +600,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_RATING',
     originalPricePaise: 59900,
     offeredPricePaise: 47900,
-    status: 'in_progress',
+    status: 'claimed',
     currentStep: 0,
   },
   {
@@ -610,8 +611,8 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_DISCOUNT',
     originalPricePaise: 699900,
     offeredPricePaise: 489900,
-    status: 'in_progress',
-    currentStep: 4,
+    status: 'claimed',
+    currentStep: 3,
   },
   {
     id: 'd-c4',
@@ -621,7 +622,7 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_ORDER',
     originalPricePaise: 399900,
     offeredPricePaise: 299900,
-    status: 'in_progress',
+    status: 'claimed',
     currentStep: 1,
   },
   {
@@ -632,8 +633,66 @@ export const deals: RawDeal[] = [
     dealType: 'CAMPAIGN_TYPE_REVIEW',
     originalPricePaise: 79900,
     offeredPricePaise: 63900,
-    status: 'in_progress',
+    status: 'claimed',
     currentStep: 3,
+  },
+]
+
+export const unpublishedAssignments: AssignmentItem[] = [
+  {
+    id: 'a-1',
+    productName: 'boAt Rockerz 450 Bluetooth On-Ear Headphones',
+    productImageUrl: 'https://m.media-amazon.com/images/I/61eD3sEoJKL._SX679_.jpg',
+    platform: 'PLATFORM_AMAZON',
+    platformLabel: 'Amazon',
+    dealType: 'CAMPAIGN_TYPE_REVIEW',
+    dealTypeLabel: 'Review',
+    offeredPricePaise: 149900,
+    slotsOffered: 20,
+  },
+  {
+    id: 'a-2',
+    productName: 'Lakme Absolute Matte Revolution Lip Color',
+    productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/5/35014_1.jpg',
+    platform: 'PLATFORM_NYKAA',
+    platformLabel: 'Nykaa',
+    dealType: 'CAMPAIGN_TYPE_RATING',
+    dealTypeLabel: 'Rating',
+    offeredPricePaise: 63900,
+    slotsOffered: 50,
+  },
+  {
+    id: 'a-3',
+    productName: 'Nike Air Max 270 React Running Shoes',
+    productImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+    platform: 'PLATFORM_MYNTRA',
+    platformLabel: 'Myntra',
+    dealType: 'CAMPAIGN_TYPE_DISCOUNT',
+    dealTypeLabel: 'Discount',
+    offeredPricePaise: 779900,
+    slotsOffered: 10,
+  },
+  {
+    id: 'a-4',
+    productName: 'Samsung 65" QLED 4K Smart TV',
+    productImageUrl: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&q=80',
+    platform: 'PLATFORM_FLIPKART',
+    platformLabel: 'Flipkart',
+    dealType: 'CAMPAIGN_TYPE_ORDER',
+    dealTypeLabel: 'Order',
+    offeredPricePaise: 9999900,
+    slotsOffered: 5,
+  },
+  {
+    id: 'a-5',
+    productName: 'The Ordinary Niacinamide 10% + Zinc 1% Serum',
+    productImageUrl: 'https://www.nykaa.com/media/catalog/product/8/4/8432592_1.jpg',
+    platform: 'PLATFORM_NYKAA',
+    platformLabel: 'Nykaa',
+    dealType: 'CAMPAIGN_TYPE_REVIEW',
+    dealTypeLabel: 'Review',
+    offeredPricePaise: 55900,
+    slotsOffered: 35,
   },
 ]
 
