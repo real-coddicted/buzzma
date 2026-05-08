@@ -32,7 +32,6 @@ export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = [
 export const ORDER_REVIEW_COLUMNS = [
   'Campaign Name',
   'Order ID',
-  'Order Date',
   'Mediator Name',
   'Order Status',
   'Review Status',

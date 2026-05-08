@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../Card'
-import { IconCheck, IconEdit } from '../icons'
 import { OrderReviewToolbar } from './OrderReviewToolbar'
+import { OrderReviewActions } from './OrderReviewActions'
 import { ORDER_STATUS_CONFIG, REVIEW_STATUS_CONFIG, APPROVAL_METHOD_CONFIG, ORDER_REVIEW_COLUMNS } from './orderReviewConstants'
 import { orderReviews } from '../../../data/mockData'
 import type { OrderReviewItem, OrderStatus, ReviewStatus, ApprovalMethod } from '../../../types'
@@ -32,29 +32,6 @@ function ApprovalMethodBadge({ method }: { method: ApprovalMethod }) {
     <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
       {label}
     </span>
-  )
-}
-
-// --- action button ---
-
-interface ActionButtonProps {
-  label: string
-  title: string
-  colorClass: string
-  onClick: () => void
-  icon?: React.ReactNode
-}
-
-function ActionButton({ label, title, colorClass, onClick, icon }: ActionButtonProps) {
-  return (
-    <button
-      title={title}
-      onClick={onClick}
-      className={['flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors', colorClass].join(' ')}
-    >
-      {icon}
-      {label}
-    </button>
   )
 }
 
@@ -125,11 +102,13 @@ export function OrderReviewGrid() {
                       {row.campaignName}
                     </span>
                   </td>
-                  <td className="px-5 py-4 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    {row.orderId}
-                  </td>
-                  <td className="px-5 py-4 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
-                    {row.orderDate}
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
+                      {row.orderId}
+                    </span>
+                    <div className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-0.5 font-mono">
+                      {row.orderDate}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
                     {row.mediatorName}
@@ -173,34 +152,7 @@ export function OrderReviewGrid() {
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ActionButton
-                        label="Proof"
-                        title="View Proof"
-                        colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-blue hover:border-neon-blue/30 hover:bg-neon-blue/10"
-                        onClick={() => handleAction('view-proof', row)}
-                      />
-                      <ActionButton
-                        label="Details"
-                        title="View Details"
-                        colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-purple hover:border-neon-purple/30 hover:bg-neon-purple/10"
-                        onClick={() => handleAction('details', row)}
-                        icon={<IconEdit size={11} />}
-                      />
-                      <ActionButton
-                        label="Approve"
-                        title="Approve"
-                        colorClass="text-neon-green border-neon-green/30 bg-neon-green/10 hover:bg-neon-green/20"
-                        onClick={() => handleAction('approve', row)}
-                        icon={<IconCheck size={11} />}
-                      />
-                      <ActionButton
-                        label="Reject"
-                        title="Reject"
-                        colorClass="text-neon-red border-neon-red/30 bg-neon-red/10 hover:bg-neon-red/20"
-                        onClick={() => handleAction('reject', row)}
-                      />
-                    </div>
+                    <OrderReviewActions row={row} onAction={handleAction} />
                   </td>
                 </tr>
               ))
