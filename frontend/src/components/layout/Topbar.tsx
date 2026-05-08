@@ -6,8 +6,9 @@ import type { Theme, NavPage } from '../../types'
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back' },
   campaigns:   { title: 'Campaigns',   subtitle: 'Manage and monitor your campaigns' },
-  connections: { title: 'Connections', subtitle: 'Manage your brand and agency connections' },
-  deals:       { title: 'Deals',       subtitle: 'Browse and manage your deals' },
+  connections:  { title: 'Connections',  subtitle: 'Manage your brand and agency connections' },
+  assignments:  { title: 'Assignments',  subtitle: 'View and manage your assignments' },
+  deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
   feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Pulse' },
   profile:         { title: 'Profile',          subtitle: 'Your account details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
