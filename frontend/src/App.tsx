@@ -9,6 +9,7 @@ import { Feedback } from './pages/Feedback'
 import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
 import { MyTickets } from './pages/MyTickets'
+import { Notifications } from './pages/Notifications'
 import { Auth } from './pages/Auth'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage } from './types'
@@ -38,6 +39,7 @@ export default function App() {
       {activePage === 'profile'     && <Profile />}
       {activePage === 'raise-ticket' && <RaiseTicket />}
       {activePage === 'my-tickets' && <MyTickets />}
+      {activePage === 'notifications' && <Notifications />}
     </AppLayout>
   )
 }
