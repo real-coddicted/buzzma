@@ -17,12 +17,12 @@ function submitBtnClass(color: string) {
   return `w-full py-2.5 rounded-lg text-surface-dark-base text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${color}`
 }
 
-// Step 0 — Order
+// Step 0 — Order & Upload
 function OrderStep({ deal }: { deal: Deal }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Purchase this product on <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.platformLabel}</span> at the offered price, then fill in your order details below.
+        Purchase this product on <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.platformLabel}</span> at the offered price, then upload the screenshot of your order confirmation and fill in your order details below.
       </p>
       <DealOrderForm onSubmit={fields => console.log('order submitted', fields)} />
     </div>

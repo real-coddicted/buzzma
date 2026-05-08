@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconCalendar } from '../icons'
+import { ScreenshotUpload } from './ScreenshotUpload'
 
 interface DealOrderFormFields {
   orderId: string
@@ -38,6 +39,10 @@ export function DealOrderForm({ onSubmit }: DealOrderFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
+        <ScreenshotUpload
+              label="Order Confirmation Screenshot"
+              hint="Ensure the order ID, amount, and product name are clearly visible."
+            />
       <Field label="Order ID"         placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}     />
       <Field label="Amount"           placeholder="e.g. ₹1,499"              value={fields.amount}      onChange={set('amount')}      />
       <Field label="Product Name"     placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} />
