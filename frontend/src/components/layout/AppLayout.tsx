@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
-import type { Theme, NavPage } from '../../types'
+import type { Theme, NavPage, Notification } from '../../types'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -9,6 +9,8 @@ interface AppLayoutProps {
   onToggleTheme: () => void
   activePage: NavPage
   onNavigate: (page: NavPage) => void
+  notifications: Notification[]
+  onMarkAllRead: () => void
 }
 
 export function AppLayout({
@@ -17,11 +19,20 @@ export function AppLayout({
   onToggleTheme,
   activePage,
   onNavigate,
+  notifications,
+  onMarkAllRead,
 }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base text-ink-light-primary dark:text-ink-dark-primary">
       <Sidebar activePage={activePage} onNavigate={onNavigate} />
-      <Topbar theme={theme} onToggleTheme={onToggleTheme} activePage={activePage} onNavigate={onNavigate} />
+      <Topbar
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+        activePage={activePage}
+        onNavigate={onNavigate}
+        notifications={notifications}
+        onMarkAllRead={onMarkAllRead}
+      />
       <main className="ml-60 pt-16 min-h-screen">
         <div className="p-6 animate-fade-in">{children}</div>
       </main>
