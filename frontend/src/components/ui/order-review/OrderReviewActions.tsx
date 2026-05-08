@@ -1,0 +1,57 @@
+import { IconCopy, IconEdit, IconCheck, IconX } from '../icons'
+import type { OrderReviewItem } from '../../../types'
+
+interface ActionButtonProps {
+  title: string
+  colorClass: string
+  onClick: () => void
+  icon: React.ReactNode
+}
+
+function ActionButton({ title, colorClass, onClick, icon }: ActionButtonProps) {
+  return (
+    <button
+      title={title}
+      onClick={onClick}
+      className={['p-1.5 rounded-lg border transition-colors', colorClass].join(' ')}
+    >
+      {icon}
+    </button>
+  )
+}
+
+interface OrderReviewActionsProps {
+  row: OrderReviewItem
+  onAction: (action: string, row: OrderReviewItem) => void
+}
+
+export function OrderReviewActions({ row, onAction }: OrderReviewActionsProps) {
+  return (
+    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <ActionButton
+        title="View Proof"
+        colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-blue hover:border-neon-blue/30 hover:bg-neon-blue/10"
+        onClick={() => onAction('view-proof', row)}
+        icon={<IconCopy size={13} />}
+      />
+      <ActionButton
+        title="View Details"
+        colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-purple hover:border-neon-purple/30 hover:bg-neon-purple/10"
+        onClick={() => onAction('details', row)}
+        icon={<IconEdit size={13} />}
+      />
+      <ActionButton
+        title="Approve"
+        colorClass="text-neon-green border-neon-green/30 bg-neon-green/10 hover:bg-neon-green/20"
+        onClick={() => onAction('approve', row)}
+        icon={<IconCheck size={13} />}
+      />
+      <ActionButton
+        title="Reject"
+        colorClass="text-neon-red border-neon-red/30 bg-neon-red/10 hover:bg-neon-red/20"
+        onClick={() => onAction('reject', row)}
+        icon={<IconX size={13} />}
+      />
+    </div>
+  )
+}

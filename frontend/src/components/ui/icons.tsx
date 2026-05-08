@@ -352,3 +352,20 @@ export function IconInfo({ size = 18, ...p }: IconProps) {
     </svg>
   )
 }
+
+export function IconOrderInProgress({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)} strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" strokeOpacity={0.25} />
+      <path d="M12 3 A9 9 0 1 1 4.13 16.36" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function IconOrderCompleted({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)} strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  )
+}
