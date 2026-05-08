@@ -9,8 +9,7 @@ import type { DealTab } from '../components/ui/deal/DealTabs'
 import { DealFilterBar } from '../components/ui/deal/DealFilterBar'
 import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
 import type { Deal } from '../types/DealTypes'
-import { fetchExploreDeals, fetchExploreDeals } from '../api/dealApi'
-import type { ExploreDealsPage } from '../api/dealApi'
+import { fetchExploreDeals } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
 
 export function Deals() {
@@ -24,18 +23,6 @@ export function Deals() {
   const [explorePage, setExplorePage]       = useState<ExploreDealsPage | null>(null)
   const [exploreLoading, setExploreLoading] = useState(true)
   const [currentPage, setCurrentPage]       = useState(1)
-
-  const [explorePage, setExplorePage]       = useState<ExploreDealsPage | null>(null)
-  const [exploreLoading, setExploreLoading] = useState(true)
-  const [currentPage, setCurrentPage]       = useState(1)
-
-  useEffect(() => {
-    setExploreLoading(true)
-    fetchExploreDeals(currentPage).then(data => {
-      setExplorePage(data)
-      setExploreLoading(false)
-    })
-  }, [currentPage])
 
   useEffect(() => {
     setExploreLoading(true)
@@ -68,10 +55,6 @@ export function Deals() {
     return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
   }
 
-  const totalPages = explorePage?.totalPages ?? 1
-
-  const isLoading = activeTab === 'explore' ? exploreLoading : claimedLoading
-  const activeDeals = activeTab === 'explore' ? filteredExplore : claimedDeals
   const totalPages = explorePage?.totalPages ?? 1
 
   return (

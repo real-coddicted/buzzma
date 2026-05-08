@@ -1,7 +1,6 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
-import { ImageFiller } from '../ImageFiller'
 
 function paise(amount: number) {
   return `₹${(amount / 100).toLocaleString('en-IN')}`
@@ -18,17 +17,12 @@ export function DealCard({ deal, onClick }: DealCardProps) {
   return (
     <div onClick={onClick} className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden hover:border-neon-blue/30 transition-colors group cursor-pointer">
       <div className="relative h-44">
-        {imgError ? (
-          <ImageFiller />
-        ) : (
-          <ProductThumbnail
-            src={deal.productImageUrl}
-            alt={deal.productName}
-            onError={() => setImgError(true)}
-            className="h-full"
+        <ProductThumbnail
+          src={deal.productImageUrl}
+          alt={deal.productName}
+          className="h-full"
           imgClassName="group-hover:scale-105 transition-transform duration-300"
-          />
-        )}
+        />
         {discount > 0 && (
           <span className="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neon-red text-white">
             -{discount}%
