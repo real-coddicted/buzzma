@@ -10,6 +10,7 @@ import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
 import { MyTickets } from './pages/MyTickets'
 import { Notifications } from './pages/Notifications'
+import { OrderReview } from './pages/OrderReview'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
 import { useTheme } from './hooks/useTheme'
@@ -50,7 +51,7 @@ export default function App() {
       {activePage === 'feedback'      && <Feedback />}
       {activePage === 'profile'       && <Profile />}
       {activePage === 'raise-ticket'  && <RaiseTicket />}
-      {activePage === 'my-tickets'    && <MyTickets />}
+      {activePage === 'my-tickets'      && <MyTickets />}
       {activePage === 'notifications' && (
         <Notifications
           notifications={notifications}
@@ -59,6 +60,7 @@ export default function App() {
           onTogglePin={togglePin}
         />
       )}
+      {activePage === 'order-review' && <OrderReview />}
     </AppLayout>
   )
 }
