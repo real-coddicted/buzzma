@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ThemeToggle } from '../ui/ThemeToggle'
-import { IconBell, IconSearch, IconChevronRight } from '../ui/icons'
+import { IconBell, IconChevronRight } from '../ui/icons'
 import type { Theme, NavPage, Notification } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
@@ -86,17 +86,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
         <p className="text-xs font-bold text-ink-light-muted dark:text-ink-dark-muted">{subtitle}</p>
       </div>
 
-      <div className="hidden md:flex items-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border rounded-lg px-3 py-1.5 w-48">
-        <IconSearch size={14} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
-        <input
-          type="text"
-          placeholder="Search…"
-          className="bg-transparent text-xs outline-none flex-1 text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
-        />
-        <kbd className="hidden lg:block text-[10px] px-1.5 py-0.5 rounded bg-surface-light-border dark:bg-surface-dark-border text-ink-light-muted dark:text-ink-dark-muted font-mono">
-          ⌘K
-        </kbd>
-      </div>
+
 
       <div className="flex items-center gap-1">
         <div className="hidden sm:block mr-1">
