@@ -28,7 +28,11 @@ export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTo
         </div>
         <div>
           <h1 className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary">All Notifications</h1>
-          <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">You're all caught up</p>
+          <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            {counts.unread === 0
+              ? "You're all caught up"
+              : `${counts.unread} unread notification${counts.unread === 1 ? '' : 's'}`}
+          </p>
         </div>
       </div>
 

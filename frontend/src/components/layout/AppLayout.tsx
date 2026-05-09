@@ -10,7 +10,6 @@ interface AppLayoutProps {
   activePage: NavPage
   onNavigate: (page: NavPage) => void
   notifications: Notification[]
-  onMarkAllRead: () => void
 }
 
 export function AppLayout({
@@ -20,7 +19,6 @@ export function AppLayout({
   activePage,
   onNavigate,
   notifications,
-  onMarkAllRead,
 }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base text-ink-light-primary dark:text-ink-dark-primary">
@@ -31,7 +29,6 @@ export function AppLayout({
         activePage={activePage}
         onNavigate={onNavigate}
         notifications={notifications}
-        onMarkAllRead={onMarkAllRead}
       />
       <main className="ml-60 pt-16 min-h-screen">
         <div className="p-6 animate-fade-in">{children}</div>

@@ -41,7 +41,6 @@ export default function App() {
       activePage={activePage}
       onNavigate={setActivePage}
       notifications={notifications}
-      onMarkAllRead={markAllRead}
     >
       {activePage === 'dashboard'     && <Dashboard />}
       {activePage === 'campaigns'     && <Campaigns />}
