@@ -29,25 +29,25 @@ function OrderStep({ deal }: { deal: Deal }) {
   )
 }
 
-// Step 1 — Upload order screenshot
-function UploadStep() {
-  return (
-    <div className="space-y-5">
-      <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Upload a screenshot of your order confirmation page.
-      </p>
-      <ScreenshotUpload
-        label="Order Confirmation Screenshot"
-        hint="Ensure the order ID, amount, and product name are clearly visible."
-      />
-      <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
-        Submit Screenshot
-      </button>
-    </div>
-  )
-}
+// // Step 1 — Upload order screenshot
+// function UploadStep() {
+//   return (
+//     <div className="space-y-5">
+//       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
+//         Upload a screenshot of your order confirmation page.
+//       </p>
+//       <ScreenshotUpload
+//         label="Order Confirmation Screenshot"
+//         hint="Ensure the order ID, amount, and product name are clearly visible."
+//       />
+//       <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
+//         Submit Screenshot
+//       </button>
+//     </div>
+//   )
+// }
 
-// Step 2 — Review / Rating screenshot
+// Step 1 — Review / Rating screenshot
 function ReviewStep({ deal }: { deal: Deal }) {
   const isRating = deal.dealType === 'CAMPAIGN_TYPE_RATING'
 
@@ -81,6 +81,24 @@ function ReviewStep({ deal }: { deal: Deal }) {
 
       <button className={submitBtnClass('bg-neon-purple hover:brightness-110')}>
         Submit {isRating ? 'Rating' : 'Review'}
+      </button>
+    </div>
+  )
+}
+
+// Step 2 — Upload order screenshot
+function ReturnStep({ deal }: { deal: Deal }) {
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
+        Upload a screenshot of return window completed page.
+      </p>
+      <ScreenshotUpload
+        label="Return Window Completed Screenshot"
+        hint="Ensure the order ID and product name are clearly visible."
+      />
+      <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
+        Submit Screenshot
       </button>
     </div>
   )
@@ -123,8 +141,9 @@ export function ClaimStepForm({ deal, currentStep }: ClaimStepFormProps) {
       </div>
 
       {currentStep === 0 && <OrderStep deal={deal} />}
-      {currentStep === 1 && <UploadStep />}
-      {currentStep === 2 && <ReviewStep deal={deal} />}
+      {/* {currentStep === 1 && <UploadStep />} */}
+      {currentStep === 1 && <ReviewStep deal={deal} />}
+      {currentStep === 2 && <ReturnStep deal={deal} />}
       {currentStep === 3 && <CashbackStep />}
     </div>
   )
