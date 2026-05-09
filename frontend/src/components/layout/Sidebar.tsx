@@ -1,5 +1,5 @@
 import { NavItem } from '../ui/NavItem'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconLogout, IconChart } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconLogout, IconChart, IconProfile, IconCurrency } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 interface SidebarProps {
@@ -14,10 +14,10 @@ function Logo() {
         className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-surface-dark-base"
         style={{ background: 'linear-gradient(135deg, #57c7ff 0%, #bd93f9 100%)' }}
       >
-        P
+        B
       </div>
       <span className="text-base font-bold tracking-tight text-ink-light-primary dark:text-ink-dark-primary">
-        Pulse
+        Buzzma
       </span>
     </div>
   )
@@ -98,6 +98,17 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
         <SectionLabel label="Account" />
         <div className="flex flex-col gap-1">
+          <NavItem
+            icon={<IconProfile />}
+            label="Profile"
+            active={activePage === 'profile'}
+            onClick={() => onNavigate('profile')}
+          />
+          <NavItem
+            icon={<IconCurrency />}
+            label="Billing"
+            onClick={() => {}}
+          />
           <NavItem
             icon={<IconSettings />}
             label="Settings"

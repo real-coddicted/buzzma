@@ -3,7 +3,7 @@ import { currentUser } from '../data/mockData'
 
 export function Profile() {
   return (
-    <div className="max-w-sm">
+    <div className="max-w-7xl mx-auto space-y-5">
       <h1 className="text-lg font-semibold text-ink-light-primary dark:text-ink-dark-primary mb-6">
         Profile
       </h1>
