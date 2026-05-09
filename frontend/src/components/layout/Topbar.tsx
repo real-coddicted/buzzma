@@ -9,7 +9,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   assignments:  { title: 'Assignments',  subtitle: 'View and manage your assignments' },
   deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
   feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Buzzma' },
-  profile:         { title: 'Profile',          subtitle: 'Your account details' },
+  profile:         { title: 'Profile',          subtitle: 'Your profile details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
   'my-tickets':   { title: 'My Tickets',     subtitle: 'Track the status of your support tickets' },
   notifications:  { title: 'Notifications',  subtitle: 'All your alerts and updates' },
