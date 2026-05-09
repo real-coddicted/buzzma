@@ -1,15 +1,20 @@
 import { useState, useEffect, type FormEvent, type KeyboardEvent } from 'react'
 import { Button } from '../Button'
 import { IconPlus } from '../icons'
-import type { Platform, CampaignType, CampaignRequestDto } from '../../../types'
+import type { Platform, CampaignType, CampaignRequestDto, Campaign } from '../../../types'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
 
 export type { CampaignRequestDto }
 
 interface Props {
   open: boolean
+  campaign?: Campaign | null
   onClose: () => void
   onSubmit: (dto: CampaignRequestDto) => void
+}
+
+function paiseToRupees(paise: number): string {
+  return (paise / 100).toFixed(2)
 }
 
 
@@ -47,18 +52,40 @@ function rupeesToPaise(val: string): number {
   return Math.round(parseFloat(val) * 100)
 }
 
-export function NewCampaignModal({ open, onClose, onSubmit }: Props) {
+export function NewCampaignModal({ open, campaign, onClose, onSubmit }: Props) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [loading, setLoading] = useState(false)
+  const isEditMode = !!campaign
 
   useEffect(() => {
     if (open) {
-      setForm(EMPTY_FORM)
+      if (campaign) {
+        // Edit mode: prefill form with campaign data
+        setForm({
+          title: campaign.title,
+          platform: campaign.platform as Platform | '',
+          productBrandName: campaign.productBrandName,
+          productImageUrl: campaign.productImageUrl,
+          productUrl: campaign.productUrl,
+          originalPriceRupees: paiseToRupees(campaign.originalPricePaise),
+          campaignPriceRupees: paiseToRupees(campaign.campaignPricePaise),
+          commissionRupees: paiseToRupees(campaign.commissionOfferedPaise),
+          returnWindowDays: campaign.returnWindowDays ? String(campaign.returnWindowDays) : '',
+          campaignType: (campaign.campaignType as CampaignType | '') || '',
+          totalSlots: campaign.totalSlots ? String(campaign.totalSlots) : '',
+          openToAll: campaign.openToAll || false,
+          agencyInput: '',
+          allowedAgencies: campaign.allowedAgencies || [],
+        })
+      } else {
+        // Create mode: empty form
+        setForm(EMPTY_FORM)
+      }
       setErrors({})
       setLoading(false)
     }
-  }, [open])
+  }, [open, campaign])
 
   useEffect(() => {
     function onKey(e: globalThis.KeyboardEvent) {
@@ -166,10 +193,10 @@ export function NewCampaignModal({ open, onClose, onSubmit }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-surface-light-border dark:border-surface-dark-border">
           <div>
             <h2 id="modal-title" className="text-sm font-bold text-ink-light-primary dark:text-ink-dark-primary">
-              New Campaign
+              {isEditMode ? 'Edit Campaign' : 'New Campaign'}
             </h2>
             <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-              Fill in the details to create a new campaign.
+              {isEditMode ? 'Update campaign details.' : 'Fill in the details to create a new campaign.'}
             </p>
           </div>
           <button
@@ -368,7 +395,7 @@ export function NewCampaignModal({ open, onClose, onSubmit }: Props) {
             leftIcon={<IconPlus size={13} />}
             loading={loading}
           >
-            Create Campaign
+            {isEditMode ? 'Update Campaign' : 'Create Campaign'}
           </Button>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Card } from '../components/ui/Card'
 import { StatusBadge, Badge } from '../components/ui/Badge'
 import { IconSearch, IconFilter, IconEdit, IconPlay, IconPause, IconInfo } from '../components/ui/icons'
-import { NewCampaignButton, type CampaignRequestDto } from '../components/ui/campaign/NewCampaignModal'
+import { NewCampaignButton, NewCampaignModal, type CampaignRequestDto } from '../components/ui/campaign/NewCampaignModal'
 import { LaunchCampaignModal } from '../components/ui/campaign/LaunchCampaignModal'
 import { CampaignDetailsModal } from '../components/ui/campaign/CampaignDetailsModal'
 import { campaigns, linkedEntities, availableEntities } from '../data/mockData'
@@ -94,6 +94,7 @@ export function Campaigns() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [launchModalOpen, setLaunchModalOpen] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
 
   const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId)
@@ -101,6 +102,21 @@ export function Campaigns() {
 
   function handleCreateCampaign(dto: CampaignRequestDto) {
     console.log('Create campaign:', dto)
+  }
+
+  function handleEditCampaign(dto: CampaignRequestDto) {
+    console.log('Edit campaign:', selectedCampaignId, dto)
+    handleCloseEditModal()
+  }
+
+  function handleOpenEditModal(campaignId: string) {
+    setSelectedCampaignId(campaignId)
+    setEditModalOpen(true)
+  }
+
+  function handleCloseEditModal() {
+    setEditModalOpen(false)
+    setSelectedCampaignId(null)
   }
 
   function handleOpenLaunchModal(campaignId: string) {
@@ -320,6 +336,7 @@ export function Campaigns() {
                         {c.status === 'draft' ? (
                           <button
                             title="Edit"
+                            onClick={() => handleOpenEditModal(c.id)}
                             className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
                           >
                             <IconEdit size={13} />
@@ -392,6 +409,13 @@ export function Campaigns() {
         open={detailsModalOpen}
         campaign={selectedCampaign || null}
         onClose={handleCloseDetailsModal}
+      />
+
+      <NewCampaignModal
+        open={editModalOpen}
+        campaign={selectedCampaign || null}
+        onClose={handleCloseEditModal}
+        onSubmit={handleEditCampaign}
       />
     </div>
   )
