@@ -14,10 +14,10 @@ function Logo() {
         className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-surface-dark-base"
         style={{ background: 'linear-gradient(135deg, #57c7ff 0%, #bd93f9 100%)' }}
       >
-        P
+        B
       </div>
       <span className="text-base font-bold tracking-tight text-ink-light-primary dark:text-ink-dark-primary">
-        Pulse
+        Buzzma
       </span>
     </div>
   )

@@ -9,7 +9,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   connections:  { title: 'Connections',  subtitle: 'Manage your brand and agency connections' },
   assignments:  { title: 'Assignments',  subtitle: 'View and manage your assignments' },
   deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
-  feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Pulse' },
+  feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Buzzma' },
   profile:         { title: 'Profile',          subtitle: 'Your account details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
   'my-tickets':   { title: 'My Tickets',     subtitle: 'Track the status of your support tickets' },
@@ -77,7 +77,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
   return (
     <header className="fixed top-0 left-60 right-0 h-16 z-20 flex items-center gap-4 px-6 bg-surface-light-base/80 dark:bg-surface-dark-base/80 backdrop-blur-sm border-b border-surface-light-border dark:border-surface-dark-border">
       <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted flex-1 min-w-0">
-        <span>Pulse</span>
+        <span>Buzzma</span>
         <IconChevronRight size={12} />
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium">{title}</span>
       </div>

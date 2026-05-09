@@ -112,7 +112,7 @@ export function Feedback() {
           Thanks for your feedback!
         </h2>
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">
-          Your response has been recorded. We read every submission and use it to improve Pulse.
+          Your response has been recorded. We read every submission and use it to improve Buzzma.
         </p>
         <Button variant="secondary" size="sm" onClick={handleReset}>
           Submit another response
@@ -128,7 +128,7 @@ export function Feedback() {
           Portal Feedback
         </h1>
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          Help us improve Pulse — your feedback goes directly to the product team.
+          Help us improve Buzzma — your feedback goes directly to the product team.
         </p>
       </div>
 
