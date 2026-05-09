@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconChevronRight } from '../ui/icons'
 import type { Theme, NavPage, Notification } from '../../types'
@@ -26,51 +25,7 @@ interface TopbarProps {
 }
 
 
-function ProfilePanel({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: NavPage) => void }) {
-  function handleItem(item: string) {
-    if (item === 'Profile') { onNavigate('profile'); onClose() }
-  }
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute right-0 top-10 z-50 w-56 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-xl animate-fade-in overflow-hidden">
-        <div className="px-4 py-3 border-b border-surface-light-border dark:border-surface-dark-border">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #ff79c6 0%, #bd93f9 100%)' }}
-            >
-              A
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary">Alex Rivera</p>
-              <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">Marketing Lead</p>
-            </div>
-          </div>
-        </div>
-        {['Profile', 'Account Settings', 'Billing', 'Sign out'].map(item => (
-          <button
-            key={item}
-            onClick={() => handleItem(item)}
-            className={[
-              'w-full text-left px-4 py-2.5 text-xs font-medium transition-colors',
-              item === 'Sign out'
-                ? 'text-neon-red hover:bg-neon-red/5'
-                : 'text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary',
-            ].join(' ')}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
-    </>
-  )
-}
-
 export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications }: TopbarProps) {
-  const [showProfile, setShowProfile] = useState(false)
-
   const unreadCount = notifications.filter(n => n.unread).length
   const { title, subtitle } = pageTitles[activePage]
 
@@ -86,8 +41,6 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
         <p className="text-xs font-bold text-ink-light-muted dark:text-ink-dark-muted">{subtitle}</p>
       </div>
 
-
-
       <div className="flex items-center gap-1">
         <div className="hidden sm:block mr-1">
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -95,7 +48,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
 
         <div className="relative">
           <button
-            onClick={() => { onNavigate('notifications'); setShowProfile(false); }}
+            onClick={() => onNavigate('notifications')}
             className="relative w-9 h-9 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
           >
             <IconBell size={18} />
@@ -103,31 +56,6 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-neon-red shadow-neon-red" />
             )}
           </button>
-        </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowProfile(p => !p)}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors"
-          >
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #ff79c6 0%, #bd93f9 100%)' }}
-            >
-              A
-            </div>
-            <div className="hidden md:block text-left">
-              <p className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary leading-none">
-                Alex Rivera
-              </p>
-              <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted leading-none mt-0.5">
-                Marketing Lead
-              </p>
-            </div>
-          </button>
-          {showProfile && (
-            <ProfilePanel onClose={() => setShowProfile(false)} onNavigate={onNavigate} />
-          )}
         </div>
       </div>
     </header>
