@@ -12,6 +12,11 @@ export async function fetchConnections(): Promise<Connection[]> {
   return connections
 }
 
+export async function fetchInviteCode(): Promise<string> {
+  await new Promise(resolve => setTimeout(resolve, 600))
+  return 'INV-MOCK-2026-XK9P'
+}
+
 export async function fetchConnectionSummary(): Promise<ConnectionSummary> {
   await new Promise(resolve => setTimeout(resolve, 300))
   return {

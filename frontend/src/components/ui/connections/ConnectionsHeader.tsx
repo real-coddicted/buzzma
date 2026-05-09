@@ -44,7 +44,7 @@ export function ConnectionsHeader({
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-neon-blue text-surface-dark-base hover:brightness-110 transition-all shadow-neon-blue/30"
         >
           <IconPlus size={14} />
-          Add Connection
+          Invite
         </button>
       </div>
 
