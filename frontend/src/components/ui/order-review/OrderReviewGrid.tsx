@@ -58,7 +58,7 @@ export function OrderReviewGrid() {
                   key={col}
                   className={[
                     'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                    col === 'Actions' ? 'text-right' : 'text-left',
+                    col === 'Actions' ? 'text-right' : col === 'Order Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
                   ].join(' ')}
                 >
                   {col}
@@ -96,10 +96,14 @@ export function OrderReviewGrid() {
                     {row.mediatorName}
                   </td>
                   <td className="px-5 py-4">
-                    <OrderStatusBadge status={row.orderStatus} />
+                    <div className="flex justify-center">
+                      <OrderStatusBadge status={row.orderStatus} />
+                    </div>
                   </td>
                   <td className="px-5 py-4">
-                    <ReviewStatusCell status={row.reviewStatus} approvalMethod={row.approvalMethod} />
+                    <div className="flex justify-center">
+                      <ReviewStatusCell status={row.reviewStatus} approvalMethod={row.approvalMethod} />
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-center">
                     {row.mediatorVerified
