@@ -55,15 +55,15 @@ export function Connections() {
   }, [connections, search, statusFilter])
 
   return (
+    <>
+    {showInvite && (
+      <InviteModal
+        code={inviteCode}
+        loading={inviteLoading}
+        onClose={() => { setShowInvite(false); setInviteCode(null) }}
+      />
+    )}
     <div className="max-w-7xl mx-auto space-y-5">
-      {showInvite && (
-        <InviteModal
-          code={inviteCode}
-          loading={inviteLoading}
-          onClose={() => { setShowInvite(false); setInviteCode(null) }}
-        />
-      )}
-
       <ConnectionsHeader
         total={summary.total}
         connectedCount={summary.connectedCount}
@@ -87,5 +87,6 @@ export function Connections() {
         />
       )}
     </div>
+    </>
   )
 }
