@@ -23,54 +23,8 @@ interface TopbarProps {
   activePage: NavPage
   onNavigate: (page: NavPage) => void
   notifications: Notification[]
-  onMarkAllRead: () => void
 }
 
-function NotificationPanel({ notifications, onClose, onNavigate, onMarkAllRead }: { notifications: Notification[]; onClose: () => void; onNavigate: (page: NavPage) => void; onMarkAllRead: () => void }) {
-  return (
-    <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute right-0 top-10 z-50 w-80 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-xl animate-fade-in overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-light-border dark:border-surface-dark-border">
-          <span className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-            Notifications
-          </span>
-          <span onClick={onMarkAllRead} className="text-xs text-neon-blue cursor-pointer hover:underline">Mark all read</span>
-        </div>
-        <div className="divide-y divide-surface-light-border dark:divide-surface-dark-border max-h-64 overflow-y-auto">
-          {notifications.map(n => (
-            <div
-              key={n.id}
-              className={[
-                'flex items-start gap-3 px-4 py-3 text-xs transition-colors',
-                n.unread
-                  ? 'bg-neon-blue/5 dark:bg-neon-blue/5'
-                  : 'hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
-              ].join(' ')}
-            >
-              {n.unread && (
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-neon-blue flex-shrink-0" />
-              )}
-              {!n.unread && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-transparent flex-shrink-0" />}
-              <div className="flex-1 min-w-0">
-                <p className={['font-medium truncate', n.accent].join(' ')}>{n.title}</p>
-                <p className="text-ink-light-muted dark:text-ink-dark-muted mt-0.5">{n.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="px-4 py-2.5 border-t border-surface-light-border dark:border-surface-dark-border">
-          <span
-            onClick={() => { onNavigate('notifications'); onClose() }}
-            className="text-xs text-ink-light-muted dark:text-ink-dark-muted cursor-pointer hover:text-neon-blue transition-colors"
-          >
-            View all notifications →
-          </span>
-        </div>
-      </div>
-    </>
-  )
-}
 
 function ProfilePanel({ onClose, onNavigate }: { onClose: () => void; onNavigate: (page: NavPage) => void }) {
   function handleItem(item: string) {
@@ -114,8 +68,7 @@ function ProfilePanel({ onClose, onNavigate }: { onClose: () => void; onNavigate
   )
 }
 
-export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications, onMarkAllRead }: TopbarProps) {
-  const [showNotifications, setShowNotifications] = useState(false)
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications }: TopbarProps) {
   const [showProfile, setShowProfile] = useState(false)
 
   const unreadCount = notifications.filter(n => n.unread).length
@@ -152,7 +105,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
 
         <div className="relative">
           <button
-            onClick={() => { setShowNotifications(p => !p); setShowProfile(false) }}
+            onClick={() => { onNavigate('notifications'); setShowProfile(false); }}
             className="relative w-9 h-9 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
           >
             <IconBell size={18} />
@@ -160,14 +113,11 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-neon-red shadow-neon-red" />
             )}
           </button>
-          {showNotifications && (
-            <NotificationPanel notifications={notifications} onMarkAllRead={onMarkAllRead} onClose={() => setShowNotifications(false)} onNavigate={onNavigate} />
-          )}
         </div>
 
         <div className="relative">
           <button
-            onClick={() => { setShowProfile(p => !p); setShowNotifications(false) }}
+            onClick={() => setShowProfile(p => !p)}
             className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors"
           >
             <div
