@@ -3,8 +3,9 @@ import { ConnectionsHeader } from '../components/ui/connections/ConnectionsHeade
 import { ConnectionsGrid } from '../components/ui/connections/ConnectionsGrid'
 import type { ConnectionStatus, ConnectionFilterOption } from '../components/ui/connections/ConnectionsGrid'
 import type { Connection } from '../types/ConnectionTypes'
-import { fetchConnections, fetchConnectionSummary } from '../api/connectionApi'
+import { fetchConnections, fetchConnectionSummary, fetchInviteCode } from '../api/connectionApi'
 import type { ConnectionSummary } from '../api/connectionApi'
+import { InviteModal } from '../components/ui/connections/InviteModal'
 
 const statusFilters: ConnectionFilterOption[] = [
   { value: 'all',       label: 'All'       },
@@ -20,6 +21,19 @@ export function Connections() {
 
   const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState<ConnectionStatus | 'all'>('connected')
+
+  const [inviteCode, setInviteCode]     = useState<string | null>(null)
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [showInvite, setShowInvite]     = useState(false)
+
+  function handleInvite() {
+    setShowInvite(true)
+    setInviteLoading(true)
+    fetchInviteCode().then(code => {
+      setInviteCode(code)
+      setInviteLoading(false)
+    })
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -41,12 +55,20 @@ export function Connections() {
   }, [connections, search, statusFilter])
 
   return (
+    <>
+    {showInvite && (
+      <InviteModal
+        code={inviteCode}
+        loading={inviteLoading}
+        onClose={() => { setShowInvite(false); setInviteCode(null) }}
+      />
+    )}
     <div className="max-w-7xl mx-auto space-y-5">
       <ConnectionsHeader
         total={summary.total}
         connectedCount={summary.connectedCount}
         pendingCount={summary.pendingCount}
-        onAddConnection={() => {}}
+        onAddConnection={handleInvite}
       />
 
       {loading ? (
@@ -65,5 +87,6 @@ export function Connections() {
         />
       )}
     </div>
+    </>
   )
 }
