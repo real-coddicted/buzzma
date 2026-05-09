@@ -10,10 +10,10 @@ interface SidebarProps {
 
 // Role-based navigation mapping
 const roleNavigationMap: Record<UserRole, NavPage[]> = {
-  brand: ['dashboard', 'campaigns', 'connections', 'order-review'],
-  agency: ['dashboard', 'campaigns', 'connections', 'assignments', 'order-review'],
-  mediator: ['dashboard', 'assignments', 'connections', 'order-review', 'my-tickets'],
-  buyer: ['dashboard', 'deals', 'my-tickets', 'notifications'],
+  brand: ['dashboard', 'campaigns', 'connections', 'order-review', 'my-tickets', 'feedback'],
+  agency: ['dashboard', 'campaigns', 'connections', 'order-review', 'my-tickets', 'feedback'],
+  mediator: ['dashboard', 'assignments', 'connections', 'order-review', 'my-tickets', 'feedback'],
+  buyer: ['dashboard', 'deals', 'my-tickets', 'feedback'],
 }
 
 function Logo({ selectedRole, onRoleChange }: { selectedRole: UserRole; onRoleChange: (role: UserRole) => void }) {
