@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { NavItem } from '../ui/NavItem'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconLogout, IconChart, IconProfile, IconCurrency } from '../ui/icons'
+import { AccountSubmenu } from '../ui/AccountSubmenu'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 interface SidebarProps {
@@ -34,6 +36,8 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 flex flex-col bg-surface-light-raised dark:bg-surface-dark-raised border-r border-surface-light-border dark:border-surface-dark-border z-30">
       <div className="flex-1 overflow-y-auto px-3 pt-5 pb-4 flex flex-col">
@@ -96,29 +100,23 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           onClick={() => onNavigate('feedback')}
         />
 
-        <SectionLabel label="Account" />
-        <div className="flex flex-col gap-1">
-          <NavItem
-            icon={<IconProfile />}
-            label="Profile"
-            active={activePage === 'profile'}
-            onClick={() => onNavigate('profile')}
-          />
-          <NavItem
-            icon={<IconCurrency />}
-            label="Billing"
-            onClick={() => {}}
-          />
-          <NavItem
-            icon={<IconSettings />}
-            label="Settings"
-            onClick={() => {}}
-          />
-          <NavItem
-            icon={<IconLogout />}
-            label="Log out"
-            onClick={() => {}}
-          />
+        <div className="relative">
+          <div
+            onMouseEnter={() => setIsAccountMenuOpen(true)}
+            onMouseLeave={() => setIsAccountMenuOpen(false)}
+          >
+            <NavItem
+              icon={<IconSettings />}
+              label="Account"
+              active={false}
+              onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+            />
+            <AccountSubmenu
+              activePage={activePage}
+              onNavigate={onNavigate}
+              isVisible={isAccountMenuOpen}
+            />
+          </div>
         </div>
       </div>
 

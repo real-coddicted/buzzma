@@ -1,0 +1,46 @@
+import { IconProfile, IconCurrency, IconSettings } from './icons'
+import type { NavPage } from '../../types'
+
+interface AccountSubmenuProps {
+  activePage: NavPage
+  onNavigate: (page: NavPage) => void
+  isVisible: boolean
+}
+
+export function AccountSubmenu({ activePage, onNavigate, isVisible }: AccountSubmenuProps) {
+  if (!isVisible) return null
+
+  return (
+    <div className="absolute left-0 bottom-full mb-2 w-full bg-surface-light-card dark:bg-surface-dark-card border border-surface-light-border dark:border-surface-dark-border rounded-md shadow-lg z-40">
+      <div className="flex flex-col gap-1 p-1">
+        <button
+          onClick={() => onNavigate('profile')}
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${
+            activePage === 'profile'
+              ? 'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary'
+              : 'text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover'
+          }`}
+        >
+          <IconProfile />
+          <span>Profile</span>
+        </button>
+
+        <button
+          onClick={() => {}}
+          className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
+        >
+          <IconCurrency />
+          <span>Billing</span>
+        </button>
+
+        <button
+          onClick={() => {}}
+          className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
+        >
+          <IconSettings />
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+  )
+}
