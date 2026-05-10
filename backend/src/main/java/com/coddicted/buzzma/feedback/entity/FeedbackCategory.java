@@ -1,0 +1,9 @@
+package com.coddicted.buzzma.feedback.entity;
+
+public enum FeedbackCategory {
+  FEEDBACK_CATEGORY_UI_DESIGN,
+  FEEDBACK_CATEGORY_PERFORMANCE,
+  FEEDBACK_CATEGORY_FEATURES,
+  FEEDBACK_CATEGORY_BUG_REPORT,
+  FEEDBACK_CATEGORY_OTHER
+}

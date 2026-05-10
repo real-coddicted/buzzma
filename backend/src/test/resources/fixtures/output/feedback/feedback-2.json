@@ -1,0 +1,12 @@
+{
+  "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+  "userId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "rating": 2,
+  "category": "FEEDBACK_CATEGORY_BUG_REPORT",
+  "feedback": "Encountered a crash on the deals screen.",
+  "isDeleted": false,
+  "createdAt": "2024-01-02T00:00:00Z",
+  "updatedAt": "2024-01-02T00:00:00Z",
+  "createdBy": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "updatedBy": "cccccccc-cccc-cccc-cccc-cccccccccccc"
+}

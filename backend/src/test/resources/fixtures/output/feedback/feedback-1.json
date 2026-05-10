@@ -1,0 +1,12 @@
+{
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "userId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "rating": 4,
+  "category": "FEEDBACK_CATEGORY_FEATURES",
+  "feedback": "Great feature set, love the campaign tools.",
+  "isDeleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "updatedBy": "cccccccc-cccc-cccc-cccc-cccccccccccc"
+}
