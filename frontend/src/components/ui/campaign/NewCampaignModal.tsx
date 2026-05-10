@@ -22,6 +22,7 @@ const EMPTY_FORM = {
   title: '',
   platform: '' as Platform | '',
   productBrandName: '',
+  productName: '',
   productImageUrl: '',
   productUrl: '',
   originalPriceRupees: '',
@@ -66,6 +67,7 @@ export function NewCampaignModal({ open, campaign, onClose, onSubmit }: Props) {
           title: campaign.title,
           platform: campaign.platform as Platform | '',
           productBrandName: campaign.productBrandName,
+          productName: campaign.productName,
           productImageUrl: campaign.productImageUrl,
           productUrl: campaign.productUrl,
           originalPriceRupees: paiseToRupees(campaign.originalPricePaise),
@@ -108,6 +110,7 @@ export function NewCampaignModal({ open, campaign, onClose, onSubmit }: Props) {
     if (!form.title.trim()) e.title = 'Required'
     if (!form.platform) e.platform = 'Required'
     if (!form.productBrandName.trim()) e.productBrandName = 'Required'
+    if (!form.productName.trim()) e.productName = 'Required'
     if (!form.productImageUrl.trim()) e.productImageUrl = 'Required'
     if (!form.productUrl.trim()) e.productUrl = 'Required'
 
@@ -140,6 +143,7 @@ export function NewCampaignModal({ open, campaign, onClose, onSubmit }: Props) {
       title: form.title.trim(),
       platform: form.platform,
       productBrandName: form.productBrandName.trim(),
+      productName: form.productName.trim(),
       productImageUrl: form.productImageUrl.trim(),
       productUrl: form.productUrl.trim(),
       originalPricePaise: rupeesToPaise(form.originalPriceRupees),
@@ -255,6 +259,11 @@ export function NewCampaignModal({ open, campaign, onClose, onSubmit }: Props) {
               <label className={labelClass}>Brand Name *</label>
               <input className={inputClass} type="text" placeholder="e.g. Acme Co." value={form.productBrandName} onChange={e => set('productBrandName', e.target.value)} />
               {errors.productBrandName && <p className={errorClass}>{errors.productBrandName}</p>}
+            </div>
+            <div>
+              <label className={labelClass}>Product Name *</label>
+              <input className={inputClass} type="text" placeholder="e.g. Acme Coffee Cup" value={form.productName} onChange={e => set('productName', e.target.value)} />
+              {errors.productName && <p className={errorClass}>{errors.productName}</p>}
             </div>
             <div>
               <label className={labelClass}>Product URL *</label>

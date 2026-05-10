@@ -110,6 +110,10 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
               <input className={readOnlyInputClass} type="text" value={campaign.productBrandName} readOnly disabled />
             </div>
             <div>
+              <label className={labelClass}>Product Name</label>
+              <input className={readOnlyInputClass} type="text" value={campaign.productName} readOnly disabled />
+            </div>
+            <div>
               <label className={labelClass}>Product URL</label>
               <input className={readOnlyInputClass} type="url" value={campaign.productUrl} readOnly disabled />
             </div>

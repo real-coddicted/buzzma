@@ -46,6 +46,7 @@ export interface Campaign {
   status: CampaignStatus
   platform: Platform
   productBrandName: string
+  productName: string
   productImageUrl: string
   productUrl: string
   originalPricePaise: number
@@ -83,6 +84,7 @@ export interface CampaignRequestDto {
   title: string
   platform: string
   productBrandName: string
+  productName: string
   productImageUrl: string
   productUrl: string
   originalPricePaise: number
