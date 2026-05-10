@@ -18,7 +18,7 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "users")
+@Table(name = "user_credentials")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter

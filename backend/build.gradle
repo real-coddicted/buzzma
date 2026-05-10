@@ -45,6 +45,9 @@ dependencies {
   // PostgreSQL driver
   runtimeOnly 'org.postgresql:postgresql'
 
+  // H2 for local development
+  runtimeOnly 'com.h2database:h2'
+
   // MapStruct
   implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
