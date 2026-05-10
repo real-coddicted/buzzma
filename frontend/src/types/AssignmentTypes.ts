@@ -6,6 +6,7 @@ export interface AssignmentItem {
   id: string
   productName: string
   productImageUrl: string
+  productUrl: string
   platform: Platform
   platformLabel: string
   dealType: CampaignType
