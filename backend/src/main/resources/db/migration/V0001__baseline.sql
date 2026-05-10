@@ -272,6 +272,25 @@ CREATE TABLE ticket_comments (
 );
 
 -- ============================================================
+-- FEEDBACK MODULE
+-- ============================================================
+
+CREATE TABLE feedback (
+    id          uuid    NOT NULL,
+    user_id     uuid    NOT NULL,
+    rating      integer NOT NULL,
+    category    varchar(50)  NOT NULL,
+    feedback    text         NOT NULL,
+    created_by  uuid,
+    updated_by  uuid,
+    created_at  timestamp with time zone  NOT NULL,
+    updated_at  timestamp with time zone  NOT NULL,
+    is_deleted  boolean                   NOT NULL DEFAULT false,
+    CONSTRAINT pk_feedback      PRIMARY KEY (id),
+    CONSTRAINT fk_feedback_user FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
