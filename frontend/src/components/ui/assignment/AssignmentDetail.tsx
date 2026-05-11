@@ -13,6 +13,7 @@ export function AssignmentDetail({ item, onBack }: AssignmentDetailProps) {
     id:                  item.id,
     productName:         item.productName,
     productImageUrl:     item.productImageUrl,
+    productUrl:          item.productUrl,
     platform:            item.platform,
     platformLabel:       item.platformLabel,
     dealType:            item.dealType,

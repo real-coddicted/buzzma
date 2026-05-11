@@ -24,14 +24,21 @@ export function DealInfo({ deal }: DealInfoProps) {
 
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden flex flex-col">
-      <div className="relative h-64 flex-shrink-0">
+      <a
+        href={deal.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative h-64 flex-shrink-0 block group"
+        aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
+      >
         <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
         {discount > 0 && (
           <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
             -{discount}%
           </span>
         )}
-      </div>
+      </a>
 
       {/* Static: badges + title + price */}
       <div className="px-5 pt-5 pb-3 flex-shrink-0 space-y-3">
@@ -52,6 +59,18 @@ export function DealInfo({ deal }: DealInfoProps) {
           <span className="text-2xl font-bold text-neon-green">{paise(deal.offeredPricePaise)}</span>
           <span className="text-sm text-ink-light-muted dark:text-ink-dark-muted line-through">{paise(deal.originalPricePaise)}</span>
         </div>
+
+        <a
+          href={deal.productUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neon-cyan hover:text-neon-blue transition-colors"
+        >
+          Order on {deal.platformLabel}
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+          </svg>
+        </a>
       </div>
 
       {/* Scrollable: details table + T&C */}

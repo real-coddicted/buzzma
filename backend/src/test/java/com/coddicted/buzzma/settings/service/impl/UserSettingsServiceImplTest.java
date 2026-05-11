@@ -33,7 +33,7 @@ class UserSettingsServiceImplTest {
   void testGetByUserIdWhenFound() {
     when(this.mockUserSettingsRepository.findByUserIdAndIsDeletedFalse(USER_ID))
         .thenReturn(Optional.of(USER_SETTINGS_1));
-    //Todo: USER_SETTINGS_1 should be moved to output fixtures folder
+    // Todo: USER_SETTINGS_1 should be moved to output fixtures folder
     assertEquals(USER_SETTINGS_1, this.userSettingsService.getByUserId(USER_ID));
   }
 
