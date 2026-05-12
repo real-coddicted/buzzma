@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.support.service.impl;
 
 import com.coddicted.buzzma.shared.common.BaseCrudService;
-import com.coddicted.buzzma.shared.storage.StorageService;
+import com.coddicted.buzzma.storage.service.StorageService;
 import com.coddicted.buzzma.support.entity.TicketAttachment;
 import com.coddicted.buzzma.support.persistence.TicketAttachmentRepository;
 import com.coddicted.buzzma.support.persistence.TicketRepository;
@@ -38,8 +38,8 @@ public class TicketAttachmentServiceImpl extends BaseCrudService
       final String contentType,
       final byte[] data,
       final UUID requesterId) {
-    mustFind(ticketRepository, ticketId, "Ticket");
-    final String storageKey = storageService.store(FOLDER, fileName, contentType, data);
+    mustFind(this.ticketRepository, ticketId, "Ticket");
+    final String storageKey = this.storageService.store(FOLDER, fileName, contentType, data);
     final TicketAttachment attachment =
         TicketAttachment.builder()
             .ticketId(ticketId)
@@ -52,12 +52,12 @@ public class TicketAttachmentServiceImpl extends BaseCrudService
             .createdBy(requesterId)
             .updatedBy(requesterId)
             .build();
-    return attachmentRepository.save(attachment);
+    return this.attachmentRepository.save(attachment);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<TicketAttachment> listByTicketId(final UUID ticketId) {
-    return attachmentRepository.findAllByTicketIdAndIsDeletedFalse(ticketId);
+    return this.attachmentRepository.findAllByTicketIdAndIsDeletedFalse(ticketId);
   }
 }
