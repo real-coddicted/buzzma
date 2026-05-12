@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AppLayout } from './components/layout/AppLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
@@ -13,14 +13,25 @@ import { Notifications } from './pages/Notifications'
 import { OrderReview } from './pages/OrderReview'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
+import { getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage, Notification } from './types'
 
 export default function App() {
   const { theme, toggleTheme } = useTheme()
   const [activePage, setActivePage] = useState<NavPage>('dashboard')
-  const [isAuthenticated, setIsAuthenticated] = useState(import.meta.env.DEV)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
   const [notifications, setNotifications] = useState<Notification[]>([])
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false)
+    setActivePage('dashboard')
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  }, [handleLogout])
 
   useEffect(() => {
     fetchNotifications().then(setNotifications)

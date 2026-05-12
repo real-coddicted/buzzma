@@ -40,7 +40,7 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers(
-                        "/api/auth/**",
+                        "/api/v1/auth/**",
                         "/api/health/**",
                         "/api/media/**",
                         "/api/notifications/push/public-key",
