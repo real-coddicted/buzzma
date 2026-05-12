@@ -83,17 +83,20 @@ public class ExtractionServiceImpl extends BaseCrudService implements Extraction
 
     final ExtractionJob job =
         ExtractionJob.builder()
-            .submittedBy(requesterId)
             .status(ExtractionJobStatus.EXTRACTION_JOB_STATUS_COMPLETED)
             .originalFilename(originalFilename)
             .contentType(contentType)
             .attemptCount(1)
             .result(result)
             .isDeleted(false)
+            .submittedBy(requesterId)
             .createdBy(requesterId)
             .updatedBy(requesterId)
             .build();
     LOGGER.debug("extractSync: completed for requester {}", requesterId);
+    if (requesterId == null) {
+      return job;
+    }
     return jobRepository.save(job);
   }
 

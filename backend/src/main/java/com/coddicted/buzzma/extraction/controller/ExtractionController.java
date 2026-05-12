@@ -34,7 +34,8 @@ public class ExtractionController {
 
   @PostMapping("/sync")
   public ExtractionJobResponseDto extractSync(
-      @CurrentUserId final UUID requesterId, @RequestParam("image") final MultipartFile image)
+      @RequestParam(name = "requesterId", required = false) final UUID requesterId,
+      @RequestParam("image") final MultipartFile image)
       throws IOException {
     return extractionMapper.toResponse(
         extractionService.extractSync(

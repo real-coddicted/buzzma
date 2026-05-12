@@ -44,6 +44,7 @@ public class SecurityConfig {
                         "/api/health/**",
                         "/api/media/**",
                         "/api/notifications/push/public-key",
+                        "/api/v1/extraction/sync",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**")

@@ -23,6 +23,11 @@ public class GeminiClient {
   public GeminiClient(final RestClient.Builder builder, final GeminiProperties properties) {
     this.properties = properties;
     this.restClient = builder.baseUrl(BASE_URL).build();
+    final String apiKey = properties.getApiKey();
+    LOGGER.info(
+        "GeminiClient initialized: model={}, apiKeyPresent={}",
+        properties.getModel(),
+        apiKey != null && !apiKey.isBlank());
   }
 
   public String generateContent(
