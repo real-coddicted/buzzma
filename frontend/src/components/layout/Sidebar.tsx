@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 interface SidebarProps {
@@ -118,6 +118,14 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             />
           </div>
         </div>
+
+        <button
+          onClick={() => window.dispatchEvent(new Event('auth:logout'))}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-neon-red border border-transparent hover:bg-neon-red/10 hover:border-neon-red/20"
+        >
+          <IconLogout />
+          <span className="flex-1 text-left">Logout</span>
+        </button>
       </div>
 
       <div className="px-4 py-3 border-t border-surface-light-border dark:border-surface-dark-border">
