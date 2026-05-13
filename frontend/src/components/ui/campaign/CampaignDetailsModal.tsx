@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Button } from '../Button'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
-import type { Campaign, Platform } from '../../../types'
+import type { Campaign } from '../../../types'
 
 interface Props {
   open: boolean

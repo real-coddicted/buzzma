@@ -87,6 +87,7 @@ export interface CampaignRequestDto {
   productName: string
   productImageUrl: string
   productUrl: string
+  sellerName: string | null
   originalPricePaise: number
   campaignPricePaise: number
   commissionOfferedPaise: number
@@ -95,6 +96,9 @@ export interface CampaignRequestDto {
   totalSlots: number | null
   allowedAgencies: string[] | null
   openToAll: boolean | null
+  termsAndConditions: string | null
+  startDate: string | null
+  endDate: string | null
 }
 
 export interface PerformanceBar {

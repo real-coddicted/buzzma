@@ -3,7 +3,6 @@ import { StatCard } from '../components/ui/StatCard'
 import { Button } from '../components/ui/Button'
 import { StatusBadge } from '../components/ui/Badge'
 import { IconChevronRight } from '../components/ui/icons'
-import { NewCampaignButton } from '../components/ui/campaign/NewCampaignModal'
 import { statCards, recentActivity, campaigns, performanceBars } from '../data/mockData'
 import type { StatCardAccent, ActivityItem, PerformanceBar } from '../types'
 
@@ -94,7 +93,6 @@ export function Dashboard() {
             Here's what's happening with your campaigns today.
           </p>
         </div>
-        <NewCampaignButton />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
