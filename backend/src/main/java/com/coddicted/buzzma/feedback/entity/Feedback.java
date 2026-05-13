@@ -60,6 +60,7 @@ public class Feedback implements Auditable {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
 
+  @Builder.Default
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted = false;
 }

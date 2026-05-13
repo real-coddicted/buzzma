@@ -18,7 +18,7 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "users")
+@Table(name = "user_credentials")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter
@@ -51,5 +51,6 @@ public class UserCredential implements Auditable {
   private Instant updatedAt;
 
   @Column(name = "is_deleted", nullable = false)
+  @Builder.Default
   private Boolean isDeleted = false;
 }

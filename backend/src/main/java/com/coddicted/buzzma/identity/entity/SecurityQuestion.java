@@ -15,7 +15,7 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "security_answers")
+@Table(name = "security_questions")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -44,5 +44,6 @@ public class SecurityQuestion {
   private Instant updatedAt;
 
   @Column(name = "is_deleted", nullable = false)
+  @Builder.Default
   private Boolean isDeleted = false;
 }

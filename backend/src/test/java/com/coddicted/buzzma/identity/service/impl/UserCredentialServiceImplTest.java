@@ -120,8 +120,7 @@ class UserCredentialServiceImplTest {
     doReturn(Optional.of(USER_CREDENTIAL_2))
         .when(this.mockCredentialRepository)
         .findByUserIdAndIsDeletedFalse(USER_ID);
-    doReturn(NEW_HASH).when(this.mockPasswordService).hashPassword(PLAIN_PASSWORD);
-    doReturn(true).when(this.mockPasswordService).verifyPassword(NEW_HASH, STORED_HASH);
+    doReturn(true).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
 
     assertTrue(this.userCredentialService.verify(USER_ID, PLAIN_PASSWORD));
   }
@@ -131,8 +130,7 @@ class UserCredentialServiceImplTest {
     doReturn(Optional.of(USER_CREDENTIAL_2))
         .when(this.mockCredentialRepository)
         .findByUserIdAndIsDeletedFalse(USER_ID);
-    doReturn(NEW_HASH).when(this.mockPasswordService).hashPassword(PLAIN_PASSWORD);
-    doReturn(false).when(this.mockPasswordService).verifyPassword(NEW_HASH, STORED_HASH);
+    doReturn(false).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
 
     assertFalse(this.userCredentialService.verify(USER_ID, PLAIN_PASSWORD));
   }

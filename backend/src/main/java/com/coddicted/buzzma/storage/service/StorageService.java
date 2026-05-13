@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.shared.storage;
+package com.coddicted.buzzma.storage.service;
 
 public interface StorageService {
 

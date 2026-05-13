@@ -2,8 +2,20 @@ import { useState } from 'react'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { IconCheck } from '../components/ui/icons'
+import { submitFeedback } from '../api/feedbackApi'
+import type { components } from '../types/api'
 
 type Category = 'ui' | 'performance' | 'features' | 'bugs' | 'other'
+
+type ApiCategory = components['schemas']['FeedbackRequestDto']['category']
+
+const CATEGORY_MAP: Record<Category, ApiCategory> = {
+  ui:          'FEEDBACK_CATEGORY_UI_DESIGN',
+  performance: 'FEEDBACK_CATEGORY_PERFORMANCE',
+  features:    'FEEDBACK_CATEGORY_FEATURES',
+  bugs:        'FEEDBACK_CATEGORY_BUG_REPORT',
+  other:       'FEEDBACK_CATEGORY_OTHER',
+}
 
 const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'ui',          label: 'UI / Design' },
@@ -73,6 +85,7 @@ export function Feedback() {
   const [errors, setErrors] = useState<{ rating?: string; category?: string; message?: string }>({})
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   function validate() {
     const e: typeof errors = {}
@@ -84,14 +97,26 @@ export function Feedback() {
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
+    setApiError(null)
+    try {
+      await submitFeedback({
+        rating: rating,
+        category: CATEGORY_MAP[category as Category],
+        feedback: message.trim(),
+      })
       setSubmitted(true)
-    }, 800)
+    } catch (err) {
+      const msg = err instanceof Error && err.message.includes('Session expired')
+        ? err.message
+        : 'Something went wrong. Please try again.'
+      setApiError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleReset() {
@@ -100,6 +125,7 @@ export function Feedback() {
     setMessage('')
     setErrors({})
     setSubmitted(false)
+    setApiError(null)
   }
 
   if (submitted) {
@@ -205,6 +231,10 @@ export function Feedback() {
               </div>
             </div>
           </div>
+
+          {apiError && (
+            <p className="text-xs text-neon-red text-center">{apiError}</p>
+          )}
 
           <div className="flex justify-end">
             <Button type="submit" variant="primary" size="md" loading={loading}>

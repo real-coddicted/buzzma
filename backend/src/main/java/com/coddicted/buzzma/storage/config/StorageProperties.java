@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.shared.storage;
+package com.coddicted.buzzma.storage.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,7 @@ public class StorageProperties {
   private String baseDir = "./storage";
 
   public String getBaseDir() {
-    return baseDir;
+    return this.baseDir;
   }
 
   public void setBaseDir(final String baseDir) {

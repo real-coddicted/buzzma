@@ -36,4 +36,3 @@ bin/
 .openspec/
 
 .env
-src/main/resources/application.yml

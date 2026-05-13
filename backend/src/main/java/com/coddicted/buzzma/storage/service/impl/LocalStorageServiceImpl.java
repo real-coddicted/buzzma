@@ -1,6 +1,8 @@
-package com.coddicted.buzzma.shared.storage;
+package com.coddicted.buzzma.storage.service.impl;
 
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.storage.config.StorageProperties;
+import com.coddicted.buzzma.storage.service.StorageService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,16 +10,18 @@ import java.nio.file.Paths;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LocalStorageService implements StorageService {
+@ConditionalOnProperty(name = "app.storage.type", havingValue = "local")
+public class LocalStorageServiceImpl implements StorageService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LocalStorageService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LocalStorageServiceImpl.class);
 
   private final StorageProperties properties;
 
-  public LocalStorageService(final StorageProperties properties) {
+  public LocalStorageServiceImpl(final StorageProperties properties) {
     this.properties = properties;
   }
 
@@ -30,12 +34,12 @@ public class LocalStorageService implements StorageService {
     try {
       final String ext = extractExtension(originalFilename);
       final String storageKey = folder + "/" + UUID.randomUUID() + ext;
-      final Path target = Paths.get(properties.getBaseDir()).resolve(storageKey);
+      final Path target = Paths.get(this.properties.getBaseDir()).resolve(storageKey);
       Files.createDirectories(target.getParent());
       Files.write(target, data);
-      LOG.debug("Stored file at {}", storageKey);
+      LOGGER.debug("Stored file at {}", storageKey);
       return storageKey;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException("Failed to store file: " + originalFilename, e);
     }
   }
@@ -43,12 +47,12 @@ public class LocalStorageService implements StorageService {
   @Override
   public byte[] retrieve(final String storageKey) {
     try {
-      final Path path = Paths.get(properties.getBaseDir()).resolve(storageKey);
+      final Path path = Paths.get(this.properties.getBaseDir()).resolve(storageKey);
       if (!Files.exists(path)) {
         throw new NotFoundException("File not found: " + storageKey);
       }
       return Files.readAllBytes(path);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException("Failed to retrieve file: " + storageKey, e);
     }
   }
@@ -56,11 +60,11 @@ public class LocalStorageService implements StorageService {
   @Override
   public void delete(final String storageKey) {
     try {
-      final Path path = Paths.get(properties.getBaseDir()).resolve(storageKey);
+      final Path path = Paths.get(this.properties.getBaseDir()).resolve(storageKey);
       Files.deleteIfExists(path);
-      LOG.debug("Deleted file at {}", storageKey);
-    } catch (IOException e) {
-      LOG.warn("Failed to delete file at {}: {}", storageKey, e.getMessage());
+      LOGGER.debug("Deleted file at {}", storageKey);
+    } catch (final IOException e) {
+      LOGGER.warn("Failed to delete file at {}: {}", storageKey, e.getMessage());
     }
   }
 

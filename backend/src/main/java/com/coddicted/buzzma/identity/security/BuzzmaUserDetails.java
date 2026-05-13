@@ -16,6 +16,10 @@ public class BuzzmaUserDetails implements UserDetails {
     this.user = user;
   }
 
+  public BuzzmaUser getUser() {
+    return this.user;
+  }
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     final UserRole userRole = user.getRole();

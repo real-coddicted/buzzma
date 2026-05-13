@@ -51,5 +51,6 @@ public class SecurityAnswer {
   private Instant updatedAt;
 
   @Column(name = "is_deleted", nullable = false)
+  @Builder.Default
   private Boolean isDeleted = false;
 }
