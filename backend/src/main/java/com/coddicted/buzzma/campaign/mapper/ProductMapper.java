@@ -1,8 +1,8 @@
 package com.coddicted.buzzma.campaign.mapper;
 
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
-import com.coddicted.buzzma.campaign.entity.Platform;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.shared.enums.Platform;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -24,19 +24,19 @@ public interface ProductMapper {
   Product toProductEntity(final CampaignRequestDto request);
 
   @Named("stringToUrl")
-  default URL stringToUrl(String value) {
+  default URL stringToUrl(final String value) {
     if (value == null || value.isBlank()) {
       return null;
     }
     try {
       return URI.create(value).toURL();
-    } catch (MalformedURLException e) {
+    } catch (final MalformedURLException e) {
       throw new IllegalArgumentException("Invalid URL: " + value, e);
     }
   }
 
   @Named("stringToPlatform")
-  default Platform stringToPlatform(String value) {
+  default Platform stringToPlatform(final String value) {
     if (value == null || value.isBlank()) {
       return null;
     }

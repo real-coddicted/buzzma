@@ -2,45 +2,63 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
-import com.coddicted.buzzma.campaign.entity.Platform;
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.UUID;
 
 @Value
 @Builder
 @Jacksonized
 public class CampaignRequestDto {
 
-  @NotBlank String title;
+    @NotBlank
+    String title;
 
-  @NotBlank UUID ownerId;
+    @NotBlank
+    UUID ownerId;
 
-  @NotBlank Platform platform;
+    @NotBlank
+    Platform platform;
 
-  @NotBlank String productName;
+    @NotBlank
+    String productName;
 
-  @NotBlank String productImageUrl;
+    @NotBlank
+    String productImageUrl;
 
-  @NotBlank String productUrl;
+    @NotBlank
+    String productUrl;
 
-  @NotBlank BigInteger originalPricePaise;
+    @NotBlank
+    BigInteger originalPricePaise;
 
-  @Nullable Integer endDate;
+    @Nullable
+    Integer endDate;
 
-  @NotNull CampaignType campaignType;
+    @NotNull
+    CampaignType campaignType;
 
-  @NotNull CampaignStatus campaignStatus;
+    @NotNull
+    CampaignStatus campaignStatus;
 
-  @NotNull Integer totalSlots;
+    @NotNull
+    Integer totalSlots;
 
-  List<CampaignAssignmentRequestDto> assignees;
+    List<CampaignAssignmentRequestDto> assignees;
 
-  boolean openToAll;
+    boolean openToAll;
+
+    @Nullable
+    String termsAndConditions;
+
+    @Nullable
+    String sellerName;
 }

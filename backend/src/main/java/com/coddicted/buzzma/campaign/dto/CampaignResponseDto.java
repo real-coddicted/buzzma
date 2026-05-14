@@ -2,7 +2,7 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
-import com.coddicted.buzzma.campaign.entity.Platform;
+import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.net.URL;
 import java.time.Instant;
@@ -40,6 +40,14 @@ public class CampaignResponseDto {
   BigInteger productPricePaise;
 
   Platform platform;
+
+  BigInteger campaignPricePaise;
+
+  Integer returnWindowDays;
+
+  String termsAndConditions;
+
+  String sellerName;
 
   // Audit fields
   Instant createdAt;
