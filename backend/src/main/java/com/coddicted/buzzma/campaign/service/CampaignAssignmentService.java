@@ -1,13 +1,15 @@
 package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
+
 import java.util.List;
 import java.util.UUID;
 
 public interface CampaignAssignmentService {
   List<CampaignAssignment> listAssignmentsByAssignor(UUID assignorId);
 
-  List<CampaignAssignment> listAssignmentsByAssignee(UUID assigneeId);
+  List<CampaignAssignment> listAssignmentsByAssignee(UUID assigneeId, CampaignAssignmentStatus campaignAssignmentStatus);
 
   List<CampaignAssignment> create(List<CampaignAssignment> assignees);
 
@@ -19,4 +21,6 @@ public interface CampaignAssignmentService {
       List<UUID> srcCampaignAssignments, UUID destCampaignId, UUID requesterId);
 
   List<CampaignAssignment> lockAssignments(List<UUID> campaignAssignments);
+
+  CampaignAssignment getById(UUID campaignAssignmentId);
 }

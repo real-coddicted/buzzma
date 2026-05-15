@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class DealRequestDto {
+public class AssignmentRequestDto {
     private UUID ownerId;
 }

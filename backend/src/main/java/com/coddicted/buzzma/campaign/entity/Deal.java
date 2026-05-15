@@ -1,14 +1,24 @@
 package com.coddicted.buzzma.campaign.entity;
 
-
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "deals")
@@ -26,24 +36,22 @@ public class Deal {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "campaign_id", nullable = false, updatable = false)
-    private UUID campaignId;
 
-    @Column(name = "campaign_assignment_id", nullable = false, updatable = false)
-    private UUID campaignAssignmentId;
-
-    @Column(name = "slot_id", nullable = false, updatable = false)
-    private UUID slotId;
-
-    @Column(name = "owner_id", nullable = false, updatable = false)
+    @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 
-    @Column(name = "status")
-    private DealStatus status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id", nullable = false)
+    private Campaign campaign;
 
-    @Column(name = "deal_price")
-    private BigInteger dealPrice;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id", nullable = false)
+    private CampaignSlot campaignSlot;
 
+    @Column(name = "deal_price_paise", nullable = false)
+    private BigInteger dealPricePaise;
+
+    // Audit fields
     @Column(name = "created_by")
     private UUID createdBy;
 
@@ -57,5 +65,7 @@ public class Deal {
     private Instant updatedAt;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private boolean isDeleted;
+
+
 }

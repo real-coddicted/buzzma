@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.campaign.mapper;
 
-import com.coddicted.buzzma.campaign.dto.DealResponseDto;
+import com.coddicted.buzzma.campaign.dto.AssignmentResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,5 +17,5 @@ public interface DealMapper {
   @Mapping(source = "product.pricePaise", target = "originalPricePaise")
   @Mapping(source = "campaignPricePaise", target = "offeredPricePaise")
   @Mapping(source = "type", target = "dealType")
-  DealResponseDto toResponse(Campaign campaign);
+  AssignmentResponseDto toResponse(Campaign campaign);
 }

@@ -9,8 +9,8 @@ import java.util.List;
 @Value
 @Builder
 @Jacksonized
-public class PagedDealsResponseDto {
-  List<DealResponseDto> items;
+public class PagedAssignmentsResponseDto {
+  List<AssignmentResponseDto> items;
   long total;
   int page;
   int totalPages;

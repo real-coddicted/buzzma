@@ -12,7 +12,7 @@ import java.util.UUID;
 @Value
 @Builder
 @Jacksonized
-public class DealResponseDto {
+public class AssignmentResponseDto {
   UUID id;
   UUID ownerId;
   String productName;
