@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.order.mapper;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.mapper.DealMapper;
 import com.coddicted.buzzma.order.dto.OrderRequestDto;
 import com.coddicted.buzzma.order.dto.OrderResponseDto;
 import com.coddicted.buzzma.order.entity.Order;
