@@ -1,0 +1,125 @@
+package com.coddicted.buzzma.claim.controller;
+
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
+import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
+import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.mapper.ClaimMapper;
+import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.shared.security.CurrentUserId;
+import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+@RestController
+@RequestMapping("/api/v1/claims")
+public class ClaimController {
+
+  private final ClaimService claimService;
+  private final DealService dealService;
+  private final ClaimMapper claimMapper;
+
+  public ClaimController(
+      final ClaimService claimService,
+      final DealService dealService,
+      final ClaimMapper claimMapper) {
+    this.claimService = claimService;
+    this.dealService = dealService;
+    this.claimMapper = claimMapper;
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public ClaimResponseDto create(
+      @CurrentUserId final UUID requesterId, @Valid final ClaimRequestDto request) {
+    final MultipartFile screenshot = request.getScreenshot();
+    final Claim claim =
+        this.claimService.createClaim(
+            this.claimMapper.toEntity(request, requesterId),
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots);
+  }
+
+  @PostMapping("/{id}/review")
+  public ClaimResponseDto submitReview(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam(required = false) final String reviewUrl,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final Claim claim =
+        this.claimService.submitReview(
+            id,
+            requesterId,
+            reviewUrl,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots);
+  }
+
+  @PostMapping("/{id}/return")
+  public ClaimResponseDto submitReturn(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final Claim claim =
+        this.claimService.submitReturn(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots);
+  }
+
+  @GetMapping
+  public List<ClaimResponseDto> list(@CurrentUserId final UUID requesterId) {
+    return this.claimService.listByOwner(requesterId).stream()
+        .map(
+            claim ->
+                this.claimMapper.toResponse(
+                    claim,
+                    this.dealService.getById(claim.getDealId()),
+                    this.claimService.listScreenshots(claim.getId())))
+        .toList();
+  }
+
+  @GetMapping("/{id}")
+  public ClaimResponseDto getById(
+      @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
+    final Claim claim = this.claimService.getById(id, requesterId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots);
+  }
+
+  private byte[] readBytes(final MultipartFile file) {
+    try {
+      return file.getBytes();
+    } catch (final IOException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to read uploaded file");
+    }
+  }
+}

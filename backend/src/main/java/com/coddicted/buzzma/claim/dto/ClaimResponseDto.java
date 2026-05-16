@@ -1,8 +1,7 @@
-package com.coddicted.buzzma.order.dto;
+package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
-import com.coddicted.buzzma.order.entity.Screenshot;
-import com.coddicted.buzzma.shared.enums.OrderWorkflowStatus;
+import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
@@ -14,10 +13,10 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class OrderResponseDto {
+public class ClaimResponseDto {
   UUID id;
   DealResponseDto deal;
-  OrderWorkflowStatus status;
+  ClaimWorkflowStatus status;
   int currentStep;
   String ecommerceOrderId;
   BigInteger amountPaise;
@@ -26,7 +25,7 @@ public class OrderResponseDto {
   String orderDate;
   String accountName;
   String reviewUrl;
-  List<Screenshot> screenshots;
+  List<ClaimScreenshotResponseDto> screenshots;
   Boolean overallVerified;
   Double overallScore;
   String rejectionNote;

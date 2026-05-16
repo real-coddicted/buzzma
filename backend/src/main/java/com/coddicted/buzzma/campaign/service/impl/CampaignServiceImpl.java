@@ -15,6 +15,7 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +80,12 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
           case CAMPAIGN_ACTION_COMPLETE -> CampaignStatus.CAMPAIGN_STATUS_COMPLETED;
         };
     return transitionTo(campaignId, target, requesterId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<Campaign> findCampaignsById(final Set<UUID> campaignIdSet) {
+    return campaignRepository.findByIdInAndIsDeletedFalse(campaignIdSet);
   }
 
   @Override

@@ -1,8 +1,8 @@
-package com.coddicted.buzzma.order.entity;
+package com.coddicted.buzzma.claim.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
-import com.coddicted.buzzma.shared.enums.OrderWorkflowStatus;
+import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -13,26 +13,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "claims")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Order implements Auditable {
+public class Claim implements Auditable {
 
   @Id
   @GeneratedValue
@@ -46,15 +43,12 @@ public class Order implements Auditable {
   @Column(name = "deal_id", nullable = false)
   private UUID dealId;
 
-  @Column(name = "deal_owner_id", nullable = false)
-  private UUID dealOwnerId;
-
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  @Column(name = "owner_id", nullable = false)
+  private UUID ownerId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 50)
-  private OrderWorkflowStatus status;
+  private ClaimWorkflowStatus status;
 
   @Column(name = "ecommerce_order_id", length = 100)
   private String ecommerceOrderId;
@@ -77,10 +71,6 @@ public class Order implements Auditable {
 
   @Column(name = "review_url", length = 500)
   private String reviewUrl;
-
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "screenshots", columnDefinition = "jsonb")
-  private List<Screenshot> screenshots;
 
   @Column(name = "overall_verified")
   private Boolean overallVerified;

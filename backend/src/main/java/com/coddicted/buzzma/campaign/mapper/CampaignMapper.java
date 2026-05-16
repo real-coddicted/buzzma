@@ -26,8 +26,8 @@ public interface CampaignMapper {
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
   @Mapping(source = "totalSlots", target = "totalSlots")
-  @Mapping(source = "campaignPricePaise", target = "campaignPricePaise")
-  @Mapping(source = "returnWindowDays", target = "returnWindowDays")
+  @Mapping(target = "campaignPricePaise", ignore = true)
+  @Mapping(target = "returnWindowDays", ignore = true)
   @Mapping(source = "termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "sellerName", target = "sellerName")
   Campaign toCampaignEntity(CampaignRequestDto request);
