@@ -13,13 +13,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "orders")
@@ -39,6 +42,12 @@ public class Order implements Auditable {
 
   @Column(name = "campaign_id", nullable = false)
   private UUID campaignId;
+
+  @Column(name = "deal_id", nullable = false)
+  private UUID dealId;
+
+  @Column(name = "deal_owner_id", nullable = false)
+  private UUID dealOwnerId;
 
   @Column(name = "user_id", nullable = false)
   private UUID userId;
@@ -69,17 +78,21 @@ public class Order implements Auditable {
   @Column(name = "review_url", length = 500)
   private String reviewUrl;
 
-  @Column(name = "order_screenshot_key", length = 500)
-  private String orderScreenshotKey;
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "screenshots", columnDefinition = "jsonb")
+  private List<Screenshot> screenshots;
 
-  @Column(name = "review_screenshot_key", length = 500)
-  private String reviewScreenshotKey;
+  @Column(name = "overall_verified")
+  private Boolean overallVerified;
 
-  @Column(name = "return_screenshot_key", length = 500)
-  private String returnScreenshotKey;
+  @Column(name = "overall_score")
+  private Double overallScore;
 
   @Column(name = "rejection_note", columnDefinition = "TEXT")
   private String rejectionNote;
+
+  @Column(name = "comments", columnDefinition = "TEXT")
+  private String comments;
 
   @Column(name = "created_by")
   private UUID createdBy;

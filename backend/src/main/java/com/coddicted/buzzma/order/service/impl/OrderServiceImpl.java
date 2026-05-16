@@ -46,7 +46,7 @@ public class OrderServiceImpl extends BaseCrudService implements OrderService {
       final String contentType) {
 
     final Campaign campaign =
-            this.campaignRepository
+        this.campaignRepository
             .findByIdAndIsDeletedFalse(order.getCampaignId())
             .orElseThrow(
                 () -> {
@@ -69,7 +69,7 @@ public class OrderServiceImpl extends BaseCrudService implements OrderService {
     }
 
     final String screenshotKey =
-            this.storageService.store("orders", screenshotFilename, contentType, screenshot);
+        this.storageService.store("orders", screenshotFilename, contentType, screenshot);
 
     final Order toSave =
         order.toBuilder()
@@ -102,7 +102,8 @@ public class OrderServiceImpl extends BaseCrudService implements OrderService {
           "Review can only be submitted when order is in ORDERED status");
     }
 
-    final String screenshotKey = this.storageService.store("orders", filename, contentType, screenshot);
+    final String screenshotKey =
+        this.storageService.store("orders", filename, contentType, screenshot);
 
     final Order updated =
         order.toBuilder()
@@ -133,7 +134,8 @@ public class OrderServiceImpl extends BaseCrudService implements OrderService {
           "Return screenshot can only be submitted when order is in PROOF_SUBMITTED status");
     }
 
-    final String screenshotKey = this.storageService.store("orders", filename, contentType, screenshot);
+    final String screenshotKey =
+        this.storageService.store("orders", filename, contentType, screenshot);
 
     final Order updated =
         order.toBuilder()
@@ -159,7 +161,7 @@ public class OrderServiceImpl extends BaseCrudService implements OrderService {
 
   private Order loadAndVerifyOwnership(final UUID orderId, final UUID userId) {
     final Order order =
-            this.orderRepository
+        this.orderRepository
             .findByIdAndIsDeletedFalse(orderId)
             .orElseThrow(
                 () -> {

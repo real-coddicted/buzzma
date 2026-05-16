@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class Assignment {
-    private Campaign campaign;
-    private CampaignAssignment campaignAssignment;
-    private CampaignSlot campaignSlot;
+  private Campaign campaign;
+  private CampaignAssignment campaignAssignment;
+  private CampaignSlot campaignSlot;
 }

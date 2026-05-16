@@ -1,9 +1,7 @@
 package com.coddicted.buzzma.campaign.mapper;
 
 import com.coddicted.buzzma.campaign.dto.AssignmentResponseDto;
-import com.coddicted.buzzma.campaign.dto.DealResponseDto;
-import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.model.Assignment;
 import java.net.URL;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -14,16 +12,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(
     componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface DealMapper {
+public interface AssignmentMapper {
 
-  @Mapping(source = "product.name", target = "productName")
-  @Mapping(source = "product.imageUrl", target = "productImageUrl", qualifiedByName = "urlToString")
-  @Mapping(source = "product.productLink", target = "productUrl", qualifiedByName = "urlToString")
-  @Mapping(source = "product.pricePaise", target = "originalPricePaise")
-  @Mapping(source = "campaignPricePaise", target = "offeredPricePaise")
-  @Mapping(source = "type", target = "dealType")
-  AssignmentResponseDto toResponse(Campaign campaign);
-
+  @Mapping(source = "campaignAssignment.id", target = "id")
+  @Mapping(source = "campaignAssignment.assigneeId", target = "ownerId")
   @Mapping(source = "campaign.product.name", target = "productName")
   @Mapping(
       source = "campaign.product.imageUrl",
@@ -36,13 +28,13 @@ public interface DealMapper {
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "campaign.type", target = "dealType")
   @Mapping(source = "campaign.product.pricePaise", target = "originalPricePaise")
-  @Mapping(source = "dealPricePaise", target = "offeredPricePaise")
+  @Mapping(source = "campaignAssignment.campaignPricePaise", target = "offeredPricePaise")
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")
   @Mapping(source = "campaign.termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "campaign.sellerName", target = "sellerName")
-  DealResponseDto toDealResponse(Deal deal);
+  AssignmentResponseDto toResponse(Assignment assignment);
 
-  List<DealResponseDto> toDealResponse(List<Deal> deals);
+  List<AssignmentResponseDto> toResponse(List<Assignment> assignments);
 
   @Named("urlToString")
   default String urlToString(final URL url) {

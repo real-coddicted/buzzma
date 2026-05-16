@@ -50,7 +50,8 @@ public class CommissionServiceImpl extends BaseCrudService implements Commission
   @Override
   @Transactional
   public Commission update(final Commission commission, final UUID requesterId) {
-    final Commission existing = mustFind(this.commissionRepository, commission.getId(), "Commission");
+    final Commission existing =
+        mustFind(this.commissionRepository, commission.getId(), "Commission");
     final Commission updated =
         existing.toBuilder()
             .commissionPaise(commission.getCommissionPaise())
@@ -63,8 +64,7 @@ public class CommissionServiceImpl extends BaseCrudService implements Commission
   @Transactional
   public Commission delete(final UUID commissionId, final UUID requesterId) {
     final Commission existing = mustFind(this.commissionRepository, commissionId, "Commission");
-    final Commission deleted =
-        existing.toBuilder().isDeleted(true).updatedBy(requesterId).build();
+    final Commission deleted = existing.toBuilder().isDeleted(true).updatedBy(requesterId).build();
     return this.commissionRepository.save(deleted);
   }
 }

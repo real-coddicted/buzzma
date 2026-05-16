@@ -8,8 +8,8 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class PagedAssignmentsResponseDto {
-  List<AssignmentResponseDto> items;
+public class PagedDealsResponseDto {
+  List<DealResponseDto> items;
   long total;
   int page;
   int totalPages;

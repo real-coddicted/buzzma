@@ -28,16 +28,11 @@ public interface OrderMapper {
   @Mapping(source = "order.orderDate", target = "orderDate")
   @Mapping(source = "order.accountName", target = "accountName")
   @Mapping(source = "order.reviewUrl", target = "reviewUrl")
-  @Mapping(
-      expression = "java(order.getOrderScreenshotKey() != null)",
-      target = "hasOrderScreenshot")
-  @Mapping(
-      expression = "java(order.getReviewScreenshotKey() != null)",
-      target = "hasReviewScreenshot")
-  @Mapping(
-      expression = "java(order.getReturnScreenshotKey() != null)",
-      target = "hasReturnScreenshot")
+  @Mapping(source = "order.screenshots", target = "screenshots")
+  @Mapping(source = "order.overallVerified", target = "overallVerified")
+  @Mapping(source = "order.overallScore", target = "overallScore")
   @Mapping(source = "order.rejectionNote", target = "rejectionNote")
+  @Mapping(source = "order.comments", target = "comments")
   @Mapping(source = "order.createdAt", target = "createdAt")
   @Mapping(source = "order.updatedAt", target = "updatedAt")
   OrderResponseDto toResponse(Order order, Campaign campaign);

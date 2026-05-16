@@ -30,42 +30,39 @@ import org.hibernate.annotations.UuidGenerator;
 @Builder(toBuilder = true)
 public class Deal {
 
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+  @Id
+  @GeneratedValue
+  @UuidGenerator
+  @Column(name = "id", updatable = false, nullable = false)
+  private UUID id;
 
+  @Column(name = "owner_id", nullable = false)
+  private UUID ownerId;
 
-    @Column(name = "owner_id", nullable = false)
-    private UUID ownerId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "campaign_id", nullable = false)
+  private Campaign campaign;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campaign_id", nullable = false)
-    private Campaign campaign;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "slot_id", nullable = false)
+  private CampaignSlot campaignSlot;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "slot_id", nullable = false)
-    private CampaignSlot campaignSlot;
+  @Column(name = "deal_price_paise", nullable = false)
+  private BigInteger dealPricePaise;
 
-    @Column(name = "deal_price_paise", nullable = false)
-    private BigInteger dealPricePaise;
+  // Audit fields
+  @Column(name = "created_by")
+  private UUID createdBy;
 
-    // Audit fields
-    @Column(name = "created_by")
-    private UUID createdBy;
+  @Column(name = "updated_by")
+  private UUID updatedBy;
 
-    @Column(name = "updated_by")
-    private UUID updatedBy;
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
-
-
+  @Column(name = "is_deleted", nullable = false)
+  private boolean isDeleted;
 }

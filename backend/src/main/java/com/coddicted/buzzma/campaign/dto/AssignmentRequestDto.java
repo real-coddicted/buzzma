@@ -1,10 +1,9 @@
 package com.coddicted.buzzma.campaign.dto;
 
-import lombok.Data;
-
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class AssignmentRequestDto {
-    private UUID ownerId;
+  private UUID ownerId;
 }

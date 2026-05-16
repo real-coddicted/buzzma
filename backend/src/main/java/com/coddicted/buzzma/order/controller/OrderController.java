@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.order.controller;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.order.dto.OrderRequestDto;
 import com.coddicted.buzzma.order.dto.OrderResponseDto;
 import com.coddicted.buzzma.order.entity.Order;
@@ -36,12 +37,11 @@ public class OrderController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public OrderResponseDto create(
-      @CurrentUserId final UUID requesterId,
-      @Valid @RequestBody final OrderRequestDto request) {
+      @CurrentUserId final UUID requesterId, @Valid @RequestBody final OrderRequestDto request) {
     final MultipartFile screenshot = request.getScreenshot();
     final Order order =
-            this.orderService.createOrder(
-                    this.orderMapper.toEntity(request, requesterId),
+        this.orderService.createOrder(
+            this.orderMapper.toEntity(request, requesterId),
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());
@@ -56,7 +56,7 @@ public class OrderController {
       @RequestParam(required = false) final String reviewUrl,
       @RequestParam("screenshot") final MultipartFile screenshot) {
     final Order order =
-            this.orderService.submitReview(
+        this.orderService.submitReview(
             id,
             requesterId,
             reviewUrl,
@@ -73,7 +73,7 @@ public class OrderController {
       @PathVariable final UUID id,
       @RequestParam("screenshot") final MultipartFile screenshot) {
     final Order order =
-            this.orderService.submitReturn(
+        this.orderService.submitReturn(
             id,
             requesterId,
             readBytes(screenshot),
@@ -86,7 +86,9 @@ public class OrderController {
   @GetMapping
   public List<OrderResponseDto> list(@CurrentUserId final UUID requesterId) {
     return this.orderService.listByBuyer(requesterId).stream()
-        .map(order -> this.orderMapper.toResponse(order, this.dealService.getById(order.getCampaignId())))
+        .map(
+            order ->
+                this.orderMapper.toResponse(order, this.dealService.getById(order.getCampaignId())))
         .toList();
   }
 

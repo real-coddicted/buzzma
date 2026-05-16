@@ -11,7 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class AssignmentResponseDto {
+public class DealResponseDto {
   UUID id;
   UUID ownerId;
   String productName;
@@ -21,7 +21,6 @@ public class AssignmentResponseDto {
   CampaignType dealType;
   BigInteger originalPricePaise;
   BigInteger offeredPricePaise;
-  // Todo: commission offered
   Integer returnWindowDays;
   String termsAndConditions;
   String sellerName;
