@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.claim.controller;
 
-import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;

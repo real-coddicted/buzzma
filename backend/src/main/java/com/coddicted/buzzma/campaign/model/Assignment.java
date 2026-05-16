@@ -3,7 +3,11 @@ package com.coddicted.buzzma.campaign.model;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
