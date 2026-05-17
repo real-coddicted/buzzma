@@ -5,52 +5,15 @@ Spring Boot 3.3.4 · Java 21 · PostgreSQL · Gradle
 ## Module structure
 
 Each domain is a self-contained package under `com.coddicted.buzzma.<module>`:
-
-```
-<module>/
-  controller/   REST controllers — mapping only, no business logic
-  dto/          DTOs (request/response) — Jackson, Lombok @Value @Builder @Jacksonized
-  entity/       JPA entities + enums local to the module
-  mapper/       MapStruct interfaces
-  model/        Composite domain objects (non-JPA, aggregates multiple entities)
-  persistence/  Spring Data JPA repositories
-  predicate/    Predicate<T> implementations for business rule checks
-  processor/    @Component orchestrators for multi-step operations (rare; see below)
-  service/      Service interfaces (domain objects only, no DTOs)
-  service/impl/ Service implementations
-  util/         Module-specific utility classes (final, private constructor, static methods)
-```
-
 Not every module has all sub-packages — only create what the module needs.
 
 Cross-cutting code lives in `shared/`:
-```
-shared/common/      BaseCrudService, Auditable, AuditEntityListener
-shared/exception/   Exception classes + GlobalExceptionHandler
-shared/security/    JwtService, SecurityConfig, @CurrentUserId
-shared/enums/       Enums shared across multiple modules
-shared/util/        Utility classes (CodeGenerator, DateTimeUtils, PasswordService)
-```
 
 Top-level modules alongside the domain modules:
 ```
 config/     App-wide Spring configuration (@Configuration classes, filters, dev seeders)
 storage/    File storage abstraction — StorageService interface + S3/local implementations
 ```
-
-## Modules
-
-| Module | Description |
-|---|---|
-| `campaign` | Campaigns, products, deals, assignments, commissions, state machine |
-| `claim` | Buyer claim workflow — purchase proof, review, return, screenshot verification |
-| `config` | OpenAPI, request logging, DevDataSeeder |
-| `feedback` | User feedback submissions |
-| `identity` | Auth (JWT), user CRUD, security questions |
-| `settings` | User/org settings with JSONB storage |
-| `shared` | Cross-cutting: base classes, exceptions, security, global enums, utilities |
-| `storage` | `StorageService` abstraction; Garage (S3-compatible) and local impls |
-| `support` | Support tickets, categories, sub-categories, comments, attachments |
 
 ## Layering rules
 
@@ -107,19 +70,6 @@ public enum CampaignStatus {
   CAMPAIGN_STATUS_CLOSED,
   CAMPAIGN_STATUS_COMPLETED
 }
-
-public enum CampaignAction {
-  CAMPAIGN_ACTION_PUBLISH,
-  CAMPAIGN_ACTION_PAUSE,
-  CAMPAIGN_ACTION_CLOSE
-}
-
-public enum Platform {
-  PLATFORM_AMAZON,
-  PLATFORM_FLIPKART,
-  PLATFORM_NYKAA,
-  PLATFORM_MYNTRA
-}
 ```
 
 Exception: workflow/status enums in `shared/enums/` that describe cross-module states may use un-prefixed values when the type name already provides sufficient context (e.g. `ClaimWorkflowStatus.ORDERED`).
@@ -161,32 +111,6 @@ Never include deleted records by default — always suffix with `AndIsDeletedFal
 
 Never mutate a loaded entity directly. Use `toBuilder()` to produce a modified copy, then save that copy:
 
-```java
-// soft delete
-final Campaign updated = existing.toBuilder()
-    .isDeleted(true)
-    .updatedBy(requesterId)
-    .build();
-return campaignRepository.save(updated);
-
-// field update
-final Invite consumed = existing.toBuilder()
-    .status(INVITE_STATUS_USED)
-    .updatedBy(requesterId)
-    .build();
-return inviteRepository.save(consumed);
-
-// copy to a new record (clear id so JPA inserts)
-final Campaign copy = src.toBuilder()
-    .id(null)
-    .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
-    .createdAt(null)
-    .updatedAt(null)
-    .createdBy(requesterId)
-    .updatedBy(requesterId)
-    .build();
-return campaignRepository.save(copy);
-```
 
 Rules:
 - Always clear `id`, `createdAt`, `updatedAt` when copying to a new record — `AuditEntityListener` will populate the timestamps.
@@ -410,18 +334,6 @@ public final class SettingsUtils {
   }
 }
 ```
-
-## Storage
-
-`StorageService` (in `storage/service/`) abstracts file storage. Inject it wherever screenshot or file upload handling is needed:
-
-```java
-String key = storageService.store("claims", originalFilename, contentType, bytes);
-byte[] data = storageService.retrieve(key);
-storageService.delete(key);
-```
-
-The `store` method returns a storage key that should be persisted. The active implementation (local vs. Garage/S3) is selected via Spring profile configuration.
 
 ## Security
 
