@@ -2,8 +2,8 @@ package com.coddicted.buzzma.campaign.service.impl;
 
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.persistence.CommissionRepository;
@@ -29,21 +29,20 @@ class CommissionServiceImplTest {
 
   @Test
   void testGetCommissionChargedWhenFound() {
-    doReturn(Optional.of(COMMISSION_1))
-        .when(this.mockCommissionRepository)
-        .findByCampaignIdAndChargedByIdAndIsDeletedFalse(CAMPAIGN_ID_1, OWNER_ID);
+    when(this.mockCommissionRepository.findByCampaignIdAndChargedByIdAndIsDeletedFalse(
+            CAMPAIGN_ID_1, OWNER_ID))
+        .thenReturn(Optional.of(COMMISSION_1));
 
-    final Commission result =
-        this.commissionService.getCommissionCharged(CAMPAIGN_ID_1, OWNER_ID);
+    final Commission result = this.commissionService.getCommissionCharged(CAMPAIGN_ID_1, OWNER_ID);
 
     assertEquals(COMMISSION_1, result);
   }
 
   @Test
   void testGetCommissionChargedWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCommissionRepository)
-        .findByCampaignIdAndChargedByIdAndIsDeletedFalse(CAMPAIGN_ID_1, OWNER_ID);
+    when(this.mockCommissionRepository.findByCampaignIdAndChargedByIdAndIsDeletedFalse(
+            CAMPAIGN_ID_1, OWNER_ID))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -67,9 +66,8 @@ class CommissionServiceImplTest {
 
   @Test
   void testUpdate() {
-    doReturn(Optional.of(COMMISSION_1))
-        .when(this.mockCommissionRepository)
-        .findById(COMMISSION_ID);
+    when(this.mockCommissionRepository.findById(COMMISSION_ID))
+        .thenReturn(Optional.of(COMMISSION_1));
 
     this.commissionService.update(COMMISSION_2, REQUESTER_ID);
 
@@ -83,20 +81,16 @@ class CommissionServiceImplTest {
 
   @Test
   void testUpdateWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCommissionRepository)
-        .findById(COMMISSION_ID);
+    when(this.mockCommissionRepository.findById(COMMISSION_ID)).thenReturn(Optional.empty());
 
     assertThrows(
-        NotFoundException.class,
-        () -> this.commissionService.update(COMMISSION_2, REQUESTER_ID));
+        NotFoundException.class, () -> this.commissionService.update(COMMISSION_2, REQUESTER_ID));
   }
 
   @Test
   void testDelete() {
-    doReturn(Optional.of(COMMISSION_1))
-        .when(this.mockCommissionRepository)
-        .findById(COMMISSION_ID);
+    when(this.mockCommissionRepository.findById(COMMISSION_ID))
+        .thenReturn(Optional.of(COMMISSION_1));
 
     this.commissionService.delete(COMMISSION_ID, REQUESTER_ID);
 
@@ -110,12 +104,9 @@ class CommissionServiceImplTest {
 
   @Test
   void testDeleteWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCommissionRepository)
-        .findById(COMMISSION_ID);
+    when(this.mockCommissionRepository.findById(COMMISSION_ID)).thenReturn(Optional.empty());
 
     assertThrows(
-        NotFoundException.class,
-        () -> this.commissionService.delete(COMMISSION_ID, REQUESTER_ID));
+        NotFoundException.class, () -> this.commissionService.delete(COMMISSION_ID, REQUESTER_ID));
   }
 }

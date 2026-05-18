@@ -2,7 +2,7 @@ package com.coddicted.buzzma.campaign.service.impl;
 
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.persistence.ProductRepository;
@@ -27,7 +27,7 @@ class ProductServiceImplTest {
 
   @Test
   void testGetByIdWhenFound() {
-    doReturn(Optional.of(PRODUCT_1)).when(this.mockProductRepository).findById(PRODUCT_ID);
+    when(this.mockProductRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(PRODUCT_1));
 
     final Product result = this.productService.getById(PRODUCT_ID);
 
@@ -36,7 +36,7 @@ class ProductServiceImplTest {
 
   @Test
   void testGetByIdWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockProductRepository).findById(PRODUCT_ID);
+    when(this.mockProductRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.productService.getById(PRODUCT_ID));
@@ -45,7 +45,7 @@ class ProductServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(PRODUCT_1).when(this.mockProductRepository).save(PRODUCT_1);
+    when(this.mockProductRepository.save(PRODUCT_1)).thenReturn(PRODUCT_1);
 
     final Product result = this.productService.create(PRODUCT_1);
 

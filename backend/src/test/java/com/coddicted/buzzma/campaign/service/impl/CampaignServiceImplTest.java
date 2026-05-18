@@ -13,9 +13,9 @@ import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATU
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_PAUSED;
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
@@ -57,7 +57,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testGetByIdWhenFound() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
 
     final Campaign result = this.campaignService.getById(CAMPAIGN_ID_1);
 
@@ -66,7 +66,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testGetByIdWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.campaignService.getById(CAMPAIGN_ID_1));
@@ -75,7 +75,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(CAMPAIGN_1).when(this.mockCampaignRepository).save(CAMPAIGN_1);
+    when(this.mockCampaignRepository.save(CAMPAIGN_1)).thenReturn(CAMPAIGN_1);
 
     final Campaign result = this.campaignService.create(CAMPAIGN_1);
 
@@ -84,7 +84,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testUpdate() {
-    doReturn(CAMPAIGN_1).when(this.mockCampaignRepository).save(CAMPAIGN_1);
+    when(this.mockCampaignRepository.save(CAMPAIGN_1)).thenReturn(CAMPAIGN_1);
 
     final Campaign result = this.campaignService.update(CAMPAIGN_1);
 
@@ -93,7 +93,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testDelete() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
 
     this.campaignService.delete(CAMPAIGN_ID_1, REQUESTER_ID);
 
@@ -107,7 +107,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testDeleteWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.empty());
 
     assertThrows(
         NotFoundException.class, () -> this.campaignService.delete(CAMPAIGN_ID_1, REQUESTER_ID));
@@ -115,11 +115,10 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionPublishSuccess() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
-    doReturn(List.of(ASSIGNMENT_1))
-        .when(this.mockCampaignAssignmentRepository)
-        .findByCampaignId(CAMPAIGN_ID_1);
-    doReturn(CAMPAIGN_1).when(this.mockCampaignRepository).save(CAMPAIGN_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of(ASSIGNMENT_1));
+    when(this.mockCampaignRepository.save(CAMPAIGN_1)).thenReturn(CAMPAIGN_1);
 
     this.campaignService.action(CAMPAIGN_ID_1, CAMPAIGN_ACTION_PUBLISH, OWNER_ID);
 
@@ -131,7 +130,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionPublishWhenNotOwner() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
 
     final ForbiddenException ex =
         assertThrows(
@@ -143,8 +142,9 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionPublishWhenNoAssignments() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
-    doReturn(List.of()).when(this.mockCampaignAssignmentRepository).findByCampaignId(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of());
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -155,8 +155,8 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionPause() {
-    doReturn(Optional.of(CAMPAIGN_2)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_2);
-    doReturn(CAMPAIGN_2).when(this.mockCampaignRepository).save(CAMPAIGN_2);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
+    when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
 
     this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_PAUSE, OWNER_ID);
 
@@ -166,8 +166,8 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionResume() {
-    doReturn(Optional.of(CAMPAIGN_3)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_3);
-    doReturn(CAMPAIGN_3).when(this.mockCampaignRepository).save(CAMPAIGN_3);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_3)).thenReturn(Optional.of(CAMPAIGN_3));
+    when(this.mockCampaignRepository.save(CAMPAIGN_3)).thenReturn(CAMPAIGN_3);
 
     this.campaignService.action(CAMPAIGN_ID_3, CAMPAIGN_ACTION_RESUME, OWNER_ID);
 
@@ -177,8 +177,8 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionClose() {
-    doReturn(Optional.of(CAMPAIGN_2)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_2);
-    doReturn(CAMPAIGN_2).when(this.mockCampaignRepository).save(CAMPAIGN_2);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
+    when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
 
     this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_CLOSE, OWNER_ID);
 
@@ -188,8 +188,8 @@ class CampaignServiceImplTest {
 
   @Test
   void testActionComplete() {
-    doReturn(Optional.of(CAMPAIGN_2)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_2);
-    doReturn(CAMPAIGN_2).when(this.mockCampaignRepository).save(CAMPAIGN_2);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
+    when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
 
     this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_COMPLETE, OWNER_ID);
 
@@ -199,9 +199,8 @@ class CampaignServiceImplTest {
 
   @Test
   void testFindCampaignsById() {
-    doReturn(CAMPAIGN_SET)
-        .when(this.mockCampaignRepository)
-        .findByIdInAndIsDeletedFalse(CAMPAIGN_ID_SET);
+    when(this.mockCampaignRepository.findByIdInAndIsDeletedFalse(CAMPAIGN_ID_SET))
+        .thenReturn(CAMPAIGN_SET);
 
     final Set<Campaign> result = this.campaignService.findCampaignsById(CAMPAIGN_ID_SET);
 
@@ -210,12 +209,12 @@ class CampaignServiceImplTest {
 
   @Test
   void testCopySuccess() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of(ASSIGNMENT_1));
     final ArgumentCaptor<Campaign> campaignCaptor = ArgumentCaptor.forClass(Campaign.class);
-    doReturn(EXPECTED_CAMPAIGN_1).when(this.mockCampaignRepository).save(campaignCaptor.capture());
-    doReturn(List.of(ASSIGNMENT_1))
-        .when(this.mockCampaignAssignmentRepository)
-        .findByCampaignId(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.save(campaignCaptor.capture()))
+        .thenReturn(EXPECTED_CAMPAIGN_1);
 
     final Campaign result = this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
 
@@ -233,10 +232,12 @@ class CampaignServiceImplTest {
 
   @Test
   void testCopyWhenNoAssignments() {
-    doReturn(Optional.of(CAMPAIGN_1)).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of());
     final ArgumentCaptor<Campaign> campaignCaptor = ArgumentCaptor.forClass(Campaign.class);
-    doReturn(EXPECTED_CAMPAIGN_1).when(this.mockCampaignRepository).save(campaignCaptor.capture());
-    doReturn(List.of()).when(this.mockCampaignAssignmentRepository).findByCampaignId(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.save(campaignCaptor.capture()))
+        .thenReturn(EXPECTED_CAMPAIGN_1);
 
     this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
 
@@ -245,7 +246,7 @@ class CampaignServiceImplTest {
 
   @Test
   void testCopyWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockCampaignRepository).findById(CAMPAIGN_ID_1);
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.empty());
 
     assertThrows(
         NotFoundException.class, () -> this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID));

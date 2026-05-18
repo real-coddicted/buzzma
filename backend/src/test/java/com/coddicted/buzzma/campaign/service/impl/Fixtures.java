@@ -31,8 +31,7 @@ final class Fixtures {
       FileUtils.loadResourceAsObject("/fixtures/input/campaign/campaign-3.json", Campaign.class);
 
   static final Campaign EXPECTED_CAMPAIGN_1 =
-      FileUtils.loadResourceAsObject(
-          "/fixtures/output/campaign/campaign-1.json", Campaign.class);
+      FileUtils.loadResourceAsObject("/fixtures/output/campaign/campaign-1.json", Campaign.class);
 
   static final CampaignAssignment ASSIGNMENT_1 =
       FileUtils.loadResourceAsObject(

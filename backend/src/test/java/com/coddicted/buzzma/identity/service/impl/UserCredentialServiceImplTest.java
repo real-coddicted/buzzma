@@ -2,8 +2,8 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.persistence.UserCredentialRepository;
@@ -33,18 +33,16 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testGetByUserIdWhenFound() {
-    doReturn(Optional.of(USER_CREDENTIAL_2))
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_CREDENTIAL_2));
 
     assertEquals(USER_CREDENTIAL_2, this.userCredentialService.getByUserId(USER_ID, REQUESTER_ID));
   }
 
   @Test
   void testGetByUserIdWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -55,7 +53,7 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(NEW_HASH).when(this.mockPasswordService).hashPassword(PLAIN_PASSWORD);
+    when(this.mockPasswordService.hashPassword(PLAIN_PASSWORD)).thenReturn(NEW_HASH);
 
     final boolean result = this.userCredentialService.create(USER_CREDENTIAL_1, REQUESTER_ID);
 
@@ -70,11 +68,10 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testUpdateWhenFound() {
-    doReturn(Optional.of(USER_CREDENTIAL_2))
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
-    doReturn(false).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
-    doReturn(NEW_HASH).when(this.mockPasswordService).hashPassword(PLAIN_PASSWORD);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_CREDENTIAL_2));
+    when(this.mockPasswordService.verifyPassword(PLAIN_PASSWORD, STORED_HASH)).thenReturn(false);
+    when(this.mockPasswordService.hashPassword(PLAIN_PASSWORD)).thenReturn(NEW_HASH);
 
     final boolean result = this.userCredentialService.update(USER_CREDENTIAL_1, REQUESTER_ID);
 
@@ -88,9 +85,8 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testUpdateWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -101,12 +97,9 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testUpdateWhenSamePassword() {
-
-    doReturn(Optional.of(USER_CREDENTIAL_2))
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
-
-    doReturn(true).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_CREDENTIAL_2));
+    when(this.mockPasswordService.verifyPassword(PLAIN_PASSWORD, STORED_HASH)).thenReturn(true);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -117,29 +110,26 @@ class UserCredentialServiceImplTest {
 
   @Test
   void testVerifyWhenPasswordMatches() {
-    doReturn(Optional.of(USER_CREDENTIAL_2))
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
-    doReturn(true).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_CREDENTIAL_2));
+    when(this.mockPasswordService.verifyPassword(PLAIN_PASSWORD, STORED_HASH)).thenReturn(true);
 
     assertTrue(this.userCredentialService.verify(USER_ID, PLAIN_PASSWORD));
   }
 
   @Test
   void testVerifyWhenPasswordDoesNotMatch() {
-    doReturn(Optional.of(USER_CREDENTIAL_2))
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
-    doReturn(false).when(this.mockPasswordService).verifyPassword(PLAIN_PASSWORD, STORED_HASH);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_CREDENTIAL_2));
+    when(this.mockPasswordService.verifyPassword(PLAIN_PASSWORD, STORED_HASH)).thenReturn(false);
 
     assertFalse(this.userCredentialService.verify(USER_ID, PLAIN_PASSWORD));
   }
 
   @Test
   void testVerifyWhenCredentialNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockCredentialRepository)
-        .findByUserIdAndIsDeletedFalse(USER_ID);
+    when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.empty());
 
     assertFalse(this.userCredentialService.verify(USER_ID, PLAIN_PASSWORD));
   }

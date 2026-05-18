@@ -3,9 +3,9 @@ package com.coddicted.buzzma.campaign.service.impl;
 import static com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_DRAFT;
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
@@ -47,12 +47,11 @@ class AssignmentServiceImplTest {
 
   @Test
   void testGetAssignmentsSet() {
-    doReturn(List.of(ASSIGNMENT_1))
-        .when(this.mockCampaignAssignmentService)
-        .listAssignmentsByAssignee(ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT);
-    doReturn(Set.of(CAMPAIGN_1))
-        .when(this.mockCampaignService)
-        .findCampaignsById(Set.of(CAMPAIGN_ID_1));
+    when(this.mockCampaignAssignmentService.listAssignmentsByAssignee(
+            ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT))
+        .thenReturn(List.of(ASSIGNMENT_1));
+    when(this.mockCampaignService.findCampaignsById(Set.of(CAMPAIGN_ID_1)))
+        .thenReturn(Set.of(CAMPAIGN_1));
 
     final Set<Assignment> result =
         this.assignmentService.getAssignments(ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT);
@@ -66,12 +65,11 @@ class AssignmentServiceImplTest {
   @Test
   void testGetAssignmentsPage() {
     final PageRequest pageable = PageRequest.of(0, 10);
-    doReturn(new PageImpl<>(List.of(ASSIGNMENT_1)))
-        .when(this.mockCampaignAssignmentService)
-        .listAssignmentsByAssignee(ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT, pageable);
-    doReturn(Set.of(CAMPAIGN_1))
-        .when(this.mockCampaignService)
-        .findCampaignsById(Set.of(CAMPAIGN_ID_1));
+    when(this.mockCampaignAssignmentService.listAssignmentsByAssignee(
+            ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT, pageable))
+        .thenReturn(new PageImpl<>(List.of(ASSIGNMENT_1)));
+    when(this.mockCampaignService.findCampaignsById(Set.of(CAMPAIGN_ID_1)))
+        .thenReturn(Set.of(CAMPAIGN_1));
 
     final Page<Assignment> result =
         this.assignmentService.getAssignments(
@@ -85,8 +83,8 @@ class AssignmentServiceImplTest {
 
   @Test
   void testPublishAssignment() {
-    doReturn(CAMPAIGN_1).when(this.mockCampaignService).getById(CAMPAIGN_ID_1);
-    doReturn(ASSIGNMENT_1).when(this.mockCampaignAssignmentService).getById(ASSIGNMENT_ID_1);
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
 
     final boolean result =
         this.assignmentService.publishAssignment(

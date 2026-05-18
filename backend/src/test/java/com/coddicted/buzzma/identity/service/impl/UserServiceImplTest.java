@@ -2,8 +2,8 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -29,7 +29,7 @@ class UserServiceImplTest {
 
   @Test
   void testGetByIdWhenFound() {
-    doReturn(Optional.of(USER_2)).when(this.mockUsersRepository).findById(USER_ID);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.of(USER_2));
 
     final BuzzmaUser result = this.userService.getById(USER_ID);
 
@@ -38,7 +38,7 @@ class UserServiceImplTest {
 
   @Test
   void testGetByIdWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockUsersRepository).findById(USER_ID);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.getById(USER_ID));
@@ -47,7 +47,7 @@ class UserServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(EXPECTED_USER_1).when(this.mockUsersRepository).save(USER_1);
+    when(this.mockUsersRepository.save(USER_1)).thenReturn(EXPECTED_USER_1);
 
     final BuzzmaUser result = this.userService.create(USER_1);
 
@@ -57,8 +57,8 @@ class UserServiceImplTest {
 
   @Test
   void testUpdateWhenFound() {
-    doReturn(Optional.of(USER_2)).when(this.mockUsersRepository).findById(USER_ID);
-    doReturn(EXPECTED_USER_2).when(this.mockUsersRepository).save(EXPECTED_USER_2);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.of(USER_2));
+    when(this.mockUsersRepository.save(EXPECTED_USER_2)).thenReturn(EXPECTED_USER_2);
 
     final BuzzmaUser result = this.userService.update(EXPECTED_USER_2);
 
@@ -68,7 +68,7 @@ class UserServiceImplTest {
 
   @Test
   void testUpdateWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockUsersRepository).findById(USER_ID);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.update(EXPECTED_USER_2));
@@ -77,9 +77,8 @@ class UserServiceImplTest {
 
   @Test
   void testGetByMobileWhenFound() {
-    doReturn(Optional.of(USER_2))
-        .when(this.mockUsersRepository)
-        .findByMobileAndIsDeletedFalse(MOBILE);
+    when(this.mockUsersRepository.findByMobileAndIsDeletedFalse(MOBILE))
+        .thenReturn(Optional.of(USER_2));
 
     final BuzzmaUser result = this.userService.getByMobile(MOBILE);
 
@@ -88,7 +87,8 @@ class UserServiceImplTest {
 
   @Test
   void testGetByMobileWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockUsersRepository).findByMobileAndIsDeletedFalse(MOBILE);
+    when(this.mockUsersRepository.findByMobileAndIsDeletedFalse(MOBILE))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.getByMobile(MOBILE));
@@ -97,7 +97,7 @@ class UserServiceImplTest {
 
   @Test
   void testDeleteWhenFound() {
-    doReturn(Optional.of(USER_2)).when(this.mockUsersRepository).findById(USER_ID);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.of(USER_2));
 
     this.userService.delete(USER_ID, REQUESTER_ID);
 
@@ -111,7 +111,7 @@ class UserServiceImplTest {
 
   @Test
   void testDeleteWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockUsersRepository).findById(USER_ID);
+    when(this.mockUsersRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.delete(USER_ID, REQUESTER_ID));
@@ -120,14 +120,14 @@ class UserServiceImplTest {
 
   @Test
   void testExistsByMobileWhenUserExists() {
-    doReturn(true).when(this.mockUsersRepository).existsUserByMobileAndIsDeletedFalse(MOBILE);
+    when(this.mockUsersRepository.existsUserByMobileAndIsDeletedFalse(MOBILE)).thenReturn(true);
 
     assertTrue(this.userService.existsByMobile(MOBILE));
   }
 
   @Test
   void testExistsByMobileWhenUserDoesNotExist() {
-    doReturn(false).when(this.mockUsersRepository).existsUserByMobileAndIsDeletedFalse(MOBILE);
+    when(this.mockUsersRepository.existsUserByMobileAndIsDeletedFalse(MOBILE)).thenReturn(false);
 
     assertFalse(this.userService.existsByMobile(MOBILE));
   }

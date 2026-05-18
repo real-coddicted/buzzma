@@ -2,7 +2,7 @@ package com.coddicted.buzzma.campaign.service.impl;
 
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.DealRepository;
@@ -31,7 +31,7 @@ class DealServiceImplTest {
 
   @Test
   void testGetByIdWhenFound() {
-    doReturn(Optional.of(DEAL_1)).when(this.mockDealRepository).findById(DEAL_ID);
+    when(this.mockDealRepository.findById(DEAL_ID)).thenReturn(Optional.of(DEAL_1));
 
     final Deal result = this.dealService.getById(DEAL_ID);
 
@@ -40,7 +40,7 @@ class DealServiceImplTest {
 
   @Test
   void testGetByIdWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockDealRepository).findById(DEAL_ID);
+    when(this.mockDealRepository.findById(DEAL_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.dealService.getById(DEAL_ID));
@@ -49,7 +49,7 @@ class DealServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(DEAL_1).when(this.mockDealRepository).save(DEAL_1);
+    when(this.mockDealRepository.save(DEAL_1)).thenReturn(DEAL_1);
 
     final Deal result = this.dealService.create(DEAL_1);
 
@@ -59,12 +59,10 @@ class DealServiceImplTest {
   @Test
   void testGetUnclaimedDeals() {
     final Page<Deal> dealPage = new PageImpl<>(List.of(DEAL_1));
-    doReturn(dealPage)
-        .when(this.mockDealRepository)
-        .findUnclaimedDeals(OWNER_ID, REQUESTER_ID, PageRequest.of(0, 10));
+    when(this.mockDealRepository.findUnclaimedDeals(OWNER_ID, REQUESTER_ID, PageRequest.of(0, 10)))
+        .thenReturn(dealPage);
 
-    final Page<Deal> result =
-        this.dealService.getUnclaimedDeals(OWNER_ID, REQUESTER_ID, 0, 10);
+    final Page<Deal> result = this.dealService.getUnclaimedDeals(OWNER_ID, REQUESTER_ID, 0, 10);
 
     assertEquals(dealPage, result);
   }
