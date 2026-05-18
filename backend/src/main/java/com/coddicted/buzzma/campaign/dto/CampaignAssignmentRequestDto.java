@@ -12,6 +12,8 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class CampaignAssignmentRequestDto {
 
+  @NotBlank UUID campaignId;
+
   @NotBlank UUID assignorId;
 
   @NotBlank UUID assigneeId;

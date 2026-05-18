@@ -8,7 +8,10 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CampaignAssignmentServiceImpl extends BaseCrudService
@@ -27,8 +30,18 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   }
 
   @Override
-  public List<CampaignAssignment> listAssignmentsByAssignee(final UUID assigneeId) {
-    return this.campaignAssignmentRepository.findByAssigneeId(assigneeId);
+  public List<CampaignAssignment> listAssignmentsByAssignee(
+      final UUID assigneeId, final CampaignAssignmentStatus campaignAssignmentStatus) {
+    return this.campaignAssignmentRepository.findByAssigneeIdAndStatus(
+        assigneeId, campaignAssignmentStatus);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<CampaignAssignment> listAssignmentsByAssignee(
+      final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
+    return this.campaignAssignmentRepository.findByAssigneeIdAndStatusAndIsDeletedFalse(
+        assigneeId, status, pageable);
   }
 
   @Override
@@ -44,7 +57,7 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   @Override
   public CampaignAssignment delete(final UUID campaignAssignmentId, final UUID requesterId) {
     final CampaignAssignment existingCampaignAssignment =
-        mustFind(campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");
+        mustFind(this.campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");
     final CampaignAssignment updatedCampaignAssignment =
         existingCampaignAssignment.toBuilder()
             .isDeleted(true)
@@ -58,7 +71,7 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   public List<CampaignAssignment> copy(
       final List<UUID> srcCampaignAssignments, final UUID destCampaignId, final UUID requesterId) {
     final List<CampaignAssignment> copies =
-        campaignAssignmentRepository.findAllById(srcCampaignAssignments).stream()
+        this.campaignAssignmentRepository.findAllById(srcCampaignAssignments).stream()
             .map(
                 src ->
                     src.toBuilder()
@@ -71,11 +84,16 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
                         .updatedBy(requesterId)
                         .build())
             .toList();
-    return campaignAssignmentRepository.saveAll(copies);
+    return this.campaignAssignmentRepository.saveAll(copies);
   }
 
   @Override
   public List<CampaignAssignment> lockAssignments(final List<UUID> campaignAssignments) {
     return List.of();
+  }
+
+  @Override
+  public CampaignAssignment getById(final UUID campaignAssignmentId) {
+    return mustFind(this.campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");
   }
 }

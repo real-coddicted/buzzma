@@ -1,0 +1,7 @@
+package com.coddicted.buzzma.claim.entity;
+
+public enum ScreenshotVerificationStatus {
+  SCREENSHOT_VERIFICATION_STATUS_PENDING,
+  SCREENSHOT_VERIFICATION_STATUS_VERIFIED,
+  SCREENSHOT_VERIFICATION_STATUS_FAILED
+}

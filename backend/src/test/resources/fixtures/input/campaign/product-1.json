@@ -1,0 +1,7 @@
+{
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "name": "Test Product",
+  "imageUrl": "https://example.com/image.jpg",
+  "productLink": "https://example.com/product",
+  "pricePaise": 99900
+}

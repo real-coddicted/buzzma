@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import java.util.Set;
 import java.util.UUID;
 
 public interface CampaignService {
@@ -15,6 +16,8 @@ public interface CampaignService {
   Campaign delete(UUID campaignId, UUID requesterId);
 
   Campaign action(UUID campaignId, CampaignAction action, UUID requesterId);
+
+  Set<Campaign> findCampaignsById(Set<UUID> campaignIdSet);
 
   Campaign copy(UUID campaignId, UUID requesterId);
 }

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -70,6 +72,18 @@ public class Campaign implements Auditable {
 
   @Column(name = "open_to_all", nullable = false)
   private boolean openToAll;
+
+  @Column(name = "campaign_price_paise")
+  private BigInteger campaignPricePaise;
+
+  @Column(name = "return_window_days")
+  private Integer returnWindowDays;
+
+  @Column(name = "terms_and_conditions", columnDefinition = "TEXT")
+  private String termsAndConditions;
+
+  @Column(name = "seller_name", length = 255)
+  private String sellerName;
 
   // Audit fields
   @Column(name = "created_by")

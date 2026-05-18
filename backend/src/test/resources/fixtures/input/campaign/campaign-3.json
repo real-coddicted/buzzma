@@ -1,0 +1,15 @@
+{
+  "id": "33333333-3333-3333-3333-333333333333",
+  "title": "Test Campaign 3",
+  "ownerId": "44444444-4444-4444-4444-444444444444",
+  "totalSlots": 3,
+  "platform": "PLATFORM_NYKAA",
+  "type": "CAMPAIGN_TYPE_ORDER",
+  "status": "CAMPAIGN_STATUS_PAUSED",
+  "openToAll": false,
+  "deleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "44444444-4444-4444-4444-444444444444",
+  "updatedBy": "44444444-4444-4444-4444-444444444444"
+}

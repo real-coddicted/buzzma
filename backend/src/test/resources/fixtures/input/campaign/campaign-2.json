@@ -1,0 +1,15 @@
+{
+  "id": "22222222-2222-2222-2222-222222222222",
+  "title": "Test Campaign 2",
+  "ownerId": "44444444-4444-4444-4444-444444444444",
+  "totalSlots": 5,
+  "platform": "PLATFORM_FLIPKART",
+  "type": "CAMPAIGN_TYPE_RATING",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "openToAll": true,
+  "deleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "44444444-4444-4444-4444-444444444444",
+  "updatedBy": "44444444-4444-4444-4444-444444444444"
+}

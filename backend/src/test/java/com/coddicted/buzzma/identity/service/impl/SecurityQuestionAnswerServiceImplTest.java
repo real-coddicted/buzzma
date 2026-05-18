@@ -2,9 +2,9 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
@@ -40,16 +40,15 @@ class SecurityQuestionAnswerServiceImplTest {
   @Test
   void testListSecurityQuestions() {
     final List<SecurityQuestion> questions = List.of(SECURITY_QUESTION_2);
-    doReturn(questions).when(this.mockQuestionRepository).findAllByIsDeletedFalse();
+    when(this.mockQuestionRepository.findAllByIsDeletedFalse()).thenReturn(questions);
 
     assertEquals(questions, this.service.listSecurityQuestions());
   }
 
   @Test
   void testCreateSecurityQuestion() {
-    doReturn(EXPECTED_SECURITY_QUESTION_1)
-        .when(this.mockQuestionRepository)
-        .save(SECURITY_QUESTION_1);
+    when(this.mockQuestionRepository.save(SECURITY_QUESTION_1))
+        .thenReturn(EXPECTED_SECURITY_QUESTION_1);
 
     assertEquals(
         EXPECTED_SECURITY_QUESTION_1, this.service.createSecurityQuestion(SECURITY_QUESTION_1));
@@ -58,9 +57,8 @@ class SecurityQuestionAnswerServiceImplTest {
 
   @Test
   void testUpdateSecurityQuestion() {
-    doReturn(EXPECTED_SECURITY_QUESTION_2)
-        .when(this.mockQuestionRepository)
-        .save(SECURITY_QUESTION_2);
+    when(this.mockQuestionRepository.save(SECURITY_QUESTION_2))
+        .thenReturn(EXPECTED_SECURITY_QUESTION_2);
 
     assertEquals(
         EXPECTED_SECURITY_QUESTION_2, this.service.updateSecurityQuestion(SECURITY_QUESTION_2));
@@ -69,9 +67,8 @@ class SecurityQuestionAnswerServiceImplTest {
 
   @Test
   void testDeleteSecurityQuestionWhenFound() {
-    doReturn(Optional.of(SECURITY_QUESTION_2))
-        .when(this.mockQuestionRepository)
-        .findById(QUESTION_ID);
+    when(this.mockQuestionRepository.findById(QUESTION_ID))
+        .thenReturn(Optional.of(SECURITY_QUESTION_2));
 
     this.service.deleteSecurityQuestion(QUESTION_ID, REQUESTER_ID);
 
@@ -85,7 +82,7 @@ class SecurityQuestionAnswerServiceImplTest {
 
   @Test
   void testDeleteSecurityQuestionWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockQuestionRepository).findById(QUESTION_ID);
+    when(this.mockQuestionRepository.findById(QUESTION_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -96,7 +93,7 @@ class SecurityQuestionAnswerServiceImplTest {
 
   @Test
   void testCreateSecurityAnswer() {
-    doReturn(HASHED_ANSWER).when(this.mockPasswordService).hashPassword(PLAIN_ANSWER);
+    when(this.mockPasswordService.hashPassword(PLAIN_ANSWER)).thenReturn(HASHED_ANSWER);
 
     this.service.createSecurityAnswer(SECURITY_ANSWER_1);
 
@@ -111,7 +108,7 @@ class SecurityQuestionAnswerServiceImplTest {
   @Test
   @SuppressWarnings("unchecked")
   void testUpdateSecurityAnswers() {
-    doReturn(HASHED_ANSWER).when(this.mockPasswordService).hashPassword(PLAIN_ANSWER);
+    when(this.mockPasswordService.hashPassword(PLAIN_ANSWER)).thenReturn(HASHED_ANSWER);
 
     this.service.updateSecurityAnswers(List.of(SECURITY_ANSWER_1));
 
@@ -129,36 +126,35 @@ class SecurityQuestionAnswerServiceImplTest {
   void testGetSecurityQuestionsByUserId() {
     final SecurityQuestionWrapper wrapper = mock(SecurityQuestionWrapper.class);
     final List<SecurityQuestionWrapper> questions = List.of(wrapper);
-    doReturn(questions).when(this.mockAnswerRepository).findSecurityQuestionByUserId(USER_ID);
+    when(this.mockAnswerRepository.findSecurityQuestionByUserId(USER_ID)).thenReturn(questions);
 
     assertEquals(questions, this.service.getSecurityQuestionsByUserId(USER_ID));
   }
 
   @Test
   void testVerifySecurityAnswerWhenCorrect() {
-    doReturn(Optional.of(EXPECTED_SECURITY_ANSWER_1))
-        .when(this.mockAnswerRepository)
-        .findByUserIdAndQuestionId(USER_ID, QUESTION_ID);
-    doReturn(true).when(this.mockPasswordService).verifyPassword(PLAIN_ANSWER, STORED_ANSWER_HASH);
+    when(this.mockAnswerRepository.findByUserIdAndQuestionId(USER_ID, QUESTION_ID))
+        .thenReturn(Optional.of(EXPECTED_SECURITY_ANSWER_1));
+    when(this.mockPasswordService.verifyPassword(PLAIN_ANSWER, STORED_ANSWER_HASH))
+        .thenReturn(true);
 
     assertTrue(this.service.verifySecurityAnswer(SECURITY_ANSWER_1));
   }
 
   @Test
   void testVerifySecurityAnswerWhenIncorrect() {
-    doReturn(Optional.of(EXPECTED_SECURITY_ANSWER_1))
-        .when(this.mockAnswerRepository)
-        .findByUserIdAndQuestionId(USER_ID, QUESTION_ID);
-    doReturn(false).when(this.mockPasswordService).verifyPassword(PLAIN_ANSWER, STORED_ANSWER_HASH);
+    when(this.mockAnswerRepository.findByUserIdAndQuestionId(USER_ID, QUESTION_ID))
+        .thenReturn(Optional.of(EXPECTED_SECURITY_ANSWER_1));
+    when(this.mockPasswordService.verifyPassword(PLAIN_ANSWER, STORED_ANSWER_HASH))
+        .thenReturn(false);
 
     assertFalse(this.service.verifySecurityAnswer(SECURITY_ANSWER_1));
   }
 
   @Test
   void testVerifySecurityAnswerWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockAnswerRepository)
-        .findByUserIdAndQuestionId(USER_ID, QUESTION_ID);
+    when(this.mockAnswerRepository.findByUserIdAndQuestionId(USER_ID, QUESTION_ID))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(

@@ -2,8 +2,8 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.InviteStatus;
@@ -34,18 +34,18 @@ class InviteServiceImplTest {
 
   @Test
   void testGetByRoleAndCodeWhenFound() {
-    doReturn(Optional.of(INVITE_2))
-        .when(this.mockInviteRepository)
-        .findByRoleAndCodeAndIsDeletedFalse(UserRole.ROLE_BUYER, INVITE_CODE);
+    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
+            UserRole.ROLE_BUYER, INVITE_CODE))
+        .thenReturn(Optional.of(INVITE_2));
 
     assertEquals(INVITE_2, this.inviteService.getByRoleAndCode(UserRole.ROLE_BUYER, INVITE_CODE));
   }
 
   @Test
   void testGetByRoleAndCodeWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockInviteRepository)
-        .findByRoleAndCodeAndIsDeletedFalse(UserRole.ROLE_BUYER, INVITE_CODE);
+    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
+            UserRole.ROLE_BUYER, INVITE_CODE))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -56,8 +56,8 @@ class InviteServiceImplTest {
 
   @Test
   void testCreate() {
-    doReturn(GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
-    doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
+    when(this.mockCodeGenerator.generateHumanCode("INV")).thenReturn(GENERATED_CODE);
+    when(this.mockInviteRepository.existsByCode(GENERATED_CODE)).thenReturn(false);
 
     this.inviteService.create(INVITE_1, REQUESTER_ID);
 
@@ -74,12 +74,9 @@ class InviteServiceImplTest {
   @Test
   void testCreateWithCodeCollision() {
     final String collidingCode = "INV-COLLISION";
-    doReturn(collidingCode)
-        .doReturn(GENERATED_CODE)
-        .when(this.mockCodeGenerator)
-        .generateHumanCode("INV");
-    doReturn(true).when(this.mockInviteRepository).existsByCode(collidingCode);
-    doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
+    when(this.mockCodeGenerator.generateHumanCode("INV")).thenReturn(collidingCode, GENERATED_CODE);
+    when(this.mockInviteRepository.existsByCode(collidingCode)).thenReturn(true);
+    when(this.mockInviteRepository.existsByCode(GENERATED_CODE)).thenReturn(false);
 
     this.inviteService.create(INVITE_1, REQUESTER_ID);
 
@@ -128,7 +125,7 @@ class InviteServiceImplTest {
 
   @Test
   void testDeleteWhenFound() {
-    doReturn(Optional.of(INVITE_2)).when(this.mockInviteRepository).findById(INVITE_ID);
+    when(this.mockInviteRepository.findById(INVITE_ID)).thenReturn(Optional.of(INVITE_2));
 
     this.inviteService.delete(INVITE_ID, REQUESTER_ID);
 
@@ -142,7 +139,7 @@ class InviteServiceImplTest {
 
   @Test
   void testDeleteWhenNotFound() {
-    doReturn(Optional.empty()).when(this.mockInviteRepository).findById(INVITE_ID);
+    when(this.mockInviteRepository.findById(INVITE_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -152,27 +149,27 @@ class InviteServiceImplTest {
 
   @Test
   void testVerifyWhenActive() {
-    doReturn(Optional.of(INVITE_2))
-        .when(this.mockInviteRepository)
-        .findByRoleAndCodeAndIsDeletedFalse(UserRole.ROLE_BUYER, INVITE_CODE);
+    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
+            UserRole.ROLE_BUYER, INVITE_CODE))
+        .thenReturn(Optional.of(INVITE_2));
 
     assertTrue(this.inviteService.verify(UserRole.ROLE_BUYER, INVITE_CODE));
   }
 
   @Test
   void testVerifyWhenNotActive() {
-    doReturn(Optional.of(INVITE_4))
-        .when(this.mockInviteRepository)
-        .findByRoleAndCodeAndIsDeletedFalse(UserRole.ROLE_BUYER, "INV-USED");
+    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
+            UserRole.ROLE_BUYER, "INV-USED"))
+        .thenReturn(Optional.of(INVITE_4));
 
     assertFalse(this.inviteService.verify(UserRole.ROLE_BUYER, "INV-USED"));
   }
 
   @Test
   void testVerifyWhenNotFound() {
-    doReturn(Optional.empty())
-        .when(this.mockInviteRepository)
-        .findByRoleAndCodeAndIsDeletedFalse(UserRole.ROLE_BUYER, INVITE_CODE);
+    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
+            UserRole.ROLE_BUYER, INVITE_CODE))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(

@@ -2,7 +2,7 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
-import com.coddicted.buzzma.campaign.entity.Platform;
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -43,4 +43,8 @@ public class CampaignRequestDto {
   List<CampaignAssignmentRequestDto> assignees;
 
   boolean openToAll;
+
+  @Nullable String termsAndConditions;
+
+  @Nullable String sellerName;
 }
