@@ -2,7 +2,11 @@ package com.coddicted.buzzma.campaign.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.Commission;
+import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.util.FileUtils;
+import java.math.BigInteger;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,6 +40,31 @@ final class Fixtures {
 
   static final Set<UUID> CAMPAIGN_ID_SET = Set.of(CAMPAIGN_ID_1, CAMPAIGN_ID_2);
   static final Set<Campaign> CAMPAIGN_SET = Set.of(CAMPAIGN_1, CAMPAIGN_2);
+
+  static final UUID COMMISSION_ID = UUID.fromString("88888888-8888-8888-8888-888888888888");
+  static final BigInteger COMMISSION_UPDATED_PAISE = BigInteger.valueOf(100000);
+
+  static final Commission COMMISSION_1 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/campaign/commission-1.json", Commission.class);
+
+  static final Commission COMMISSION_2 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/campaign/commission-2.json", Commission.class);
+
+  static final UUID ASSIGNEE_ID = UUID.fromString("88888888-8888-8888-8888-888888888888");
+  static final BigInteger COMMISSION_PAISE = BigInteger.valueOf(5000);
+  static final BigInteger DEAL_PRICE_PAISE = BigInteger.valueOf(49900);
+
+  static final UUID DEAL_ID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+
+  static final Deal DEAL_1 =
+      FileUtils.loadResourceAsObject("/fixtures/input/campaign/deal-1.json", Deal.class);
+
+  static final UUID PRODUCT_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
+  static final Product PRODUCT_1 =
+      FileUtils.loadResourceAsObject("/fixtures/input/campaign/product-1.json", Product.class);
 
   private Fixtures() {}
 }
