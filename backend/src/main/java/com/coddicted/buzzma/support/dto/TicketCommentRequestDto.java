@@ -11,7 +11,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class TicketCommentRequestDto {
 
-
   @NotBlank
   @Size(max = 2000)
   String content;
