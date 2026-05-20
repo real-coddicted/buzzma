@@ -1,0 +1,15 @@
+{
+  "id": "5eed0007-0003-0000-0000-000000000001",
+  "campaignId": "5eed0003-0003-0000-0000-000000000001",
+  "dealId": "5eed0006-0003-0000-0000-000000000001",
+  "ownerId": "5eed0001-0000-0000-0000-000000000002",
+  "status": "ORDERED",
+  "ecommerceOrderId": "OD12345678901234",
+  "productName": "Adidas Ultraboost 22 Running Shoes",
+  "sellerName": "Adidas India",
+  "orderDate": "2025-05-10",
+  "accountName": "Test Buyer",
+  "isDeleted": false,
+  "createdBy": "5eed0001-0000-0000-0000-000000000002",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000002"
+}

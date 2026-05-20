@@ -13,7 +13,7 @@ import { Notifications } from './pages/Notifications'
 import { OrderReview } from './pages/OrderReview'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
-import { getAccessToken } from './api/client'
+import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage, Notification } from './types'
 
@@ -24,6 +24,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   const handleLogout = useCallback(() => {
+    clearSession()
     setIsAuthenticated(false)
     setActivePage('dashboard')
   }, [])

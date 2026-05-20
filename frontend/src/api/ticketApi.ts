@@ -1,197 +1,168 @@
-import type { Ticket, TicketActivityEvent, TicketCategory, TicketComment } from '../types/TicketTypes'
+import type { components } from '../types/api'
+import type { CreateTicketInput, Ticket, TicketActivityEvent, TicketCategory, TicketComment, TicketStatus } from '../types/TicketTypes'
+import { fetchWithAuth } from './client'
 
-const MOCK_CATEGORIES: TicketCategory[] = [
-  {
-    id: 'cat-1',
-    name: 'order_issue',
-    displayName: 'Order Issue',
-    subCategories: [
-      { id: 'sub-1-1', name: 'missing_item',     displayName: 'Missing Item',          requiresOrderId: true },
-      { id: 'sub-1-2', name: 'wrong_item',        displayName: 'Wrong Item Received',   requiresOrderId: true },
-      { id: 'sub-1-3', name: 'damaged_item',      displayName: 'Damaged Item',          requiresOrderId: true },
-      { id: 'sub-1-4', name: 'order_not_arrived', displayName: 'Order Not Arrived',     requiresOrderId: true },
-    ],
-  },
-  {
-    id: 'cat-2',
-    name: 'payment',
-    displayName: 'Payment & Billing',
-    subCategories: [
-      { id: 'sub-2-1', name: 'refund_request',  displayName: 'Refund Request',   requiresOrderId: true },
-      { id: 'sub-2-2', name: 'double_charged',  displayName: 'Double Charged',   requiresOrderId: true },
-      { id: 'sub-2-3', name: 'payment_failed',  displayName: 'Payment Failed',   requiresOrderId: false },
-      { id: 'sub-2-4', name: 'invoice_request', displayName: 'Invoice Request',  requiresOrderId: false },
-    ],
-  },
-  {
-    id: 'cat-3',
-    name: 'account',
-    displayName: 'Account & Access',
-    subCategories: [
-      { id: 'sub-3-1', name: 'login_issue',       displayName: 'Login Issue',         requiresOrderId: false },
-      { id: 'sub-3-2', name: 'account_suspended', displayName: 'Account Suspended',   requiresOrderId: false },
-      { id: 'sub-3-3', name: 'update_details',    displayName: 'Update My Details',   requiresOrderId: false },
-    ],
-  },
-  {
-    id: 'cat-4',
-    name: 'campaign',
-    displayName: 'Campaign',
-    subCategories: [
-      { id: 'sub-4-1', name: 'campaign_not_visible', displayName: 'Campaign Not Visible', requiresOrderId: false },
-      { id: 'sub-4-2', name: 'commission_dispute',   displayName: 'Commission Dispute',   requiresOrderId: true },
-      { id: 'sub-4-3', name: 'slot_issue',           displayName: 'Slot Issue',           requiresOrderId: false },
-    ],
-  },
-  {
-    id: 'cat-5',
-    name: 'other',
-    displayName: 'Other',
-    subCategories: [
-      { id: 'sub-5-1', name: 'general_inquiry', displayName: 'General Inquiry', requiresOrderId: false },
-      { id: 'sub-5-2', name: 'feedback',        displayName: 'Feedback',        requiresOrderId: false },
-    ],
-  },
-]
+type TicketCategoryResponseDto = components['schemas']['TicketCategoryResponseDto']
+type TicketResponseDto = components['schemas']['TicketResponseDto']
+type TicketCommentResponseDto = components['schemas']['TicketCommentResponseDto']
+type TicketCommentRequestDto = components['schemas']['TicketCommentRequestDto']
+type TicketRequestDto = components['schemas']['TicketRequestDto']
+
+const API_BASE = '/api/v1'
+
+function toDisplayName(value?: string): string {
+  if (!value) return 'Unknown'
+  const normalized = value.replace(/_/g, ' ').toLowerCase()
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
+function mapStatus(status?: TicketResponseDto['status']): TicketStatus {
+  switch (status) {
+    case 'TICKET_STATUS_ASSIGNED':
+    case 'TICKET_STATUS_WAITING_FOR_USER_ACTION':
+      return 'InProgress'
+    case 'TICKET_STATUS_CLOSED':
+      return 'Resolved'
+    case 'TICKET_STATUS_OPEN':
+    default:
+      return 'Open'
+  }
+}
+
+function mapCategory(dto: TicketCategoryResponseDto): TicketCategory {
+  const categoryName = dto.name ?? dto.code ?? 'unknown'
+  return {
+    id: dto.id ?? '',
+    name: categoryName,
+    displayName: toDisplayName(categoryName),
+    subCategories: (dto.subCategories ?? []).map(sub => {
+      const subName = sub.name ?? sub.code ?? 'unknown'
+      return {
+        id: sub.id ?? '',
+        name: subName,
+        displayName: toDisplayName(subName),
+        requiresOrderId: Boolean(dto.requiresOrderId),
+      }
+    }),
+  }
+}
+
+function buildCategoryLookup(categories: TicketCategory[]) {
+  const categoryById = new Map(categories.map(category => [category.id, category]))
+  const subCategoryById = new Map(
+    categories.flatMap(category => category.subCategories.map(subCategory => [subCategory.id, subCategory])),
+  )
+  return { categoryById, subCategoryById }
+}
+
+function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket {
+  const { categoryById, subCategoryById } = buildCategoryLookup(categories)
+  const category = categoryById.get(dto.categoryId ?? '')
+  const subCategory = subCategoryById.get(dto.subCategoryId ?? '')
+
+  return {
+    id: dto.id ?? '',
+    categoryDisplayName: category?.displayName ?? 'Unknown',
+    subCategoryDisplayName: subCategory?.displayName ?? 'Unknown',
+    orderId: dto.orderId ?? null,
+    description: dto.description ?? '',
+    status: mapStatus(dto.status),
+    createdAt: dto.createdAt ?? new Date().toISOString(),
+    updatedAt: dto.updatedAt ?? dto.createdAt ?? new Date().toISOString(),
+  }
+}
+
+function mapComment(dto: TicketCommentResponseDto): TicketComment {
+  return {
+    id: dto.id ?? '',
+    userId: dto.authorId ?? '',
+    userName: dto.authorId ? `User ${dto.authorId.slice(0, 8)}` : 'Support',
+    role: 'support',
+    message: dto.content ?? '',
+    createdAt: dto.createdAt ?? new Date().toISOString(),
+  }
+}
 
 export async function fetchTicketCategories(): Promise<TicketCategory[]> {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  return MOCK_CATEGORIES
+  const res = await fetchWithAuth(`${API_BASE}/ticket-categories`)
+  const data = (await res.json()) as TicketCategoryResponseDto[]
+  return data.map(mapCategory)
 }
-
-const MOCK_TICKETS: Ticket[] = [
-  {
-    id: 'tkt-001',
-    categoryDisplayName: 'Order Issue',
-    subCategoryDisplayName: 'Missing Item',
-    orderId: 'ORD-100234',
-    description: 'I placed an order last week but one of the items was missing from the delivery.',
-    status: 'Open',
-    createdAt: '2026-04-20T10:30:00Z',
-    updatedAt: '2026-04-20T10:30:00Z',
-  },
-  {
-    id: 'tkt-002',
-    categoryDisplayName: 'Payment & Billing',
-    subCategoryDisplayName: 'Refund Request',
-    orderId: 'ORD-99871',
-    description: 'I returned the product two weeks ago but have not received the refund yet.',
-    status: 'InProgress',
-    createdAt: '2026-04-15T08:14:00Z',
-    updatedAt: '2026-04-18T14:22:00Z',
-  },
-  {
-    id: 'tkt-003',
-    categoryDisplayName: 'Account & Access',
-    subCategoryDisplayName: 'Login Issue',
-    orderId: null,
-    description: 'Unable to log in after changing my phone number.',
-    status: 'Resolved',
-    createdAt: '2026-04-10T17:45:00Z',
-    updatedAt: '2026-04-12T09:00:00Z',
-  },
-  {
-    id: 'tkt-004',
-    categoryDisplayName: 'Campaign',
-    subCategoryDisplayName: 'Commission Dispute',
-    orderId: 'ORD-88820',
-    description: 'Commission for order ORD-88820 was not credited to my account after campaign completion.',
-    status: 'Rejected',
-    createdAt: '2026-04-05T12:00:00Z',
-    updatedAt: '2026-04-07T16:30:00Z',
-  },
-  {
-    id: 'tkt-005',
-    categoryDisplayName: 'Order Issue',
-    subCategoryDisplayName: 'Damaged Item',
-    orderId: 'ORD-112045',
-    description: 'The product arrived with visible damage to the packaging and the item inside.',
-    status: 'Open',
-    createdAt: '2026-04-25T09:00:00Z',
-    updatedAt: '2026-04-25T09:00:00Z',
-  },
-]
 
 export async function fetchMyTickets(): Promise<Ticket[]> {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return MOCK_TICKETS
+  const [ticketsRes, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets`),
+    fetchTicketCategories(),
+  ])
+
+  const tickets = (await ticketsRes.json()) as TicketResponseDto[]
+  return tickets.map(ticket => mapTicket(ticket, categories))
 }
 
-const MOCK_COMMENTS: Record<string, TicketComment[]> = {
-  'tkt-001': [
-    { id: 'c-1-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Hi, could you please share the order confirmation number?', createdAt: '2026-04-20T11:00:00Z' },
-    { id: 'c-1-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: 'Sure, it is ORD-100234. The missing item was the phone case.', createdAt: '2026-04-20T11:45:00Z' },
-    { id: 'c-1-3', userId: 'u-1', userName: 'Support Agent', role: 'support', message: "We've raised a replacement request. You'll receive it within 3–5 business days.", createdAt: '2026-04-21T09:10:00Z' },
-  ],
-  'tkt-002': [
-    { id: 'c-2-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'We can see the return was received. The refund is being processed.', createdAt: '2026-04-16T10:00:00Z' },
-    { id: 'c-2-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: 'How long will it take to reflect in my account?', createdAt: '2026-04-16T10:30:00Z' },
-    { id: 'c-2-3', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Typically 5–7 business days depending on your bank.', createdAt: '2026-04-16T11:00:00Z' },
-  ],
-  'tkt-003': [
-    { id: 'c-3-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Your account has been unlinked from the old number. Please try logging in with OTP on the new number.', createdAt: '2026-04-11T08:00:00Z' },
-    { id: 'c-3-2', userId: 'u-2', userName: 'Alex Rivera',   role: 'shopper', message: "It's working now, thank you!", createdAt: '2026-04-11T08:30:00Z' },
-  ],
-  'tkt-004': [],
-  'tkt-005': [
-    { id: 'c-5-1', userId: 'u-1', userName: 'Support Agent', role: 'support', message: 'Please share a photo of the damaged packaging so we can escalate this.', createdAt: '2026-04-25T10:00:00Z' },
-  ],
+export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
+  const [res, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets`, {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: input.categoryId,
+        subCategoryId: input.subCategoryId,
+        title: input.title,
+        description: input.description,
+        orderId: input.orderId,
+      } satisfies TicketRequestDto),
+    }),
+    fetchTicketCategories(),
+  ])
+
+  const created = (await res.json()) as TicketResponseDto
+  return mapTicket(created, categories)
 }
 
 export async function fetchTicketComments(ticketId: string): Promise<TicketComment[]> {
-  await new Promise(resolve => setTimeout(resolve, 350))
-  return MOCK_COMMENTS[ticketId] ?? []
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}/comments`)
+  const data = (await res.json()) as TicketCommentResponseDto[]
+  return data.map(mapComment)
 }
 
-const MOCK_ACTIVITY: Record<string, TicketActivityEvent[]> = {
-  'tkt-001': [
-    { id: 'a-1-1', type: 'created',        actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Ticket raised',                                       createdAt: '2026-04-20T10:30:00Z' },
-    { id: 'a-1-2', type: 'assigned',        actor: 'Support Team', actorRole: 'system',  description: 'Assigned to Order Support queue',                     createdAt: '2026-04-20T10:31:00Z' },
-    { id: 'a-1-3', type: 'comment_added',   actor: 'Support Agent',actorRole: 'support', description: 'Support agent added a comment',                       createdAt: '2026-04-20T11:00:00Z' },
-    { id: 'a-1-4', type: 'comment_added',   actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Alex Rivera added a comment',                         createdAt: '2026-04-20T11:45:00Z' },
-    { id: 'a-1-5', type: 'comment_added',   actor: 'Support Agent',actorRole: 'support', description: 'Replacement request raised by support',               createdAt: '2026-04-21T09:10:00Z' },
-  ],
-  'tkt-002': [
-    { id: 'a-2-1', type: 'created',         actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Ticket raised',                                       createdAt: '2026-04-15T08:14:00Z' },
-    { id: 'a-2-2', type: 'assigned',         actor: 'Support Team', actorRole: 'system',  description: 'Assigned to Payments Support queue',                  createdAt: '2026-04-15T08:15:00Z' },
-    { id: 'a-2-3', type: 'status_changed',   actor: 'Support Agent',actorRole: 'support', description: 'Status changed from Open → In Progress',             createdAt: '2026-04-15T09:00:00Z' },
-    { id: 'a-2-4', type: 'comment_added',    actor: 'Support Agent',actorRole: 'support', description: 'Support agent added a comment',                       createdAt: '2026-04-16T10:00:00Z' },
-    { id: 'a-2-5', type: 'comment_added',    actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Alex Rivera added a comment',                         createdAt: '2026-04-16T10:30:00Z' },
-  ],
-  'tkt-003': [
-    { id: 'a-3-1', type: 'created',          actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Ticket raised',                                       createdAt: '2026-04-10T17:45:00Z' },
-    { id: 'a-3-2', type: 'assigned',          actor: 'Support Team', actorRole: 'system',  description: 'Assigned to Account Support queue',                  createdAt: '2026-04-10T17:46:00Z' },
-    { id: 'a-3-3', type: 'comment_added',     actor: 'Support Agent',actorRole: 'support', description: 'Support agent added a comment',                      createdAt: '2026-04-11T08:00:00Z' },
-    { id: 'a-3-4', type: 'comment_added',     actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Alex Rivera added a comment',                        createdAt: '2026-04-11T08:30:00Z' },
-    { id: 'a-3-5', type: 'resolved',          actor: 'Support Agent',actorRole: 'support', description: 'Ticket marked as Resolved',                          createdAt: '2026-04-12T09:00:00Z' },
-  ],
-  'tkt-004': [
-    { id: 'a-4-1', type: 'created',           actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Ticket raised',                                      createdAt: '2026-04-05T12:00:00Z' },
-    { id: 'a-4-2', type: 'assigned',           actor: 'Support Team', actorRole: 'system',  description: 'Assigned to Campaign Support queue',                 createdAt: '2026-04-05T12:01:00Z' },
-    { id: 'a-4-3', type: 'status_changed',     actor: 'Support Agent',actorRole: 'support', description: 'Status changed from Open → In Progress',            createdAt: '2026-04-06T10:00:00Z' },
-    { id: 'a-4-4', type: 'rejected',           actor: 'Support Agent',actorRole: 'support', description: 'Ticket rejected — commission already disbursed',    createdAt: '2026-04-07T16:30:00Z' },
-  ],
-  'tkt-005': [
-    { id: 'a-5-1', type: 'created',            actor: 'Alex Rivera',  actorRole: 'shopper', description: 'Ticket raised',                                     createdAt: '2026-04-25T09:00:00Z' },
-    { id: 'a-5-2', type: 'assigned',            actor: 'Support Team', actorRole: 'system',  description: 'Assigned to Order Support queue',                  createdAt: '2026-04-25T09:01:00Z' },
-    { id: 'a-5-3', type: 'comment_added',       actor: 'Support Agent',actorRole: 'support', description: 'Support agent added a comment',                    createdAt: '2026-04-25T10:00:00Z' },
-  ],
+export async function postTicketComment(ticketId: string, message: string): Promise<TicketComment> {
+  const body = {
+    ticketId,
+    content: message,
+  } satisfies TicketCommentRequestDto
+
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+
+  const created = (await res.json()) as TicketCommentResponseDto
+  return mapComment(created)
 }
 
 export async function fetchTicketActivity(ticketId: string): Promise<TicketActivityEvent[]> {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  return MOCK_ACTIVITY[ticketId] ?? []
-}
+  const [tickets, comments] = await Promise.all([fetchMyTickets(), fetchTicketComments(ticketId)])
+  const ticket = tickets.find(item => item.id === ticketId)
 
-export async function postTicketComment(_ticketId: string, message: string): Promise<TicketComment> {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  const comment: TicketComment = {
-    id: `c-${Date.now()}`,
-    userId: 'u-2',
-    userName: 'Alex Rivera',
-    role: 'shopper',
-    message,
-    createdAt: new Date().toISOString(),
-  }
-  return comment
+  if (!ticket) return []
+
+  const events: TicketActivityEvent[] = [
+    {
+      id: `created-${ticket.id}`,
+      type: 'created',
+      actor: 'System',
+      actorRole: 'system',
+      description: 'Ticket raised',
+      createdAt: ticket.createdAt,
+    },
+    ...comments.map(comment => ({
+      id: `comment-${comment.id}`,
+      type: 'comment_added' as const,
+      actor: comment.userName,
+      actorRole: comment.role,
+      description: 'Comment added',
+      createdAt: comment.createdAt,
+    })),
+  ]
+
+  return events.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 }

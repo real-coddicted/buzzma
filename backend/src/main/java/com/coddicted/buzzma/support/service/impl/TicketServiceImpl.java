@@ -43,7 +43,7 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
   public Ticket create(final Ticket ticket, final UUID requesterId) {
     final TicketSubCategory ticketSubCategory =
         this.ticketCategoryService.getTicketSubCategory(
-            ticket.getSubCategoryId(), ticket.getCategoryId());
+            ticket.getCategoryId(), ticket.getSubCategoryId());
 
     final TicketSubCategoryMetadata metadata = ticketSubCategory.getMetadata();
     if (metadata != null) {
@@ -57,6 +57,7 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
         ticket.toBuilder()
             .status(TICKET_STATUS_OPEN)
             .isDeleted(false)
+            .raisedBy(requesterId)
             .createdBy(requesterId)
             .updatedBy(requesterId)
             .build();

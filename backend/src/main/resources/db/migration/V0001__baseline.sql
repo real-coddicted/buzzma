@@ -184,6 +184,11 @@ CREATE TABLE commissions (
     campaign_id    uuid    NOT NULL,
     charged_by_id  uuid,
     commission     numeric,
+    created_by     uuid    NOT NULL,
+    updated_by     uuid,
+    created_at     timestamp with time zone  NOT NULL,
+    updated_at     timestamp with time zone  NOT NULL,
+    is_deleted     boolean                   NOT NULL DEFAULT false,
     CONSTRAINT pk_commissions          PRIMARY KEY (id),
     CONSTRAINT fk_commissions_campaign FOREIGN KEY (campaign_id) REFERENCES campaigns (id)
 );

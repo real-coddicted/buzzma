@@ -211,7 +211,7 @@ export function Dashboard() {
                   className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors"
                 >
                   <td className="px-5 py-3.5 font-medium text-ink-light-primary dark:text-ink-dark-primary">
-                    {c.name}
+                    {c.title}
                   </td>
                   <td className="px-5 py-3.5">
                     <StatusBadge status={c.status} />

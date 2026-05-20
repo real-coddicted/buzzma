@@ -1,0 +1,22 @@
+{
+  "id": "5eed0003-0002-0000-0000-000000000001",
+  "title": "Samsung Galaxy S24 Flipkart Rating Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 5,
+  "platform": "PLATFORM_FLIPKART",
+  "type": "CAMPAIGN_TYPE_RATING",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20251231,
+  "openToAll": false,
+  "campaignPricePaise": 2000000,
+  "sellerName": "Samsung India",
+  "product": {
+    "id": "5eed0002-0002-0000-0000-000000000001",
+    "name": "Samsung Galaxy S24 Ultra 256GB",
+    "imageUrl": "https://rukminim2.flixcart.com/image/416/416/samsung-galaxy-s24-ultra.jpg",
+    "productLink": "https://www.flipkart.com/samsung-galaxy-s24-ultra/p/itm123",
+    "pricePaise": 9999900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}

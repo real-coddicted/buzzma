@@ -3,7 +3,7 @@ import type { SecurityQuestion } from '../types/ForgotPasswordTypes'
 import type { RegisterForm, RegisterResponse } from '../types/RegisterTypes'
 import type { LoginForm, LoginResponse } from '../types/LoginTypes'
 import type { components } from '../types/api'
-import { setAccessToken } from './client'
+import { clearCurrentUser, setAccessToken, setCurrentUser } from './client'
 
 type SignInResponse = components['schemas']['UserSignInResponseDto']
 
@@ -25,6 +25,11 @@ export async function loginUser(form: LoginForm): Promise<LoginResponse> {
   const data: SignInResponse = await res.json()
   if (data.tokens?.accessToken) {
     setAccessToken(data.tokens.accessToken)
+    if (data.userSummary) {
+      setCurrentUser(data.userSummary)
+    } else {
+      clearCurrentUser()
+    }
   }
   return { success: true, message: '' }
 }

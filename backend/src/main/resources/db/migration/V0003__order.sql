@@ -2,11 +2,10 @@
 -- CAMPAIGN DEAL FIELDS
 -- ============================================================
 
-ALTER TABLE campaigns
-    ADD COLUMN campaign_price_paise NUMERIC,
-    ADD COLUMN return_window_days   INTEGER,
-    ADD COLUMN terms_and_conditions TEXT,
-    ADD COLUMN seller_name          VARCHAR(255);
+ALTER TABLE campaigns ADD COLUMN campaign_price_paise NUMERIC;
+ALTER TABLE campaigns ADD COLUMN return_window_days   INTEGER;
+ALTER TABLE campaigns ADD COLUMN terms_and_conditions TEXT;
+ALTER TABLE campaigns ADD COLUMN seller_name          VARCHAR(255);
 
 -- ============================================================
 -- ORDER MODULE
@@ -43,7 +42,4 @@ CREATE INDEX idx_orders_campaign_id ON orders (campaign_id);
 CREATE INDEX idx_orders_status      ON orders (status);
 CREATE INDEX idx_orders_is_deleted  ON orders (is_deleted);
 
--- prevent duplicate claims: one active order per buyer per campaign
-CREATE UNIQUE INDEX uq_orders_buyer_campaign
-    ON orders (buyer_id, campaign_id)
-    WHERE is_deleted = false;
+CREATE UNIQUE INDEX uq_orders_buyer_campaign ON orders (buyer_id, campaign_id);

@@ -3,7 +3,7 @@ package com.coddicted.buzzma.claim.service.impl;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
-import com.coddicted.buzzma.util.FileUtils;
+import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
 final class Fixtures {

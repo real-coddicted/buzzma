@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.util;
+package com.coddicted.buzzma.shared.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

@@ -87,7 +87,7 @@ function ReviewStep({ deal }: { deal: Deal }) {
 }
 
 // Step 2 — Upload order screenshot
-function ReturnStep({ deal }: { deal: Deal }) {
+function ReturnStep() {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
@@ -143,7 +143,7 @@ export function ClaimStepForm({ deal, currentStep }: ClaimStepFormProps) {
       {currentStep === 0 && <OrderStep deal={deal} />}
       {/* {currentStep === 1 && <UploadStep />} */}
       {currentStep === 1 && <ReviewStep deal={deal} />}
-      {currentStep === 2 && <ReturnStep deal={deal} />}
+      {currentStep === 2 && <ReturnStep />}
       {currentStep === 3 && <CashbackStep />}
     </div>
   )

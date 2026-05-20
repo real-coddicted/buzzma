@@ -1,0 +1,20 @@
+{
+  "id": "5eed0005-0001-0000-0000-000000000001",
+  "campaignId": "5eed0003-0001-0000-0000-000000000001",
+  "assignorId": "5eed0001-0000-0000-0000-000000000004",
+  "assigneeId": "5eed0001-0000-0000-0000-000000000003",
+  "slotLimit": 10,
+  "campaignPricePaise": 1000000,
+  "commissionOfferedPaise": 50000,
+  "status": "CAMPAIGN_ASSIGNMENT_STATUS_DRAFT",
+  "campaignSlot": {
+    "id": "5eed0004-0001-0000-0000-000000000001",
+    "campaignId": "5eed0003-0001-0000-0000-000000000001",
+    "totalSlots": 10,
+    "slotsAvailable": 10,
+    "createdBy": "5eed0001-0000-0000-0000-000000000004",
+    "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}

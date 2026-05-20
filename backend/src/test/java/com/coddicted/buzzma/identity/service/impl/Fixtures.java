@@ -6,7 +6,7 @@ import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
-import com.coddicted.buzzma.util.FileUtils;
+import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
 public final class Fixtures {

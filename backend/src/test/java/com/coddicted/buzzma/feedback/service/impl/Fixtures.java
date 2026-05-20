@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.feedback.service.impl;
 
 import com.coddicted.buzzma.feedback.entity.Feedback;
-import com.coddicted.buzzma.util.FileUtils;
+import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
 public final class Fixtures {

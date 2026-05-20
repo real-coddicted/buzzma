@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { IconCheck, IconTicket } from '../components/ui/icons'
-import { fetchTicketCategories } from '../api/ticketApi'
+import { createTicket, fetchTicketCategories } from '../api/ticketApi'
 import type { TicketCategory } from '../types/TicketTypes'
 
 const labelClass =
@@ -21,6 +21,7 @@ const errorClass = 'text-[10px] text-neon-red mt-1'
 const EMPTY = {
   categoryId: '',
   subCategoryId: '',
+  title: '',
   orderId: '',
   description: '',
 }
@@ -64,21 +65,32 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
     const e: Partial<Record<string, string>> = {}
     if (!form.categoryId) e.categoryId = 'Required'
     if (subCategories.length > 0 && !form.subCategoryId) e.subCategoryId = 'Required'
+    if (!form.title.trim()) e.title = 'Required'
     if (showOrderId && !form.orderId.trim()) e.orderId = 'Required'
     if (!form.description.trim()) e.description = 'Required'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    setTimeout(() => {
+    try {
+      await createTicket({
+        categoryId: form.categoryId,
+        subCategoryId: form.subCategoryId,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        ...(form.orderId.trim() ? { orderId: form.orderId.trim() } : {}),
+      })
       setLoading(false)
       setSubmitted(true)
       onSubmitted?.()
-    }, 800)
+    } catch {
+      setErrors(prev => ({ ...prev, submit: 'Failed to submit ticket. Please try again.' }))
+      setLoading(false)
+    }
   }
 
   function reset() {
@@ -163,6 +175,18 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
         </div>
       )}
 
+      <div>
+        <label className={labelClass}>Title *</label>
+        <input
+          className={inputClass}
+          type="text"
+          placeholder="Short summary of the issue"
+          value={form.title}
+          onChange={e => set('title', e.target.value)}
+        />
+        {errors.title && <p className={errorClass}>{errors.title}</p>}
+      </div>
+
       {/* Description */}
       <div>
         <label className={labelClass}>Description *</label>
@@ -175,6 +199,8 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
         />
         {errors.description && <p className={errorClass}>{errors.description}</p>}
       </div>
+
+      {errors.submit && <p className={errorClass}>{errors.submit}</p>}
 
       <div className="flex justify-end gap-2 pt-1">
         {onCancel && (

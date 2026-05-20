@@ -1,8 +1,8 @@
-import type { components } from '../types/api'
+import type { operations } from '../types/api'
 import { fetchWithAuth } from './client'
 
-type FeedbackRequest  = components['schemas']['FeedbackRequestDto']
-type FeedbackResponse = components['schemas']['FeedbackResponseDto']
+export type FeedbackRequest = operations['create_3']['requestBody']['content']['application/json']
+export type FeedbackResponse = operations['create_3']['responses'][201]['content']['*/*']
 
 export async function submitFeedback(body: FeedbackRequest): Promise<FeedbackResponse> {
   const res = await fetchWithAuth('/api/v1/feedback', {
@@ -11,3 +11,5 @@ export async function submitFeedback(body: FeedbackRequest): Promise<FeedbackRes
   })
   return res.json() as Promise<FeedbackResponse>
 }
+
+

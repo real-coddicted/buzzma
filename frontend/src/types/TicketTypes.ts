@@ -15,9 +15,17 @@ export interface TicketComment {
   id: string
   userId: string
   userName: string
-  role: string
+  role: 'shopper' | 'support' | 'system'
   message: string
   createdAt: string
+}
+
+export interface CreateTicketInput {
+  categoryId: string
+  subCategoryId: string
+  title: string
+  description: string
+  orderId?: string
 }
 
 export type TicketActivityType =

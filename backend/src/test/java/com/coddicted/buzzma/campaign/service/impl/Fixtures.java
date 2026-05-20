@@ -5,7 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.entity.Product;
-import com.coddicted.buzzma.util.FileUtils;
+import com.coddicted.buzzma.shared.util.FileUtils;
 import java.math.BigInteger;
 import java.util.Set;
 import java.util.UUID;

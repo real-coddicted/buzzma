@@ -1,0 +1,22 @@
+{
+  "id": "5eed0003-0001-0000-0000-000000000001",
+  "title": "Sony Headphones Amazon Review Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 10,
+  "platform": "PLATFORM_AMAZON",
+  "type": "CAMPAIGN_TYPE_REVIEW",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20251231,
+  "openToAll": false,
+  "campaignPricePaise": 1000000,
+  "sellerName": "Sony India",
+  "product": {
+    "id": "5eed0002-0001-0000-0000-000000000001",
+    "name": "Sony WH-1000XM5 Wireless Headphones",
+    "imageUrl": "https://m.media-amazon.com/images/I/71FMFsxC0QL.jpg",
+    "productLink": "https://www.amazon.in/dp/B09XS7JWHH",
+    "pricePaise": 2999900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}

@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.settings.service.impl;
 
 import com.coddicted.buzzma.settings.entity.UserSettings;
-import com.coddicted.buzzma.util.FileUtils;
+import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
 public final class Fixtures {

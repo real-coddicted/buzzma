@@ -164,6 +164,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["retrieve"];
+        put?: never;
+        post: operations["upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/feedback": {
         parameters: {
             query?: never;
@@ -180,6 +196,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_3"];
+        put?: never;
+        post: operations["create_4"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitReturn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns": {
         parameters: {
             query?: never;
@@ -189,7 +253,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -292,6 +356,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assignments/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publishAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets/{id}/status": {
         parameters: {
             query?: never;
@@ -315,7 +395,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getById_2"];
+        get: operations["getById_3"];
         put?: never;
         post?: never;
         delete: operations["delete_3"];
@@ -396,6 +476,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listByUserId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deals/unclaimed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getUnclaimedDeals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getById_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAssignments"];
         put?: never;
         post?: never;
         delete?: never;
@@ -595,6 +723,9 @@ export interface components {
             inviteCode: string;
             inviteeRole: string;
         };
+        FileUploadResponseDto: {
+            storageKey?: string;
+        };
         FeedbackRequestDto: {
             /** Format: int32 */
             rating?: number;
@@ -615,7 +746,85 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        ClaimRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
+            /** Format: uuid */
+            dealId: string;
+            orderId: string;
+            amount: number;
+            productName: string;
+            sellerName: string;
+            /** Format: int32 */
+            orderDate: number;
+            accountName: string;
+            /** Format: binary */
+            screenshot: string;
+        };
+        ClaimResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            deal?: components["schemas"]["DealResponseDto"];
+            /** @enum {string} */
+            status?: "CREATED" | "REDIRECTED" | "ORDERED" | "PROOF_SUBMITTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            /** Format: int32 */
+            currentStep?: number;
+            ecommerceOrderId?: string;
+            amountPaise?: number;
+            productName?: string;
+            sellerName?: string;
+            orderDate?: string;
+            accountName?: string;
+            reviewUrl?: string;
+            screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
+            overallVerified?: boolean;
+            /** Format: double */
+            overallScore?: number;
+            rejectionNote?: string;
+            comments?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ClaimScreenshotResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            key?: string;
+            /** @enum {string} */
+            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
+            /** @enum {string} */
+            verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_FAILED";
+            /** Format: double */
+            score?: number;
+            extractedDetails?: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        DealResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            ownerId?: string;
+            productName?: string;
+            productImageUrl?: string;
+            productUrl?: string;
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** @enum {string} */
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            originalPricePaise?: number;
+            offeredPricePaise?: number;
+            /** Format: int32 */
+            returnWindowDays?: number;
+            termsAndConditions?: string;
+            sellerName?: string;
+        };
         CampaignAssignmentRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
             /** Format: uuid */
             assignorId: string;
             /** Format: uuid */
@@ -640,11 +849,13 @@ export interface components {
             /** @enum {string} */
             campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */
-            campaignStatus: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            campaignStatus: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** Format: int32 */
             totalSlots: number;
             assignees?: components["schemas"]["CampaignAssignmentRequestDto"][];
             openToAll?: boolean;
+            termsAndConditions?: string;
+            sellerName?: string;
         };
         CampaignResponseDto: {
             /** Format: uuid */
@@ -657,7 +868,7 @@ export interface components {
             /** @enum {string} */
             campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */
-            status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** Format: uuid */
             productId?: string;
             productName?: string;
@@ -668,6 +879,11 @@ export interface components {
             productPricePaise?: number;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            campaignPricePaise?: number;
+            /** Format: int32 */
+            returnWindowDays?: number;
+            termsAndConditions?: string;
+            sellerName?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: uuid */
@@ -737,6 +953,12 @@ export interface components {
         ForgotPasswordLookupRequestDto: {
             mobile: string;
         };
+        PublishAssignmentRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
+            commissionChargedPaise: number;
+            dealPricePaise: number;
+        };
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
             status: "TICKET_STATUS_OPEN" | "TICKET_STATUS_ASSIGNED" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_CLOSED";
@@ -771,6 +993,43 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             isDeleted?: boolean;
+        };
+        PagedDealsResponseDto: {
+            items?: components["schemas"]["DealResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        AssignmentResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            ownerId?: string;
+            productName?: string;
+            productImageUrl?: string;
+            productUrl?: string;
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** @enum {string} */
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            originalPricePaise?: number;
+            offeredPricePaise?: number;
+            /** Format: int32 */
+            returnWindowDays?: number;
+            termsAndConditions?: string;
+            sellerName?: string;
+        };
+        PagedAssignmentsResponseDto: {
+            items?: components["schemas"]["AssignmentResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         SseEmitter: {
             /** Format: int64 */
@@ -1138,6 +1397,57 @@ export interface operations {
             };
         };
     };
+    retrieve: {
+        parameters: {
+            query: {
+                key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    upload: {
+        parameters: {
+            query: {
+                folder: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FileUploadResponseDto"];
+                };
+            };
+        };
+    };
     create_3: {
         parameters: {
             query?: never;
@@ -1162,7 +1472,109 @@ export interface operations {
             };
         };
     };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"][];
+                };
+            };
+        };
+    };
     create_4: {
+        parameters: {
+            query: {
+                request: components["schemas"]["ClaimRequestDto"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    submitReview: {
+        parameters: {
+            query?: {
+                reviewUrl?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    submitReturn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -1327,6 +1739,32 @@ export interface operations {
             };
         };
     };
+    publishAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishAssignmentRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": boolean;
+                };
+            };
+        };
+    };
     updateStatus: {
         parameters: {
             query?: never;
@@ -1353,7 +1791,7 @@ export interface operations {
             };
         };
     };
-    getById_2: {
+    getById_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1543,6 +1981,76 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FeedbackResponseDto"][];
+                };
+            };
+        };
+    };
+    getUnclaimedDeals: {
+        parameters: {
+            query: {
+                ownerId: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedDealsResponseDto"];
+                };
+            };
+        };
+    };
+    getById_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    getAssignments: {
+        parameters: {
+            query: {
+                status: "CAMPAIGN_ASSIGNMENT_STATUS_DRAFT" | "CAMPAIGN_ASSIGNMENT_STATUS_LOCKED" | "CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedAssignmentsResponseDto"];
                 };
             };
         };
