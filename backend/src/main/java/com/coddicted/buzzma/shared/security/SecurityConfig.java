@@ -46,6 +46,7 @@ public class SecurityConfig {
                         // Todo: added only for testing, should be removed later
                         "/api/v1/files/**",
                         "/api/notifications/push/public-key",
+                        "/api/v1/extraction/sync",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**")

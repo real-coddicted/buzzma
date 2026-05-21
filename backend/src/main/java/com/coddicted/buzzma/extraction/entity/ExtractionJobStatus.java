@@ -1,0 +1,8 @@
+package com.coddicted.buzzma.extraction.entity;
+
+public enum ExtractionJobStatus {
+  EXTRACTION_JOB_STATUS_PENDING,
+  EXTRACTION_JOB_STATUS_PROCESSING,
+  EXTRACTION_JOB_STATUS_COMPLETED,
+  EXTRACTION_JOB_STATUS_FAILED
+}

@@ -16,3 +16,10 @@ spring:
   flyway:
     baseline-on-migrate: false
     baseline-version: 1
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  app:
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-2.0-flash}
