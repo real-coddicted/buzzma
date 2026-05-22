@@ -126,7 +126,6 @@ export async function fetchTicketComments(ticketId: string): Promise<TicketComme
 
 export async function postTicketComment(ticketId: string, message: string): Promise<TicketComment> {
   const body = {
-    ticketId,
     content: message,
   } satisfies TicketCommentRequestDto
 

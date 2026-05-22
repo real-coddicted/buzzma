@@ -1,11 +1,11 @@
 {
   "id": "77777777-7777-7777-7777-777777777777",
-  "code": "INV-DELETED",
+  "code": "INV-LIMIT",
   "status": "INVITE_STATUS_ACTIVE",
   "validTo": 20991231,
-  "maxUseCount": 5,
+  "maxUseCount": 0,
   "usedCount": 0,
-  "isDeleted": true,
+  "isDeleted": false,
   "createdAt": "2024-01-01T00:00:00Z",
   "updatedAt": "2024-01-01T00:00:00Z"
 }

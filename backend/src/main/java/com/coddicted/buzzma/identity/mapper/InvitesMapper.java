@@ -1,8 +1,8 @@
 package com.coddicted.buzzma.identity.mapper;
 
-import com.coddicted.buzzma.identity.dto.InviteRequestDto;
-import com.coddicted.buzzma.identity.dto.InviteResponseDto;
-import com.coddicted.buzzma.identity.entity.Invite;
+import com.coddicted.buzzma.invite.dto.InviteRequestDto;
+import com.coddicted.buzzma.invite.dto.InviteResponseDto;
+import com.coddicted.buzzma.invite.entity.Invite;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -16,6 +16,8 @@ public interface InvitesMapper {
   @Mapping(target = "code", ignore = true)
   @Mapping(target = "ownerId", ignore = true)
   @Mapping(target = "status", ignore = true)
+  @Mapping(target = "validTo", ignore = true)
+  @Mapping(target = "usedCount", ignore = true)
   @Mapping(target = "createdBy", ignore = true)
   @Mapping(target = "updatedBy", ignore = true)
   @Mapping(target = "createdAt", ignore = true)

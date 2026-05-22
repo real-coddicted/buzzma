@@ -42,16 +42,37 @@ export function clearSession(): void {
   clearCurrentUser()
 }
 
-export async function fetchWithAuth(url: string, init: RequestInit = {}): Promise<Response> {
+const DEFAULT_TIMEOUT_MS = 5000
+
+export async function fetchWithAuth(
+  url: string,
+  init: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+): Promise<Response> {
   const token = getAccessToken()
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init.headers,
-    },
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  let res: Response
+  try {
+    res = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init.headers,
+      },
+    })
+  } catch (err) {
+    if ((err as { name?: string })?.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s. Please try again.`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+
   if (res.status === 401) {
     clearSession()
     window.dispatchEvent(new CustomEvent('auth:logout'))

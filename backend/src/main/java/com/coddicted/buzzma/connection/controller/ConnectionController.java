@@ -2,6 +2,8 @@ package com.coddicted.buzzma.connection.controller;
 
 import com.coddicted.buzzma.connection.dto.ConnectionRequestDto;
 import com.coddicted.buzzma.connection.dto.ConnectionResponseDto;
+import com.coddicted.buzzma.connection.dto.ConnectionSummaryResponseDto;
+import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.mapper.ConnectionMapper;
@@ -45,11 +47,28 @@ public class ConnectionController {
     return this.connectionMapper.toResponse(connection);
   }
 
+  @PostMapping("/action/{action}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void action(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final Action action,
+      @Valid @RequestBody final ConnectionRequestDto request) {
+    this.connectionService.actionConnectionRequest(
+        requesterId, request.getToUserId(), action, requesterId);
+  }
+
   @GetMapping
   public Set<ConnectionResponseDto> list(
-      @CurrentUserId final UUID requesterId, @RequestParam final ConnectionStatus status) {
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(required = false) final ConnectionStatus status) {
     return this.connectionMapper.toResponses(
         this.connectionService.getConnectionsByFromUserIdAndStatus(requesterId, status));
+  }
+
+  @GetMapping("/summary")
+  public ConnectionSummaryResponseDto summary(@CurrentUserId final UUID requesterId) {
+    return this.connectionMapper.toResponse(
+        this.connectionService.getConnectionSummary(requesterId));
   }
 
   @DeleteMapping("/{id}")

@@ -1,12 +1,11 @@
-package com.coddicted.buzzma.identity.controller;
+package com.coddicted.buzzma.invite.controller;
 
 import com.coddicted.buzzma.identity.dto.ConsumeInviteRequestDto;
-import com.coddicted.buzzma.identity.dto.InviteRequestDto;
-import com.coddicted.buzzma.identity.dto.InviteResponseDto;
-import com.coddicted.buzzma.identity.entity.Invite;
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.InvitesMapper;
-import com.coddicted.buzzma.identity.service.InviteService;
+import com.coddicted.buzzma.invite.dto.InviteRequestDto;
+import com.coddicted.buzzma.invite.dto.InviteResponseDto;
+import com.coddicted.buzzma.invite.entity.Invite;
+import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -37,7 +36,9 @@ public class InviteController {
   @ResponseStatus(HttpStatus.CREATED)
   public InviteResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final InviteRequestDto request) {
-    final Invite invite = this.service.create(this.mapper.toEntity(request), requesterId);
+    final Invite invite =
+        this.service.create(
+            this.mapper.toEntity(request), request.getValidityInDays(), requesterId);
     return this.mapper.toResponse(invite);
   }
 
@@ -46,9 +47,7 @@ public class InviteController {
   public void consume(
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final ConsumeInviteRequestDto request) {
-    final Invite invite =
-        this.service.getByRoleAndCode(
-            UserRole.valueOf(request.getInviteeRole()), request.getInviteCode());
+    final Invite invite = this.service.getByCode(request.getInviteCode());
     this.service.consume(invite, requesterId);
   }
 

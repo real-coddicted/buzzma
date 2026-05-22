@@ -3,11 +3,12 @@ package com.coddicted.buzzma.connection.service.impl;
 import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.model.ConnectionSummary;
+import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
-import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Set;
 import java.util.UUID;
@@ -29,9 +30,18 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
 
   @Override
   @Transactional(readOnly = true)
-  public Set<Connection> getConnectionsByFromUserIdAndStatus(
+  public Set<ConnectionView> getConnectionsByFromUserIdAndStatus(
       final UUID fromUserId, final ConnectionStatus status) {
-    return this.connectionRepository.findByFromUserIdAndStatusAndIsDeletedFalse(fromUserId, status);
+    if (status == null) {
+      return this.connectionRepository.findViewsByFromUserId(fromUserId);
+    }
+    return this.connectionRepository.findViewsByFromUserIdAndStatus(fromUserId, status);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ConnectionSummary getConnectionSummary(final UUID fromUserId) {
+    return this.connectionRepository.findSummaryByFromUserId(fromUserId);
   }
 
   @Override
@@ -65,7 +75,7 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
                 () ->
                     new NotFoundException(
                         "Connection not found from " + fromUserId + " to " + toUserId));
-    validate(connection, fromUserId, requesterId);
+    validate(connection);
     final ConnectionStatus target = getConnectionStatus(action);
     this.connectionRepository.save(
         connection.toBuilder().status(target).updatedBy(requesterId).build());
@@ -88,13 +98,7 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     };
   }
 
-  private void validate(
-      final Connection connection, final UUID fromUserId, final UUID requesterId) {
-    if (!connection.getFromUserId().equals(requesterId)) {
-      LOGGER.warn(
-          "User {} cannot action connection request addressed to {}", requesterId, fromUserId);
-      throw new ForbiddenException("Only the connection recipient can action the request");
-    }
+  private void validate(final Connection connection) {
     if (connection.getStatus() != ConnectionStatus.CONNECTION_STATUS_REQUESTED) {
       LOGGER.warn(
           "Connection {} in status {} cannot be actioned",

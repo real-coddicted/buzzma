@@ -2,13 +2,14 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.coddicted.buzzma.identity.entity.Invite;
-import com.coddicted.buzzma.identity.entity.InviteStatus;
-import com.coddicted.buzzma.identity.entity.UserRole;
-import com.coddicted.buzzma.identity.persistence.InviteRepository;
+import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.invite.entity.Invite;
+import com.coddicted.buzzma.invite.entity.InviteStatus;
+import com.coddicted.buzzma.invite.persistence.InviteRepository;
+import com.coddicted.buzzma.invite.service.impl.InviteServiceImpl;
 import com.coddicted.buzzma.shared.common.CodeGenerator;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -25,60 +26,77 @@ class InviteServiceImplTest {
 
   @Mock private InviteRepository mockInviteRepository;
   @Mock private CodeGenerator mockCodeGenerator;
+  @Mock private UserService mockUserService;
   private InviteServiceImpl inviteService;
 
   @BeforeEach
   void setUp() {
-    this.inviteService = new InviteServiceImpl(this.mockInviteRepository, this.mockCodeGenerator);
+    this.inviteService =
+        new InviteServiceImpl(
+            this.mockInviteRepository, this.mockCodeGenerator, this.mockUserService);
   }
 
   @Test
-  void testGetByRoleAndCodeWhenFound() {
-    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
-            UserRole.ROLE_BUYER, INVITE_CODE))
-        .thenReturn(Optional.of(INVITE_2));
+  void testGetByCodeWhenFound() {
+    doReturn(Optional.of(INVITE_2))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse(INVITE_CODE);
 
-    assertEquals(INVITE_2, this.inviteService.getByRoleAndCode(UserRole.ROLE_BUYER, INVITE_CODE));
+    assertEquals(INVITE_2, this.inviteService.getByCode(INVITE_CODE));
   }
 
   @Test
-  void testGetByRoleAndCodeWhenNotFound() {
-    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
-            UserRole.ROLE_BUYER, INVITE_CODE))
-        .thenReturn(Optional.empty());
+  void testGetByCodeWhenNotFound() {
+    doReturn(Optional.empty())
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse(INVITE_CODE);
 
     final NotFoundException ex =
-        assertThrows(
-            NotFoundException.class,
-            () -> this.inviteService.getByRoleAndCode(UserRole.ROLE_BUYER, INVITE_CODE));
+        assertThrows(NotFoundException.class, () -> this.inviteService.getByCode(INVITE_CODE));
     assertEquals("Invite not found: " + INVITE_CODE, ex.getMessage());
   }
 
   @Test
-  void testCreate() {
-    when(this.mockCodeGenerator.generateHumanCode("INV")).thenReturn(GENERATED_CODE);
-    when(this.mockInviteRepository.existsByCode(GENERATED_CODE)).thenReturn(false);
+  void testCreateUsesRoleDefaultMaxUseCount() {
+    doReturn(GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
+    doReturn(USER_1).when(this.mockUserService).getById(REQUESTER_ID);
 
-    this.inviteService.create(INVITE_1, REQUESTER_ID);
+    this.inviteService.create(INVITE_1, 0, REQUESTER_ID);
 
     final ArgumentCaptor<Invite> captor = ArgumentCaptor.forClass(Invite.class);
     verify(this.mockInviteRepository).save(captor.capture());
     final Invite saved = captor.getValue();
     assertEquals(GENERATED_CODE, saved.getCode());
     assertEquals(InviteStatus.INVITE_STATUS_ACTIVE, saved.getStatus());
+    assertEquals(100, saved.getMaxUseCount());
+    assertEquals(0, saved.getUsedCount());
     assertEquals(REQUESTER_ID, saved.getOwnerId());
     assertEquals(REQUESTER_ID, saved.getCreatedBy());
     assertEquals(REQUESTER_ID, saved.getUpdatedBy());
   }
 
   @Test
+  void testCreateUsesExplicitMaxUseCount() {
+    doReturn(GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
+
+    this.inviteService.create(INVITE_6, 0, REQUESTER_ID);
+
+    final ArgumentCaptor<Invite> captor = ArgumentCaptor.forClass(Invite.class);
+    verify(this.mockInviteRepository).save(captor.capture());
+    assertEquals(7, captor.getValue().getMaxUseCount());
+  }
+
+  @Test
   void testCreateWithCodeCollision() {
     final String collidingCode = "INV-COLLISION";
-    when(this.mockCodeGenerator.generateHumanCode("INV")).thenReturn(collidingCode, GENERATED_CODE);
-    when(this.mockInviteRepository.existsByCode(collidingCode)).thenReturn(true);
-    when(this.mockInviteRepository.existsByCode(GENERATED_CODE)).thenReturn(false);
+    doReturn(collidingCode, GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(true).when(this.mockInviteRepository).existsByCode(collidingCode);
+    doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
+    doReturn(USER_1).when(this.mockUserService).getById(REQUESTER_ID);
 
-    this.inviteService.create(INVITE_1, REQUESTER_ID);
+    this.inviteService.create(INVITE_1, 0, REQUESTER_ID);
 
     final ArgumentCaptor<Invite> captor = ArgumentCaptor.forClass(Invite.class);
     verify(this.mockInviteRepository).save(captor.capture());
@@ -92,8 +110,29 @@ class InviteServiceImplTest {
     final ArgumentCaptor<Invite> captor = ArgumentCaptor.forClass(Invite.class);
     verify(this.mockInviteRepository).save(captor.capture());
     final Invite saved = captor.getValue();
-    assertEquals(InviteStatus.INVITE_STATUS_USED, saved.getStatus());
+    assertEquals(1, saved.getUsedCount());
+    assertEquals(InviteStatus.INVITE_STATUS_ACTIVE, saved.getStatus());
     assertEquals(REQUESTER_ID, saved.getUpdatedBy());
+  }
+
+  @Test
+  void testConsumeFlipsToUsedOnFinalUse() {
+    this.inviteService.consume(INVITE_8, REQUESTER_ID);
+
+    final ArgumentCaptor<Invite> captor = ArgumentCaptor.forClass(Invite.class);
+    verify(this.mockInviteRepository).save(captor.capture());
+    final Invite saved = captor.getValue();
+    assertEquals(1, saved.getUsedCount());
+    assertEquals(InviteStatus.INVITE_STATUS_USED, saved.getStatus());
+  }
+
+  @Test
+  void testConsumeWhenLimitReached() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> this.inviteService.consume(INVITE_7, REQUESTER_ID));
+    assertEquals("Invite has reached its usage limit", ex.getMessage());
   }
 
   @Test
@@ -125,7 +164,7 @@ class InviteServiceImplTest {
 
   @Test
   void testDeleteWhenFound() {
-    when(this.mockInviteRepository.findById(INVITE_ID)).thenReturn(Optional.of(INVITE_2));
+    doReturn(Optional.of(INVITE_2)).when(this.mockInviteRepository).findById(INVITE_ID);
 
     this.inviteService.delete(INVITE_ID, REQUESTER_ID);
 
@@ -139,7 +178,7 @@ class InviteServiceImplTest {
 
   @Test
   void testDeleteWhenNotFound() {
-    when(this.mockInviteRepository.findById(INVITE_ID)).thenReturn(Optional.empty());
+    doReturn(Optional.empty()).when(this.mockInviteRepository).findById(INVITE_ID);
 
     final NotFoundException ex =
         assertThrows(
@@ -149,32 +188,39 @@ class InviteServiceImplTest {
 
   @Test
   void testVerifyWhenActive() {
-    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
-            UserRole.ROLE_BUYER, INVITE_CODE))
-        .thenReturn(Optional.of(INVITE_2));
+    doReturn(Optional.of(INVITE_2))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse(INVITE_CODE);
 
-    assertTrue(this.inviteService.verify(UserRole.ROLE_BUYER, INVITE_CODE));
+    assertTrue(this.inviteService.verify(INVITE_CODE));
   }
 
   @Test
   void testVerifyWhenNotActive() {
-    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
-            UserRole.ROLE_BUYER, "INV-USED"))
-        .thenReturn(Optional.of(INVITE_4));
+    doReturn(Optional.of(INVITE_4))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse("INV-USED");
 
-    assertFalse(this.inviteService.verify(UserRole.ROLE_BUYER, "INV-USED"));
+    assertFalse(this.inviteService.verify("INV-USED"));
+  }
+
+  @Test
+  void testVerifyWhenLimitReached() {
+    doReturn(Optional.of(INVITE_7))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse("INV-LIMIT");
+
+    assertFalse(this.inviteService.verify("INV-LIMIT"));
   }
 
   @Test
   void testVerifyWhenNotFound() {
-    when(this.mockInviteRepository.findByRoleAndCodeAndIsDeletedFalse(
-            UserRole.ROLE_BUYER, INVITE_CODE))
-        .thenReturn(Optional.empty());
+    doReturn(Optional.empty())
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse(INVITE_CODE);
 
     final NotFoundException ex =
-        assertThrows(
-            NotFoundException.class,
-            () -> this.inviteService.verify(UserRole.ROLE_BUYER, INVITE_CODE));
+        assertThrows(NotFoundException.class, () -> this.inviteService.verify(INVITE_CODE));
     assertEquals("Invite not found: " + INVITE_CODE, ex.getMessage());
   }
 }

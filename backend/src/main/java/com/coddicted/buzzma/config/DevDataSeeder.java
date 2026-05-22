@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -60,6 +61,7 @@ public class DevDataSeeder implements ApplicationRunner {
     seedUser("Test Buyer", "9000000002", "buyer123", UserRole.ROLE_BUYER);
     seedUser("Test Agency", "9000000003", "agency123", UserRole.ROLE_AGENCY);
     seedUser("Test Brand", "9000000004", "brand123", UserRole.ROLE_BRAND);
+    seedConnections();
     CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
     CAMPAIGN_SCENARIOS.forEach(this::seedAssignment);
     CAMPAIGN_SCENARIOS.forEach(this::seedDeal);
@@ -246,6 +248,52 @@ public class DevDataSeeder implements ApplicationRunner {
         now,
         now,
         false);
+  }
+
+  private void seedConnections() {
+    final UUID agencyId = userIdByMobile("9000000003");
+    insertConnection(
+        UUID.fromString("a0000000-0000-0000-0000-000000000001"),
+        agencyId,
+        userIdByMobile("9000000002"),
+        ConnectionStatus.CONNECTION_STATUS_REQUESTED);
+    insertConnection(
+        UUID.fromString("a0000000-0000-0000-0000-000000000002"),
+        agencyId,
+        userIdByMobile("9000000004"),
+        ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+    insertConnection(
+        UUID.fromString("a0000000-0000-0000-0000-000000000003"),
+        agencyId,
+        userIdByMobile("9000000001"),
+        ConnectionStatus.CONNECTION_STATUS_REJECTED);
+  }
+
+  private void insertConnection(
+      final UUID id, final UUID fromUserId, final UUID toUserId, final ConnectionStatus status) {
+    if (rowExists("connections", id)) {
+      return;
+    }
+    final Timestamp now = Timestamp.from(Instant.now());
+    this.jdbcTemplate.update(
+        "INSERT INTO connections (id, from_user_id, to_user_id, status, created_by, updated_by,"
+            + " created_at, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        id,
+        fromUserId,
+        toUserId,
+        status.name(),
+        fromUserId,
+        fromUserId,
+        now,
+        now,
+        false);
+  }
+
+  private UUID userIdByMobile(final String mobile) {
+    return this.usersRepository
+        .findByMobileAndIsDeletedFalse(mobile)
+        .map(BuzzmaUser::getId)
+        .orElseThrow(() -> new IllegalStateException("Seed user not found for mobile " + mobile));
   }
 
   private boolean rowExists(final String table, final UUID id) {

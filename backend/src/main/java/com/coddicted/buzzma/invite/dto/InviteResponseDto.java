@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.identity.dto;
+package com.coddicted.buzzma.invite.dto;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,11 +13,13 @@ public class InviteResponseDto {
 
   String code;
 
-  String role;
-
   String status;
 
   int validTo;
+
+  int maxUseCount;
+
+  int usedCount;
 
   UUID createdBy;
 

@@ -10,4 +10,8 @@ public final class DateTimeUtils {
   public static LocalDate toLocalDate(final int date) {
     return LocalDate.parse(String.valueOf(date), DATE_FORMAT);
   }
+
+  public static int toIntDate(final LocalDate date) {
+    return Integer.parseInt(date.format(DATE_FORMAT));
+  }
 }

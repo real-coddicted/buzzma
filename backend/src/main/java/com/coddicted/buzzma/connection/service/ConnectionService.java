@@ -3,12 +3,16 @@ package com.coddicted.buzzma.connection.service;
 import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.model.ConnectionSummary;
+import com.coddicted.buzzma.connection.model.ConnectionView;
 import java.util.Set;
 import java.util.UUID;
 
 public interface ConnectionService {
 
-  Set<Connection> getConnectionsByFromUserIdAndStatus(UUID fromUserId, ConnectionStatus status);
+  Set<ConnectionView> getConnectionsByFromUserIdAndStatus(UUID fromUserId, ConnectionStatus status);
+
+  ConnectionSummary getConnectionSummary(UUID fromUserId);
 
   Connection createConnection(Connection connection);
 

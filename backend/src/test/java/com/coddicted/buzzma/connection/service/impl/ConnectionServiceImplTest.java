@@ -8,9 +8,10 @@ import static org.mockito.Mockito.verify;
 import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.model.ConnectionSummary;
+import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
-import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Optional;
 import java.util.Set;
@@ -34,17 +35,38 @@ class ConnectionServiceImplTest {
 
   @Test
   void testGetConnectionsByFromUserIdAndStatus() {
-    final Set<Connection> connections = Set.of(CONNECTION_REQUESTED);
-    doReturn(connections)
+    final Set<ConnectionView> views = Set.of(CONNECTION_VIEW_REQUESTED);
+    doReturn(views)
         .when(this.mockConnectionRepository)
-        .findByFromUserIdAndStatusAndIsDeletedFalse(
-            FROM_USER_ID, ConnectionStatus.CONNECTION_STATUS_REQUESTED);
+        .findViewsByFromUserIdAndStatus(FROM_USER_ID, ConnectionStatus.CONNECTION_STATUS_REQUESTED);
 
-    final Set<Connection> result =
+    final Set<ConnectionView> result =
         this.connectionService.getConnectionsByFromUserIdAndStatus(
             FROM_USER_ID, ConnectionStatus.CONNECTION_STATUS_REQUESTED);
 
-    assertEquals(connections, result);
+    assertEquals(views, result);
+  }
+
+  @Test
+  void testGetConnectionsByFromUserIdAndStatusWhenStatusNull() {
+    final Set<ConnectionView> views = Set.of(CONNECTION_VIEW_REQUESTED, CONNECTION_VIEW_ACCEPTED);
+    doReturn(views).when(this.mockConnectionRepository).findViewsByFromUserId(FROM_USER_ID);
+
+    final Set<ConnectionView> result =
+        this.connectionService.getConnectionsByFromUserIdAndStatus(FROM_USER_ID, null);
+
+    assertEquals(views, result);
+  }
+
+  @Test
+  void testGetConnectionSummary() {
+    doReturn(CONNECTION_SUMMARY)
+        .when(this.mockConnectionRepository)
+        .findSummaryByFromUserId(FROM_USER_ID);
+
+    final ConnectionSummary result = this.connectionService.getConnectionSummary(FROM_USER_ID);
+
+    assertEquals(CONNECTION_SUMMARY, result);
   }
 
   @Test
@@ -130,21 +152,6 @@ class ConnectionServiceImplTest {
                     FROM_USER_ID, TO_USER_ID, Action.ACTION_ACCEPT, FROM_USER_ID));
     assertEquals(
         "Connection not found from " + FROM_USER_ID + " to " + TO_USER_ID, ex.getMessage());
-  }
-
-  @Test
-  void testActionConnectionRequestWhenForbidden() {
-    doReturn(Optional.of(CONNECTION_REQUESTED))
-        .when(this.mockConnectionRepository)
-        .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
-
-    final ForbiddenException ex =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                this.connectionService.actionConnectionRequest(
-                    FROM_USER_ID, TO_USER_ID, Action.ACTION_ACCEPT, OTHER_USER_ID));
-    assertEquals("Only the connection recipient can action the request", ex.getMessage());
   }
 
   @Test

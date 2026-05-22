@@ -62,7 +62,7 @@ public class AuthController {
         authMapper.toCredential(request),
         authMapper.toBankingDetail(request),
         authMapper.toSecurityAnswers(request.getSecurityQuestionList()),
-        authMapper.toInvite(request),
+        request.getInviteCode(),
         null);
   }
 

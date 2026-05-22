@@ -26,7 +26,7 @@ export function Toast({ message, type = 'success', duration = 3000, onDismiss }:
   }, [duration, onDismiss])
 
   return (
-    <div className="fixed top-5 right-5 z-50 animate-fade-in">
+    <div className="fixed bottom-5 right-5 z-50 animate-fade-in">
       <div className={[
         'flex items-start gap-3 px-4 py-3 rounded-xl border shadow-card-dark max-w-sm',
         typeClasses[type],

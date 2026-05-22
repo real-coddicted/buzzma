@@ -196,7 +196,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/claims": {
+    "/api/v1/extraction/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["extractSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/extraction/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listJobs"];
+        put?: never;
+        post: operations["submitJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections": {
         parameters: {
             query?: never;
             header?: never;
@@ -206,6 +238,38 @@ export interface paths {
         get: operations["list_3"];
         put?: never;
         post: operations["create_4"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/action/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["action"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_4"];
+        put?: never;
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -253,7 +317,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -269,7 +333,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["action"];
+        post: operations["action_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -398,7 +462,7 @@ export interface paths {
         get: operations["getById_3"];
         put?: never;
         post?: never;
-        delete: operations["delete_3"];
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch: operations["update_1"];
@@ -484,6 +548,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/extraction/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/deals/unclaimed": {
         parameters: {
             query?: never;
@@ -492,6 +572,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getUnclaimedDeals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["summary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -596,6 +692,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_3"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -649,8 +761,6 @@ export interface components {
             updatedAt?: string;
         };
         TicketCommentRequestDto: {
-            /** Format: uuid */
-            ticketId: string;
             content: string;
         };
         TicketCommentResponseDto: {
@@ -700,16 +810,20 @@ export interface components {
             updatedAt?: string;
         };
         InviteRequestDto: {
-            role: string;
             /** Format: int32 */
             validityInDays?: number;
+            /** Format: int32 */
+            maxUseCount?: number;
         };
         InviteResponseDto: {
             code?: string;
-            role?: string;
             status?: string;
             /** Format: int32 */
             validTo?: number;
+            /** Format: int32 */
+            maxUseCount?: number;
+            /** Format: int32 */
+            usedCount?: number;
             /** Format: uuid */
             createdBy?: string;
             /** Format: date-time */
@@ -721,7 +835,6 @@ export interface components {
         };
         ConsumeInviteRequestDto: {
             inviteCode: string;
-            inviteeRole: string;
         };
         FileUploadResponseDto: {
             storageKey?: string;
@@ -745,6 +858,61 @@ export interface components {
             feedback?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        ExtractionResult: {
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            orderId?: string;
+            orderDate?: string;
+            productName?: string;
+            sellerName?: string;
+            amount?: number;
+            orderedBy?: string;
+        };
+        ExtractionJobResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            submittedBy?: string;
+            /** @enum {string} */
+            status?: "EXTRACTION_JOB_STATUS_PENDING" | "EXTRACTION_JOB_STATUS_PROCESSING" | "EXTRACTION_JOB_STATUS_COMPLETED" | "EXTRACTION_JOB_STATUS_FAILED";
+            originalFilename?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            errorMessage?: string;
+            result?: components["schemas"]["ExtractionResult"];
+            validationErrors?: components["schemas"]["ValidationError"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ValidationError: {
+            field?: string;
+            message?: string;
+        };
+        ConnectionRequestDto: {
+            /** Format: uuid */
+            toUserId: string;
+        };
+        ConnectionResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            fromUserId?: string;
+            fromName?: string;
+            /** Format: uuid */
+            toUserId?: string;
+            toName?: string;
+            status?: string;
+            /** Format: uuid */
+            createdBy?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         ClaimRequestDto: {
             /** Format: uuid */
@@ -1002,6 +1170,16 @@ export interface components {
             page?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        ConnectionSummaryResponseDto: {
+            /** Format: int64 */
+            total?: number;
+            /** Format: int64 */
+            connected?: number;
+            /** Format: int64 */
+            pending?: number;
+            /** Format: int64 */
+            rejected?: number;
         };
         AssignmentResponseDto: {
             /** Format: uuid */
@@ -1472,7 +1650,153 @@ export interface operations {
             };
         };
     };
+    extractSync: {
+        parameters: {
+            query?: {
+                requesterId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionResult"];
+                };
+            };
+        };
+    };
+    listJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionJobResponseDto"][];
+                };
+            };
+        };
+    };
+    submitJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionJobResponseDto"];
+                };
+            };
+        };
+    };
     list_3: {
+        parameters: {
+            query?: {
+                status?: "CONNECTION_STATUS_REQUESTED" | "CONNECTION_STATUS_ACCEPTED" | "CONNECTION_STATUS_REJECTED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionResponseDto"][];
+                };
+            };
+        };
+    };
+    create_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionRequestDto"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionResponseDto"];
+                };
+            };
+        };
+    };
+    action: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action: "ACTION_ACCEPT" | "ACTION_REJECT";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionRequestDto"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1492,7 +1816,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query: {
                 request: components["schemas"]["ClaimRequestDto"];
@@ -1574,7 +1898,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -1598,7 +1922,7 @@ export interface operations {
             };
         };
     };
-    action: {
+    action_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1813,7 +2137,7 @@ export interface operations {
             };
         };
     };
-    delete_3: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1985,6 +2309,28 @@ export interface operations {
             };
         };
     };
+    getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExtractionJobResponseDto"];
+                };
+            };
+        };
+    };
     getUnclaimedDeals: {
         parameters: {
             query: {
@@ -2005,6 +2351,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PagedDealsResponseDto"];
+                };
+            };
+        };
+    };
+    summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionSummaryResponseDto"];
                 };
             };
         };
@@ -2118,6 +2484,26 @@ export interface operations {
         };
     };
     delete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_3: {
         parameters: {
             query?: never;
             header?: never;

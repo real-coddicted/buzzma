@@ -1,11 +1,11 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestion;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
+import com.coddicted.buzzma.invite.entity.Invite;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
@@ -103,6 +103,15 @@ public final class Fixtures {
 
   static final Invite INVITE_5 =
       FileUtils.loadResourceAsObject("/fixtures/input/identity/invite-5.json", Invite.class);
+
+  static final Invite INVITE_6 =
+      FileUtils.loadResourceAsObject("/fixtures/input/identity/invite-6.json", Invite.class);
+
+  static final Invite INVITE_7 =
+      FileUtils.loadResourceAsObject("/fixtures/input/identity/invite-7.json", Invite.class);
+
+  static final Invite INVITE_8 =
+      FileUtils.loadResourceAsObject("/fixtures/input/identity/invite-8.json", Invite.class);
 
   private Fixtures() {}
 }

@@ -1,18 +1,17 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.AuthService;
-import com.coddicted.buzzma.identity.service.InviteService;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserCredentialService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.security.JwtService;
 import java.util.List;
@@ -71,10 +70,10 @@ public class AuthServiceImpl implements AuthService {
       final UserCredential userCredential,
       final UserBankingDetail userBankingDetail,
       final List<SecurityAnswer> securityAnswerList,
-      final Invite invite,
+      final String inviteCode,
       final UUID requesterId) {
     // can register
-    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, invite)) {
+    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, inviteCode)) {
 
       // Save user
       final BuzzmaUser savedUser = this.userService.create(user);
@@ -87,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
       // Save security answer
       securityAnswerList.forEach(this.securityQuestionAnswerService::createSecurityAnswer);
       // Consume invite
-      this.inviteService.consume(invite, requesterId);
+      this.inviteService.consume(this.inviteService.getByCode(inviteCode), requesterId);
       return savedUser;
     }
 
@@ -115,10 +114,10 @@ public class AuthServiceImpl implements AuthService {
       final UserCredential userCredential,
       final UserBankingDetail userBankingDetail,
       final List<SecurityAnswer> securityAnswerList,
-      final Invite invite) {
+      final String inviteCode) {
     final boolean validUser = validateUser(user);
     final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
-    final boolean validInvite = this.inviteService.verify(user.getRole(), invite.getCode());
+    final boolean validInvite = this.inviteService.verify(inviteCode);
     final boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
     final boolean validPassword = validateUserCredential(userCredential);
     return validUser

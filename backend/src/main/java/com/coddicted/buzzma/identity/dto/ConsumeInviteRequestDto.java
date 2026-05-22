@@ -10,5 +10,4 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class ConsumeInviteRequestDto {
   @NotBlank String inviteCode;
-  @NotBlank String inviteeRole;
 }

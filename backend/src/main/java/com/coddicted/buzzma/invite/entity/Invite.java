@@ -1,7 +1,10 @@
-package com.coddicted.buzzma.identity.entity;
+package com.coddicted.buzzma.invite.entity;
 
+import com.coddicted.buzzma.shared.common.AuditEntityListener;
+import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -18,12 +21,13 @@ import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "invites")
+@EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Invite {
+public class Invite implements Auditable {
 
   @Id
   @GeneratedValue
@@ -34,10 +38,6 @@ public class Invite {
   @Column(name = "code", unique = true, nullable = false)
   private String code;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "invitee_role", nullable = false)
-  private UserRole role;
-
   @Column(name = "owner_id")
   private UUID ownerId;
 
@@ -47,6 +47,12 @@ public class Invite {
 
   @Column(name = "valid_to")
   private int validTo;
+
+  @Column(name = "max_use_count", nullable = false)
+  private int maxUseCount;
+
+  @Column(name = "used_count", nullable = false)
+  private int usedCount;
 
   // Audit fields
   @Column(name = "created_by")

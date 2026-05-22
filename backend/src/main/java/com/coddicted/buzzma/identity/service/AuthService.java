@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.identity.service;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.Invite;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
@@ -16,7 +15,7 @@ public interface AuthService {
       UserCredential userCredential,
       UserBankingDetail userBankingDetail,
       List<SecurityAnswer> securityAnswerList,
-      Invite invite,
+      String inviteCode,
       UUID requesterId);
 
   BuzzmaUser signIn(BuzzmaUser user, UserCredential userCredential);

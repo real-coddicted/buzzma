@@ -15,7 +15,11 @@ public class ConnectionResponseDto {
 
   UUID fromUserId;
 
+  String fromName;
+
   UUID toUserId;
+
+  String toName;
 
   String status;
 

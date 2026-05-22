@@ -864,13 +864,13 @@ export const orderReviews: OrderReviewItem[] = [
 ]
 
 export const connections: Connection[] = [
-  { id: 'c-1',  name: 'Nova Retail',       type: 'brand',  category: 'Fashion & Apparel', status: 'connected', since: 'Jan 2025', avatar: 'N', avatarColor: '#57c7ff' },
-  { id: 'c-2',  name: 'Apex Media',        type: 'agency', category: 'Performance',       status: 'connected', since: 'Mar 2025', avatar: 'A', avatarColor: '#bd93f9' },
-  { id: 'c-3',  name: 'GreenLeaf Co.',     type: 'brand',  category: 'Health & Wellness', status: 'connected', since: 'Apr 2025', avatar: 'G', avatarColor: '#50fa7b' },
-  { id: 'c-4',  name: 'Luminary Agency',   type: 'agency', category: 'Influencer',        status: 'pending',                     avatar: 'L', avatarColor: '#ffb86c' },
-  { id: 'c-5',  name: 'Orbit Electronics', type: 'brand',  category: 'Consumer Tech',     status: 'pending',                     avatar: 'O', avatarColor: '#ff79c6' },
-  { id: 'c-6',  name: 'Stride Sports',     type: 'brand',  category: 'Sports & Fitness',  status: 'invited',                     avatar: 'S', avatarColor: '#ff5555' },
-  { id: 'c-7',  name: 'Beacon Digital',    type: 'agency', category: 'Content',           status: 'invited',                     avatar: 'B', avatarColor: '#8be9fd' },
+  { id: 'c-1',  toUserId: '00000000-0000-0000-0000-000000000001', name: 'Nova Retail',       type: 'brand',  category: 'Fashion & Apparel', status: 'connected', since: 'Jan 2025', avatar: 'N', avatarColor: '#57c7ff' },
+  { id: 'c-2',  toUserId: '00000000-0000-0000-0000-000000000002', name: 'Apex Media',        type: 'agency', category: 'Performance',       status: 'connected', since: 'Mar 2025', avatar: 'A', avatarColor: '#bd93f9' },
+  { id: 'c-3',  toUserId: '00000000-0000-0000-0000-000000000003', name: 'GreenLeaf Co.',     type: 'brand',  category: 'Health & Wellness', status: 'connected', since: 'Apr 2025', avatar: 'G', avatarColor: '#50fa7b' },
+  { id: 'c-4',  toUserId: '00000000-0000-0000-0000-000000000004', name: 'Luminary Agency',   type: 'agency', category: 'Influencer',        status: 'pending',                     avatar: 'L', avatarColor: '#ffb86c' },
+  { id: 'c-5',  toUserId: '00000000-0000-0000-0000-000000000005', name: 'Orbit Electronics', type: 'brand',  category: 'Consumer Tech',     status: 'pending',                     avatar: 'O', avatarColor: '#ff79c6' },
+  { id: 'c-6',  toUserId: '00000000-0000-0000-0000-000000000006', name: 'Stride Sports',     type: 'brand',  category: 'Sports & Fitness',  status: 'rejected',                    avatar: 'S', avatarColor: '#ff5555' },
+  { id: 'c-7',  toUserId: '00000000-0000-0000-0000-000000000007', name: 'Beacon Digital',    type: 'agency', category: 'Content',           status: 'rejected',                    avatar: 'B', avatarColor: '#8be9fd' },
 ]
 
 export const notifications: Notification[] = [
