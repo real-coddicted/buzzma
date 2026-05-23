@@ -4,6 +4,7 @@ export type { Platform, CampaignType }
 
 export interface AssignmentItem {
   id: string
+  campaignId: string
   productName: string
   productImageUrl: string
   productUrl: string
@@ -15,4 +16,6 @@ export interface AssignmentItem {
   offeredPricePaise: number
   commissionOfferedPaise: number
   slotsOffered: number
+  sellerName?: string
+  termsAndConditions?: string
 }

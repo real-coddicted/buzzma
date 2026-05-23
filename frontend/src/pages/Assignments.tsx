@@ -8,10 +8,16 @@ import type { AssignmentItem } from '../types/AssignmentTypes'
 
 export function Assignments() {
   const [activeTab, setActiveTab] = useState<AssignmentTab>('unpublished')
-  const [selected, setSelected]   = useState<AssignmentItem | null>(null)
+  const [selected, setSelected]   = useState<{ item: AssignmentItem; published: boolean } | null>(null)
 
   if (selected) {
-    return <AssignmentDetail item={selected} onBack={() => setSelected(null)} />
+    return (
+      <AssignmentDetail
+        item={selected.item}
+        onBack={() => setSelected(null)}
+        readOnly={selected.published}
+      />
+    )
   }
 
   return (
@@ -28,8 +34,12 @@ export function Assignments() {
       <AssignmentTabs value={activeTab} onChange={setActiveTab} />
 
       <Card padded={false}>
-        {activeTab === 'unpublished' && <UnpublishedAssignments onSelect={setSelected} />}
-        {activeTab === 'published'   && <PublishedAssignments />}
+        {activeTab === 'unpublished' && (
+          <UnpublishedAssignments onSelect={item => setSelected({ item, published: false })} />
+        )}
+        {activeTab === 'published' && (
+          <PublishedAssignments onSelect={item => setSelected({ item, published: true })} />
+        )}
       </Card>
     </div>
   )

@@ -13,6 +13,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class AssignmentResponseDto {
   UUID id;
+  UUID campaignId;
   UUID ownerId;
   String productName;
   String productImageUrl;
@@ -21,7 +22,8 @@ public class AssignmentResponseDto {
   CampaignType dealType;
   BigInteger originalPricePaise;
   BigInteger offeredPricePaise;
-  // Todo: commission offered
+  BigInteger commissionOfferedPaise;
+  Integer slotLimit;
   Integer returnWindowDays;
   String termsAndConditions;
   String sellerName;

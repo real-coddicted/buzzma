@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
+import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -28,7 +29,7 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Deal {
+public class Deal implements Auditable {
 
   @Id
   @GeneratedValue

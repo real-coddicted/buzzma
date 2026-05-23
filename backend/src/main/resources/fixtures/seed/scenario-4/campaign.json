@@ -1,0 +1,23 @@
+{
+  "id": "5eed0003-0004-0000-0000-000000000001",
+  "title": "Lakme Skin Serum Nykaa Rating Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 3,
+  "platform": "PLATFORM_NYKAA",
+  "type": "CAMPAIGN_TYPE_RATING",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20260630,
+  "openToAll": false,
+  "campaignPricePaise": 75000,
+  "sellerName": "Lakme India",
+  "product": {
+    "id": "5eed0002-0004-0000-0000-000000000001",
+    "name": "Lakme 9 to 5 Vitamin C+ Facial Serum 30ml",
+    "imageUrl": "https://www.nykaa.com/media/catalog/product/4/4/4487_lakme_serum.jpg",
+    "productLink": "https://www.nykaa.com/lakme-9-to-5-vitamin-c-facial-serum/p/4487",
+    "pricePaise": 74900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}
+

@@ -1,11 +1,15 @@
 package com.coddicted.buzzma.campaign.controller;
 
+import com.coddicted.buzzma.campaign.dto.CommissionResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedAssignmentsResponseDto;
 import com.coddicted.buzzma.campaign.dto.PublishAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
+import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
+import com.coddicted.buzzma.campaign.mapper.CommissionMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
 import com.coddicted.buzzma.campaign.service.AssignmentService;
+import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -25,12 +29,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class AssignmentController {
 
   private final AssignmentService assignmentService;
+  private final CommissionService commissionService;
   private final AssignmentMapper assignmentMapper;
+  private final CommissionMapper commissionMapper;
 
   public AssignmentController(
-      final AssignmentService assignmentService, final AssignmentMapper assignmentMapper) {
+      final AssignmentService assignmentService,
+      final CommissionService commissionService,
+      final AssignmentMapper assignmentMapper,
+      final CommissionMapper commissionMapper) {
     this.assignmentService = assignmentService;
+    this.commissionService = commissionService;
     this.assignmentMapper = assignmentMapper;
+    this.commissionMapper = commissionMapper;
   }
 
   @GetMapping
@@ -61,5 +72,13 @@ public class AssignmentController {
         request.getCommissionChargedPaise(),
         request.getDealPricePaise(),
         requesterId);
+  }
+
+  @GetMapping("/commissionCharged/{campaignId}")
+  public CommissionResponseDto getCommissionCharged(
+      @CurrentUserId final UUID requesterId, @PathVariable final UUID campaignId) {
+    final Commission commission =
+        this.commissionService.getCommissionCharged(campaignId, requesterId);
+    return this.commissionMapper.toResponse(commission);
   }
 }

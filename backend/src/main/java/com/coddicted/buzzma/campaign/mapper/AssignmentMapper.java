@@ -15,6 +15,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface AssignmentMapper {
 
   @Mapping(source = "campaignAssignment.id", target = "id")
+  @Mapping(source = "campaignAssignment.campaignId", target = "campaignId")
   @Mapping(source = "campaignAssignment.assigneeId", target = "ownerId")
   @Mapping(source = "campaign.product.name", target = "productName")
   @Mapping(
@@ -29,6 +30,8 @@ public interface AssignmentMapper {
   @Mapping(source = "campaign.type", target = "dealType")
   @Mapping(source = "campaign.product.pricePaise", target = "originalPricePaise")
   @Mapping(source = "campaignAssignment.campaignPricePaise", target = "offeredPricePaise")
+  @Mapping(source = "campaignAssignment.commissionOfferedPaise", target = "commissionOfferedPaise")
+  @Mapping(source = "campaignAssignment.slotLimit", target = "slotLimit")
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")
   @Mapping(source = "campaign.termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "campaign.sellerName", target = "sellerName")

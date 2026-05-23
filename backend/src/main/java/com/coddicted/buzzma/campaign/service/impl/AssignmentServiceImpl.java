@@ -87,7 +87,7 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public boolean publishAssignment(
       final UUID campaignId,
       final UUID campaignAssignmentId,
@@ -100,6 +100,7 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     final Commission commission =
         Commission.builder()
             .commissionPaise(commissionCharged)
+            .campaignId(campaignId)
             .chargedById(chargedById)
             .createdBy(chargedById)
             .updatedBy(chargedById)
@@ -109,6 +110,12 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     final Deal deal =
         toDeal(campaign, campaignAssignment.getCampaignSlot(), dealPrice, chargedById);
     this.dealService.create(deal);
+    final CampaignAssignment updated =
+        campaignAssignment.toBuilder()
+            .status(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED)
+            .updatedBy(chargedById)
+            .build();
+    this.campaignAssignmentService.update(updated);
     return true;
     // Todo: Add error handling
   }

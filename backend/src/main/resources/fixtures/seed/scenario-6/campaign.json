@@ -1,0 +1,23 @@
+{
+  "id": "5eed0003-0006-0000-0000-000000000001",
+  "title": "Puma Suede Classic Flipkart Review Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 6,
+  "platform": "PLATFORM_FLIPKART",
+  "type": "CAMPAIGN_TYPE_REVIEW",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20260815,
+  "openToAll": false,
+  "campaignPricePaise": 600000,
+  "sellerName": "Puma India",
+  "product": {
+    "id": "5eed0002-0006-0000-0000-000000000001",
+    "name": "Puma Suede Classic Sneakers",
+    "imageUrl": "https://rukminim2.flixcart.com/image/416/416/puma-suede-classic.jpg",
+    "productLink": "https://www.flipkart.com/puma-suede-classic/p/itm456",
+    "pricePaise": 599900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}
+

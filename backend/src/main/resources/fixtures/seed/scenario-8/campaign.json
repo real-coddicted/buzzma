@@ -1,0 +1,23 @@
+{
+  "id": "5eed0003-0008-0000-0000-000000000001",
+  "title": "Himalaya Face Wash Nykaa Rating Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 4,
+  "platform": "PLATFORM_NYKAA",
+  "type": "CAMPAIGN_TYPE_RATING",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20261231,
+  "openToAll": false,
+  "campaignPricePaise": 29900,
+  "sellerName": "Himalaya Wellness",
+  "product": {
+    "id": "5eed0002-0008-0000-0000-000000000001",
+    "name": "Himalaya Purifying Neem Face Wash 150ml",
+    "imageUrl": "https://www.nykaa.com/media/catalog/product/h/w/himalaya-neem-facewash.jpg",
+    "productLink": "https://www.nykaa.com/himalaya-purifying-neem-face-wash/p/1234",
+    "pricePaise": 14900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}
+

@@ -36,7 +36,17 @@ public class DevDataSeeder implements ApplicationRunner {
   private static final Logger LOGGER = LoggerFactory.getLogger(DevDataSeeder.class);
 
   private static final List<String> CAMPAIGN_SCENARIOS =
-      List.of("scenario-1", "scenario-2", "scenario-3");
+      List.of(
+          "scenario-1",
+          "scenario-2",
+          "scenario-3",
+          "scenario-4",
+          "scenario-5",
+          "scenario-6",
+          "scenario-7",
+          "scenario-8");
+
+  private static final UUID MEDIATOR_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000005");
 
   private final UsersRepository usersRepository;
   private final UserCredentialRepository userCredentialRepository;
@@ -57,10 +67,11 @@ public class DevDataSeeder implements ApplicationRunner {
   @Override
   @Transactional
   public void run(final ApplicationArguments args) {
-    seedUser("Test Admin", "9000000001", "admin123", UserRole.ROLE_ADMIN);
-    seedUser("Test Buyer", "9000000002", "buyer123", UserRole.ROLE_BUYER);
-    seedUser("Test Agency", "9000000003", "agency123", UserRole.ROLE_AGENCY);
-    seedUser("Test Brand", "9000000004", "brand123", UserRole.ROLE_BRAND);
+    seedUser("Test Admin", "9000000001", "test1234", UserRole.ROLE_ADMIN);
+    seedUser("Test Buyer", "9000000002", "test1234", UserRole.ROLE_BUYER);
+    seedUser("Test Agency", "9000000003", "test1234", UserRole.ROLE_AGENCY);
+    seedUser("Test Brand", "9000000004", "test1234", UserRole.ROLE_BRAND);
+    seedMediatorUser("Test Mediator", "9000000005", "test1234");
     seedConnections();
     CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
     CAMPAIGN_SCENARIOS.forEach(this::seedAssignment);
@@ -68,8 +79,9 @@ public class DevDataSeeder implements ApplicationRunner {
     CAMPAIGN_SCENARIOS.forEach(this::seedClaim);
     LOGGER.warn("==========================================================");
     LOGGER.warn("  DEV SEED — test credentials (h2 profile only)");
-    LOGGER.warn("  Admin   mobile=9000000001  password=admin123");
-    LOGGER.warn("  Buyer   mobile=9000000002  password=buyer123");
+    LOGGER.warn("  Admin    mobile=9000000001  password=test123");
+    LOGGER.warn("  Buyer    mobile=9000000002  password=test123");
+    LOGGER.warn("  Mediator mobile=9000000005  password=test123");
     LOGGER.warn("==========================================================");
   }
 
@@ -301,6 +313,34 @@ public class DevDataSeeder implements ApplicationRunner {
         this.jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM " + table + " WHERE id = ?", Integer.class, id);
     return count != null && count > 0;
+  }
+
+  private void seedMediatorUser(final String name, final String mobile, final String rawPassword) {
+    if (rowExists("users", MEDIATOR_ID)) {
+      return;
+    }
+    final Timestamp now = Timestamp.from(Instant.now());
+    this.jdbcTemplate.update(
+        "INSERT INTO users (id, name, mobile, role, status, created_at, updated_at, is_deleted)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        MEDIATOR_ID,
+        name,
+        mobile,
+        UserRole.ROLE_MEDIATOR.name(),
+        UserStatus.USER_STATUS_ACTIVE.name(),
+        now,
+        now,
+        false);
+    final UUID credentialId = UUID.randomUUID();
+    this.jdbcTemplate.update(
+        "INSERT INTO user_credentials (id, user_id, password_hash, created_at, updated_at,"
+            + " is_deleted) VALUES (?, ?, ?, ?, ?, ?)",
+        credentialId,
+        MEDIATOR_ID,
+        this.passwordService.hashPassword(rawPassword),
+        now,
+        now,
+        false);
   }
 
   private void seedUser(

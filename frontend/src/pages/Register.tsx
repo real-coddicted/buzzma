@@ -26,6 +26,8 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
     inviteCode: '',
     brandName: '',
     agencyName: '',
+    mediatorName: '',
+    buyerName: '',
     securityQuestion1: '',
     securityAnswer1: '',
     securityQuestion2: '',
@@ -65,6 +67,10 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
       next.brandName = 'Brand name is required'
     if (form.registerAs === 'agency' && !form.agencyName.trim())
       next.agencyName = 'Agency name is required'
+    if (form.registerAs === 'mediator' && !form.mediatorName.trim())
+      next.mediatorName = 'Mediator name is required'
+    if (form.registerAs === 'buyer' && !form.buyerName.trim())
+      next.buyerName = 'Buyer name is required'
     if (!form.securityAnswer1.trim()) next.securityAnswer1 = 'Answer is required'
     if (!form.securityAnswer2.trim()) next.securityAnswer2 = 'Answer is required'
     setErrors(next)
@@ -122,11 +128,13 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
               >
                 <option value="brand">Brand</option>
                 <option value="agency">Agency</option>
+                <option value="mediator">Mediator</option>
+                <option value="buyer">Buyer</option>
               </select>
             </div>
 
             {/* Conditional name field */}
-            {form.registerAs === 'brand' ? (
+            {form.registerAs === 'brand' && (
               <div>
                 <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Brand Name
@@ -142,7 +150,8 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                   <p className="mt-1 text-xs text-neon-red">{errors.brandName}</p>
                 )}
               </div>
-            ) : (
+            )}
+            {form.registerAs === 'agency' && (
               <div>
                 <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Agency Name
@@ -156,6 +165,40 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                 />
                 {errors.agencyName && (
                   <p className="mt-1 text-xs text-neon-red">{errors.agencyName}</p>
+                )}
+              </div>
+            )}
+            {form.registerAs === 'mediator' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                  Mediator Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={form.mediatorName}
+                  onChange={e => set('mediatorName', e.target.value)}
+                  className={inputBase}
+                />
+                {errors.mediatorName && (
+                  <p className="mt-1 text-xs text-neon-red">{errors.mediatorName}</p>
+                )}
+              </div>
+            )}
+            {form.registerAs === 'buyer' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                  Buyer Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Jane Smith"
+                  value={form.buyerName}
+                  onChange={e => set('buyerName', e.target.value)}
+                  className={inputBase}
+                />
+                {errors.buyerName && (
+                  <p className="mt-1 text-xs text-neon-red">{errors.buyerName}</p>
                 )}
               </div>
             )}

@@ -20,6 +20,8 @@ public interface CampaignAssignmentService {
 
   List<CampaignAssignment> update(List<CampaignAssignment> assignees);
 
+  CampaignAssignment update(CampaignAssignment campaignAssignment);
+
   CampaignAssignment delete(UUID campaignAssignmentId, UUID requesterId);
 
   List<CampaignAssignment> copy(

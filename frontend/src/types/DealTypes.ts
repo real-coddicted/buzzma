@@ -23,6 +23,8 @@ export interface Deal {
   dealTypeLabel: string
   originalPricePaise: number
   offeredPricePaise: number
+  sellerName?: string
+  termsAndConditions?: string
   status: DealStatus
   currentStep?: number
 }

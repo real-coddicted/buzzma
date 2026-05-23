@@ -1,0 +1,23 @@
+{
+  "id": "5eed0003-0007-0000-0000-000000000001",
+  "title": "boAt Rockerz 450 Amazon Review Campaign",
+  "ownerId": "5eed0001-0000-0000-0000-000000000004",
+  "totalSlots": 8,
+  "platform": "PLATFORM_AMAZON",
+  "type": "CAMPAIGN_TYPE_REVIEW",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "endDate": 20261231,
+  "openToAll": false,
+  "campaignPricePaise": 450000,
+  "sellerName": "boAt Lifestyle",
+  "product": {
+    "id": "5eed0002-0007-0000-0000-000000000001",
+    "name": "boAt Rockerz 450 Bluetooth Headphone",
+    "imageUrl": "https://m.media-amazon.com/images/I/61NIIgoCRnL.jpg",
+    "productLink": "https://www.amazon.in/dp/B07V7Y8T5V",
+    "pricePaise": 179900
+  },
+  "createdBy": "5eed0001-0000-0000-0000-000000000004",
+  "updatedBy": "5eed0001-0000-0000-0000-000000000004"
+}
+

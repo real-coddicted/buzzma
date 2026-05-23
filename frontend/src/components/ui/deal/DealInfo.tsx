@@ -78,6 +78,7 @@ export function DealInfo({ deal }: DealInfoProps) {
         <div>
           <Row label="Platform"       value={deal.platformLabel} />
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
+          {deal.sellerName && <Row label="Seller" value={deal.sellerName} />}
           <Row label="Original Price" value={paise(deal.originalPricePaise)} />
           <Row label="Offered Price"  value={paise(deal.offeredPricePaise)} />
           <Row label="You Save"       value={`${paise(deal.originalPricePaise - deal.offeredPricePaise)} (${discount}%)`} />
@@ -88,16 +89,19 @@ export function DealInfo({ deal }: DealInfoProps) {
             Terms & Conditions
           </h4>
           <ul className="space-y-2">
-            {[
-              'Purchase must be made through the specified platform using your registered account.',
-              'The offered price is valid only for the duration of the campaign and may be withdrawn at any time.',
-              'Only one claim per user per deal is permitted.',
-              'Order ID must be submitted within 48 hours of purchase.',
-              'Refunded, cancelled, or returned orders are not eligible for deal claims.',
-              'Screenshot of the order confirmation may be required for verification.',
-              'Buzzma reserves the right to reject claims that do not meet the stated criteria.',
-              'Cashback or commission, if applicable, will be credited within 7–14 business days post verification.',
-            ].map((term, i) => (
+            {(deal.termsAndConditions
+              ? deal.termsAndConditions.split('\n').map(t => t.trim()).filter(Boolean)
+              : [
+                  'Purchase must be made through the specified platform using your registered account.',
+                  'The offered price is valid only for the duration of the campaign and may be withdrawn at any time.',
+                  'Only one claim per user per deal is permitted.',
+                  'Order ID must be submitted within 48 hours of purchase.',
+                  'Refunded, cancelled, or returned orders are not eligible for deal claims.',
+                  'Screenshot of the order confirmation may be required for verification.',
+                  'Buzzma reserves the right to reject claims that do not meet the stated criteria.',
+                  'Cashback or commission, if applicable, will be credited within 7–14 business days post verification.',
+                ]
+            ).map((term, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
                 <span className="mt-1.5 w-1 h-1 rounded-full bg-ink-light-muted dark:bg-ink-dark-muted flex-shrink-0" />
                 {term}

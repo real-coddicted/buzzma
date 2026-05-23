@@ -1,4 +1,4 @@
-export type LoginAs = 'brand' | 'agency'
+export type LoginAs = 'brand' | 'agency' | 'mediator' | 'buyer'
 
 export interface RegisterForm {
   registerAs: LoginAs
@@ -7,6 +7,8 @@ export interface RegisterForm {
   inviteCode: string
   brandName: string
   agencyName: string
+  mediatorName: string
+  buyerName: string
   securityQuestion1: string
   securityAnswer1: string
   securityQuestion2: string

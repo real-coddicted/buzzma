@@ -4,6 +4,8 @@ import { fetchUnpublishedAssignments } from '../../../api/assignmentApi'
 import { AssignmentFilterBar } from './AssignmentFilterBar'
 import type { AssignmentTypeFilter } from './AssignmentFilterBar'
 import { AssignmentListView } from './AssignmentListView'
+import { Loading } from '../Loading'
+import { Toast } from '../Toast'
 
 interface UnpublishedAssignmentsProps {
   onSelect: (item: AssignmentItem) => void
@@ -12,14 +14,17 @@ interface UnpublishedAssignmentsProps {
 export function UnpublishedAssignments({ onSelect }: UnpublishedAssignmentsProps) {
   const [items, setItems]           = useState<AssignmentItem[]>([])
   const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState<string | null>(null)
   const [search, setSearch]         = useState('')
   const [typeFilter, setTypeFilter] = useState<AssignmentTypeFilter>('all')
 
   useEffect(() => {
-    fetchUnpublishedAssignments().then(data => {
-      setItems(data)
-      setLoading(false)
-    })
+    fetchUnpublishedAssignments()
+      .then(data => { setItems(data); setLoading(false) })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Failed to load assignments.')
+        setLoading(false)
+      })
   }, [])
 
   const filtered = useMemo(() => items.filter(item => {
@@ -30,6 +35,7 @@ export function UnpublishedAssignments({ onSelect }: UnpublishedAssignmentsProps
 
   return (
     <>
+      {error && <Toast type="error" message={error} onDismiss={() => setError(null)} />}
       <div className="p-4 border-b border-surface-light-border dark:border-surface-dark-border">
         <AssignmentFilterBar
           search={search}
@@ -41,7 +47,7 @@ export function UnpublishedAssignments({ onSelect }: UnpublishedAssignmentsProps
       <div className="p-4 max-h-[560px] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-ink-light-muted dark:text-ink-dark-muted text-sm">Loading…</p>
+            <Loading size={32} />
           </div>
         ) : (
           <AssignmentListView items={filtered} onSelect={onSelect} />

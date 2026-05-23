@@ -95,6 +95,8 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
               >
                 <option value="brand">Brand</option>
                 <option value="agency">Agency</option>
+                <option value="mediator">Mediator</option>
+                <option value="buyer">Buyer</option>
               </select>
             </div>
 

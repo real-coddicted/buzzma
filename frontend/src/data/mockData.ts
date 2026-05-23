@@ -489,6 +489,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 299900,
     offeredPricePaise: 149900,
     status: 'explore',
+    sellerName: 'boAt Lifestyle',
   },
   {
     id: 'd-2',
@@ -500,6 +501,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 79900,
     offeredPricePaise: 63900,
     status: 'explore',
+    sellerName: 'Lakme India',
   },
   {
     id: 'd-3',
@@ -511,6 +513,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 1299900,
     offeredPricePaise: 779900,
     status: 'explore',
+    sellerName: 'Nike India',
   },
   {
     id: 'd-4',
@@ -522,6 +525,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 12999900,
     offeredPricePaise: 9999900,
     status: 'explore',
+    sellerName: 'Samsung India',
   },
   {
     id: 'd-5',
@@ -533,6 +537,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 69900,
     offeredPricePaise: 55900,
     status: 'explore',
+    sellerName: 'The Ordinary',
   },
   {
     id: 'd-6',
@@ -544,6 +549,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 899900,
     offeredPricePaise: 674900,
     status: 'explore',
+    sellerName: 'Instant Pot Official',
   },
   {
     id: 'd-7',
@@ -555,6 +561,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 399900,
     offeredPricePaise: 239900,
     status: 'explore',
+    sellerName: "Levi's India",
   },
   {
     id: 'd-8',
@@ -566,6 +573,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 799900,
     offeredPricePaise: 559900,
     status: 'explore',
+    sellerName: 'Philips India',
   },
   {
     id: 'd-9',
@@ -577,6 +585,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 29900,
     offeredPricePaise: 23900,
     status: 'explore',
+    sellerName: 'WOW Skin Science',
   },
   {
     id: 'd-10',
@@ -588,6 +597,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 2999900,
     offeredPricePaise: 2249900,
     status: 'explore',
+    sellerName: 'Sony India',
   },
   {
     id: 'd-11',
@@ -599,6 +609,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 34900,
     offeredPricePaise: 27900,
     status: 'explore',
+    sellerName: 'Mamaearth',
   },
   {
     id: 'd-12',
@@ -610,6 +621,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 1799900,
     offeredPricePaise: 1079900,
     status: 'explore',
+    sellerName: 'Adidas India',
   },
   {
     id: 'd-13',
@@ -621,6 +633,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 2499900,
     offeredPricePaise: 1999900,
     status: 'explore',
+    sellerName: 'Apple India',
   },
   {
     id: 'd-14',
@@ -632,6 +645,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 49900,
     offeredPricePaise: 39900,
     status: 'explore',
+    sellerName: 'Nykaa Cosmetics',
   },
   {
     id: 'd-15',
@@ -643,6 +657,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 3999900,
     offeredPricePaise: 2999900,
     status: 'explore',
+    sellerName: 'Xiaomi India',
   },
   {
     id: 'd-16',
@@ -654,6 +669,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 459900,
     offeredPricePaise: 344900,
     status: 'explore',
+    sellerName: 'Prestige',
   },
   {
     id: 'd-17',
@@ -665,6 +681,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 299900,
     offeredPricePaise: 224900,
     status: 'explore',
+    sellerName: 'Forest Essentials',
   },
   {
     id: 'd-18',
@@ -676,6 +693,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 299900,
     offeredPricePaise: 179900,
     status: 'explore',
+    sellerName: 'H&M India',
   },
   {
     id: 'd-19',
@@ -687,6 +705,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 1899900,
     offeredPricePaise: 1424900,
     status: 'explore',
+    sellerName: 'LG India',
   },
   {
     id: 'd-20',
@@ -698,6 +717,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 19900,
     offeredPricePaise: 15900,
     status: 'explore',
+    sellerName: 'Biotique',
   },
   {
     id: 'd-c1',
@@ -710,6 +730,7 @@ export const deals: RawDeal[] = [
     offeredPricePaise: 149900,
     status: 'claimed',
     currentStep: 2,
+    sellerName: 'boAt Lifestyle',
   },
   {
     id: 'd-c2',
@@ -722,6 +743,7 @@ export const deals: RawDeal[] = [
     offeredPricePaise: 47900,
     status: 'claimed',
     currentStep: 0,
+    sellerName: 'Maybelline India',
   },
   {
     id: 'd-c3',
@@ -734,6 +756,7 @@ export const deals: RawDeal[] = [
     offeredPricePaise: 489900,
     status: 'claimed',
     currentStep: 3,
+    sellerName: 'Puma India',
   },
   {
     id: 'd-c4',
@@ -746,6 +769,7 @@ export const deals: RawDeal[] = [
     offeredPricePaise: 299900,
     status: 'claimed',
     currentStep: 1,
+    sellerName: 'Xiaomi India',
   },
   {
     id: 'd-c5',
@@ -758,12 +782,14 @@ export const deals: RawDeal[] = [
     offeredPricePaise: 63900,
     status: 'claimed',
     currentStep: 3,
+    sellerName: 'Dot & Key',
   },
 ]
 
 export const unpublishedAssignments: AssignmentItem[] = [
   {
     id: 'a-1',
+    campaignId: 'c-1',
     productName: 'boAt Rockerz 450 Bluetooth On-Ear Headphones',
     productImageUrl: 'https://m.media-amazon.com/images/I/61eD3sEoJKL._SX679_.jpg',
     productUrl: 'https://www.amazon.in/dp/B07HKPC7XS',
@@ -778,6 +804,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
   },
   {
     id: 'a-2',
+    campaignId: 'c-2',
     productName: 'Lakme Absolute Matte Revolution Lip Color',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/5/35014_1.jpg',
     productUrl: 'https://www.nykaa.com/lakme-absolute-matte-revolution-lip-color/p/35014',
@@ -792,6 +819,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
   },
   {
     id: 'a-3',
+    campaignId: 'c-3',
     productName: 'Nike Air Max 270 React Running Shoes',
     productImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
     productUrl: 'https://www.myntra.com/nike/nike-men-air-max-270-react/12345678/buy',
@@ -806,6 +834,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
   },
   {
     id: 'a-4',
+    campaignId: 'c-4',
     productName: 'Samsung 65" QLED 4K Smart TV',
     productImageUrl: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&q=80',
     productUrl: 'https://www.flipkart.com/samsung-163-cm-65-inch-qled-ultra-hd-4k-smart-tv/p/itm3f4e6a2c1b2d3',
@@ -820,6 +849,7 @@ export const unpublishedAssignments: AssignmentItem[] = [
   },
   {
     id: 'a-5',
+    campaignId: 'c-5',
     productName: 'The Ordinary Niacinamide 10% + Zinc 1% Serum',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/8/4/8432592_1.jpg',
     productUrl: 'https://www.nykaa.com/the-ordinary-niacinamide-10-zinc-1/p/8432592',
@@ -879,4 +909,3 @@ export const notifications: Notification[] = [
   { id: 'n3', title: 'Budget threshold hit (85%)',  message: 'You have used 85% of the budget for Winter Deals.',           time: '1h ago',  unread: false, pinned: false, accent: 'text-neon-orange' },
   { id: 'n4', title: 'New connection request',      message: 'StyleHub Brand wants to connect with your agency.',           time: '3h ago',  unread: false, pinned: false, accent: 'text-neon-blue'   },
 ]
-

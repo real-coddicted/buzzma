@@ -55,6 +55,11 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   }
 
   @Override
+  public CampaignAssignment update(final CampaignAssignment campaignAssignment) {
+    return this.campaignAssignmentRepository.save(campaignAssignment);
+  }
+
+  @Override
   public CampaignAssignment delete(final UUID campaignAssignmentId, final UUID requesterId) {
     final CampaignAssignment existingCampaignAssignment =
         mustFind(this.campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");

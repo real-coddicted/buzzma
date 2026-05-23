@@ -436,6 +436,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assignments/commissionCharged/{campaignId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCommissionCharged"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets/{id}/status": {
         parameters: {
             query?: never;
@@ -1185,6 +1201,8 @@ export interface components {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
+            campaignId?: string;
+            /** Format: uuid */
             ownerId?: string;
             productName?: string;
             productImageUrl?: string;
@@ -1195,6 +1213,9 @@ export interface components {
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             originalPricePaise?: number;
             offeredPricePaise?: number;
+            commissionOfferedPaise?: number;
+            /** Format: int32 */
+            slotLimit?: number;
             /** Format: int32 */
             returnWindowDays?: number;
             termsAndConditions?: string;
@@ -1208,6 +1229,13 @@ export interface components {
             page?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        CommissionResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            /** Format: uuid */
+            chargedById?: string;
+            commissionPaise?: number;
         };
         SseEmitter: {
             /** Format: int64 */
@@ -2085,6 +2113,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": boolean;
+                };
+            };
+        };
+    };
+    getCommissionCharged: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommissionResponseDto"];
                 };
             };
         };
