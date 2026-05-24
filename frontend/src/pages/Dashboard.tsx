@@ -217,12 +217,12 @@ export function Dashboard() {
                     <StatusBadge status={c.status} />
                   </td>
                   <td className="px-5 py-3.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ${c.budget.toLocaleString()}
+                    ₹{c.budget.toLocaleString()}
                   </td>
                   <td className="px-5 py-3.5">
                     <div>
                       <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">
-                        ${c.spent.toLocaleString()}
+                        ₹{c.spent.toLocaleString()}
                       </span>
                       <div className="mt-1 h-1 rounded-full bg-surface-light-hover dark:bg-surface-dark-hover overflow-hidden w-20">
                         <div

@@ -177,11 +177,11 @@ export function CampaignTable({ campaigns, onViewDetails, onLaunch }: Props) {
                     </div>
                   </td>
                   <td className="px-5 py-4 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ${c.budget.toLocaleString()}
+                    ₹{c.budget.toLocaleString()}
                   </td>
                   <td className="px-5 py-4">
                     <div className="space-y-1">
-                      <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">${c.spent.toLocaleString()}</span>
+                      <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">₹{c.spent.toLocaleString()}</span>
                       <SpentBar spent={c.spent} budget={c.budget} />
                     </div>
                   </td>

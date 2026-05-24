@@ -41,7 +41,7 @@ export const statCards: StatCardData[] = [
   {
     id: 'total-revenue',
     label: 'Total Revenue',
-    value: '$284,520',
+    value: '₹284,520',
     subValue: 'MTD',
     trend: 'up',
     trendValue: '+23.1%',

@@ -225,15 +225,15 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Total Budget</label>
-                <input className={readOnlyInputClass} type="text" value={`$${campaign.budget.toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${campaign.budget.toLocaleString()}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Spent</label>
-                <input className={readOnlyInputClass} type="text" value={`$${campaign.spent.toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${campaign.spent.toLocaleString()}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Remaining</label>
-                <input className={readOnlyInputClass} type="text" value={`$${(campaign.budget - campaign.spent).toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${(campaign.budget - campaign.spent).toLocaleString()}`} readOnly disabled />
               </div>
             </div>
           </section>
