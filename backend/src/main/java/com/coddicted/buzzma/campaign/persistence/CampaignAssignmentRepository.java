@@ -16,6 +16,8 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
 
   List<CampaignAssignment> findByCampaignId(UUID campaignId);
 
+  List<CampaignAssignment> findByCampaignIdAndIsDeletedFalse(UUID campaignId);
+
   List<CampaignAssignment> findByAssignorId(UUID assignorId);
 
   List<CampaignAssignment> findByAssigneeIdAndStatus(

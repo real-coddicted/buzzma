@@ -2,12 +2,14 @@ package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -33,27 +35,35 @@ public class CampaignController {
   public CampaignController(
       final CampaignService service,
       final CampaignMapper campaignMapper,
-      CampaignProcessor campaignProcessor) {
+      final CampaignProcessor campaignProcessor) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.campaignProcessor = campaignProcessor;
   }
 
+  @GetMapping
+  public List<CampaignSummaryResponseDto> list(@CurrentUserId final UUID requesterId) {
+    return this.campaignMapper.toSummaries(this.service.getByOwnerId(requesterId));
+  }
+
   @GetMapping("/{id}")
   public CampaignResponseDto getById(@PathVariable final UUID id) {
-    return this.campaignMapper.toResponse(this.service.getById(id));
+    return this.campaignProcessor.getById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public CampaignResponseDto create(@Valid @RequestBody final CampaignRequestDto request) {
-    return campaignProcessor.create(request);
+  public CampaignResponseDto create(
+      @CurrentUserId final UUID requesterId, @Valid @RequestBody final CampaignRequestDto request) {
+    return this.campaignProcessor.create(requesterId, request);
   }
 
   @PatchMapping("/{id}")
   public CampaignResponseDto update(
-      @PathVariable final UUID id, @Valid @RequestBody final CampaignRequestDto request) {
-    return campaignProcessor.updateCampaign(id, request);
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @Valid @RequestBody final CampaignRequestDto request) {
+    return this.campaignProcessor.updateCampaign(requesterId, id, request);
   }
 
   @DeleteMapping("/{id}")
@@ -68,5 +78,11 @@ public class CampaignController {
       @PathVariable final CampaignAction action,
       @CurrentUserId final UUID requesterId) {
     return this.campaignMapper.toResponse(this.service.action(id, action, requesterId));
+  }
+
+  @PostMapping("/{id}/copy")
+  public CampaignResponseDto copy(
+      @PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
+    return this.campaignMapper.toResponse(this.service.copy(id, requesterId));
   }
 }

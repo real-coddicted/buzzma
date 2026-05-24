@@ -67,6 +67,9 @@ public class Campaign implements Auditable {
   @Column(name = "status")
   private CampaignStatus status;
 
+  @Column(name = "start_date")
+  private Integer startDate;
+
   @Column(name = "end_date")
   private Integer endDate;
 

@@ -4,7 +4,7 @@
   "assignorId": "5eed0001-0000-0000-0000-000000000004",
   "assigneeId": "5eed0001-0000-0000-0000-000000000005",
   "slotLimit": 8,
-  "campaignPricePaise": 450000,
+  "adjustedCampaignPricePaise": 450000,
   "commissionOfferedPaise": 60000,
   "status": "CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED",
   "campaignSlot": {

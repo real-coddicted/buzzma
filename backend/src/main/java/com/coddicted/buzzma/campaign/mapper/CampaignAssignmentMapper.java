@@ -17,12 +17,19 @@ public interface CampaignAssignmentMapper {
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "campaignId", ignore = true)
+  @Mapping(target = "campaignSlot", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
-  @Mapping(source = "commissionOfferedPaise", target = "commissionOfferedPaise")
+  @Mapping(target = "createdBy", ignore = true)
+  @Mapping(target = "updatedBy", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(source = "slotOffered", target = "slotLimit")
   CampaignAssignment toCampaignAssignment(CampaignAssignmentRequestDto request);
 
   List<CampaignAssignment> toCampaignAssignments(List<CampaignAssignmentRequestDto> request);
 
+  @Mapping(source = "slotLimit", target = "slotOffered")
   CampaignAssignmentResponseDto toResponse(CampaignAssignment entity);
 
   List<CampaignAssignmentResponseDto> toResponse(List<CampaignAssignment> entities);

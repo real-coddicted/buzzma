@@ -2,6 +2,8 @@ package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,4 +22,6 @@ public interface CampaignService {
   Set<Campaign> findCampaignsById(Set<UUID> campaignIdSet);
 
   Campaign copy(UUID campaignId, UUID requesterId);
+
+  List<CampaignSummary> getByOwnerId(UUID ownerId);
 }

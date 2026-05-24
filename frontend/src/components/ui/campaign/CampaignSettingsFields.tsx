@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
@@ -7,17 +6,16 @@ interface FormSlice {
   totalSlots: string
   returnWindowDays: string
   openToAll: boolean
+  assignees: LinkedEntity[]
 }
 
 interface Props {
   form: FormSlice
   errors: Partial<Record<string, string>>
   set: (field: keyof FormSlice, value: unknown) => void
-  availableEntities: LinkedEntity[]
 }
 
-export function CampaignSettingsFields({ form, errors, set, availableEntities }: Props) {
-  const [entities, setEntities] = useState<LinkedEntity[]>([])
+export function CampaignSettingsFields({ form, errors, set }: Props) {
 
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
@@ -61,9 +59,8 @@ export function CampaignSettingsFields({ form, errors, set, availableEntities }:
 
       {!form.openToAll && (
         <LinkedEntitiesTable
-          entities={entities}
-          availableEntities={availableEntities}
-          onChange={setEntities}
+          entities={form.assignees}
+          onChange={v => set('assignees', v)}
         />
       )}
     </section>

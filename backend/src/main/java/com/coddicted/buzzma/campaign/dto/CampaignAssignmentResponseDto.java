@@ -12,7 +12,8 @@ import lombok.extern.jackson.Jacksonized;
 public class CampaignAssignmentResponseDto {
   UUID assignorId;
   UUID assigneeId;
-  BigInteger campaignPricePaise;
+  String assigneeName;
+  BigInteger adjustedCampaignPricePaise;
   BigInteger commissionOfferedPaise;
   Long slotOffered;
 }

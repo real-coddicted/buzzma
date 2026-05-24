@@ -1,4 +1,4 @@
-import type { Platform, CampaignType } from '../../../types'
+import type { Platform, CampaignType, LinkedEntity } from '../../../types'
 
 export const EMPTY_FORM = {
   title: '',
@@ -17,8 +17,7 @@ export const EMPTY_FORM = {
   endDate: '',
   totalSlots: '',
   openToAll: false,
-  agencyInput: '',
-  allowedAgencies: [] as string[],
+  assignees: [] as LinkedEntity[],
   termsAndConditions: '',
 }
 
@@ -56,8 +55,6 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
   if (isNaN(orig) || orig < 0) e.originalPriceRupees = 'Enter a valid amount'
   const camp = parseFloat(form.campaignPriceRupees)
   if (isNaN(camp) || camp < 0) e.campaignPriceRupees = 'Enter a valid amount'
-  const comm = parseFloat(form.commissionRupees)
-  if (isNaN(comm) || comm < 0) e.commissionRupees = 'Enter a valid amount'
 
   if (form.returnWindowDays !== '') {
     const rw = parseInt(form.returnWindowDays, 10)

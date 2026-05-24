@@ -1,19 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { LinkedEntity } from '../../../types'
-import { IconTrash, IconPlus } from '../icons'
-import { SearchEntityModal } from './SearchEntityModal'
+import { IconTrash } from '../icons'
+import { SearchConnectionsBar } from '../connections/SearchConnectionsBar'
+import type { ConnectionOption } from '../connections/SearchConnectionsBar'
+import { fetchConnections } from '../../../api/connectionApi'
 
 interface Props {
   entities: LinkedEntity[]
-  availableEntities: LinkedEntity[]
   onChange: (entities: LinkedEntity[]) => void
 }
 
-export function LinkedEntitiesTable({ entities, availableEntities, onChange }: Props) {
-  const [searchModalOpen, setSearchModalOpen] = useState(false)
+export function LinkedEntitiesTable({ entities, onChange }: Props) {
+  const [availableOptions, setAvailableOptions] = useState<ConnectionOption[]>([])
+
+  useEffect(() => {
+    fetchConnections('connected').then(connections => {
+      setAvailableOptions(connections.map(c => ({ id: c.id, name: c.name })))
+    }).catch(() => {})
+  }, [])
 
   const totalSlots = entities.reduce((sum, e) => sum + e.slotsAvailable, 0)
   const totalCommission = entities.reduce((sum, e) => sum + e.slotsAvailable * e.commissionOffered, 0)
+
+  const assignedIds = new Set(entities.map(e => e.id))
+  const unassignedOptions = availableOptions.filter(o => !assignedIds.has(o.id))
+
+  function handleAdd(option: ConnectionOption) {
+    onChange([...entities, { id: option.id, name: option.name, slotsAvailable: 0, commissionOffered: 0 }])
+  }
 
   function handleSlotsChange(id: string, value: string) {
     onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: parseInt(value) || 0 } : e))
@@ -27,28 +41,14 @@ export function LinkedEntitiesTable({ entities, availableEntities, onChange }: P
     onChange(entities.filter(e => e.id !== id))
   }
 
-  function handleAddFromSearch(incoming: LinkedEntity[]) {
-    const newEntities = incoming.filter(e => !entities.some(ex => ex.id === e.id))
-    if (newEntities.length > 0) {
-      onChange([...entities, ...newEntities.map(e => ({ ...e, slotsAvailable: 0 }))])
-    }
-    setSearchModalOpen(false)
-  }
-
   return (
     <>
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
-          Linked entities assigned to this campaign:
-        </p>
-        <button
-          type="button"
-          onClick={() => setSearchModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/15 transition-colors text-xs font-semibold"
-        >
-          <IconPlus size={13} />
-          Add
-        </button>
+      <div className="mb-3">
+        <SearchConnectionsBar
+          options={unassignedOptions}
+          onAdd={handleAdd}
+          placeholder="Search linked entities…"
+        />
       </div>
 
       <div className="overflow-auto max-h-[420px] rounded-lg border border-surface-light-border dark:border-surface-dark-border">
@@ -128,14 +128,6 @@ export function LinkedEntitiesTable({ entities, availableEntities, onChange }: P
           </div>
         </div>
       )}
-
-      <SearchEntityModal
-        open={searchModalOpen}
-        availableEntities={availableEntities}
-        assignedEntityIds={entities.map(e => e.id)}
-        onClose={() => setSearchModalOpen(false)}
-        onConfirm={handleAddFromSearch}
-      />
     </>
   )
 }

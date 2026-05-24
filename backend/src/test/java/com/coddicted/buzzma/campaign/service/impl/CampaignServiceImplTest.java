@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -41,6 +42,7 @@ class CampaignServiceImplTest {
   @Mock private CampaignRepository mockCampaignRepository;
   @Mock private CampaignAssignmentRepository mockCampaignAssignmentRepository;
   @Mock private CampaignAssignmentService mockCampaignAssignmentService;
+  @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignStateMachine mockStateMachine;
 
   private CampaignServiceImpl campaignService;
@@ -52,6 +54,7 @@ class CampaignServiceImplTest {
             this.mockCampaignRepository,
             this.mockCampaignAssignmentRepository,
             this.mockCampaignAssignmentService,
+            this.mockCampaignSlotRepository,
             this.mockStateMachine);
   }
 

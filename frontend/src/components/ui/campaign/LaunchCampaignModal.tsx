@@ -8,7 +8,6 @@ interface LaunchCampaignModalProps {
   open: boolean
   campaignName: string
   linkedEntities: LinkedEntity[]
-  availableEntities: LinkedEntity[]
   onClose: () => void
   onLaunch: () => void
 }
@@ -17,7 +16,6 @@ export function LaunchCampaignModal({
   open,
   campaignName,
   linkedEntities,
-  availableEntities,
   onClose,
   onLaunch,
 }: LaunchCampaignModalProps) {
@@ -62,7 +60,6 @@ export function LaunchCampaignModal({
         <div className="flex-1 overflow-y-auto p-6">
           <LinkedEntitiesTable
             entities={entities}
-            availableEntities={availableEntities}
             onChange={setEntities}
           />
         </div>

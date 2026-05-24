@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.persistence;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -13,4 +14,6 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
   Optional<Campaign> findByIdAndIsDeletedFalse(UUID id);
 
   Set<Campaign> findByIdInAndIsDeletedFalse(Set<UUID> ids);
+
+  List<Campaign> findByOwnerIdAndIsDeletedFalse(UUID ownerId);
 }

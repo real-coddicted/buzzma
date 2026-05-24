@@ -6,12 +6,8 @@ import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.UserStatus;
-import com.coddicted.buzzma.identity.persistence.UserCredentialRepository;
-import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.common.PasswordService;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.math.BigInteger;
@@ -46,20 +42,16 @@ public class DevDataSeeder implements ApplicationRunner {
           "scenario-7",
           "scenario-8");
 
+  private static final UUID ADMIN_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000001");
+  private static final UUID BUYER_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000002");
+  private static final UUID AGENCY_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000003");
+  private static final UUID BRAND_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000004");
   private static final UUID MEDIATOR_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000005");
 
-  private final UsersRepository usersRepository;
-  private final UserCredentialRepository userCredentialRepository;
   private final PasswordService passwordService;
   private final JdbcTemplate jdbcTemplate;
 
-  public DevDataSeeder(
-      final UsersRepository usersRepository,
-      final UserCredentialRepository userCredentialRepository,
-      final PasswordService passwordService,
-      final JdbcTemplate jdbcTemplate) {
-    this.usersRepository = usersRepository;
-    this.userCredentialRepository = userCredentialRepository;
+  public DevDataSeeder(final PasswordService passwordService, final JdbcTemplate jdbcTemplate) {
     this.passwordService = passwordService;
     this.jdbcTemplate = jdbcTemplate;
   }
@@ -67,11 +59,11 @@ public class DevDataSeeder implements ApplicationRunner {
   @Override
   @Transactional
   public void run(final ApplicationArguments args) {
-    seedUser("Test Admin", "9000000001", "test1234", UserRole.ROLE_ADMIN);
-    seedUser("Test Buyer", "9000000002", "test1234", UserRole.ROLE_BUYER);
-    seedUser("Test Agency", "9000000003", "test1234", UserRole.ROLE_AGENCY);
-    seedUser("Test Brand", "9000000004", "test1234", UserRole.ROLE_BRAND);
-    seedMediatorUser("Test Mediator", "9000000005", "test1234");
+    seedUser("Test Admin", "9000000001", "test1234", UserRole.ROLE_ADMIN, ADMIN_ID);
+    seedUser("Test Buyer", "9000000002", "test1234", UserRole.ROLE_BUYER, BUYER_ID);
+    seedUser("Test Agency", "9000000003", "test1234", UserRole.ROLE_AGENCY, AGENCY_ID);
+    seedUser("Test Brand", "9000000004", "test1234", UserRole.ROLE_BRAND, BRAND_ID);
+    seedUser("Test Mediator", "9000000005", "test1234", UserRole.ROLE_MEDIATOR, MEDIATOR_ID);
     seedConnections();
     CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
     CAMPAIGN_SCENARIOS.forEach(this::seedAssignment);
@@ -174,7 +166,7 @@ public class DevDataSeeder implements ApplicationRunner {
     final Timestamp now = Timestamp.from(Instant.now());
     this.jdbcTemplate.update(
         "INSERT INTO campaign_assignments (id, campaign_id, assignor_id, assignee_id, slot_limit,"
-            + " campaign_price_paise, commission_offered_paise, status, slot_id, created_by,"
+            + " adjusted_campaign_price_paise, commission_offered_paise, status, slot_id, created_by,"
             + " updated_by, created_at, updated_at, is_deleted)"
             + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         assignment.getId(),
@@ -182,7 +174,7 @@ public class DevDataSeeder implements ApplicationRunner {
         assignment.getAssignorId(),
         assignment.getAssigneeId(),
         assignment.getSlotLimit(),
-        assignment.getCampaignPricePaise(),
+        assignment.getAdjustedCampaignPricePaise(),
         assignment.getCommissionOfferedPaise(),
         assignment.getStatus() == null ? null : assignment.getStatus().name(),
         assignment.getCampaignSlot().getId(),
@@ -263,22 +255,26 @@ public class DevDataSeeder implements ApplicationRunner {
   }
 
   private void seedConnections() {
-    final UUID agencyId = userIdByMobile("9000000003");
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000001"),
-        agencyId,
-        userIdByMobile("9000000002"),
+        AGENCY_ID,
+        BUYER_ID,
         ConnectionStatus.CONNECTION_STATUS_REQUESTED);
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000002"),
-        agencyId,
-        userIdByMobile("9000000004"),
+        AGENCY_ID,
+        BRAND_ID,
         ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000003"),
-        agencyId,
-        userIdByMobile("9000000001"),
+        AGENCY_ID,
+        ADMIN_ID,
         ConnectionStatus.CONNECTION_STATUS_REJECTED);
+    insertConnection(
+        UUID.fromString("a0000000-0000-0000-0000-000000000004"),
+        AGENCY_ID,
+        MEDIATOR_ID,
+        ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
   }
 
   private void insertConnection(
@@ -301,13 +297,6 @@ public class DevDataSeeder implements ApplicationRunner {
         false);
   }
 
-  private UUID userIdByMobile(final String mobile) {
-    return this.usersRepository
-        .findByMobileAndIsDeletedFalse(mobile)
-        .map(BuzzmaUser::getId)
-        .orElseThrow(() -> new IllegalStateException("Seed user not found for mobile " + mobile));
-  }
-
   private boolean rowExists(final String table, final UUID id) {
     final Integer count =
         this.jdbcTemplate.queryForObject(
@@ -315,56 +304,36 @@ public class DevDataSeeder implements ApplicationRunner {
     return count != null && count > 0;
   }
 
-  private void seedMediatorUser(final String name, final String mobile, final String rawPassword) {
-    if (rowExists("users", MEDIATOR_ID)) {
+  private void seedUser(
+      final String name,
+      final String mobile,
+      final String rawPassword,
+      final UserRole role,
+      final UUID id) {
+    if (rowExists("users", id)) {
       return;
     }
     final Timestamp now = Timestamp.from(Instant.now());
     this.jdbcTemplate.update(
         "INSERT INTO users (id, name, mobile, role, status, created_at, updated_at, is_deleted)"
             + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        MEDIATOR_ID,
+        id,
         name,
         mobile,
-        UserRole.ROLE_MEDIATOR.name(),
+        role.name(),
         UserStatus.USER_STATUS_ACTIVE.name(),
         now,
         now,
         false);
-    final UUID credentialId = UUID.randomUUID();
     this.jdbcTemplate.update(
         "INSERT INTO user_credentials (id, user_id, password_hash, created_at, updated_at,"
             + " is_deleted) VALUES (?, ?, ?, ?, ?, ?)",
-        credentialId,
-        MEDIATOR_ID,
+        UUID.randomUUID(),
+        id,
         this.passwordService.hashPassword(rawPassword),
         now,
         now,
         false);
-  }
-
-  private void seedUser(
-      final String name, final String mobile, final String rawPassword, final UserRole role) {
-    if (this.usersRepository.existsUserByMobileAndIsDeletedFalse(mobile)) {
-      return;
-    }
-    final BuzzmaUser user =
-        BuzzmaUser.builder()
-            .name(name)
-            .mobile(mobile)
-            .role(role)
-            .status(UserStatus.USER_STATUS_ACTIVE)
-            .isDeleted(false)
-            .build();
-    final BuzzmaUser savedUser = this.usersRepository.save(user);
-
-    final UserCredential credential =
-        UserCredential.builder()
-            .userId(savedUser.getId())
-            .passwordHash(this.passwordService.hashPassword(rawPassword))
-            .isDeleted(false)
-            .build();
-    this.userCredentialRepository.save(credential);
   }
 
   private record DealSeed(

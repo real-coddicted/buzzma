@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../Card'
-import { StatusBadge, Badge } from '../Badge'
-import { IconSearch, IconFilter, IconPlay, IconPause, IconInfo } from '../icons'
+import { StatusBadge } from '../Badge'
+import { IconSearch, IconFilter } from '../icons'
+import { CampaignRowActions } from './CampaignRowActions'
 import type { Campaign, CampaignStatus, Platform } from '../../../types'
 import { PLATFORM_LABELS } from '../../../constants/campaigns'
+import { ProductThumbnail } from './ProductThumbnail'
+import { Loading } from '../Loading'
 
 const platformColors: Record<Platform, string> = {
   PLATFORM_AMAZON:   'text-neon-orange border-neon-orange/25 bg-neon-orange/10',
@@ -28,15 +31,12 @@ const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
   draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
 }
 
-type SortKey = keyof Pick<Campaign, 'title' | 'budget' | 'spent' | 'impressions' | 'ctr' | 'conversions'>
+type SortKey = keyof Pick<Campaign, 'title' | 'budget' | 'totalSlots'>
 
 const cols: { key: SortKey; label: string }[] = [
-  { key: 'title',       label: 'Campaign' },
-  { key: 'budget',      label: 'Budget' },
-  { key: 'spent',       label: 'Spent' },
-  { key: 'impressions', label: 'Impressions' },
-  { key: 'ctr',         label: 'CTR' },
-  { key: 'conversions', label: 'Conversions' },
+  { key: 'title',      label: 'Campaign' },
+  { key: 'budget',     label: 'Budget' },
+  { key: 'totalSlots', label: 'Slots' },
 ]
 
 function PlatformBadge({ platform }: { platform: Platform }) {
@@ -47,8 +47,8 @@ function PlatformBadge({ platform }: { platform: Platform }) {
   )
 }
 
-function SpentBar({ spent, budget }: { spent: number; budget: number }) {
-  const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0
+function SlotsBar({ claimed, total }: { claimed: number; total: number }) {
+  const pct = total > 0 ? Math.min(100, Math.round((claimed / total) * 100)) : 0
   const color = pct >= 90 ? 'bg-neon-red' : pct >= 70 ? 'bg-neon-orange' : 'bg-neon-blue'
   return (
     <div className="flex items-center gap-2">
@@ -64,14 +64,15 @@ function SpentBar({ spent, budget }: { spent: number; budget: number }) {
 
 interface Props {
   campaigns: Campaign[]
-  onViewDetails: (id: string) => void
-  onLaunch: (id: string) => void
+  loading?: boolean
+  onEdit: (id: string) => void
+  onCopy: (id: string) => void
 }
 
-export function CampaignTable({ campaigns, onViewDetails, onLaunch }: Props) {
+export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Props) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
-  const [sortBy, setSortBy] = useState<SortKey>('conversions')
+  const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const filtered = useMemo(() => {
@@ -82,8 +83,8 @@ export function CampaignTable({ campaigns, onViewDetails, onLaunch }: Props) {
         return matchStatus && matchSearch
       })
       .sort((a, b) => {
-        const av = a[sortBy]
-        const bv = b[sortBy]
+        const av = a[sortBy] ?? 0
+        const bv = b[sortBy] ?? 0
         if (typeof av === 'string' && typeof bv === 'string') {
           return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
         }
@@ -141,6 +142,7 @@ export function CampaignTable({ campaigns, onViewDetails, onLaunch }: Props) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
+              <th className="px-5 py-3 w-14" />
               {cols.map(col => (
                 <th
                   key={col.key}
@@ -159,76 +161,49 @@ export function CampaignTable({ campaigns, onViewDetails, onLaunch }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-            {filtered.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan={9} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={7} className="px-5 py-12 text-center">
+                  <div className="flex justify-center">
+                    <Loading size={28} />
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No campaigns match your filter.
                 </td>
               </tr>
             ) : (
               filtered.map(c => (
                 <tr key={c.id} className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group">
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-2.5 w-14">
+                    <ProductThumbnail src={c.productImageUrl} alt={c.productName} />
+                  </td>
+                  <td className="px-5 py-2.5">
                     <div>
                       <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{c.title}</span>
                       <div className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-0.5 font-mono">
-                        {c.startDate} – {c.endDate}
+                        {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ₹{c.budget.toLocaleString()}
+                  <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
+                    ${c.budget.toLocaleString()}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-2.5">
                     <div className="space-y-1">
-                      <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">₹{c.spent.toLocaleString()}</span>
-                      <SpentBar spent={c.spent} budget={c.budget} />
+                      <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
+                        {c.slotsClaimed}/{c.totalSlots ?? '—'}
+                      </span>
+                      <SlotsBar claimed={c.slotsClaimed} total={c.totalSlots ?? 0} />
                     </div>
                   </td>
-                  <td className="px-5 py-4 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    {c.impressions >= 1_000_000
-                      ? `${(c.impressions / 1_000_000).toFixed(1)}M`
-                      : c.impressions >= 1_000
-                      ? `${(c.impressions / 1_000).toFixed(0)}K`
-                      : c.impressions.toString()}
-                  </td>
-                  <td className="px-5 py-4 font-mono font-semibold text-neon-cyan">
-                    {c.ctr > 0 ? `${c.ctr.toFixed(2)}%` : '—'}
-                  </td>
-                  <td className="px-5 py-4 font-mono font-semibold text-neon-green">
-                    {c.conversions > 0 ? c.conversions.toLocaleString() : '—'}
-                  </td>
-                  <td className="px-5 py-4"><StatusBadge status={c.status} /></td>
-                  <td className="px-5 py-4"><PlatformBadge platform={c.platform} /></td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        title="View Details"
-                        onClick={() => onViewDetails(c.id)}
-                        className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-cyan hover:bg-neon-cyan/10 transition-colors"
-                      >
-                        <IconInfo size={13} />
-                      </button>
-                      {c.status === 'active' ? (
-                        <button
-                          title="Pause"
-                          className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-yellow hover:bg-neon-yellow/10 transition-colors"
-                        >
-                          <IconPause size={13} />
-                        </button>
-                      ) : c.status === 'paused' || c.status === 'draft' ? (
-                        <button
-                          title="Launch"
-                          onClick={() => onLaunch(c.id)}
-                          className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-green hover:bg-neon-green/10 transition-colors"
-                        >
-                          <IconPlay size={13} />
-                        </button>
-                      ) : null}
-                      <Badge variant="neutral">
-                        {Math.round((c.spent / (c.budget || 1)) * 100)}%
-                      </Badge>
-                    </div>
+                  <td className="px-5 py-2.5"><StatusBadge status={c.status} /></td>
+                  <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
+                  <td className="px-5 py-2.5">
+                    <CampaignRowActions campaign={c} onEdit={() => onEdit(c.id)} onCopy={() => onCopy(c.id)} />
                   </td>
                 </tr>
               ))

@@ -29,7 +29,7 @@ public interface AssignmentMapper {
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "campaign.type", target = "dealType")
   @Mapping(source = "campaign.product.pricePaise", target = "originalPricePaise")
-  @Mapping(source = "campaignAssignment.campaignPricePaise", target = "offeredPricePaise")
+  @Mapping(source = "campaignAssignment.adjustedCampaignPricePaise", target = "offeredPricePaise")
   @Mapping(source = "campaignAssignment.commissionOfferedPaise", target = "commissionOfferedPaise")
   @Mapping(source = "campaignAssignment.slotLimit", target = "slotLimit")
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")

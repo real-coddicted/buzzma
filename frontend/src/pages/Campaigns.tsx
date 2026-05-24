@@ -1,68 +1,126 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '../components/ui/Button'
 import { IconPlus } from '../components/ui/icons'
 import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
 import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
-import type { CampaignRequestDto } from '../types'
-import { LaunchCampaignModal } from '../components/ui/campaign/LaunchCampaignModal'
-import { CampaignDetailsModal } from '../components/ui/campaign/CampaignDetailsModal'
-import { campaigns, linkedEntities, availableEntities } from '../data/mockData'
+import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
+import { createCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
+import { Toast } from '../components/ui/Toast'
 
+
+function responseToForm(dto: CampaignResponseDto): CampaignForm {
+  const paisToRupees = (p?: number) => (p != null ? (p / 100).toString() : '')
+  const assignments = dto.assignments ?? []
+  return {
+    title: dto.title ?? '',
+    platform: (dto.platform ?? '') as Platform | '',
+    productBrandName: '',
+    productName: dto.productName ?? '',
+    productImageUrl: dto.productImageUrl ?? '',
+    productUrl: dto.productLink ?? '',
+    sellerName: dto.sellerName ?? '',
+    originalPriceRupees: paisToRupees(dto.productPricePaise),
+    campaignPriceRupees: paisToRupees(dto.campaignPricePaise),
+    commissionRupees: '',
+    returnWindowDays: dto.returnWindowDays?.toString() ?? '',
+    campaignType: (dto.campaignType ?? '') as CampaignType | '',
+    startDate: yyyymmddToIso(dto.startDate),
+    endDate: yyyymmddToIso(dto.endDate),
+    totalSlots: dto.totalSlots?.toString() ?? '',
+    openToAll: assignments.length === 0,
+    assignees: assignments.map(a => ({
+      id: a.assigneeId ?? '',
+      name: a.assigneeId ?? '',
+      slotsAvailable: a.slotOffered ?? 0,
+      commissionOffered: (a.commissionOfferedPaise ?? 0) / 100,
+    })),
+    termsAndConditions: dto.termsAndConditions ?? '',
+  }
+}
 
 export function Campaigns() {
   const [showNewCampaign, setShowNewCampaign] = useState(false)
-  const [launchModalOpen, setLaunchModalOpen] = useState(false)
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
+  const [editingForm, setEditingForm] = useState<CampaignForm | null>(null)
+  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null)
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId)
-  const selectedLinkedEntities = selectedCampaignId ? linkedEntities[selectedCampaignId] || [] : []
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchCampaigns()
+      .then(data => { if (!cancelled) setCampaigns(data) })
+      .catch(err => { if (!cancelled) setErrorMsg((err as Error).message || 'Failed to load campaigns.') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
-  function handleCreateCampaign(dto: CampaignRequestDto) {
-    console.log('Create campaign:', dto)
-  }
-
-  function handleOpenLaunchModal(campaignId: string) {
-    const campaign = campaigns.find(c => c.id === campaignId)
-    if (campaign?.status !== 'draft') {
-      return
+  async function handleCopyCampaign(id: string) {
+    try {
+      await copyCampaign(id)
+      setLoading(true)
+      fetchCampaigns()
+        .then(setCampaigns)
+        .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
+        .finally(() => setLoading(false))
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to copy campaign.')
     }
-    setSelectedCampaignId(campaignId)
-    setLaunchModalOpen(true)
   }
 
-  function handleCloseLaunchModal() {
-    setLaunchModalOpen(false)
-    setSelectedCampaignId(null)
+  async function handleEditCampaign(id: string) {
+    try {
+      const dto = await fetchCampaignById(id)
+      setEditingCampaignId(id)
+      setEditingForm(responseToForm(dto))
+      setShowNewCampaign(true)
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to load campaign.')
+    }
   }
 
-  function handleLaunchCampaign() {
-    console.log('Launching campaign:', selectedCampaignId)
-    // Here you would make an API call to launch the campaign
-    handleCloseLaunchModal()
+  async function handleLaunchFromEdit() {
+    if (!editingCampaignId) return
+    await publishCampaign(editingCampaignId)
+    handleBack()
+    setLoading(true)
+    fetchCampaigns()
+      .then(setCampaigns)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
+      .finally(() => setLoading(false))
   }
 
-  function handleOpenDetailsModal(campaignId: string) {
-    setSelectedCampaignId(campaignId)
-    setDetailsModalOpen(true)
+  function handleBack() {
+    setShowNewCampaign(false)
+    setEditingForm(null)
+    setEditingCampaignId(null)
   }
 
-  function handleCloseDetailsModal() {
-    setDetailsModalOpen(false)
-    setSelectedCampaignId(null)
+  async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
+    await createCampaign(dto)
+    handleBack()
+    setLoading(true)
+    fetchCampaigns()
+      .then(setCampaigns)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
+      .finally(() => setLoading(false))
   }
 
-  const totalBudget   = campaigns.reduce((s, c) => s + c.budget, 0)
-  const totalSpent    = campaigns.reduce((s, c) => s + c.spent, 0)
-  const totalConv     = campaigns.reduce((s, c) => s + c.conversions, 0)
-  const activeCnt     = campaigns.filter(c => c.status === 'active').length
+  const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0)
+  const totalSpent  = campaigns.reduce((s, c) => s + c.spent, 0)
+  const totalConv   = campaigns.reduce((s, c) => s + c.conversions, 0)
+  const activeCnt   = campaigns.filter(c => c.status === 'active').length
 
   if (showNewCampaign) {
     return (
       <NewCampaignPage
-        onBack={() => setShowNewCampaign(false)}
+        onBack={handleBack}
         onSubmit={handleCreateCampaign}
+        onLaunch={editingCampaignId ? handleLaunchFromEdit : undefined}
+        initialForm={editingForm ?? undefined}
       />
     )
   }
@@ -92,25 +150,14 @@ export function Campaigns() {
 
       <CampaignTable
         campaigns={campaigns}
-        onViewDetails={handleOpenDetailsModal}
-        onLaunch={handleOpenLaunchModal}
+        loading={loading}
+        onEdit={handleEditCampaign}
+        onCopy={handleCopyCampaign}
       />
 
-      <LaunchCampaignModal
-        open={launchModalOpen}
-        campaignName={selectedCampaign?.title || ''}
-        linkedEntities={selectedLinkedEntities}
-        availableEntities={availableEntities}
-        onClose={handleCloseLaunchModal}
-        onLaunch={handleLaunchCampaign}
-      />
-
-      <CampaignDetailsModal
-        open={detailsModalOpen}
-        campaign={selectedCampaign || null}
-        onClose={handleCloseDetailsModal}
-      />
-
+      {errorMsg && (
+        <Toast message={errorMsg} type="error" onDismiss={() => setErrorMsg(null)} />
+      )}
     </div>
   )
 }

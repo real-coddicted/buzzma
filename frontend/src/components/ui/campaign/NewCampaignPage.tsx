@@ -1,25 +1,30 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '../Button'
-import { IconPlus, IconChevronRight } from '../icons'
+import { Toast } from '../Toast'
+import { IconPlus, IconChevronRight, IconCheck, IconPlay } from '../icons'
 import type { CampaignRequestDto } from '../../../types'
-import { EMPTY_FORM, validateCampaignForm } from './campaignFormConstants'
-import { availableEntities } from '../../../data/mockData'
+import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
 import { CampaignInfoFields } from './CampaignInfoFields'
 import { CampaignSettingsFields } from './CampaignSettingsFields'
 
 interface Props {
   onBack: () => void
-  onSubmit: (dto: CampaignRequestDto) => void
+  onSubmit: (dto: CampaignRequestDto) => Promise<void>
+  onLaunch?: () => Promise<void>
+  initialForm?: CampaignForm
 }
 
 function rupeesToPaise(val: string): number {
   return Math.round(parseFloat(val) * 100)
 }
 
-export function NewCampaignPage({ onBack, onSubmit }: Props) {
-  const [form, setForm] = useState(EMPTY_FORM)
+export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Props) {
+  const isEdit = !!initialForm
+  const [form, setForm] = useState<CampaignForm>(initialForm ?? EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [loading, setLoading] = useState(false)
+  const [launching, setLaunching] = useState(false)
+  const [toastError, setToastError] = useState<string | null>(null)
 
   function set(field: keyof typeof EMPTY_FORM, value: unknown) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -32,10 +37,11 @@ export function NewCampaignPage({ onBack, onSubmit }: Props) {
     return Object.keys(e).length === 0
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
+    setToastError(null)
 
     const dto: CampaignRequestDto = {
       title: form.title.trim(),
@@ -51,15 +57,33 @@ export function NewCampaignPage({ onBack, onSubmit }: Props) {
       returnWindowDays: form.returnWindowDays !== '' ? parseInt(form.returnWindowDays, 10) : null,
       campaignType: form.campaignType !== '' ? form.campaignType : null,
       totalSlots: form.totalSlots !== '' ? parseInt(form.totalSlots, 10) : null,
-      allowedAgencies: form.openToAll ? null : form.allowedAgencies.length > 0 ? form.allowedAgencies : null,
+      assignees: form.openToAll ? null : form.assignees.length > 0 ? form.assignees : null,
       openToAll: form.openToAll,
       termsAndConditions: form.termsAndConditions.trim() || null,
       startDate: form.startDate || null,
       endDate: form.endDate || null,
     }
 
-    onSubmit(dto)
-    setLoading(false)
+    try {
+      await onSubmit(dto)
+    } catch (err) {
+      setToastError(err instanceof Error ? err.message : 'An unexpected error occurred.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleLaunch() {
+    if (!onLaunch) return
+    setLaunching(true)
+    setToastError(null)
+    try {
+      await onLaunch()
+    } catch (err) {
+      setToastError(err instanceof Error ? err.message : 'Failed to launch campaign.')
+    } finally {
+      setLaunching(false)
+    }
   }
 
   return (
@@ -71,17 +95,17 @@ export function NewCampaignPage({ onBack, onSubmit }: Props) {
         </button>
         <IconChevronRight size={12} />
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium">
-          New Campaign
+          {isEdit ? 'Edit Campaign' : 'New Campaign'}
         </span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
-            New Campaign
+            {isEdit ? 'Edit Campaign' : 'New Campaign'}
           </h1>
           <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            Fill in the details to create a new campaign.
+            {isEdit ? 'Update the details for this campaign.' : 'Fill in the details to create a new campaign.'}
           </p>
         </div>
       </div>
@@ -94,7 +118,6 @@ export function NewCampaignPage({ onBack, onSubmit }: Props) {
             form={form}
             errors={errors}
             set={set}
-            availableEntities={availableEntities}
           />
         </div>
 
@@ -111,20 +134,50 @@ export function NewCampaignPage({ onBack, onSubmit }: Props) {
 
         {/* Footer actions */}
         <div className="flex items-center justify-end gap-2 mt-6">
-          <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading}>
+          <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            leftIcon={<IconPlus size={13} />}
-            loading={loading}
-          >
-            Create Campaign
-          </Button>
+          {isEdit ? (
+            <>
+              <Button
+                type="submit"
+                variant="secondary"
+                size="sm"
+                leftIcon={<IconCheck size={13} />}
+                loading={loading}
+                disabled={launching}
+              >
+                Update Campaign
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                leftIcon={<IconPlay size={13} />}
+                loading={launching}
+                disabled={loading}
+                onClick={handleLaunch}
+              >
+                Launch Campaign
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              leftIcon={<IconPlus size={13} />}
+              loading={loading}
+            >
+              Create Campaign
+            </Button>
+          )}
         </div>
       </form>
+
+      {toastError && (
+        <Toast message={toastError} type="error" onDismiss={() => setToastError(null)} />
+      )}
     </div>
   )
 }

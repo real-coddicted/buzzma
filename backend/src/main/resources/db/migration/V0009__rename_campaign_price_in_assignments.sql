@@ -1,0 +1,2 @@
+ALTER TABLE campaign_assignments RENAME COLUMN campaign_price_paise TO adjusted_campaign_price_paise;
+ALTER TABLE campaign_assignments ALTER COLUMN adjusted_campaign_price_paise DROP NOT NULL;

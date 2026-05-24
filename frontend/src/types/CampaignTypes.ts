@@ -55,6 +55,7 @@ export interface Campaign {
   returnWindowDays: number | null
   campaignType: CampaignType | null
   totalSlots: number | null
+  slotsClaimed: number
   allowedAgencies: string[] | null
   openToAll: boolean
   budget: number
@@ -94,7 +95,7 @@ export interface CampaignRequestDto {
   returnWindowDays: number | null
   campaignType: CampaignType | null
   totalSlots: number | null
-  allowedAgencies: string[] | null
+  assignees: LinkedEntity[] | null
   openToAll: boolean | null
   termsAndConditions: string | null
   startDate: string | null

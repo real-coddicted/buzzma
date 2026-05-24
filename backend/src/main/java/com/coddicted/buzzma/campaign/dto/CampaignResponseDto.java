@@ -6,6 +6,7 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
@@ -28,6 +29,10 @@ public class CampaignResponseDto {
 
   CampaignStatus status;
 
+  Integer startDate;
+
+  Integer endDate;
+
   // Product fields
   UUID productId;
 
@@ -48,6 +53,8 @@ public class CampaignResponseDto {
   String termsAndConditions;
 
   String sellerName;
+
+  List<CampaignAssignmentResponseDto> assignments;
 
   // Audit fields
   Instant createdAt;

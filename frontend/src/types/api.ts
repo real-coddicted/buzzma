@@ -315,9 +315,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["list_5"];
         put?: never;
         post: operations["create_6"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["copy"];
         delete?: never;
         options?: never;
         head?: never;
@@ -430,22 +446,6 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["publishAssignment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/assignments/commissionCharged/{campaignId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCommissionCharged"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -636,6 +636,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getAssignments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assignments/commissionCharged/{campaignId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCommissionCharged"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1013,7 +1029,7 @@ export interface components {
             assignorId: string;
             /** Format: uuid */
             assigneeId: string;
-            campaignPricePaise?: number;
+            adjustedCampaignPricePaise?: number;
             commissionOfferedPaise?: number;
             /** Format: int64 */
             slotOffered?: number;
@@ -1029,17 +1045,31 @@ export interface components {
             productUrl: string;
             originalPricePaise: number;
             /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
             endDate?: number;
             /** @enum {string} */
             campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */
             campaignStatus: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            campaignPricePaise: number;
             /** Format: int32 */
             totalSlots: number;
             assignees?: components["schemas"]["CampaignAssignmentRequestDto"][];
             openToAll?: boolean;
             termsAndConditions?: string;
             sellerName?: string;
+        };
+        CampaignAssignmentResponseDto: {
+            /** Format: uuid */
+            assignorId?: string;
+            /** Format: uuid */
+            assigneeId?: string;
+            assigneeName?: string;
+            campaignPricePaise?: number;
+            commissionOfferedPaise?: number;
+            /** Format: int64 */
+            slotOffered?: number;
         };
         CampaignResponseDto: {
             /** Format: uuid */
@@ -1053,6 +1083,10 @@ export interface components {
             campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
             /** Format: uuid */
             productId?: string;
             productName?: string;
@@ -1068,6 +1102,7 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            assignments?: components["schemas"]["CampaignAssignmentResponseDto"][];
             /** Format: date-time */
             createdAt?: string;
             /** Format: uuid */
@@ -1196,6 +1231,29 @@ export interface components {
             pending?: number;
             /** Format: int64 */
             rejected?: number;
+        };
+        CampaignSummaryResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            title?: string;
+            /** Format: url */
+            productImageUrl?: string;
+            productName?: string;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
+            /** @enum {string} */
+            status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** @enum {string} */
+            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            /** Format: int32 */
+            totalSlots?: number;
+            /** Format: int32 */
+            slotsClaimed?: number;
+            budgetPaise?: number;
         };
         AssignmentResponseDto: {
             /** Format: uuid */
@@ -1926,6 +1984,26 @@ export interface operations {
             };
         };
     };
+    list_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignSummaryResponseDto"][];
+                };
+            };
+        };
+    };
     create_6: {
         parameters: {
             query?: never;
@@ -1941,6 +2019,28 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignResponseDto"];
+                };
+            };
+        };
+    };
+    copy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2113,28 +2213,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": boolean;
-                };
-            };
-        };
-    };
-    getCommissionCharged: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                campaignId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CommissionResponseDto"];
                 };
             };
         };
@@ -2467,6 +2545,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PagedAssignmentsResponseDto"];
+                };
+            };
+        };
+    };
+    getCommissionCharged: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommissionResponseDto"];
                 };
             };
         };

@@ -18,7 +18,7 @@ public class CampaignAssignmentRequestDto {
 
   @NotBlank UUID assigneeId;
 
-  BigInteger campaignPricePaise = BigInteger.ZERO;
+  BigInteger adjustedCampaignPricePaise = BigInteger.ZERO;
 
   BigInteger commissionOfferedPaise = BigInteger.ZERO;
 

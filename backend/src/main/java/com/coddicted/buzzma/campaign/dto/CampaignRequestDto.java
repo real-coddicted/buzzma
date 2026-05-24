@@ -20,9 +20,9 @@ public class CampaignRequestDto {
 
   @NotBlank String title;
 
-  @NotBlank UUID ownerId;
+  @NotNull UUID ownerId;
 
-  @NotBlank Platform platform;
+  @NotNull Platform platform;
 
   @NotBlank String productName;
 
@@ -30,13 +30,17 @@ public class CampaignRequestDto {
 
   @NotBlank String productUrl;
 
-  @NotBlank BigInteger originalPricePaise;
+  @NotNull BigInteger originalPricePaise;
+
+  @Nullable Integer startDate;
 
   @Nullable Integer endDate;
 
   @NotNull CampaignType campaignType;
 
   @NotNull CampaignStatus campaignStatus;
+
+  @NotNull BigInteger campaignPricePaise = BigInteger.ZERO;
 
   @NotNull Integer totalSlots;
 

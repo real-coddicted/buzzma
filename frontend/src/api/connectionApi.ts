@@ -51,7 +51,7 @@ function formatSince(iso?: string): string | undefined {
 function mapConnection(dto: ConnectionResponseDto): Connection {
   const toUserId = dto.toUserId ?? ''
   const userId = toUserId || dto.fromUserId || ''
-  const name = userId ? `User ${userId.slice(0, 8)}` : 'Unknown'
+  const name = dto.toName ?? dto.fromName ?? (userId ? `User ${userId.slice(0, 8)}` : 'Unknown')
   return {
     id: dto.id ?? '',
     toUserId,
@@ -60,7 +60,7 @@ function mapConnection(dto: ConnectionResponseDto): Connection {
     category: '',
     status: mapStatus(dto.status),
     since: formatSince(dto.createdAt),
-    avatar: (userId.charAt(0) || '?').toUpperCase(),
+    avatar: (name.charAt(0) || '?').toUpperCase(),
     avatarColor: pickColor(userId || name),
   }
 }
