@@ -30,6 +30,8 @@ public class DealController {
       @RequestParam final UUID ownerId,
       @RequestParam(defaultValue = "0") final int page,
       @RequestParam(defaultValue = "20") final int size) {
+    // TODO need to remove ownerId as well from the request.
+    //  It should be determined based on the current security-context
     final Page<Deal> dealsPage =
         this.dealService.getUnclaimedDeals(ownerId, requesterId, page, size);
     return PagedDealsResponseDto.builder()

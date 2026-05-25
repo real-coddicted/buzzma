@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { IconCalendar } from '../icons'
 import { ScreenshotUpload } from './ScreenshotUpload'
+import type { ExtractionResponse } from '../../../api/extractionApi'
 
 interface DealOrderFormFields {
+  platform: string
   orderId: string
   amount: string
   productName: string
-  soldBy: string
+  sellerName: string
   orderDate: string
   accountName: string
 }
@@ -17,17 +19,31 @@ interface DealOrderFormProps {
 
 export function DealOrderForm({ onSubmit }: DealOrderFormProps) {
   const [fields, setFields] = useState<DealOrderFormFields>({
+    platform:    '',
     orderId:     '',
     amount:      '',
     productName: '',
-    soldBy:      '',
+    sellerName:  '',
     orderDate:   '',
     accountName: '',
   })
 
   function set(key: keyof DealOrderFormFields) {
-    return (e: React.ChangeEvent<HTMLInputElement>) =>
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setFields(prev => ({ ...prev, [key]: e.target.value }))
+  }
+
+  function handleExtraction(data: ExtractionResponse) {
+    setFields(prev => ({
+      ...prev,
+      platform: data.platform || prev.platform,
+      orderId: data.orderId || prev.orderId,
+      amount: String(data.amount || prev.amount),
+      productName: data.productName || prev.productName,
+      sellerName: data.sellerName || prev.sellerName,
+      orderDate: data.orderDate || prev.orderDate,
+      accountName: data.orderedBy || prev.accountName,
+    }))
   }
 
   const isValid = Object.values(fields).every(v => v.trim() !== '')
@@ -39,14 +55,29 @@ export function DealOrderForm({ onSubmit }: DealOrderFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-        <ScreenshotUpload
-              label="Order Confirmation Screenshot"
-              hint="Ensure the order ID, amount, and product name are clearly visible."
-            />
+      <ScreenshotUpload
+        label="Order Confirmation Screenshot"
+        hint="Ensure the order ID, amount, and product name are clearly visible."
+        onExtract={handleExtraction}
+      />
+      <Field 
+        as="select"
+        label="Platform" 
+        placeholder="Select platform" 
+        value={fields.platform} 
+        onChange={set('platform')}
+        options={[
+          { value: '', label: 'Select platform' },
+          { value: 'PLATFORM_AMAZON', label: 'Amazon' },
+          { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
+          { value: 'PLATFORM_NYKAA', label: 'Nykaa' },
+          { value: 'PLATFORM_MYNTRA', label: 'Myntra' },
+        ]}
+      />
       <Field label="Order ID"         placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}     />
-      <Field label="Amount"           placeholder="e.g. ₹1,499"              value={fields.amount}      onChange={set('amount')}      />
+      <Field label="Amount"           placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      />
       <Field label="Product Name"     placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} />
-      <Field label="Seller / Sold by" placeholder="Enter seller name"         value={fields.soldBy}      onChange={set('soldBy')}      />
+      <Field label="Seller Name"      placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  />
 
       <div>
         <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
@@ -77,28 +108,48 @@ export function DealOrderForm({ onSubmit }: DealOrderFormProps) {
 }
 
 function Field({
+  as,
   label,
   placeholder,
   value,
   onChange,
+  options,
 }: {
+  as?: 'input' | 'select'
   label: string
   placeholder: string
   value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
+  options?: { value: string; label: string }[]
 }) {
+  const inputClass = "w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
+
   return (
     <div>
       <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
         {label} <span className="text-neon-red">*</span>
       </label>
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
-      />
+      {as === 'select' ? (
+        <select
+          value={value}
+          onChange={onChange}
+          className={inputClass}
+        >
+          {options?.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          className={inputClass}
+        />
+      )}
     </div>
   )
 }

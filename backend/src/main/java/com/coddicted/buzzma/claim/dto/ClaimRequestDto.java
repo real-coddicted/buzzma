@@ -22,7 +22,7 @@ public class ClaimRequestDto {
 
   @NotBlank private String sellerName;
 
-  @NotBlank private int orderDate;
+  @NotNull private Integer orderDate;
 
   @NotBlank private String accountName;
 

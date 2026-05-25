@@ -17,8 +17,8 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
           WHERE d.owner_id = :ownerId
             AND d.is_deleted = false
             AND d.id NOT IN (
-              SELECT o.deal_id FROM orders o
-              WHERE o.user_id = :requesterId AND o.is_deleted = false
+              SELECT c.deal_id FROM claims c
+              WHERE c.owner_id = :requesterId AND c.is_deleted = false
             )
           """,
       countQuery =
@@ -27,8 +27,8 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
           WHERE d.owner_id = :ownerId
             AND d.is_deleted = false
             AND d.id NOT IN (
-              SELECT o.deal_id FROM orders o
-              WHERE o.user_id = :requesterId AND o.is_deleted = false
+              SELECT c.deal_id FROM claims c
+              WHERE c.owner_id = :requesterId AND c.is_deleted = false
             )
           """,
       nativeQuery = true)

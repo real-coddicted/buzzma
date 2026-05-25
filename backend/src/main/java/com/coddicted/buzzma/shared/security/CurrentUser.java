@@ -7,16 +7,13 @@ import java.lang.annotation.Target;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 /**
- * Injects the authenticated user's UUID into a controller method parameter.
+ * Injects the authenticated user' into a controller method parameter.
  *
  * <p>Works in conjunction with {@link com.coddicted.buzzma.identity.security.BuzzmaUserDetails}:
- * the principal's {@code getUsername()} returns the UUID string which is parsed into {@link
- * java.util.UUID}.
  *
- * <p>Use {@code @AuthenticationPrincipal(expression = "user.id")} internally via this
- * meta-annotation.
+ * <p>Use {@code @AuthenticationPrincipal(expression = "user")} internally via this meta-annotation.
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-@AuthenticationPrincipal(expression = "user.id")
-public @interface CurrentUserId {}
+@AuthenticationPrincipal(expression = "user")
+public @interface CurrentUser {}

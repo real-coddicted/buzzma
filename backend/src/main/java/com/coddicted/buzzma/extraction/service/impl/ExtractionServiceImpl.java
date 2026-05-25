@@ -80,23 +80,7 @@ public class ExtractionServiceImpl extends BaseCrudService implements Extraction
       LOGGER.warn("extractSync: validation failed for requester {}: {}", requesterId, errorSummary);
       throw new BusinessRuleViolationException("Extraction validation failed: " + errorSummary);
     }
-    /*
-    final ExtractionJob job =
-        ExtractionJob.builder()
-            .status(ExtractionJobStatus.EXTRACTION_JOB_STATUS_COMPLETED)
-            .originalFilename(originalFilename)
-            .contentType(contentType)
-            .attemptCount(1)
-            .result(result)
-            .isDeleted(false)
-            .submittedBy(requesterId)
-            .createdBy(requesterId)
-            .updatedBy(requesterId)
-            .build();
-    LOGGER.debug("extractSync: completed for requester {}", requesterId);
-    if (requesterId == null) {
-      return job;
-    }*/
+
     return result;
   }
 
