@@ -1,6 +1,6 @@
-package com.coddicted.buzzma.shared.enums;
+package com.coddicted.buzzma.claim.entity;
 
-public enum ClaimWorkflowStatus {
+public enum ClaimStatus {
   CREATED,
   REDIRECTED,
   ORDERED,

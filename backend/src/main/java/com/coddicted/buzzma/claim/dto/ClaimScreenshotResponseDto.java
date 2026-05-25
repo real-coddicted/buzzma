@@ -14,7 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class ClaimScreenshotResponseDto {
   UUID id;
-  String key;
+  String storageKey;
   ScreenshotType type;
   ScreenshotVerificationStatus verificationStatus;
   Double score;

@@ -10,7 +10,7 @@ import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
 import { MyTickets } from './pages/MyTickets'
 import { Notifications } from './pages/Notifications'
-import { OrderReview } from './pages/OrderReview'
+import { ClaimReview } from './pages/ClaimReview'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
 import { clearSession, getAccessToken } from './api/client'
@@ -71,7 +71,7 @@ export default function App() {
           onTogglePin={togglePin}
         />
       )}
-      {activePage === 'order-review' && <OrderReview />}
+      {activePage === 'claim-review' && <ClaimReview />}
     </AppLayout>
   )
 }

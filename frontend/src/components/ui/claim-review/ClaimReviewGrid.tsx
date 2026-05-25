@@ -1,30 +1,25 @@
 import { useState, useMemo } from 'react'
 import { Card } from '../Card'
-import { IconOrderInProgress, IconOrderCompleted } from '../icons'
-import { OrderReviewToolbar } from './OrderReviewToolbar'
-import { OrderReviewActions } from './OrderReviewActions'
-import { ORDER_STATUS_CONFIG, ORDER_REVIEW_COLUMNS } from './orderReviewConstants'
+import { ClaimReviewToolbar } from './ClaimReviewToolbar'
+import { ClaimReviewActions } from './ClaimReviewActions'
+import { CLAIM_REVIEW_COLUMNS } from './claimReviewConstants'
 import { ReviewStatusCell } from './ReviewStatusCell'
-import { orderReviews } from '../../../data/mockData'
-import type { OrderReviewItem, OrderStatus, ReviewStatus } from '../../../types'
-
-function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  const { label, colorClass } = ORDER_STATUS_CONFIG[status]
-  return (
-    <span className={colorClass} title={label}>
-      {status === 'in-progress' ? <IconOrderInProgress /> : <IconOrderCompleted />}
-    </span>
-  )
-}
+import { ClaimStatusBadge } from './ClaimStatusBadge'
+import type { ClaimReviewItem, ReviewStatus } from '../../../types'
 
 // --- main grid ---
 
-export function OrderReviewGrid() {
+interface ClaimReviewGridProps {
+  claims: ClaimReviewItem[]
+  onViewDetails: (claim: ClaimReviewItem) => void
+}
+
+export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [reviewFilter, setReviewFilter] = useState<ReviewStatus | 'all'>('all')
 
   const filtered = useMemo(() => {
-    return orderReviews.filter(row => {
+    return claims.filter(row => {
       const matchReview = reviewFilter === 'all' || row.reviewStatus === reviewFilter
       const q = search.toLowerCase()
       const matchSearch =
@@ -33,15 +28,19 @@ export function OrderReviewGrid() {
         row.mediatorName.toLowerCase().includes(q)
       return matchReview && matchSearch
     })
-  }, [search, reviewFilter])
+  }, [claims, search, reviewFilter])
 
-  function handleAction(action: string, row: OrderReviewItem) {
+  function handleAction(action: string, row: ClaimReviewItem) {
+    if (action === 'details') {
+      onViewDetails(row)
+      return
+    }
     console.log(action, row.orderId)
   }
 
   return (
     <Card padded={false}>
-      <OrderReviewToolbar
+      <ClaimReviewToolbar
         search={search}
         onSearchChange={setSearch}
         reviewFilter={reviewFilter}
@@ -53,12 +52,12 @@ export function OrderReviewGrid() {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
-              {ORDER_REVIEW_COLUMNS.map(col => (
+              {CLAIM_REVIEW_COLUMNS.map(col => (
                 <th
                   key={col}
                   className={[
                     'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                    col === 'Actions' ? 'text-right' : col === 'Order Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
+                    col === 'Actions' ? 'text-right' : col === 'Claim Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
                   ].join(' ')}
                 >
                   {col}
@@ -69,7 +68,7 @@ export function OrderReviewGrid() {
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={ORDER_REVIEW_COLUMNS.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={CLAIM_REVIEW_COLUMNS.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No orders match your filter.
                 </td>
               </tr>
@@ -97,7 +96,7 @@ export function OrderReviewGrid() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex justify-center">
-                      <OrderStatusBadge status={row.orderStatus} />
+                      <ClaimStatusBadge status={row.claimStatus} />
                     </div>
                   </td>
                   <td className="px-5 py-4">
@@ -135,7 +134,7 @@ export function OrderReviewGrid() {
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <OrderReviewActions row={row} onAction={handleAction} />
+                    <ClaimReviewActions row={row} onAction={handleAction} />
                   </td>
                 </tr>
               ))
@@ -147,7 +146,7 @@ export function OrderReviewGrid() {
       {/* footer */}
       <div className="px-5 py-3 border-t border-surface-light-border dark:border-surface-dark-border flex items-center justify-between">
         <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-          Showing {filtered.length} of {orderReviews.length} orders
+          Showing {filtered.length} of {claims.length} orders
         </span>
         <div className="flex items-center gap-1">
           <button className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40" disabled>

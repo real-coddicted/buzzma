@@ -1,5 +1,5 @@
 import { IconCopy, IconEdit, IconCheck, IconX } from '../icons'
-import type { OrderReviewItem } from '../../../types'
+import type { ClaimReviewItem } from '../../../types'
 
 interface ActionButtonProps {
   title: string
@@ -20,12 +20,12 @@ function ActionButton({ title, colorClass, onClick, icon }: ActionButtonProps) {
   )
 }
 
-interface OrderReviewActionsProps {
-  row: OrderReviewItem
-  onAction: (action: string, row: OrderReviewItem) => void
+interface ClaimReviewActionsProps {
+  row: ClaimReviewItem
+  onAction: (action: string, row: ClaimReviewItem) => void
 }
 
-export function OrderReviewActions({ row, onAction }: OrderReviewActionsProps) {
+export function ClaimReviewActions({ row, onAction }: ClaimReviewActionsProps) {
   return (
     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
       <ActionButton

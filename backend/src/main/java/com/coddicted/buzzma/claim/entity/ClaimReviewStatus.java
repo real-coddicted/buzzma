@@ -1,0 +1,8 @@
+package com.coddicted.buzzma.claim.entity;
+
+public enum ClaimReviewStatus {
+  CLAIM_REVIEW_STATUS_PENDING,
+  CLAIM_REVIEW_STATUS_PROOF_REQUESTED,
+  CLAIM_REVIEW_STATUS_ACCEPTED,
+  CLAIM_REVIEW_STATUS_REJECTED
+}

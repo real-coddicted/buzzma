@@ -1,7 +1,7 @@
 import type { FilterOption } from '../StatusFilterPills'
-import type { OrderStatus, ReviewStatus, ApprovalMethod } from '../../../types'
+import type { ClaimStatus, ReviewStatus, ApprovalMethod } from '../../../types'
 
-export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; colorClass: string }> = {
+export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
   'in-progress': { label: 'In Progress', colorClass: 'text-neon-blue' },
   'completed':   { label: 'Completed',   colorClass: 'text-neon-green' },
 }
@@ -26,11 +26,11 @@ export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = [
   { value: 'rejected',  label: 'Rejected',  activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
 ]
 
-export const ORDER_REVIEW_COLUMNS = [
+export const CLAIM_REVIEW_COLUMNS = [
   'Campaign Name',
   'Order ID',
   'Mediator Name',
-  'Order Status',
+  'Claim Status',
   'Review Status',
   'Verified',
   'Match %',

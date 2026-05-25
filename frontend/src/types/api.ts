@@ -628,6 +628,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClaimsToReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assignments": {
         parameters: {
             query?: never;
@@ -977,11 +993,13 @@ export interface components {
             accountName?: string;
             reviewUrl?: string;
             screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
-            overallVerified?: boolean;
-            /** Format: double */
-            overallScore?: number;
-            rejectionNote?: string;
-            comments?: string;
+            mediatorVerified?: boolean;
+            score?: number;
+            reviewerComments?: string;
+            /** Format: uuid */
+            reviewerId?: string;
+            /** @enum {string} */
+            reviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_ACCEPTED" | "CLAIM_REVIEW_STATUS_REJECTED";
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1066,7 +1084,7 @@ export interface components {
             /** Format: uuid */
             assigneeId?: string;
             assigneeName?: string;
-            campaignPricePaise?: number;
+            adjustedCampaignPricePaise?: number;
             commissionOfferedPaise?: number;
             /** Format: int64 */
             slotOffered?: number;
@@ -1231,6 +1249,73 @@ export interface components {
             pending?: number;
             /** Format: int64 */
             rejected?: number;
+        };
+        Pageable: {
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            sort?: string[];
+        };
+        ClaimReviewResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            campaignId?: string;
+            campaignName?: string;
+            /** Format: uuid */
+            dealId?: string;
+            /** Format: uuid */
+            dealOwnerId?: string;
+            dealOwnerName?: string;
+            /** Format: uuid */
+            claimId?: string;
+            claimStatus?: string;
+            ecommerceOrderId?: string;
+            mediatorVerified?: boolean;
+            matchScore?: number;
+            /** @enum {string} */
+            claimReviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_ACCEPTED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        PageClaimReviewResponseDto: {
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["ClaimReviewResponseDto"][];
+            /** Format: int32 */
+            number?: number;
+            sort?: components["schemas"]["SortObject"][];
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            empty?: boolean;
+        };
+        PageableObject: {
+            /** Format: int64 */
+            offset?: number;
+            sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
+            paged?: boolean;
+            /** Format: int32 */
+            pageNumber?: number;
+            /** Format: int32 */
+            pageSize?: number;
+        };
+        SortObject: {
+            direction?: string;
+            nullHandling?: string;
+            ascending?: boolean;
+            property?: string;
+            ignoreCase?: boolean;
         };
         CampaignSummaryResponseDto: {
             /** Format: uuid */
@@ -2521,6 +2606,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    listClaimsToReview: {
+        parameters: {
+            query: {
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageClaimReviewResponseDto"];
                 };
             };
         };

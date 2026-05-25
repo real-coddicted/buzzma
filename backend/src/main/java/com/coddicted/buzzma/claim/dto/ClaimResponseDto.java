@@ -1,7 +1,8 @@
 package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
-import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 public class ClaimResponseDto {
   UUID id;
   DealResponseDto deal;
-  ClaimWorkflowStatus status;
+  ClaimStatus status;
   int currentStep;
   String ecommerceOrderId;
   BigInteger amountPaise;
@@ -26,10 +27,11 @@ public class ClaimResponseDto {
   String accountName;
   String reviewUrl;
   List<ClaimScreenshotResponseDto> screenshots;
-  Boolean overallVerified;
-  Double overallScore;
-  String rejectionNote;
-  String comments;
+  Boolean mediatorVerified;
+  BigInteger score;
+  String reviewerComments;
+  UUID reviewerId;
+  ClaimReviewStatus reviewStatus;
   Instant createdAt;
   Instant updatedAt;
 }

@@ -1,4 +1,4 @@
-import { REVIEW_STATUS_CONFIG, APPROVAL_METHOD_CONFIG } from './orderReviewConstants'
+import { REVIEW_STATUS_CONFIG, APPROVAL_METHOD_CONFIG } from './claimReviewConstants'
 import type { ReviewStatus, ApprovalMethod } from '../../../types'
 
 interface ReviewStatusCellProps {

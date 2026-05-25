@@ -78,9 +78,9 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           />
           <NavItem
             icon={<IconChart />}
-            label="Order Review"
-            active={activePage === 'order-review'}
-            onClick={() => onNavigate('order-review')}
+            label="Claim Review"
+            active={activePage === 'claim-review'}
+            onClick={() => onNavigate('claim-review')}
           />
         </div>
 

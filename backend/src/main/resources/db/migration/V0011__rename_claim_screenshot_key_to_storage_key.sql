@@ -1,0 +1,1 @@
+ALTER TABLE claim_screenshots RENAME COLUMN "key" TO storage_key;

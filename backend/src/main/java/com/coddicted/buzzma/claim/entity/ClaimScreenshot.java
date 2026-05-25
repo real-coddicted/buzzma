@@ -41,8 +41,8 @@ public class ClaimScreenshot implements Auditable {
   @Column(name = "claim_id", nullable = false, updatable = false)
   private UUID claimId;
 
-  @Column(name = "key", nullable = false, length = 500)
-  private String key;
+  @Column(name = "storage_key", nullable = false, length = 500)
+  private String storageKey;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)

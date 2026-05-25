@@ -2,7 +2,6 @@ package com.coddicted.buzzma.claim.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
-import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -48,7 +47,11 @@ public class Claim implements Auditable {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 50)
-  private ClaimWorkflowStatus status;
+  private ClaimStatus status;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "review_status", nullable = false, length = 50)
+  private ClaimReviewStatus reviewStatus;
 
   @Column(name = "ecommerce_order_id", length = 100)
   private String ecommerceOrderId;
@@ -72,17 +75,17 @@ public class Claim implements Auditable {
   @Column(name = "review_url", length = 500)
   private String reviewUrl;
 
-  @Column(name = "overall_verified")
-  private Boolean overallVerified;
+  @Column(name = "mediator_verified")
+  private Boolean mediatorVerified;
 
-  @Column(name = "overall_score")
-  private Double overallScore;
+  @Column(name = "score")
+  private BigInteger score;
 
-  @Column(name = "rejection_note", columnDefinition = "TEXT")
-  private String rejectionNote;
+  @Column(name = "reviewer_comments", columnDefinition = "TEXT")
+  private String reviewerComments;
 
-  @Column(name = "comments", columnDefinition = "TEXT")
-  private String comments;
+  @Column(name = "reviewer_id")
+  private UUID reviewerId;
 
   @Column(name = "created_by")
   private UUID createdBy;

@@ -4,21 +4,22 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
-import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
-import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +67,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim saved =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimWorkflowStatus.ORDERED)
+                .status(ClaimStatus.ORDERED)
                 .isDeleted(false)
                 .createdBy(claim.getOwnerId())
                 .updatedBy(claim.getOwnerId())
@@ -90,7 +91,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
 
-    if (claim.getStatus() != ClaimWorkflowStatus.ORDERED) {
+    if (claim.getStatus() != ClaimStatus.ORDERED) {
       LOGGER.warn(
           "Claim {} in status {} cannot transition to PROOF_SUBMITTED", claimId, claim.getStatus());
       throw new BusinessRuleViolationException(
@@ -103,7 +104,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimWorkflowStatus.PROOF_SUBMITTED)
+                .status(ClaimStatus.PROOF_SUBMITTED)
                 .reviewUrl(reviewUrl)
                 .updatedBy(ownerId)
                 .build());
@@ -124,7 +125,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
 
-    if (claim.getStatus() != ClaimWorkflowStatus.PROOF_SUBMITTED) {
+    if (claim.getStatus() != ClaimStatus.PROOF_SUBMITTED) {
       LOGGER.warn(
           "Claim {} in status {} cannot transition to UNDER_REVIEW", claimId, claim.getStatus());
       throw new BusinessRuleViolationException(
@@ -136,7 +137,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim updated =
         this.claimRepository.save(
-            claim.toBuilder().status(ClaimWorkflowStatus.UNDER_REVIEW).updatedBy(ownerId).build());
+            claim.toBuilder().status(ClaimStatus.UNDER_REVIEW).updatedBy(ownerId).build());
 
     saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
 
@@ -162,12 +163,19 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         claimId);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Page<Claim> listClaimByCampaignIds(
+      final List<UUID> campaignIdList, final Pageable pageable) {
+    return this.claimRepository.findByCampaignIdInAndIsDeletedFalse(campaignIdList, pageable);
+  }
+
   private void saveScreenshot(
-      final UUID claimId, final String key, final ScreenshotType type, final UUID actorId) {
+      final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
     this.claimScreenshotRepository.save(
         ClaimScreenshot.builder()
             .claimId(claimId)
-            .key(key)
+            .storageKey(storageKey)
             .type(type)
             .verificationStatus(ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
             .isDeleted(false)
@@ -185,11 +193,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                   LOGGER.warn("Claim not found: {}", claimId);
                   return new NotFoundException("Claim not found: " + claimId);
                 });
-    if (!claim.getOwnerId().equals(ownerId)) {
-      LOGGER.warn(
-          "User {} attempted to access claim {} owned by {}", ownerId, claimId, claim.getOwnerId());
-      throw new ForbiddenException("Access denied");
-    }
+
+    // Todo: claim should be accessed by it's owner, owner's mediator or agency of the mediator
+    //    if (!claim.getOwnerId().equals(ownerId)) {
+    //      LOGGER.warn(
+    //          "User {} attempted to access claim {} owned by {}", ownerId, claimId,
+    // claim.getOwnerId());
+    //      throw new ForbiddenException("Access denied");
+    //    }
     return claim;
   }
 }

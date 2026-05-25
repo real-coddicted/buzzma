@@ -7,7 +7,7 @@ import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimScreenshotResponseDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
-import com.coddicted.buzzma.shared.enums.ClaimWorkflowStatus;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
@@ -32,10 +32,11 @@ public interface ClaimMapper {
   @Mapping(source = "claim.accountName", target = "accountName")
   @Mapping(source = "claim.reviewUrl", target = "reviewUrl")
   @Mapping(source = "screenshots", target = "screenshots")
-  @Mapping(source = "claim.overallVerified", target = "overallVerified")
-  @Mapping(source = "claim.overallScore", target = "overallScore")
-  @Mapping(source = "claim.rejectionNote", target = "rejectionNote")
-  @Mapping(source = "claim.comments", target = "comments")
+  @Mapping(source = "claim.mediatorVerified", target = "mediatorVerified")
+  @Mapping(source = "claim.score", target = "score")
+  @Mapping(source = "claim.reviewerComments", target = "reviewerComments")
+  @Mapping(source = "claim.reviewerId", target = "reviewerId")
+  @Mapping(source = "claim.reviewStatus", target = "reviewStatus")
   @Mapping(source = "claim.createdAt", target = "createdAt")
   @Mapping(source = "claim.updatedAt", target = "updatedAt")
   ClaimResponseDto toResponse(Claim claim, Deal deal, List<ClaimScreenshot> screenshots);
@@ -55,10 +56,12 @@ public interface ClaimMapper {
   @Mapping(source = "ownerId", target = "ownerId")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "status", ignore = true)
-  @Mapping(target = "overallVerified", ignore = true)
-  @Mapping(target = "overallScore", ignore = true)
-  @Mapping(target = "rejectionNote", ignore = true)
-  @Mapping(target = "comments", ignore = true)
+  @Mapping(target = "reviewStatus", ignore = true)
+  @Mapping(target = "reviewerId", ignore = true)
+  @Mapping(target = "mediatorVerified", ignore = true)
+  @Mapping(target = "score", ignore = true)
+  @Mapping(target = "reviewerComments", ignore = true)
+  @Mapping(target = "reviewUrl", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(target = "createdBy", ignore = true)
   @Mapping(target = "updatedBy", ignore = true)
@@ -66,7 +69,7 @@ public interface ClaimMapper {
   @Mapping(target = "updatedAt", ignore = true)
   Claim toEntity(ClaimRequestDto request, UUID ownerId);
 
-  default int currentStep(final ClaimWorkflowStatus status) {
+  default int currentStep(final ClaimStatus status) {
     return switch (status) {
       case ORDERED -> 1;
       case PROOF_SUBMITTED -> 2;

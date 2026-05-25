@@ -228,9 +228,9 @@ public class DevDataSeeder implements ApplicationRunner {
     this.jdbcTemplate.update(
         "INSERT INTO claims (id, campaign_id, deal_id, owner_id, status, ecommerce_order_id,"
             + " amount_paise, product_name, seller_name, order_date, account_name, review_url,"
-            + " overall_verified, overall_score, rejection_note, comments, created_by, updated_by,"
+            + " mediator_verified, score, reviewer_comments, created_by, updated_by,"
             + " created_at, updated_at, is_deleted)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         claim.getId(),
         claim.getCampaignId(),
         claim.getDealId(),
@@ -243,10 +243,9 @@ public class DevDataSeeder implements ApplicationRunner {
         claim.getOrderDate(),
         claim.getAccountName(),
         claim.getReviewUrl(),
-        claim.getOverallVerified(),
-        claim.getOverallScore(),
-        claim.getRejectionNote(),
-        claim.getComments(),
+        claim.getMediatorVerified(),
+        claim.getScore(),
+        claim.getReviewerComments(),
         claim.getCreatedBy(),
         claim.getUpdatedBy(),
         now,

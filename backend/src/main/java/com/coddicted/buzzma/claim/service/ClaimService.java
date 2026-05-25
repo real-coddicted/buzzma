@@ -4,6 +4,8 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ClaimService {
 
@@ -25,4 +27,6 @@ public interface ClaimService {
   List<Claim> listByOwner(UUID ownerId);
 
   List<ClaimScreenshot> listScreenshots(UUID claimId);
+
+  Page<Claim> listClaimByCampaignIds(List<UUID> campaignIdList, Pageable pageable);
 }

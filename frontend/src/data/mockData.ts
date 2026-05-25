@@ -12,7 +12,7 @@ import type {
   LinkedEntity,
   AssignmentItem,
   Notification,
-  OrderReviewItem,
+  ClaimReviewItem,
 } from '../types'
 
 type RawDeal = Omit<Deal, 'platformLabel' | 'dealTypeLabel'>
@@ -886,19 +886,19 @@ export const platforms: PlatformOption[] = [
   { value: 'PLATFORM_MYNTRA',   label: 'Myntra'   },
 ]
 
-export const orderReviews: OrderReviewItem[] = [
-  { id: 'or-1',  campaignName: 'Summer Sale Blast',       orderId: 'ORD-10021', orderDate: '2025-04-01', mediatorName: 'Apex Media',        orderStatus: 'completed',    reviewStatus: 'pending',   approvalMethod: 'manual', mediatorVerified: true,  matchPct: 92 },
-  { id: 'or-2',  campaignName: 'Spring Fashion Launch',   orderId: 'ORD-10022', orderDate: '2025-04-03', mediatorName: 'Nova Retail',        orderStatus: 'in-progress',  reviewStatus: 'in-review', approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 78 },
-  { id: 'or-3',  campaignName: 'Health Wellness Q2',      orderId: 'ORD-10023', orderDate: '2025-04-05', mediatorName: 'GreenLeaf Co.',      orderStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'auto',   mediatorVerified: false, matchPct: 55 },
-  { id: 'or-4',  campaignName: 'Tech Gadgets Promo',      orderId: 'ORD-10024', orderDate: '2025-04-07', mediatorName: 'Luminary Agency',    orderStatus: 'completed',    reviewStatus: 'rejected',  approvalMethod: 'manual', mediatorVerified: false, matchPct: 31 },
-  { id: 'or-5',  campaignName: 'Beauty Essentials Drop',  orderId: 'ORD-10025', orderDate: '2025-04-09', mediatorName: 'Beacon Digital',     orderStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'manual', mediatorVerified: true,  matchPct: 67 },
-  { id: 'or-6',  campaignName: 'Summer Sale Blast',       orderId: 'ORD-10026', orderDate: '2025-04-10', mediatorName: 'Orbit Electronics',  orderStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'auto',   mediatorVerified: false, matchPct: 88 },
-  { id: 'or-7',  campaignName: 'Fitness Gear Campaign',   orderId: 'ORD-10027', orderDate: '2025-04-12', mediatorName: 'Stride Sports',      orderStatus: 'in-progress',  reviewStatus: 'rejected',  approvalMethod: 'manual', mediatorVerified: true,  matchPct: 19 },
-  { id: 'or-8',  campaignName: 'Home Decor Showcase',     orderId: 'ORD-10028', orderDate: '2025-04-14', mediatorName: 'Apex Media',         orderStatus: 'in-progress',  reviewStatus: 'in-review', approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 74 },
-  { id: 'or-9',  campaignName: 'Spring Fashion Launch',   orderId: 'ORD-10029', orderDate: '2025-04-16', mediatorName: 'Nova Retail',        orderStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'manual', mediatorVerified: false, matchPct: 96 },
-  { id: 'or-10', campaignName: 'Tech Gadgets Promo',      orderId: 'ORD-10030', orderDate: '2025-04-18', mediatorName: 'Beacon Digital',     orderStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 43 },
-  { id: 'or-11', campaignName: 'Beauty Essentials Drop',  orderId: 'ORD-10031', orderDate: '2025-04-20', mediatorName: 'GreenLeaf Co.',      orderStatus: 'completed',    reviewStatus: 'in-review', approvalMethod: 'manual', mediatorVerified: false, matchPct: 61 },
-  { id: 'or-12', campaignName: 'Health Wellness Q2',      orderId: 'ORD-10032', orderDate: '2025-04-22', mediatorName: 'Luminary Agency',    orderStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 85 },
+export const claimReviews: ClaimReviewItem[] = [
+  { id: 'or-1',  campaignId: '', campaignName: 'Summer Sale Blast',       orderId: 'ORD-10021', orderDate: '2025-04-01', mediatorName: 'Apex Media',        claimStatus: 'completed',    reviewStatus: 'pending',   approvalMethod: 'manual', mediatorVerified: true,  matchPct: 92 },
+  { id: 'or-2',  campaignId: '', campaignName: 'Spring Fashion Launch',   orderId: 'ORD-10022', orderDate: '2025-04-03', mediatorName: 'Nova Retail',        claimStatus: 'in-progress',  reviewStatus: 'in-review', approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 78 },
+  { id: 'or-3',  campaignId: '', campaignName: 'Health Wellness Q2',      orderId: 'ORD-10023', orderDate: '2025-04-05', mediatorName: 'GreenLeaf Co.',      claimStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'auto',   mediatorVerified: false, matchPct: 55 },
+  { id: 'or-4',  campaignId: '', campaignName: 'Tech Gadgets Promo',      orderId: 'ORD-10024', orderDate: '2025-04-07', mediatorName: 'Luminary Agency',    claimStatus: 'completed',    reviewStatus: 'rejected',  approvalMethod: 'manual', mediatorVerified: false, matchPct: 31 },
+  { id: 'or-5',  campaignId: '', campaignName: 'Beauty Essentials Drop',  orderId: 'ORD-10025', orderDate: '2025-04-09', mediatorName: 'Beacon Digital',     claimStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'manual', mediatorVerified: true,  matchPct: 67 },
+  { id: 'or-6',  campaignId: '', campaignName: 'Summer Sale Blast',       orderId: 'ORD-10026', orderDate: '2025-04-10', mediatorName: 'Orbit Electronics',  claimStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'auto',   mediatorVerified: false, matchPct: 88 },
+  { id: 'or-7',  campaignId: '', campaignName: 'Fitness Gear Campaign',   orderId: 'ORD-10027', orderDate: '2025-04-12', mediatorName: 'Stride Sports',      claimStatus: 'in-progress',  reviewStatus: 'rejected',  approvalMethod: 'manual', mediatorVerified: true,  matchPct: 19 },
+  { id: 'or-8',  campaignId: '', campaignName: 'Home Decor Showcase',     orderId: 'ORD-10028', orderDate: '2025-04-14', mediatorName: 'Apex Media',         claimStatus: 'in-progress',  reviewStatus: 'in-review', approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 74 },
+  { id: 'or-9',  campaignId: '', campaignName: 'Spring Fashion Launch',   orderId: 'ORD-10029', orderDate: '2025-04-16', mediatorName: 'Nova Retail',        claimStatus: 'completed',    reviewStatus: 'approved',  approvalMethod: 'manual', mediatorVerified: false, matchPct: 96 },
+  { id: 'or-10', campaignId: '', campaignName: 'Tech Gadgets Promo',      orderId: 'ORD-10030', orderDate: '2025-04-18', mediatorName: 'Beacon Digital',     claimStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 43 },
+  { id: 'or-11', campaignId: '', campaignName: 'Beauty Essentials Drop',  orderId: 'ORD-10031', orderDate: '2025-04-20', mediatorName: 'GreenLeaf Co.',      claimStatus: 'completed',    reviewStatus: 'in-review', approvalMethod: 'manual', mediatorVerified: false, matchPct: 61 },
+  { id: 'or-12', campaignId: '', campaignName: 'Health Wellness Q2',      orderId: 'ORD-10032', orderDate: '2025-04-22', mediatorName: 'Luminary Agency',    claimStatus: 'in-progress',  reviewStatus: 'pending',   approvalMethod: 'auto',   mediatorVerified: true,  matchPct: 85 },
 ]
 
 export const connections: Connection[] = [
