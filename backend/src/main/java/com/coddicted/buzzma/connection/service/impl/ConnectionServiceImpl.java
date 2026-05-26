@@ -107,4 +107,13 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
       throw new BusinessRuleViolationException("Connection request is no longer pending");
     }
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Connection getConnectionByToUserIdAndStatus(
+      final UUID toUserId, final ConnectionStatus status) {
+    return this.connectionRepository
+        .findByToUserIdAndStatusAndIsDeletedFalse(toUserId, status)
+        .orElseThrow(() -> new NotFoundException("Connection not found for " + toUserId));
+  }
 }

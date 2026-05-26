@@ -48,4 +48,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
       WHERE c.fromUserId = :fromUserId AND c.isDeleted = false
       """)
   ConnectionSummary findSummaryByFromUserId(@Param("fromUserId") UUID fromUserId);
+
+  Optional<Connection> findByToUserIdAndStatusAndIsDeletedFalse(
+      UUID toUserId, ConnectionStatus status);
 }

@@ -1008,7 +1008,7 @@ export interface components {
         ClaimScreenshotResponseDto: {
             /** Format: uuid */
             id?: string;
-            key?: string;
+            storageKey?: string;
             /** @enum {string} */
             type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
             /** @enum {string} */
@@ -1282,18 +1282,18 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
-            first?: boolean;
-            last?: boolean;
+            /** Format: int32 */
+            totalPages?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ClaimReviewResponseDto"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             numberOfElements?: number;
             pageable?: components["schemas"]["PageableObject"];
@@ -1303,12 +1303,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;

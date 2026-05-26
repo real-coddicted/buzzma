@@ -19,4 +19,6 @@ public interface ConnectionService {
   boolean actionConnectionRequest(UUID fromUserId, UUID toUserId, Action action, UUID requesterId);
 
   void delete(UUID id, UUID requesterId);
+
+  Connection getConnectionByToUserIdAndStatus(final UUID toUserId, final ConnectionStatus status);
 }

@@ -11,6 +11,8 @@ import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/D
 import type { Deal } from '../types/DealTypes'
 import { fetchExploreDeals } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
+import { Loading } from '../components/ui/Loading'
+import { Toast } from '../components/ui/Toast'
 
 export function Deals() {
   const [selectedDeal, setSelectedDeal]         = useState<Deal | null>(null)
@@ -23,13 +25,25 @@ export function Deals() {
   const [explorePage, setExplorePage]       = useState<ExploreDealsPage | null>(null)
   const [exploreLoading, setExploreLoading] = useState(true)
   const [currentPage, setCurrentPage]       = useState(1)
+  const [toastError, setToastError]         = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     setExploreLoading(true)
-    fetchExploreDeals(currentPage).then(data => {
-      setExplorePage(data)
-      setExploreLoading(false)
-    })
+    fetchExploreDeals(currentPage)
+      .then(data => {
+        if (cancelled) return
+        setExplorePage(data)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setExplorePage(null)
+        setToastError(err instanceof Error ? err.message : 'Failed to load deals.')
+      })
+      .finally(() => {
+        if (!cancelled) setExploreLoading(false)
+      })
+    return () => { cancelled = true }
   }, [currentPage])
 
   const filteredExplore = useMemo(() => {
@@ -90,8 +104,8 @@ export function Deals() {
           {activeTab === 'claimed' ? (
             <ClaimedDealsList onSelect={setSelectedClaimed} />
           ) : exploreLoading ? (
-            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
-              Loading…
+            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+              <Loading size={32} />
             </div>
           ) : filteredExplore.length === 0 ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
@@ -145,6 +159,14 @@ export function Deals() {
           </div>
         )}
       </Card>
+
+      {toastError && (
+        <Toast
+          message={toastError}
+          type="error"
+          onDismiss={() => setToastError(null)}
+        />
+      )}
     </div>
   )
 }
