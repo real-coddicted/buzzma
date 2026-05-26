@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconX } from '../ui/icons'
+import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
 
 const SIDEBAR_WIDTH_PX = 240
@@ -13,6 +14,11 @@ interface SidebarProps {
   onNavigate: (page: NavPage) => void
   isOpen: boolean
   onClose: () => void
+}
+
+function getInitial(name?: string): string {
+  const trimmed = name?.trim()
+  return trimmed ? trimmed.charAt(0).toUpperCase() : '?'
 }
 
 function Logo() {
@@ -46,6 +52,10 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<number | null>(null)
+  const currentUser = getCurrentUser()
+  const rawName = currentUser?.name?.trim() || 'Guest'
+  const displayName = rawName.length > 15 ? `${rawName.slice(0, 15)}…` : rawName
+  const displayEmail = currentUser?.email?.trim() ?? ''
 
   const openMenu = () => {
     if (closeTimerRef.current !== null) {
@@ -176,15 +186,17 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #ff79c6 0%, #bd93f9 100%)' }}
           >
-            A
+            {getInitial(currentUser?.name)}
           </div>
           <div className="min-w-0">
             <div className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary truncate">
-              Alex Rivera
+              {displayName}
             </div>
-            <div className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted truncate">
-              alex@pulse.io
-            </div>
+            {displayEmail && (
+                <div className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted truncate">
+                  {displayEmail}
+                </div>
+            )}
           </div>
           <div className="ml-auto w-2 h-2 rounded-full bg-neon-green flex-shrink-0 shadow-neon-green" />
         </div>
