@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout } from '../ui/icons'
 import type { NavPage } from '../../types'
+
+const SIDEBAR_WIDTH_PX = 240
+const ACCOUNT_MENU_GAP_PX = 2
+const ACCOUNT_MENU_CLOSE_DELAY_MS = 150
 
 interface SidebarProps {
   activePage: NavPage
@@ -37,6 +41,31 @@ function SectionLabel({ label }: { label: string }) {
 
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const closeTimerRef = useRef<number | null>(null)
+
+  const openMenu = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setMenuPos({ top: rect.top, left: SIDEBAR_WIDTH_PX + ACCOUNT_MENU_GAP_PX })
+    }
+    setIsAccountMenuOpen(true)
+  }
+
+  const scheduleClose = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current)
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsAccountMenuOpen(false)
+      closeTimerRef.current = null
+    }, ACCOUNT_MENU_CLOSE_DELAY_MS)
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 flex flex-col bg-surface-light-raised dark:bg-surface-dark-raised border-r border-surface-light-border dark:border-surface-dark-border z-30">
@@ -100,23 +129,17 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           onClick={() => onNavigate('feedback')}
         />
 
-        <div className="relative">
-          <div
-            onMouseEnter={() => setIsAccountMenuOpen(true)}
-            onMouseLeave={() => setIsAccountMenuOpen(false)}
-          >
-            <NavItem
-              icon={<IconSettings />}
-              label="Account"
-              active={false}
-              onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-            />
-            <AccountSubmenu
-              activePage={activePage}
-              onNavigate={onNavigate}
-              isVisible={isAccountMenuOpen}
-            />
-          </div>
+        <div
+          ref={triggerRef}
+          onMouseEnter={openMenu}
+          onMouseLeave={scheduleClose}
+        >
+          <NavItem
+            icon={<IconSettings />}
+            label="Account"
+            active={false}
+            onClick={() => (isAccountMenuOpen ? scheduleClose() : openMenu())}
+          />
         </div>
 
         <button
@@ -147,6 +170,16 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           <div className="ml-auto w-2 h-2 rounded-full bg-neon-green flex-shrink-0 shadow-neon-green" />
         </div>
       </div>
+
+      <AccountSubmenu
+        activePage={activePage}
+        onNavigate={onNavigate}
+        isVisible={isAccountMenuOpen}
+        top={menuPos.top}
+        left={menuPos.left}
+        onMouseEnter={openMenu}
+        onMouseLeave={scheduleClose}
+      />
     </aside>
   )
 }

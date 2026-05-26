@@ -5,13 +5,30 @@ interface AccountSubmenuProps {
   activePage: NavPage
   onNavigate: (page: NavPage) => void
   isVisible: boolean
+  top: number
+  left: number
+  onMouseEnter: () => void
+  onMouseLeave: () => void
 }
 
-export function AccountSubmenu({ activePage, onNavigate, isVisible }: AccountSubmenuProps) {
+export function AccountSubmenu({
+  activePage,
+  onNavigate,
+  isVisible,
+  top,
+  left,
+  onMouseEnter,
+  onMouseLeave,
+}: AccountSubmenuProps) {
   if (!isVisible) return null
 
   return (
-    <div className="absolute left-0 bottom-full mb-2 w-full bg-surface-light-card dark:bg-surface-dark-card border border-surface-light-border dark:border-surface-dark-border rounded-md shadow-lg z-40">
+    <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{ top, left }}
+      className="fixed w-48 bg-surface-light-card dark:bg-surface-dark-card border border-surface-light-border dark:border-surface-dark-border rounded-md shadow-lg z-50"
+    >
       <div className="flex flex-col gap-1 p-1">
         <button
           onClick={() => onNavigate('profile')}
