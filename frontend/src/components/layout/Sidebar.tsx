@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconX } from '../ui/icons'
 import type { NavPage } from '../../types'
 
 const SIDEBAR_WIDTH_PX = 240
@@ -11,6 +11,8 @@ const ACCOUNT_MENU_CLOSE_DELAY_MS = 150
 interface SidebarProps {
   activePage: NavPage
   onNavigate: (page: NavPage) => void
+  isOpen: boolean
+  onClose: () => void
 }
 
 function Logo() {
@@ -39,7 +41,7 @@ function SectionLabel({ label }: { label: string }) {
   )
 }
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProps) {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -68,7 +70,24 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 flex flex-col bg-surface-light-raised dark:bg-surface-dark-raised border-r border-surface-light-border dark:border-surface-dark-border z-30">
+    <>
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="md:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm animate-fade-in"
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed left-0 top-0 h-screen w-60 flex flex-col bg-surface-light-raised dark:bg-surface-dark-raised border-r border-surface-light-border dark:border-surface-dark-border z-40 transition-transform duration-200 ease-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <button
+          onClick={onClose}
+          className="md:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
+          aria-label="Close menu"
+        >
+          <IconX size={18} />
+        </button>
       <div className="flex-1 overflow-y-auto px-3 pt-5 pb-4 flex flex-col">
         <Logo />
 
@@ -181,5 +200,6 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         onMouseLeave={scheduleClose}
       />
     </aside>
+    </>
   )
 }

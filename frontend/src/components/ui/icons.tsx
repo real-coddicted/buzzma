@@ -295,6 +295,16 @@ export function IconCalendar({ size = 16, ...p }: IconProps) {
   )
 }
 
+export function IconMenu({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  )
+}
+
 export function IconX({ size = 18, ...p }: IconProps) {
   return (
     <svg {...base(size, p)}>
