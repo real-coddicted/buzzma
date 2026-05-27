@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { IconChevronRight } from '../components/ui/icons'
 import { ClaimDetailsTabs, type ClaimDetailsTab } from '../components/ui/claim-review/ClaimDetailsTabs'
 import { ClaimInfo } from '../components/ui/claim-review/ClaimInfo'
+import { ClaimProofGallery, type ClaimProofItem } from '../components/ui/claim-review/ClaimProofGallery'
 import { DealInfo } from '../components/ui/deal/DealInfo'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
@@ -73,7 +74,47 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
         </div>
       )}
 
+      {tab === 'proof' && (
+        <ClaimProofGallery
+          items={buildMockProofs(claim)}
+          onApprove={item => console.log('approve', item.id)}
+          onRequestProof={item => console.log('request-proof', item.id)}
+          onVerified={item => console.log('verified', item.id)}
+          onReject={item => console.log('reject', item.id)}
+        />
+      )}
+
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )
+}
+
+const MOCK_PROOF_IMAGES = [
+  'https://m.media-amazon.com/images/I/71oRS0tGhpL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/91xwqPW5RJL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/91rDpxnKnOL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/717SXKry9OL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/81WTjYyqLyL._AC_SL1500_.jpg',
+]
+
+function buildMockProofs(claim: ClaimReviewItem): ClaimProofItem[] {
+  const amount =
+    claim.amountPaise != null
+      ? `₹${(claim.amountPaise / 100).toLocaleString('en-IN')}`
+      : '—'
+
+  const fields = [
+    { label: 'Order ID',   value: claim.orderId,            matched: true  },
+    { label: 'Order Date', value: claim.orderDate,          matched: true  },
+    { label: 'Product',    value: claim.productName ?? '—',  matched: true  },
+    { label: 'Seller',     value: claim.sellerName ?? '—',   matched: false },
+    { label: 'Amount',     value: amount,                   matched: false },
+  ]
+
+  return MOCK_PROOF_IMAGES.map((imageUrl, i) => ({
+    id: `${claim.id}-proof-${i}`,
+    imageUrl,
+    imageAlt: `Proof screenshot ${i + 1}`,
+    fields,
+  }))
 }
