@@ -226,16 +226,17 @@ public class DevDataSeeder implements ApplicationRunner {
     }
     final Timestamp now = Timestamp.from(Instant.now());
     this.jdbcTemplate.update(
-        "INSERT INTO claims (id, campaign_id, deal_id, owner_id, status, ecommerce_order_id,"
-            + " amount_paise, product_name, seller_name, order_date, account_name, review_url,"
-            + " mediator_verified, score, reviewer_comments, created_by, updated_by,"
-            + " created_at, updated_at, is_deleted)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO claims (id, campaign_id, deal_id, owner_id, status, platform,"
+            + " ecommerce_order_id, amount_paise, product_name, seller_name, order_date,"
+            + " account_name, review_url, mediator_verified, score, reviewer_comments,"
+            + " created_by, updated_by, created_at, updated_at, is_deleted)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         claim.getId(),
         claim.getCampaignId(),
         claim.getDealId(),
         claim.getOwnerId(),
         claim.getStatus().name(),
+        claim.getPlatform().name(),
         claim.getEcommerceOrderId(),
         claim.getAmountPaise(),
         claim.getProductName(),
@@ -258,7 +259,7 @@ public class DevDataSeeder implements ApplicationRunner {
         UUID.fromString("a0000000-0000-0000-0000-000000000001"),
         AGENCY_ID,
         BUYER_ID,
-        ConnectionStatus.CONNECTION_STATUS_REQUESTED);
+        ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000002"),
         AGENCY_ID,

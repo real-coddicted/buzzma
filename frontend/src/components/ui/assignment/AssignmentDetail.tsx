@@ -22,6 +22,7 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
   }, [readOnly, item.campaignId])
   const deal = {
     id:                   item.id,
+    campaignId:           item.campaignId,
     productName:          item.productName,
     productImageUrl:      item.productImageUrl,
     productUrl:           item.productUrl,

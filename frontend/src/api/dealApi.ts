@@ -42,6 +42,7 @@ function dealResponseToDeal(dto: DealResponseDto): Deal {
   const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as CampaignType
   return {
     id: dto.id ?? '',
+    campaignId: dto.campaignId ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productUrl ?? '',
@@ -76,6 +77,7 @@ export function campaignToDeal(dto: CampaignResponseDto): Deal {
   const dealType = (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as CampaignType
   return {
     id: dto.id ?? '',
+    campaignId: dto.id ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productLink ?? '',

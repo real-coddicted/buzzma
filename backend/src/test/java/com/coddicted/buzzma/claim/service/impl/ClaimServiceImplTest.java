@@ -63,7 +63,7 @@ class ClaimServiceImplTest {
 
     final Claim result =
         this.claimService.createClaim(
-            CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+            CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE, EXTRACTED_DETAILS);
 
     assertEquals(CLAIM_1, result);
     final Claim saved = claimCaptor.getValue();
@@ -80,6 +80,7 @@ class ClaimServiceImplTest {
     assertEquals(SCREENSHOT_KEY, savedScreenshot.getStorageKey());
     assertEquals(SCREENSHOT_TYPE_ORDER, savedScreenshot.getType());
     assertEquals(SCREENSHOT_VERIFICATION_STATUS_PENDING, savedScreenshot.getVerificationStatus());
+    assertEquals(EXTRACTED_DETAILS, savedScreenshot.getExtractedDetails());
     assertFalse(savedScreenshot.isDeleted());
     assertEquals(OWNER_ID, savedScreenshot.getCreatedBy());
     assertEquals(OWNER_ID, savedScreenshot.getUpdatedBy());
@@ -96,7 +97,11 @@ class ClaimServiceImplTest {
             BusinessRuleViolationException.class,
             () ->
                 this.claimService.createClaim(
-                    CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+                    CLAIM_INPUT,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS));
     assertEquals("You have already claimed this deal", ex.getMessage());
   }
 

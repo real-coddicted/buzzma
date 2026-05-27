@@ -4,6 +4,7 @@
   "dealId": "5eed0006-0002-0000-0000-000000000001",
   "ownerId": "5eed0001-0000-0000-0000-000000000002",
   "status": "CREATED",
+  "platform": "PLATFORM_AMAZON",
   "isDeleted": false,
   "createdBy": "5eed0001-0000-0000-0000-000000000002",
   "updatedBy": "5eed0001-0000-0000-0000-000000000002"

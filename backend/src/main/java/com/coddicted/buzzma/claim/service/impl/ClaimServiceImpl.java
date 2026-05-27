@@ -15,6 +15,7 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Claim claim,
       final byte[] screenshot,
       final String screenshotFilename,
-      final String contentType) {
+      final String contentType,
+      final Map<String, String> extractedDetails) {
 
     final Deal deal = this.dealService.getById(claim.getDealId());
 
@@ -74,7 +76,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .build());
 
     saveScreenshot(
-        saved.getId(), screenshotKey, ScreenshotType.SCREENSHOT_TYPE_ORDER, saved.getOwnerId());
+        saved.getId(),
+        screenshotKey,
+        ScreenshotType.SCREENSHOT_TYPE_ORDER,
+        saved.getOwnerId(),
+        extractedDetails);
 
     return saved;
   }
@@ -172,12 +178,22 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   private void saveScreenshot(
       final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
+    saveScreenshot(claimId, storageKey, type, actorId, null);
+  }
+
+  private void saveScreenshot(
+      final UUID claimId,
+      final String storageKey,
+      final ScreenshotType type,
+      final UUID actorId,
+      final Map<String, String> extractedDetails) {
     this.claimScreenshotRepository.save(
         ClaimScreenshot.builder()
             .claimId(claimId)
             .storageKey(storageKey)
             .type(type)
             .verificationStatus(ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .extractedDetails(extractedDetails)
             .isDeleted(false)
             .createdBy(actorId)
             .updatedBy(actorId)

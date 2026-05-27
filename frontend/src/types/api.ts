@@ -761,10 +761,10 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         UserSettingsDto: {
-            dashboardTabEnabled?: boolean;
-            campaignsTabEnabled?: boolean;
             assignmentsTabEnabled?: boolean;
             connectionsTabEnabled?: boolean;
+            dashboardTabEnabled?: boolean;
+            campaignsTabEnabled?: boolean;
             dealTabEnabled?: boolean;
             ticketsTabEnabled?: boolean;
             feedbackTabEnabled?: boolean;
@@ -916,6 +916,7 @@ export interface components {
             sellerName?: string;
             amount?: number;
             orderedBy?: string;
+            validationErrors?: components["schemas"]["ValidationError"][];
         };
         ExtractionJobResponseDto: {
             /** Format: uuid */
@@ -972,10 +973,13 @@ export interface components {
             productName: string;
             sellerName: string;
             /** Format: int32 */
-            orderDate: number;
+            orderDate?: number;
             accountName: string;
             /** Format: binary */
             screenshot: string;
+            extractedDetails: {
+                [key: string]: string;
+            };
         };
         ClaimResponseDto: {
             /** Format: uuid */
@@ -989,7 +993,8 @@ export interface components {
             amountPaise?: number;
             productName?: string;
             sellerName?: string;
-            orderDate?: string;
+            /** Format: int32 */
+            orderDate?: number;
             accountName?: string;
             reviewUrl?: string;
             screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
@@ -1026,6 +1031,8 @@ export interface components {
             id?: string;
             /** Format: uuid */
             ownerId?: string;
+            /** Format: uuid */
+            campaignId?: string;
             productName?: string;
             productImageUrl?: string;
             productUrl?: string;
@@ -1282,33 +1289,33 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ClaimReviewResponseDto"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            first?: boolean;
-            last?: boolean;
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;

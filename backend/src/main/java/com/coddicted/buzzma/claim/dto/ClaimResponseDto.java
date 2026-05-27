@@ -23,7 +23,7 @@ public class ClaimResponseDto {
   BigInteger amountPaise;
   String productName;
   String sellerName;
-  String orderDate;
+  int orderDate;
   String accountName;
   String reviewUrl;
   List<ClaimScreenshotResponseDto> screenshots;

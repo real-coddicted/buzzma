@@ -1,6 +1,6 @@
 import type { components } from '../types/api'
 import type { ClaimReviewItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
-import { fetchWithAuth } from './client'
+import { fetchWithAuth, getAccessToken, clearSession } from './client'
 
 const API_BASE = '/api/v1'
 
@@ -51,7 +51,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     campaignId: '',
     campaignName: dto.productName ?? dto.deal?.productName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
-    orderDate: dto.orderDate ?? '',
+    orderDate: dto.orderDate != null ? String(dto.orderDate) : '',
     mediatorName: '',
     claimStatus: toClaimStatus(status),
     reviewStatus: toReviewStatus(status),
@@ -103,4 +103,60 @@ export async function fetchClaimsToReview(page = 0, size = 50): Promise<ClaimRev
   const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`)
   const data = (await res.json()) as PageClaimReviewResponseDto
   return (data.content ?? []).map(mapClaimReview)
+}
+
+export interface SubmitClaimParams {
+  campaignId: string
+  dealId: string
+  platform: string
+  orderId: string
+  amount: number
+  productName: string
+  sellerName: string
+  orderDate: string   // YYYY-MM-DD from date picker
+  accountName: string
+  screenshot: File
+  extractedDetails: Record<string, string>
+}
+
+export async function submitClaim(params: SubmitClaimParams): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('campaignId', params.campaignId)
+  formData.append('dealId', params.dealId)
+  formData.append('platform', params.platform)
+  formData.append('orderId', params.orderId)
+  formData.append('amount', String(Math.round(params.amount)))
+  formData.append('productName', params.productName)
+  formData.append('sellerName', params.sellerName)
+  // Convert YYYY-MM-DD to YYYYMMDD integer expected by the backend
+  formData.append('orderDate', params.orderDate.replace(/-/g, ''))
+  formData.append('accountName', params.accountName)
+  formData.append('screenshot', params.screenshot)
+  for (const [key, value] of Object.entries(params.extractedDetails)) {
+    formData.append(`extractedDetails[${key}]`, value)
+  }
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (res.status === 401) {
+    clearSession()
+    window.dispatchEvent(new CustomEvent('auth:logout'))
+    throw new Error('Session expired. Please sign in again.')
+  }
+
+  if (!res.ok) {
+    let message = 'Failed to submit claim. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
 }

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -56,6 +57,10 @@ public class Claim implements Auditable {
   @Column(name = "ecommerce_order_id", length = 100)
   private String ecommerceOrderId;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "platform", nullable = false)
+  private Platform platform;
+
   @Column(name = "amount_paise")
   private BigInteger amountPaise;
 
@@ -65,9 +70,8 @@ public class Claim implements Auditable {
   @Column(name = "seller_name", length = 255)
   private String sellerName;
 
-  // ISO date string YYYY-MM-DD entered by the buyer
-  @Column(name = "order_date", length = 10)
-  private String orderDate;
+  @Column(name = "order_date")
+  private int orderDate;
 
   @Column(name = "account_name", length = 255)
   private String accountName;

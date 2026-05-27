@@ -36,7 +36,7 @@ export function ClaimedDealDetail({ deal, onBack }: ClaimedDealDetailProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-14rem)]">
         <DealInfo deal={deal} />
-        <ClaimDeal deal={deal} currentStep={currentStep} />
+        <ClaimDeal deal={deal} initialStep={currentStep} />
       </div>
     </div>
   )

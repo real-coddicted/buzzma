@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1/claims")
 public class ClaimController {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClaimController.class);
 
   private final ClaimService claimService;
   private final DealService dealService;
@@ -52,13 +56,16 @@ public class ClaimController {
   @ResponseStatus(HttpStatus.CREATED)
   public ClaimResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid final ClaimRequestDto request) {
+
+    LOGGER.info("Create claim request, extractedDetails: {}", request.getExtractedDetails());
     final MultipartFile screenshot = request.getScreenshot();
     final Claim claim =
         this.claimService.createClaim(
             this.claimMapper.toEntity(request, requesterId),
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
-            screenshot.getContentType());
+            screenshot.getContentType(),
+            request.getExtractedDetails());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots);

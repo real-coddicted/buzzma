@@ -488,7 +488,8 @@ export const currentUser: UserDetails = {
 
 export const deals: RawDeal[] = [
   {
-    id: 'd-1',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567801',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678901',
     productName: 'boAt Rockerz 450 Bluetooth On-Ear Headphones',
     productImageUrl: 'https://m.media-amazon.com/images/I/61eD3sEoJKL._SX679_.jpg',
     productUrl: 'https://www.amazon.in/dp/B07HKPC7XS',
@@ -500,7 +501,8 @@ export const deals: RawDeal[] = [
     sellerName: 'boAt Lifestyle',
   },
   {
-    id: 'd-2',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567802',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678902',
     productName: 'Lakme Absolute Matte Revolution Lip Color',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/5/35014_1.jpg',
     productUrl: 'https://www.nykaa.com/lakme-absolute-matte-revolution-lip-color/p/35014',
@@ -512,7 +514,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Lakme India',
   },
   {
-    id: 'd-3',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567803',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678903',
     productName: 'Nike Air Max 270 React Running Shoes',
     productImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
     productUrl: 'https://www.myntra.com/nike/nike-men-air-max-270-react/12345678/buy',
@@ -524,7 +527,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Nike India',
   },
   {
-    id: 'd-4',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567804',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678904',
     productName: 'Samsung 65" QLED 4K Smart TV',
     productImageUrl: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&q=80',
     productUrl: 'https://www.flipkart.com/samsung-163-cm-65-inch-qled-ultra-hd-4k-smart-tv/p/itm3f4e6a2c1b2d3',
@@ -536,7 +540,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Samsung India',
   },
   {
-    id: 'd-5',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567805',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678905',
     productName: 'The Ordinary Niacinamide 10% + Zinc 1% Serum',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/8/4/8432592_1.jpg',
     productUrl: 'https://www.nykaa.com/the-ordinary-niacinamide-10-zinc-1/p/8432592',
@@ -548,7 +553,8 @@ export const deals: RawDeal[] = [
     sellerName: 'The Ordinary',
   },
   {
-    id: 'd-6',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567806',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678906',
     productName: 'Instant Pot Duo 7-in-1 Electric Pressure Cooker',
     productImageUrl: 'https://images.unsplash.com/photo-1585515320310-259814833e62?w=400&q=80',
     productUrl: 'https://www.amazon.in/dp/B01MFEBFPZ',
@@ -560,7 +566,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Instant Pot Official',
   },
   {
-    id: 'd-7',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567807',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678907',
     productName: 'Levi\'s 511 Slim Fit Jeans',
     productImageUrl: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80',
     productUrl: 'https://www.myntra.com/levis/levis-men-511-slim-fit-jeans/23456789/buy',
@@ -572,7 +579,8 @@ export const deals: RawDeal[] = [
     sellerName: "Levi's India",
   },
   {
-    id: 'd-8',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567808',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678908',
     productName: 'Philips Air Fryer HD9252/90',
     productImageUrl: 'https://images.unsplash.com/photo-1626509653291-18d9a934b9db?w=400&q=80',
     productUrl: 'https://www.flipkart.com/philips-air-fryer-hd9252-90/p/itm4a5b6c7d8e9f0',
@@ -584,7 +592,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Philips India',
   },
   {
-    id: 'd-9',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567809',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678909',
     productName: 'WOW Skin Science Vitamin C Face Wash',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/4/34399_1.jpg',
     productUrl: 'https://www.nykaa.com/wow-skin-science-vitamin-c-face-wash/p/34399',
@@ -596,7 +605,8 @@ export const deals: RawDeal[] = [
     sellerName: 'WOW Skin Science',
   },
   {
-    id: 'd-10',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567810',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678910',
     productName: 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
     productImageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
     productUrl: 'https://www.amazon.in/dp/B09XS7JWHH',
@@ -608,7 +618,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Sony India',
   },
   {
-    id: 'd-11',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567811',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678911',
     productName: 'Mamaearth Onion Hair Oil for Hair Regrowth',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/8/8/88051_1.jpg',
     productUrl: 'https://www.nykaa.com/mamaearth-onion-hair-oil/p/88051',
@@ -620,7 +631,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Mamaearth',
   },
   {
-    id: 'd-12',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567812',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678912',
     productName: 'Adidas Ultraboost 22 Running Shoes',
     productImageUrl: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400&q=80',
     productUrl: 'https://www.myntra.com/adidas/adidas-men-ultraboost-22/34567890/buy',
@@ -632,7 +644,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Adidas India',
   },
   {
-    id: 'd-13',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567813',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678913',
     productName: 'Apple AirPods Pro (2nd Generation)',
     productImageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&q=80',
     productUrl: 'https://www.flipkart.com/apple-airpods-pro-2nd-generation/p/itm5b6c7d8e9f0a1',
@@ -644,7 +657,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Apple India',
   },
   {
-    id: 'd-14',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567814',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678914',
     productName: 'Nykaa Cosmetics Super Matte Liquid Lipstick',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/4/5/45020_1.jpg',
     productUrl: 'https://www.nykaa.com/nykaa-cosmetics-super-matte-liquid-lipstick/p/45020',
@@ -656,7 +670,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Nykaa Cosmetics',
   },
   {
-    id: 'd-15',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567815',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678915',
     productName: 'Mi 11X Pro 5G Smartphone 8GB+128GB',
     productImageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80',
     productUrl: 'https://www.flipkart.com/mi-11x-pro-5g/p/itm6c7d8e9f0a1b2',
@@ -668,7 +683,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Xiaomi India',
   },
   {
-    id: 'd-16',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567816',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678916',
     productName: 'Prestige Iris 750W Mixer Grinder',
     productImageUrl: 'https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=400&q=80',
     productUrl: 'https://www.amazon.in/dp/B07GFKQZQM',
@@ -680,7 +696,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Prestige',
   },
   {
-    id: 'd-17',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567817',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678917',
     productName: 'Forest Essentials Intensive Repair Serum',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/7/2/72551_1.jpg',
     productUrl: 'https://www.nykaa.com/forest-essentials-intensive-repair-serum/p/72551',
@@ -692,7 +709,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Forest Essentials',
   },
   {
-    id: 'd-18',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567818',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678918',
     productName: 'H&M Oversized Cotton Hoodie',
     productImageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80',
     productUrl: 'https://www.myntra.com/h-m/h-m-men-oversized-cotton-hoodie/45678901/buy',
@@ -704,7 +722,8 @@ export const deals: RawDeal[] = [
     sellerName: 'H&M India',
   },
   {
-    id: 'd-19',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567819',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678919',
     productName: 'LG 185 L Direct Cool Single Door Refrigerator',
     productImageUrl: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&q=80',
     productUrl: 'https://www.flipkart.com/lg-185-l-direct-cool-single-door-refrigerator/p/itm7d8e9f0a1b2c3',
@@ -716,7 +735,8 @@ export const deals: RawDeal[] = [
     sellerName: 'LG India',
   },
   {
-    id: 'd-20',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567820',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678920',
     productName: 'Biotique Bio Papaya Revitalizing Tan Removal Scrub',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/1/2/12345_1.jpg',
     productUrl: 'https://www.nykaa.com/biotique-bio-papaya-tan-removal-scrub/p/12345',
@@ -728,7 +748,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Biotique',
   },
   {
-    id: 'd-c1',
+    id: 'b2c3d4e5-f6a7-8901-bcde-f01234567821',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678921',
     productName: 'boAt Airdopes 141 Bluetooth TWS Earbuds',
     productImageUrl: 'https://m.media-amazon.com/images/I/61MPnOjhKGL._SX679_.jpg',
     productUrl: 'https://www.amazon.in/dp/B08Y8RQPCJ',
@@ -741,7 +762,8 @@ export const deals: RawDeal[] = [
     sellerName: 'boAt Lifestyle',
   },
   {
-    id: 'd-c2',
+    id: 'b2c3d4e5-f6a7-8901-bcde-f01234567822',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678922',
     productName: 'Maybelline Fit Me Matte + Poreless Foundation',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/3/8/38005_1.jpg',
     productUrl: 'https://www.nykaa.com/maybelline-fit-me-matte-poreless-foundation/p/38005',
@@ -754,7 +776,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Maybelline India',
   },
   {
-    id: 'd-c3',
+    id: 'b2c3d4e5-f6a7-8901-bcde-f01234567823',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678923',
     productName: 'Puma Men\'s Softride Running Shoes',
     productImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
     productUrl: 'https://www.myntra.com/puma/puma-men-softride-running-shoes/56789012/buy',
@@ -767,7 +790,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Puma India',
   },
   {
-    id: 'd-c4',
+    id: 'b2c3d4e5-f6a7-8901-bcde-f01234567824',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678924',
     productName: 'Xiaomi Smart Band 8 Activity Tracker',
     productImageUrl: 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=400&q=80',
     productUrl: 'https://www.flipkart.com/xiaomi-smart-band-8/p/itm8e9f0a1b2c3d4',
@@ -780,7 +804,8 @@ export const deals: RawDeal[] = [
     sellerName: 'Xiaomi India',
   },
   {
-    id: 'd-c5',
+    id: 'b2c3d4e5-f6a7-8901-bcde-f01234567825',
+    campaignId: 'c1d2e3f4-a5b6-7890-cdef-012345678925',
     productName: 'Dot & Key Watermelon Sleeping Mask',
     productImageUrl: 'https://www.nykaa.com/media/catalog/product/5/5/55012_1.jpg',
     productUrl: 'https://www.nykaa.com/dot-and-key-watermelon-sleeping-mask/p/55012',

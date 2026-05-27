@@ -3,13 +3,19 @@ package com.coddicted.buzzma.claim.service;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ClaimService {
 
-  Claim createClaim(Claim claim, byte[] screenshot, String screenshotFilename, String contentType);
+  Claim createClaim(
+      Claim claim,
+      byte[] screenshot,
+      String screenshotFilename,
+      String contentType,
+      Map<String, String> extractedDetails);
 
   Claim submitReview(
       UUID claimId,

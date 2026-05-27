@@ -78,7 +78,7 @@ public class ExtractionServiceImpl extends BaseCrudService implements Extraction
               .map(ve -> ve.getField() + ": " + ve.getMessage())
               .collect(Collectors.joining("; "));
       LOGGER.warn("extractSync: validation failed for requester {}: {}", requesterId, errorSummary);
-      throw new BusinessRuleViolationException("Extraction validation failed: " + errorSummary);
+      result.getValidationErrors().addAll(errors);
     }
 
     return result;

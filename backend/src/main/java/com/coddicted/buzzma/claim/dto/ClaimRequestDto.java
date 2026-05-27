@@ -1,8 +1,10 @@
 package com.coddicted.buzzma.claim.dto;
 
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.UUID;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +16,8 @@ public class ClaimRequestDto {
 
   @NotNull private UUID dealId;
 
+  @NotNull private Platform platform;
+
   @NotBlank private String orderId;
 
   @NotNull private BigInteger amount;
@@ -22,9 +26,11 @@ public class ClaimRequestDto {
 
   @NotBlank private String sellerName;
 
-  @NotNull private Integer orderDate;
+  private int orderDate;
 
   @NotBlank private String accountName;
 
   @NotNull final MultipartFile screenshot;
+
+  @NotNull private Map<String, String> extractedDetails;
 }

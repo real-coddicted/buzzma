@@ -5,9 +5,10 @@ interface ScreenshotUploadProps {
   label: string
   hint?: string
   onExtract?: (data: ExtractionResponse) => void
+  onFileChange?: (file: File) => void
 }
 
-export function ScreenshotUpload({ label, hint, onExtract }: ScreenshotUploadProps) {
+export function ScreenshotUpload({ label, hint, onExtract, onFileChange }: ScreenshotUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -16,11 +17,12 @@ export function ScreenshotUpload({ label, hint, onExtract }: ScreenshotUploadPro
 
   async function handleFile(file: File | undefined) {
     if (!file) return
-    
+
     setFileName(file.name)
     setPreview(URL.createObjectURL(file))
     setError(null)
-    
+    onFileChange?.(file)
+
     if (onExtract) {
       setIsLoading(true)
       try {

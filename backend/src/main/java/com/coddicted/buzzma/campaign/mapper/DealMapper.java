@@ -14,6 +14,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface DealMapper {
 
+  @Mapping(source = "campaign.id", target = "campaignId")
   @Mapping(source = "campaign.product.name", target = "productName")
   @Mapping(
       source = "campaign.product.imageUrl",

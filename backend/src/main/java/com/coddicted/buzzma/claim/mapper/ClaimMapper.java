@@ -47,6 +47,7 @@ public interface ClaimMapper {
 
   @Mapping(source = "request.campaignId", target = "campaignId")
   @Mapping(source = "request.dealId", target = "dealId")
+  @Mapping(source = "request.platform", target = "platform")
   @Mapping(source = "request.orderId", target = "ecommerceOrderId")
   @Mapping(source = "request.amount", target = "amountPaise")
   @Mapping(source = "request.productName", target = "productName")

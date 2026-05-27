@@ -14,6 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 public class DealResponseDto {
   UUID id;
   UUID ownerId;
+  UUID campaignId;
   String productName;
   String productImageUrl;
   String productUrl;
