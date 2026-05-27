@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: buzzma-notifications
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5s
+
+server:
+  port: ${PORT:8081}
+
+app:
+  jwt:
+    access-secret: ${JWT_ACCESS_SECRET:change-me-access-secret-min-32-chars!!}
+  sse:
+    heartbeat-interval-seconds: ${SSE_HEARTBEAT_INTERVAL_SECONDS:15}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.coddicted.buzzma.notifications: INFO
