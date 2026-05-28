@@ -63,6 +63,13 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
     }
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSubmit(e as any)
+    }
+  }
+
   return (
     <>
     {toastError && (
@@ -91,6 +98,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
               <select
                 value={form.loginAs}
                 onChange={e => set('loginAs', e.target.value as LoginAs)}
+                onKeyDown={handleKeyDown}
                 className={inputBase + ' cursor-pointer'}
               >
                 <option value="brand">Brand</option>
@@ -110,6 +118,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
                 placeholder="+91 9876543210"
                 value={form.mobile}
                 onChange={e => set('mobile', e.target.value)}
+                onKeyDown={handleKeyDown}
                 className={inputBase}
               />
               {errors.mobile && (
@@ -128,6 +137,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
                   placeholder="Enter your password"
                   value={form.password}
                   onChange={e => set('password', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className={inputBase + ' pr-10'}
                 />
                 <button
