@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconX } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconProfile, IconX } from '../ui/icons'
 import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
 
@@ -139,6 +139,12 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
             label="Claim Review"
             active={activePage === 'claim-review'}
             onClick={() => onNavigate('claim-review')}
+          />
+          <NavItem
+            icon={<IconProfile />}
+            label="Users"
+            active={activePage === 'users'}
+            onClick={() => onNavigate('users')}
           />
         </div>
 

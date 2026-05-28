@@ -12,6 +12,7 @@ import type { Deal } from '../types/DealTypes'
 import { fetchExploreDeals } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
 import { Loading } from '../components/ui/Loading'
+import { PaginationToolbar } from '../components/ui/PaginationToolbar'
 import { Toast } from '../components/ui/Toast'
 
 export function Deals() {
@@ -120,43 +121,13 @@ export function Deals() {
           )}
         </div>
 
-        {activeTab === 'explore' && totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-surface-light-border dark:border-surface-dark-border flex items-center justify-between">
-            <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-              Page {currentPage} of {totalPages}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage(p => p - 1)}
-                disabled={currentPage === 1 || exploreLoading}
-                className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  disabled={exploreLoading}
-                  className={[
-                    'px-3 py-1.5 text-xs rounded-lg border transition-colors',
-                    p === currentPage
-                      ? 'bg-neon-blue/10 border-neon-blue/30 text-neon-blue font-semibold'
-                      : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover disabled:opacity-40',
-                  ].join(' ')}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage(p => p + 1)}
-                disabled={currentPage === totalPages || exploreLoading}
-                className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+        {activeTab === 'explore' && (
+          <PaginationToolbar
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            disabled={exploreLoading}
+          />
         )}
       </Card>
 

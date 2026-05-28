@@ -11,6 +11,7 @@ import { RaiseTicket } from './pages/RaiseTicket'
 import { MyTickets } from './pages/MyTickets'
 import { Notifications } from './pages/Notifications'
 import { ClaimReview } from './pages/ClaimReview'
+import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
 import { clearSession, getAccessToken } from './api/client'
@@ -72,6 +73,7 @@ export default function App() {
         />
       )}
       {activePage === 'claim-review' && <ClaimReview />}
+      {activePage === 'users'         && <Users />}
     </AppLayout>
   )
 }
