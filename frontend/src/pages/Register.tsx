@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
+import { AuthBackground } from '../components/ui/AuthBackground'
 import { fetchSecurityQuestions, registerUser } from '../api/authApi'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
@@ -10,12 +11,12 @@ interface RegisterProps {
 }
 
 const inputBase =
-  'w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover ' +
-  'border-surface-light-border dark:border-surface-dark-border ' +
-  'text-ink-light-primary dark:text-ink-dark-primary ' +
-  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
+  'w-full rounded-lg border bg-surface-dark-hover ' +
+  'border-surface-dark-border ' +
+  'text-ink-dark-primary ' +
+  'placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
-  'focus:border-neon-blue dark:focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
+  'focus:border-neon-green focus:ring-1 focus:ring-neon-green/30'
 
 export function Register({ onRegister, onGoToLogin }: RegisterProps) {
   const [questions, setQuestions] = useState<string[]>([])
@@ -105,20 +106,27 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
         onDismiss={onRegister}
       />
     )}
-    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4 py-10">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 py-10 relative overflow-hidden">
+      <AuthBackground variant="green" />
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <span className="text-2xl font-bold text-neon-blue tracking-tight">Buzzma</span>
-          <p className="mt-1 text-sm text-ink-light-muted dark:text-ink-dark-muted">
-            Create your account
-          </p>
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-neon-green/15 border border-neon-green/30 flex items-center justify-center shadow-neon-green">
+              <svg className="w-5 h-5 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+            <span className="text-3xl font-bold text-neon-green tracking-tight">Buzzma</span>
+          </div>
+          <p className="text-sm text-ink-dark-muted">Create your account</p>
         </div>
 
-        <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-6">
+        <div className="rounded-2xl border border-neon-green/20 bg-surface-dark-card shadow-neon-green p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Register As */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Register As
               </label>
               <select
@@ -136,7 +144,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
             {/* Conditional name field */}
             {form.registerAs === 'brand' && (
               <div>
-                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                   Brand Name
                 </label>
                 <input
@@ -153,7 +161,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
             )}
             {form.registerAs === 'agency' && (
               <div>
-                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                   Agency Name
                 </label>
                 <input
@@ -170,7 +178,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
             )}
             {form.registerAs === 'mediator' && (
               <div>
-                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                   Mediator Name
                 </label>
                 <input
@@ -187,7 +195,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
             )}
             {form.registerAs === 'buyer' && (
               <div>
-                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                   Buyer Name
                 </label>
                 <input
@@ -205,7 +213,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
 
             {/* Mobile */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -222,7 +230,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -236,7 +244,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-dark-muted hover:text-ink-dark-primary transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -258,7 +266,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
 
             {/* Invite Code */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Invite Code
               </label>
               <input
@@ -274,8 +282,8 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
             </div>
 
             {/* Security Questions */}
-            <div className="pt-2 border-t border-surface-light-border dark:border-surface-dark-border">
-              <p className="text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-3">
+            <div className="pt-2 border-t border-neon-green/15">
+              <p className="text-xs font-semibold text-neon-green/70 mb-3">
                 Security Questions
               </p>
               <div className="space-y-4">
@@ -319,18 +327,18 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
               <p className="text-xs text-neon-red text-center">{apiError}</p>
             )}
 
-            <Button type="submit" variant="primary" size="lg" loading={submitting} className="w-full mt-2">
+            <Button type="submit" variant="green" size="lg" loading={submitting} className="w-full mt-2">
               Create Account
             </Button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-light-muted dark:text-ink-dark-muted mt-6">
+        <p className="text-center text-xs text-ink-dark-muted mt-6">
           Already have an account?{' '}
           <button
             type="button"
             onClick={onGoToLogin}
-            className="text-neon-blue hover:underline font-medium"
+            className="text-neon-green hover:text-neon-cyan transition-colors font-medium"
           >
             Sign in
           </button>

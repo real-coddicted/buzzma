@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
+import { AuthBackground } from '../components/ui/AuthBackground'
 import { loginUser } from '../api/authApi'
 import type { LoginAs, LoginForm } from '../types/LoginTypes'
 
@@ -11,12 +12,12 @@ interface LoginProps {
 }
 
 const inputBase =
-  'w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover ' +
-  'border-surface-light-border dark:border-surface-dark-border ' +
-  'text-ink-light-primary dark:text-ink-dark-primary ' +
-  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
+  'w-full rounded-lg border bg-surface-dark-hover ' +
+  'border-surface-dark-border ' +
+  'text-ink-dark-primary ' +
+  'placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
-  'focus:border-neon-blue dark:focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
+  'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
 export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
   const [form, setForm] = useState<LoginForm>({
@@ -79,20 +80,27 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
         onDismiss={() => setToastError(null)}
       />
     )}
-    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 relative overflow-hidden">
+      <AuthBackground variant="blue" />
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <span className="text-2xl font-bold text-neon-blue tracking-tight">Buzzma</span>
-          <p className="mt-1 text-sm text-ink-light-muted dark:text-ink-dark-muted">
-            Sign in to your account
-          </p>
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-neon-blue/15 border border-neon-blue/30 flex items-center justify-center shadow-neon-blue">
+              <svg className="w-5 h-5 text-neon-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span className="text-3xl font-bold text-neon-blue tracking-tight">Buzzma</span>
+          </div>
+          <p className="text-sm text-ink-dark-muted">Sign in to your account</p>
         </div>
 
-        <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-6">
+        <div className="rounded-2xl border border-neon-blue/20 bg-surface-dark-card shadow-neon-blue p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Login As */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Login As
               </label>
               <select
@@ -110,7 +118,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
 
             {/* Mobile */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -128,7 +136,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -143,7 +151,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-dark-muted hover:text-ink-dark-primary transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -171,7 +179,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
               <button
                 type="button"
                 onClick={onGoToForgotPassword}
-                className="text-xs text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue dark:hover:text-neon-blue transition-colors"
+                className="text-xs text-ink-dark-muted hover:text-neon-blue transition-colors"
               >
                 Forgot password?
               </button>
@@ -179,12 +187,12 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-light-muted dark:text-ink-dark-muted mt-6">
+        <p className="text-center text-xs text-ink-dark-muted mt-6">
           Don't have an account?{' '}
           <button
             type="button"
             onClick={onGoToRegister}
-            className="text-neon-blue hover:underline font-medium"
+            className="text-neon-blue hover:text-neon-cyan transition-colors font-medium"
           >
             Register
           </button>
