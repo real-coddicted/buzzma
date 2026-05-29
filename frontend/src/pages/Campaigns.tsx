@@ -16,7 +16,7 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
   return {
     title: dto.title ?? '',
     platform: (dto.platform ?? '') as Platform | '',
-    productBrandName: '',
+    productBrandName: dto.productBrandName ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productLink ?? '',

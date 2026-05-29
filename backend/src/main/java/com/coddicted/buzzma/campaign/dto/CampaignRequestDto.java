@@ -30,6 +30,8 @@ public class CampaignRequestDto {
 
   @NotBlank String productUrl;
 
+  @NotBlank String productBrandName;
+
   @NotNull BigInteger originalPricePaise;
 
   @Nullable Integer startDate;
@@ -40,9 +42,11 @@ public class CampaignRequestDto {
 
   @NotNull CampaignStatus campaignStatus;
 
-  @NotNull BigInteger campaignPricePaise = BigInteger.ZERO;
+  @NotNull BigInteger campaignPricePaise;
 
   @NotNull Integer totalSlots;
+
+  @Nullable Integer returnWindowDays;
 
   List<CampaignAssignmentRequestDto> assignees;
 

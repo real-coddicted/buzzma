@@ -18,6 +18,7 @@ public interface AssignmentMapper {
   @Mapping(source = "campaignAssignment.campaignId", target = "campaignId")
   @Mapping(source = "campaignAssignment.assigneeId", target = "ownerId")
   @Mapping(source = "campaign.product.name", target = "productName")
+  @Mapping(source = "campaign.product.brandName", target = "productBrandName")
   @Mapping(
       source = "campaign.product.imageUrl",
       target = "productImageUrl",

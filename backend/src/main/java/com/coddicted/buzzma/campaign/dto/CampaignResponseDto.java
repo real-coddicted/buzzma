@@ -38,6 +38,8 @@ public class CampaignResponseDto {
 
   String productName;
 
+  String productBrandName;
+
   URL productImageUrl;
 
   URL productLink;

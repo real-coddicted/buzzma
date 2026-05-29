@@ -16,6 +16,7 @@ public class AssignmentResponseDto {
   UUID campaignId;
   UUID ownerId;
   String productName;
+  String productBrandName;
   String productImageUrl;
   String productUrl;
   Platform platform;

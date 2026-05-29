@@ -35,6 +35,9 @@ public class Product {
   @Column(name = "name", updatable = false, nullable = false)
   String name;
 
+  @Column(name = "brand_name", updatable = false, nullable = false)
+  String brandName;
+
   @Column(name = "image_url", updatable = false, nullable = false)
   URL imageUrl;
 

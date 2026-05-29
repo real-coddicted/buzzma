@@ -23,6 +23,8 @@ public class CampaignSummaryResponseDto {
 
   String productName;
 
+  String productBrandName;
+
   Integer startDate;
 
   Integer endDate;

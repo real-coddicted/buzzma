@@ -29,15 +29,11 @@ public interface CampaignMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
-  @Mapping(source = "totalSlots", target = "totalSlots")
-  @Mapping(target = "campaignPricePaise", ignore = true)
-  @Mapping(target = "returnWindowDays", ignore = true)
-  @Mapping(source = "termsAndConditions", target = "termsAndConditions")
-  @Mapping(source = "sellerName", target = "sellerName")
   Campaign toCampaignEntity(CampaignRequestDto request);
 
   @Mapping(source = "product.id", target = "productId")
   @Mapping(source = "product.name", target = "productName")
+  @Mapping(source = "product.brandName", target = "productBrandName")
   @Mapping(source = "product.imageUrl", target = "productImageUrl")
   @Mapping(source = "product.productLink", target = "productLink")
   @Mapping(source = "product.pricePaise", target = "productPricePaise")
@@ -47,6 +43,7 @@ public interface CampaignMapper {
 
   @Mapping(source = "campaign.product.id", target = "productId")
   @Mapping(source = "campaign.product.name", target = "productName")
+  @Mapping(source = "campaign.product.brandName", target = "productBrandName")
   @Mapping(source = "campaign.product.imageUrl", target = "productImageUrl")
   @Mapping(source = "campaign.product.productLink", target = "productLink")
   @Mapping(source = "campaign.product.pricePaise", target = "productPricePaise")
@@ -58,6 +55,7 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.title", target = "title")
   @Mapping(source = "campaign.product.imageUrl", target = "productImageUrl")
   @Mapping(source = "campaign.product.name", target = "productName")
+  @Mapping(source = "campaign.product.brandName", target = "productBrandName")
   @Mapping(source = "campaign.startDate", target = "startDate")
   @Mapping(source = "campaign.endDate", target = "endDate")
   @Mapping(source = "campaign.status", target = "status")

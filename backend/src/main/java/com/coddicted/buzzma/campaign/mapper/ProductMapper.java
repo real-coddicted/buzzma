@@ -18,6 +18,7 @@ public interface ProductMapper {
 
   @Mapping(target = "id", ignore = true)
   @Mapping(source = "productName", target = "name")
+  @Mapping(source = "productBrandName", target = "brandName")
   @Mapping(source = "productImageUrl", target = "imageUrl", qualifiedByName = "stringToUrl")
   @Mapping(source = "productUrl", target = "productLink", qualifiedByName = "stringToUrl")
   @Mapping(source = "originalPricePaise", target = "pricePaise")

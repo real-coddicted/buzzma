@@ -1068,6 +1068,7 @@ export interface components {
             productName: string;
             productImageUrl: string;
             productUrl: string;
+            productBrandName: string;
             originalPricePaise: number;
             /** Format: int32 */
             startDate?: number;
@@ -1080,6 +1081,8 @@ export interface components {
             campaignPricePaise: number;
             /** Format: int32 */
             totalSlots: number;
+            /** Format: int32 */
+            returnWindowDays?: number;
             assignees?: components["schemas"]["CampaignAssignmentRequestDto"][];
             openToAll?: boolean;
             termsAndConditions?: string;
@@ -1115,6 +1118,7 @@ export interface components {
             /** Format: uuid */
             productId?: string;
             productName?: string;
+            productBrandName?: string;
             /** Format: url */
             productImageUrl?: string;
             /** Format: url */
@@ -1331,6 +1335,7 @@ export interface components {
             /** Format: url */
             productImageUrl?: string;
             productName?: string;
+            productBrandName?: string;
             /** Format: int32 */
             startDate?: number;
             /** Format: int32 */
@@ -1355,6 +1360,7 @@ export interface components {
             /** Format: uuid */
             ownerId?: string;
             productName?: string;
+            productBrandName?: string;
             productImageUrl?: string;
             productUrl?: string;
             /** @enum {string} */
