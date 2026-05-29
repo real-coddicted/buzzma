@@ -6,10 +6,25 @@ import type { components } from '../types/api'
 import { clearCurrentUser, setAccessToken, setCurrentUser } from './client'
 
 type SignInResponse = components['schemas']['UserSignInResponseDto']
+type UserRegistrationRequestDto = components['schemas']['UserRegistrationRequestDto']
+type SecurityQuestionWrapper = components['schemas']['SecurityQuestionWrapper']
+type BackendSecurityQuestion = components['schemas']['SecurityQuestion']
+
+const questionIdByText = new Map<string, string>()
 
 export async function fetchSecurityQuestions(): Promise<SecurityQuestion[]> {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  return securityQuestions
+  try {
+    const res = await fetch('/api/v1/security-questions')
+    if (!res.ok) throw new Error()
+    const data: BackendSecurityQuestion[] = await res.json()
+    questionIdByText.clear()
+    for (const q of data) {
+      if (q.id && q.question) questionIdByText.set(q.question, q.id)
+    }
+    return data.map(q => q.question ?? '').filter(Boolean)
+  } catch {
+    return securityQuestions
+  }
 }
 
 export async function loginUser(form: LoginForm): Promise<LoginResponse> {
@@ -34,9 +49,50 @@ export async function loginUser(form: LoginForm): Promise<LoginResponse> {
   return { success: true, message: '' }
 }
 
-export async function registerUser(_form: RegisterForm): Promise<RegisterResponse> {
-  await new Promise(resolve => setTimeout(resolve, 600))
-  return { success: true, message: 'Account created successfully' }
+const roleMap: Record<RegisterForm['registerAs'], NonNullable<UserRegistrationRequestDto['userRole']>> = {
+  brand:    'ROLE_BRAND',
+  agency:   'ROLE_AGENCY',
+  mediator: 'ROLE_MEDIATOR',
+  buyer:    'ROLE_BUYER',
+}
+
+export async function registerUser(form: RegisterForm): Promise<RegisterResponse> {
+  const name = {
+    brand:    form.brandName,
+    agency:   form.agencyName,
+    mediator: form.mediatorName,
+    buyer:    form.buyerName,
+  }[form.registerAs].trim()
+
+  const securityQuestionList: SecurityQuestionWrapper[] = [
+    { questionId: questionIdByText.get(form.securityQuestion1), answer: form.securityAnswer1.trim() },
+    { questionId: questionIdByText.get(form.securityQuestion2), answer: form.securityAnswer2.trim() },
+  ].filter(q => q.questionId) as SecurityQuestionWrapper[]
+
+  const body: UserRegistrationRequestDto = {
+    name,
+    mobile: form.mobile.trim(),
+    password: form.password,
+    inviteCode: form.inviteCode.trim(),
+    userRole: roleMap[form.registerAs],
+    ...(securityQuestionList.length > 0 ? { securityQuestionList } : {}),
+  }
+
+  const res = await fetch('/api/v1/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    const message = res.status === 409
+      ? 'An account with this mobile number already exists.'
+      : text || 'Registration failed. Please try again.'
+    return { success: false, message }
+  }
+
+  return { success: true, message: '' }
 }
 
 export async function fetchUserSecurityQuestion(_mobile: string): Promise<SecurityQuestion> {

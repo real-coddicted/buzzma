@@ -1,24 +1,30 @@
 package com.coddicted.buzzma.identity.service.impl;
 
+import com.coddicted.buzzma.connection.entity.Connection;
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.identity.service.AuthService;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserCredentialService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.invite.entity.Invite;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.security.JwtService;
-import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -29,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
   private final UserBankingDetailService userBankingDetailService;
   private final InviteService inviteService;
   private final SecurityQuestionAnswerService securityQuestionAnswerService;
+  private final ConnectionService connectionService;
 
   public AuthServiceImpl(
       final JwtService jwtService,
@@ -36,13 +43,15 @@ public class AuthServiceImpl implements AuthService {
       final UserCredentialService userCredentialService,
       final UserBankingDetailService userBankingDetailService,
       final InviteService inviteService,
-      final SecurityQuestionAnswerService securityQuestionAnswerService) {
+      final SecurityQuestionAnswerService securityQuestionAnswerService,
+      final ConnectionService connectionService) {
     this.jwtService = jwtService;
     this.userService = userService;
     this.userCredentialService = userCredentialService;
     this.userBankingDetailService = userBankingDetailService;
     this.inviteService = inviteService;
     this.securityQuestionAnswerService = securityQuestionAnswerService;
+    this.connectionService = connectionService;
   }
 
   @Override
@@ -76,17 +85,33 @@ public class AuthServiceImpl implements AuthService {
     if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, inviteCode)) {
 
       // Save user
+      user.setStatus(UserStatus.USER_STATUS_VERIFICATION_PENDING);
       final BuzzmaUser savedUser = this.userService.create(user);
       // Save User Credential
       this.userCredentialService.create(
           userCredential.toBuilder().userId(savedUser.getId()).build(), requesterId);
       // Save user banking detail
-      final UserBankingDetail savedUserBankingDetail =
-          this.userBankingDetailService.create(userBankingDetail, requesterId);
+      if (userBankingDetail != null && StringUtils.hasText(userBankingDetail.getAccountNumber())) {
+        final UserBankingDetail savedUserBankingDetail =
+            this.userBankingDetailService.create(userBankingDetail, requesterId);
+      }
       // Save security answer
-      securityAnswerList.forEach(this.securityQuestionAnswerService::createSecurityAnswer);
+      securityAnswerList.forEach(
+          securityAnswer -> {
+            securityAnswer.setUserId(savedUser.getId());
+            this.securityQuestionAnswerService.createSecurityAnswer(securityAnswer);
+          });
       // Consume invite
-      this.inviteService.consume(this.inviteService.getByCode(inviteCode), requesterId);
+      Invite invite = this.inviteService.getByCode(inviteCode);
+      this.inviteService.consume(invite, requesterId);
+
+      // create connection request
+      this.connectionService.createConnection(
+          Connection.builder()
+              .fromUserId(invite.getOwnerId())
+              .toUserId(savedUser.getId())
+              .status(ConnectionStatus.CONNECTION_STATUS_REQUESTED)
+              .build());
       return savedUser;
     }
 

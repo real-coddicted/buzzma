@@ -9,6 +9,7 @@ import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.common.PasswordService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,8 @@ public class SecurityQuestionAnswerServiceImpl extends BaseCrudService
     return answerRepository.save(
         securityAnswer.toBuilder()
             .answerHash(passwordService.hashPassword(securityAnswer.getAnswerHash()))
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
             .build());
   }
 
