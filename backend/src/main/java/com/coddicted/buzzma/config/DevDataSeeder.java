@@ -59,21 +59,24 @@ public class DevDataSeeder implements ApplicationRunner {
   @Override
   @Transactional
   public void run(final ApplicationArguments args) {
-    seedUser("Test Admin", "9000000001", "test1234", UserRole.ROLE_ADMIN, ADMIN_ID);
-    seedUser("Test Buyer", "9000000002", "test1234", UserRole.ROLE_BUYER, BUYER_ID);
-    seedUser("Test Agency", "9000000003", "test1234", UserRole.ROLE_AGENCY, AGENCY_ID);
-    seedUser("Test Brand", "9000000004", "test1234", UserRole.ROLE_BRAND, BRAND_ID);
-    seedUser("Test Mediator", "9000000005", "test1234", UserRole.ROLE_MEDIATOR, MEDIATOR_ID);
+    seedUser("Test Admin 1", "9000000001", "test1234", UserRole.ROLE_ADMIN, ADMIN_ID);
+    seedUser("Test Brand 1", "9100000001", "test1234", UserRole.ROLE_BRAND, BRAND_ID);
+    seedUser("Test Agency 1", "9200000001", "test1234", UserRole.ROLE_AGENCY, AGENCY_ID);
+    seedUser("Test Mediator 1", "9300000001", "test1234", UserRole.ROLE_MEDIATOR, MEDIATOR_ID);
+    seedUser("Test Buyer 1", "9400000001", "test1234", UserRole.ROLE_BUYER, BUYER_ID);
+
     seedConnections();
-    CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
-    CAMPAIGN_SCENARIOS.forEach(this::seedAssignment);
-    CAMPAIGN_SCENARIOS.forEach(this::seedDeal);
-    CAMPAIGN_SCENARIOS.forEach(this::seedClaim);
+    //    CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
+    //    CAMPAIGN_SCENARIOS.forEach(this::seedAssignment);
+    //    CAMPAIGN_SCENARIOS.forEach(this::seedDeal);
+    //    CAMPAIGN_SCENARIOS.forEach(this::seedClaim);
     LOGGER.warn("==========================================================");
     LOGGER.warn("  DEV SEED — test credentials (h2 profile only)");
-    LOGGER.warn("  Admin    mobile=9000000001  password=test123");
-    LOGGER.warn("  Buyer    mobile=9000000002  password=test123");
-    LOGGER.warn("  Mediator mobile=9000000005  password=test123");
+    LOGGER.warn("  Admin    mobile=9000000001  password=test1234");
+    LOGGER.warn("  Brand    mobile=9100000001  password=test1234");
+    LOGGER.warn("  Agency   mobile=9200000001  password=test1234");
+    LOGGER.warn("  Mediator mobile=9300000001  password=test1234");
+    LOGGER.warn("  Buyer    mobile=9400000001  password=test1234");
     LOGGER.warn("==========================================================");
   }
 
@@ -257,13 +260,13 @@ public class DevDataSeeder implements ApplicationRunner {
   private void seedConnections() {
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000001"),
+        BRAND_ID,
         AGENCY_ID,
-        BUYER_ID,
         ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000002"),
-        AGENCY_ID,
-        BRAND_ID,
+        MEDIATOR_ID,
+        BUYER_ID,
         ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
     insertConnection(
         UUID.fromString("a0000000-0000-0000-0000-000000000003"),
