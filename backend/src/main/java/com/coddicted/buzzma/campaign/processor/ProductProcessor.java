@@ -17,7 +17,13 @@ public class ProductProcessor {
     this.productMapper = productMapper;
   }
 
-  public Product saveProduct(CampaignRequestDto request) {
+  public Product saveProduct(final CampaignRequestDto request) {
     return productService.create(productMapper.toProductEntity(request));
+  }
+
+  public Product updateProduct(final Product existingProduct, final CampaignRequestDto request) {
+    final Product updated =
+        productMapper.toProductEntity(request).toBuilder().id(existingProduct.getId()).build();
+    return productService.update(updated);
   }
 }

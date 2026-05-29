@@ -481,7 +481,7 @@ export interface paths {
         delete: operations["delete_4"];
         options?: never;
         head?: never;
-        patch: operations["update_1"];
+        patch: operations["updateCampaign"];
         trace?: never;
     };
     "/api/v1/tickets/{id}": {
@@ -918,6 +918,10 @@ export interface components {
             orderedBy?: string;
             validationErrors?: components["schemas"]["ValidationError"][];
         };
+        ValidationError: {
+            field?: string;
+            message?: string;
+        };
         ExtractionJobResponseDto: {
             /** Format: uuid */
             id?: string;
@@ -935,10 +939,6 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
-        };
-        ValidationError: {
-            field?: string;
-            message?: string;
         };
         ConnectionRequestDto: {
             /** Format: uuid */
@@ -968,6 +968,8 @@ export interface components {
             campaignId: string;
             /** Format: uuid */
             dealId: string;
+            /** @enum {string} */
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             orderId: string;
             amount: number;
             productName: string;
@@ -1293,10 +1295,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1305,21 +1307,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -2383,7 +2385,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    updateCampaign: {
         parameters: {
             query?: never;
             header?: never;
@@ -2559,8 +2561,7 @@ export interface operations {
     };
     getUnclaimedDeals: {
         parameters: {
-            query: {
-                ownerId: string;
+            query?: {
                 page?: number;
                 size?: number;
             };

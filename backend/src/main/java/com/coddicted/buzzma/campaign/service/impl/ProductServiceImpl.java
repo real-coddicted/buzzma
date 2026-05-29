@@ -28,4 +28,9 @@ public class ProductServiceImpl extends BaseCrudService implements ProductServic
   public Product create(Product product) {
     return productRepository.save(product);
   }
+
+  @Override
+  public Product update(final Product product) {
+    return productRepository.save(product);
+  }
 }

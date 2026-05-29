@@ -112,6 +112,53 @@ export async function copyCampaign(id: string): Promise<CampaignResponseDto> {
   return res.json() as Promise<CampaignResponseDto>
 }
 
+export async function updateCampaign(
+  id: string,
+  dto: CampaignRequestDto,
+  campaignStatus: NonNullable<CampaignResponseDto['status']>,
+): Promise<CampaignResponseDto> {
+  const user = getCurrentUser()
+  if (!user?.id) throw new Error('You must be signed in to update a campaign.')
+
+  const body: BackendRequest = {
+    title: dto.title,
+    ownerId: user.id,
+    platform: dto.platform as BackendRequest['platform'],
+    productName: dto.productName,
+    productBrandName: dto.productBrandName,
+    productImageUrl: dto.productImageUrl,
+    productUrl: dto.productUrl,
+    originalPricePaise: dto.originalPricePaise,
+    campaignPricePaise: dto.campaignPricePaise,
+    campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
+    campaignStatus,
+    totalSlots: dto.totalSlots ?? 1,
+    openToAll: dto.openToAll ?? true,
+    ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
+    ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
+    ...(dto.sellerName ? { sellerName: dto.sellerName } : {}),
+    ...(dto.startDate ? { startDate: isoToYYYYMMDD(dto.startDate) } : {}),
+    ...(dto.endDate ? { endDate: isoToYYYYMMDD(dto.endDate) } : {}),
+    ...(dto.assignees && dto.assignees.length > 0 ? {
+      assignees: dto.assignees.map(e => ({
+        campaignId: id,
+        assignorId: user.id!,
+        assigneeId: e.id,
+        campaignPricePaise: dto.campaignPricePaise,
+        commissionOfferedPaise: Math.round(e.commissionOffered * 100),
+        slotOffered: e.slotsAvailable,
+      })),
+    } : {}),
+  }
+
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+
+  return res.json() as Promise<CampaignResponseDto>
+}
+
 export async function publishCampaign(campaignId: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(
     `${API_BASE}/campaigns/${campaignId}/action/CAMPAIGN_ACTION_PUBLISH`,

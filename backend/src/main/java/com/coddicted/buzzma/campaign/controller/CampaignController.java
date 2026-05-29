@@ -59,7 +59,7 @@ public class CampaignController {
   }
 
   @PatchMapping("/{id}")
-  public CampaignResponseDto update(
+  public CampaignResponseDto updateCampaign(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @Valid @RequestBody final CampaignRequestDto request) {

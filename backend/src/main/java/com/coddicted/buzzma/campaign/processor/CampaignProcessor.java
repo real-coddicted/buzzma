@@ -110,7 +110,8 @@ public class CampaignProcessor {
     final Campaign existingCampaign = this.service.getById(id);
     final int oldTotalSlots = existingCampaign.getTotalSlots();
 
-    final Product updatedProduct = this.productProcessor.saveProduct(request);
+    final Product updatedProduct =
+        this.productProcessor.updateProduct(existingCampaign.getProduct(), request);
     this.campaignMapper.updateCampaign(request, existingCampaign);
 
     final Campaign updatedCampaign =

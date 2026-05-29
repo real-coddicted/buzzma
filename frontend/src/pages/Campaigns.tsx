@@ -5,7 +5,7 @@ import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
 import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { Toast } from '../components/ui/Toast'
 
@@ -44,6 +44,7 @@ export function Campaigns() {
   const [showNewCampaign, setShowNewCampaign] = useState(false)
   const [editingForm, setEditingForm] = useState<CampaignForm | null>(null)
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null)
+  const [editingCampaignStatus, setEditingCampaignStatus] = useState<NonNullable<CampaignResponseDto['status']> | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -75,6 +76,7 @@ export function Campaigns() {
     try {
       const dto = await fetchCampaignById(id)
       setEditingCampaignId(id)
+      setEditingCampaignStatus(dto.status ?? 'CAMPAIGN_STATUS_DRAFT')
       setEditingForm(responseToForm(dto))
       setShowNewCampaign(true)
     } catch (err) {
@@ -97,10 +99,22 @@ export function Campaigns() {
     setShowNewCampaign(false)
     setEditingForm(null)
     setEditingCampaignId(null)
+    setEditingCampaignStatus(null)
   }
 
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
     await createCampaign(dto)
+    handleBack()
+    setLoading(true)
+    fetchCampaigns()
+      .then(setCampaigns)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
+      .finally(() => setLoading(false))
+  }
+
+  async function handleUpdateCampaign(dto: CampaignRequestDto): Promise<void> {
+    if (!editingCampaignId || !editingCampaignStatus) return
+    await updateCampaign(editingCampaignId, dto, editingCampaignStatus)
     handleBack()
     setLoading(true)
     fetchCampaigns()
@@ -118,7 +132,7 @@ export function Campaigns() {
     return (
       <NewCampaignPage
         onBack={handleBack}
-        onSubmit={handleCreateCampaign}
+        onSubmit={editingCampaignId ? handleUpdateCampaign : handleCreateCampaign}
         onLaunch={editingCampaignId ? handleLaunchFromEdit : undefined}
         initialForm={editingForm ?? undefined}
       />

@@ -32,18 +32,18 @@ public class Product {
   @Column(name = "id", updatable = false, nullable = false)
   UUID id;
 
-  @Column(name = "name", updatable = false, nullable = false)
+  @Column(name = "name", nullable = false)
   String name;
 
-  @Column(name = "brand_name", updatable = false, nullable = false)
+  @Column(name = "brand_name", nullable = false)
   String brandName;
 
-  @Column(name = "image_url", updatable = false, nullable = false)
+  @Column(name = "image_url", nullable = false)
   URL imageUrl;
 
-  @Column(name = "product_link", updatable = false, nullable = false)
+  @Column(name = "product_link", nullable = false)
   URL productLink;
 
-  @Column(name = "price_paise", updatable = false, nullable = false)
+  @Column(name = "price_paise", nullable = false)
   BigInteger pricePaise;
 }
