@@ -19,12 +19,11 @@ import com.coddicted.buzzma.invite.entity.Invite;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.security.JwtService;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {

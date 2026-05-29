@@ -42,6 +42,7 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/api/v1/auth/**",
                         "/api/health/**",
+                        "/api/v1/security-questions",
                         "/api/media/**",
                         // Todo: added only for testing, should be removed later
                         "/api/v1/files/**",
