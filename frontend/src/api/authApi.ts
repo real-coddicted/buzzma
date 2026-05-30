@@ -27,11 +27,11 @@ export async function fetchSecurityQuestions(): Promise<SecurityQuestion[]> {
   }
 }
 
-export async function loginUser(form: LoginForm): Promise<LoginResponse> {
+export async function loginUser(form: LoginForm, captchaToken: string): Promise<LoginResponse> {
   const res = await fetch('/api/v1/auth/sign-in', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mobile: form.mobile, password: form.password }),
+    body: JSON.stringify({ mobile: form.mobile, password: form.password, captchaToken }),
   })
   if (!res.ok) {
     const message = res.status === 401 ? 'Invalid mobile number or password' : 'Something went wrong. Please try again.'
@@ -56,7 +56,7 @@ const roleMap: Record<RegisterForm['registerAs'], NonNullable<UserRegistrationRe
   buyer:    'ROLE_BUYER',
 }
 
-export async function registerUser(form: RegisterForm): Promise<RegisterResponse> {
+export async function registerUser(form: RegisterForm, captchaToken: string): Promise<RegisterResponse> {
   const name = {
     brand:    form.brandName,
     agency:   form.agencyName,
@@ -69,12 +69,13 @@ export async function registerUser(form: RegisterForm): Promise<RegisterResponse
     { questionId: questionIdByText.get(form.securityQuestion2), answer: form.securityAnswer2.trim() },
   ].filter(q => q.questionId) as SecurityQuestionWrapper[]
 
-  const body: UserRegistrationRequestDto = {
+  const body: UserRegistrationRequestDto & { captchaToken: string } = {
     name,
     mobile: form.mobile.trim(),
     password: form.password,
     inviteCode: form.inviteCode.trim(),
     userRole: roleMap[form.registerAs],
+    captchaToken,
     ...(securityQuestionList.length > 0 ? { securityQuestionList } : {}),
   }
 

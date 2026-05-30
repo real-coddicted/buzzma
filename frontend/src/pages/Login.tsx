@@ -6,6 +6,7 @@ import { loginUser } from '../api/authApi'
 import type { LoginAs, LoginForm } from '../types/LoginTypes'
 
 interface LoginProps {
+  captchaToken: string
   onLogin: () => void
   onGoToRegister: () => void
   onGoToForgotPassword: () => void
@@ -19,7 +20,7 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
-export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
+export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
   const [form, setForm] = useState<LoginForm>({
     loginAs: 'brand',
     mobile: '',
@@ -51,7 +52,7 @@ export function Login({ onLogin, onGoToRegister, onGoToForgotPassword }: LoginPr
     setSubmitting(true)
     setToastError(null)
     try {
-      const res = await loginUser(form)
+      const res = await loginUser(form, captchaToken)
       if (res.success) {
         onLogin()
       } else {

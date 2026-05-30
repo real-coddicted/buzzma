@@ -41,4 +41,6 @@ public class UserRegistrationRequestDto {
   @Nullable String bankName;
 
   @Nullable String bankAccountHolderName;
+
+  String captchaToken;
 }

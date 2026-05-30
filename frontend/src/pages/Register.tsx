@@ -6,6 +6,7 @@ import { fetchSecurityQuestions, registerUser } from '../api/authApi'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
 interface RegisterProps {
+  captchaToken: string
   onRegister: () => void
   onGoToLogin: () => void
 }
@@ -18,7 +19,7 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-green focus:ring-1 focus:ring-neon-green/30'
 
-export function Register({ onRegister, onGoToLogin }: RegisterProps) {
+export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProps) {
   const [questions, setQuestions] = useState<string[]>([])
   const [form, setForm] = useState<RegisterForm>({
     registerAs: 'brand',
@@ -84,7 +85,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
     setSubmitting(true)
     setApiError(null)
     try {
-      const res = await registerUser(form)
+      const res = await registerUser(form, captchaToken)
       if (res.success) {
         setShowToast(true)
       } else {

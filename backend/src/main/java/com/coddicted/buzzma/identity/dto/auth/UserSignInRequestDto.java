@@ -15,4 +15,6 @@ public class UserSignInRequestDto {
 
   @Size(min = 8, max = 200)
   String password;
+
+  String captchaToken;
 }

@@ -15,6 +15,7 @@ import com.coddicted.buzzma.identity.mapper.SecurityQuestionMapper;
 import com.coddicted.buzzma.identity.service.AuthService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import com.coddicted.buzzma.shared.security.JwtService;
+import com.coddicted.buzzma.shared.turnstile.TurnstileClient;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -35,20 +36,24 @@ public class AuthController {
   private final AuthMapper authMapper;
   private final SecurityQuestionMapper securityQuestionMapper;
   private final JwtService jwtService;
+  private final TurnstileClient turnstileClient;
 
   public AuthController(
       final AuthService authService,
       final AuthMapper authMapper,
       final SecurityQuestionMapper securityQuestionMapper,
-      final JwtService jwtService) {
+      final JwtService jwtService,
+      final TurnstileClient turnstileClient) {
     this.authService = authService;
     this.authMapper = authMapper;
     this.securityQuestionMapper = securityQuestionMapper;
     this.jwtService = jwtService;
+    this.turnstileClient = turnstileClient;
   }
 
   @PostMapping("/sign-in")
   public UserSignInResponseDto signIn(@Valid @RequestBody final UserSignInRequestDto request) {
+    this.turnstileClient.verify(request.getCaptchaToken());
     final BuzzmaUser user =
         authService.signIn(authMapper.toUser(request), authMapper.toCredential(request));
     return buildUserSignInResponse(user);
@@ -57,6 +62,7 @@ public class AuthController {
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
   public void register(@Valid @RequestBody final UserRegistrationRequestDto request) {
+    this.turnstileClient.verify(request.getCaptchaToken());
     authService.register(
         authMapper.toUser(request),
         authMapper.toCredential(request),
