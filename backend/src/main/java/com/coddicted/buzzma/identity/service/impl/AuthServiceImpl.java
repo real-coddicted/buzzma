@@ -84,16 +84,11 @@ public class AuthServiceImpl implements AuthService {
     if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, inviteCode)) {
 
       // Save user
-      user.setStatus(UserStatus.USER_STATUS_VERIFICATION_PENDING);
+      user.setStatus(UserStatus.USER_STATUS_ACTIVE);
       final BuzzmaUser savedUser = this.userService.create(user);
       // Save User Credential
       this.userCredentialService.create(
           userCredential.toBuilder().userId(savedUser.getId()).build(), requesterId);
-      // Save user banking detail
-      if (userBankingDetail != null && StringUtils.hasText(userBankingDetail.getAccountNumber())) {
-        final UserBankingDetail savedUserBankingDetail =
-            this.userBankingDetailService.create(userBankingDetail, requesterId);
-      }
       // Save security answer
       securityAnswerList.forEach(
           securityAnswer -> {
@@ -101,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
             this.securityQuestionAnswerService.createSecurityAnswer(securityAnswer);
           });
       // Consume invite
-      Invite invite = this.inviteService.getByCode(inviteCode);
+      final Invite invite = this.inviteService.getByCode(inviteCode);
       this.inviteService.consume(invite, requesterId);
 
       // create connection request

@@ -2,7 +2,7 @@ package com.coddicted.buzzma.identity.entity;
 
 public enum UserStatus {
   USER_STATUS_ACTIVE,
-  USER_STATUS_SUSPENDED,
-  USER_STATUS_LOCKED,
-  USER_STATUS_VERIFICATION_PENDING
+  USER_STATUS_SUSPENDED, // suspicious activity or violation of terms of service, payment failure,
+  // etc.
+  USER_STATUS_LOCKED // associated with incorrect password attempts
 }

@@ -3,6 +3,6 @@
   "name": "Bob",
   "mobile": "9000000001",
   "role": "ROLE_MEDIATOR",
-  "status": "USER_STATUS_VERIFICATION_PENDING",
+  "status": "USER_STATUS_ACTIVE",
   "isDeleted": false
 }
