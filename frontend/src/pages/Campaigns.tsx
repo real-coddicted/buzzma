@@ -7,12 +7,12 @@ import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryC
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
 import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
+import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
 import { useSSE } from '../hooks/useSSE'
 
 
 function responseToForm(dto: CampaignResponseDto): CampaignForm {
-  const paisToRupees = (p?: number) => (p != null ? (p / 100).toString() : '')
   const assignments = dto.assignments ?? []
   return {
     title: dto.title ?? '',
@@ -22,8 +22,8 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productLink ?? '',
     sellerName: dto.sellerName ?? '',
-    originalPriceRupees: paisToRupees(dto.productPricePaise),
-    campaignPriceRupees: paisToRupees(dto.campaignPricePaise),
+    originalPriceRupees: dto.productPricePaise != null ? paiseToRupees(dto.productPricePaise).toFixed(2) : '',
+    campaignPriceRupees: dto.campaignPricePaise != null ? paiseToRupees(dto.campaignPricePaise).toFixed(2) : '',
     commissionRupees: '',
     returnWindowDays: dto.returnWindowDays?.toString() ?? '',
     campaignType: (dto.campaignType ?? '') as CampaignType | '',

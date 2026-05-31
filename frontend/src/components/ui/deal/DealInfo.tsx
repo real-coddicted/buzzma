@@ -1,10 +1,7 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -56,8 +53,8 @@ export function DealInfo({ deal }: DealInfoProps) {
         </h2>
 
         <div className="flex items-baseline gap-3">
-          <span className="text-2xl font-bold text-neon-green">{paise(deal.offeredPricePaise)}</span>
-          <span className="text-sm text-ink-light-muted dark:text-ink-dark-muted line-through">{paise(deal.originalPricePaise)}</span>
+          <span className="text-2xl font-bold text-neon-green">₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}</span>
+          <span className="text-sm text-ink-light-muted dark:text-ink-dark-muted line-through">₹{formatRupees(paiseToRupees(deal.originalPricePaise))}</span>
         </div>
 
         <a
@@ -79,9 +76,9 @@ export function DealInfo({ deal }: DealInfoProps) {
           <Row label="Platform"       value={deal.platformLabel} />
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
           {deal.sellerName && <Row label="Seller" value={deal.sellerName} />}
-          <Row label="Original Price" value={paise(deal.originalPricePaise)} />
-          <Row label="Offered Price"  value={paise(deal.offeredPricePaise)} />
-          <Row label="You Save"       value={`${paise(deal.originalPricePaise - deal.offeredPricePaise)} (${discount}%)`} />
+          <Row label="Original Price" value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise))}`} />
+          <Row label="Offered Price"  value={`₹${formatRupees(paiseToRupees(deal.offeredPricePaise))}`} />
+          <Row label="You Save"       value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise - deal.offeredPricePaise))} (${discount}%)`} />
         </div>
 
         <div className="pt-2 space-y-3">

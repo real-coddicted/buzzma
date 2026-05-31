@@ -190,7 +190,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
                     </div>
                   </td>
                   <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ${c.budget.toLocaleString()}
+                    ₹{c.budget.toLocaleString()}
                   </td>
                   <td className="px-5 py-2.5">
                     <div className="space-y-1">

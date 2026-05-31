@@ -1,10 +1,7 @@
 import type { ClaimReviewItem } from '../../../types'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { ReviewStatusCell } from './ReviewStatusCell'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -34,7 +31,7 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
         {claim.sellerName && <Row label="Seller">{claim.sellerName}</Row>}
         <Row label="Order ID"><span className="font-mono">{claim.orderId}</span></Row>
         <Row label="Order Date"><span className="font-mono">{claim.orderDate}</span></Row>
-        {claim.amountPaise != null && <Row label="Amount">{paise(claim.amountPaise)}</Row>}
+        {claim.amountPaise != null && <Row label="Amount">₹{formatRupees(paiseToRupees(claim.amountPaise))}</Row>}
         {claim.accountName && <Row label="Account Name">{claim.accountName}</Row>}
         {claim.mediatorName && <Row label="Mediator">{claim.mediatorName}</Row>}
         <Row label="Mediator Verified">

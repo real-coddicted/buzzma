@@ -1,10 +1,7 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface DealSummaryRowProps {
   deal: Deal
@@ -33,7 +30,7 @@ export function DealSummaryRow({ deal, className = '' }: DealSummaryRowProps) {
         </div>
       </div>
       <span className="text-sm font-bold text-neon-green shrink-0">
-        {paise(deal.offeredPricePaise)}
+        ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
       </span>
     </div>
   )

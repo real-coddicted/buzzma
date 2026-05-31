@@ -1,10 +1,7 @@
 import type { AssignmentItem } from '../../../types/AssignmentTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from '../deal/ProductThumbnail'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface AssignmentListItemProps {
   item: AssignmentItem
@@ -53,10 +50,10 @@ export function AssignmentListItem({ item, onClick }: AssignmentListItemProps) {
       {/* Right-side stats */}
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
         <span className="text-base font-bold text-neon-green">
-          {paise(item.offeredPricePaise)}
+          ₹{formatRupees(paiseToRupees(item.offeredPricePaise))}
         </span>
         <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
-          {paise(item.originalPricePaise)}
+          ₹{formatRupees(paiseToRupees(item.originalPricePaise))}
         </span>
         <span className="text-[11px] font-semibold text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
           {item.slotsOffered} {item.slotsOffered === 1 ? 'slot' : 'slots'}

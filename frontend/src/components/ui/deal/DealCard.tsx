@@ -1,10 +1,7 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface DealCardProps {
   deal: Deal
@@ -56,10 +53,10 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         {/* Pricing */}
         <div className="flex items-baseline gap-2">
           <span className="text-base font-bold text-neon-green">
-            {paise(deal.offeredPricePaise)}
+            ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
           </span>
           <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
-            {paise(deal.originalPricePaise)}
+            ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
           </span>
         </div>
       </div>

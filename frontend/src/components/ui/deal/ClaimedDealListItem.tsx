@@ -3,10 +3,7 @@ import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { CLAIM_STEPS } from '../../../constants/claimSteps'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Stepper } from '../Stepper'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface ClaimedDealListItemProps {
   deal: Deal
@@ -53,7 +50,7 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
             </div>
           </div>
           <span className="text-sm font-bold text-neon-green shrink-0">
-            {paise(deal.offeredPricePaise)}
+            ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
           </span>
         </div>
 

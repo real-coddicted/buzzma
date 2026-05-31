@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Button } from '../Button'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
 import type { Campaign } from '../../../types'
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface Props {
   open: boolean
@@ -19,9 +20,6 @@ const readOnlyInputClass = [
   'px-3 py-2 outline-none cursor-not-allowed',
 ].join(' ')
 
-function paiseToRupees(paise: number): string {
-  return (paise / 100).toFixed(2)
-}
 
 export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
   useEffect(() => {
@@ -129,15 +127,15 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Original Price</label>
-                <input className={readOnlyInputClass} type="text" value={paiseToRupees(campaign.originalPricePaise)} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.originalPricePaise))}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Campaign Price</label>
-                <input className={readOnlyInputClass} type="text" value={paiseToRupees(campaign.campaignPricePaise)} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.campaignPricePaise))}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Commission</label>
-                <input className={readOnlyInputClass} type="text" value={paiseToRupees(campaign.commissionOfferedPaise)} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.commissionOfferedPaise))}`} readOnly disabled />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -204,7 +202,7 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
               </div>
               <div>
                 <label className={labelClass}>Clicks</label>
-                <input className={readOnlyInputClass} type="text" value={campaign.clicks.toLocaleString()} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={campaign.clicks} readOnly disabled />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -214,7 +212,7 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
               </div>
               <div>
                 <label className={labelClass}>Conversions</label>
-                <input className={readOnlyInputClass} type="text" value={campaign.conversions.toLocaleString()} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={campaign.conversions} readOnly disabled />
               </div>
             </div>
           </section>
@@ -225,15 +223,15 @@ export function CampaignDetailsModal({ open, campaign, onClose }: Props) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Total Budget</label>
-                <input className={readOnlyInputClass} type="text" value={`₹${campaign.budget.toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.budget))}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Spent</label>
-                <input className={readOnlyInputClass} type="text" value={`₹${campaign.spent.toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.spent))}`} readOnly disabled />
               </div>
               <div>
                 <label className={labelClass}>Remaining</label>
-                <input className={readOnlyInputClass} type="text" value={`₹${(campaign.budget - campaign.spent).toLocaleString()}`} readOnly disabled />
+                <input className={readOnlyInputClass} type="text" value={`₹${formatRupees(paiseToRupees(campaign.budget - campaign.spent))}`} readOnly disabled />
               </div>
             </div>
           </section>

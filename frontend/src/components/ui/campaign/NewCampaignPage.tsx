@@ -3,6 +3,7 @@ import { Button } from '../Button'
 import { Toast } from '../Toast'
 import { IconPlus, IconChevronRight, IconCheck, IconPlay } from '../icons'
 import type { CampaignRequestDto } from '../../../types'
+import { rupeesToPaise } from '../../../utils/currency'
 import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
 import { CampaignInfoFields } from './CampaignInfoFields'
 import { CampaignSettingsFields } from './CampaignSettingsFields'
@@ -14,9 +15,6 @@ interface Props {
   initialForm?: CampaignForm
 }
 
-function rupeesToPaise(val: string): number {
-  return Math.round(parseFloat(val) * 100)
-}
 
 export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Props) {
   const isEdit = !!initialForm
@@ -51,9 +49,9 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
       productImageUrl: form.productImageUrl.trim(),
       productUrl: form.productUrl.trim(),
       sellerName: form.sellerName.trim() || null,
-      originalPricePaise: rupeesToPaise(form.originalPriceRupees),
-      campaignPricePaise: rupeesToPaise(form.campaignPriceRupees),
-      commissionOfferedPaise: rupeesToPaise(form.commissionRupees),
+      originalPricePaise: rupeesToPaise(parseFloat(form.originalPriceRupees)),
+      campaignPricePaise: rupeesToPaise(parseFloat(form.campaignPriceRupees)),
+      commissionOfferedPaise: rupeesToPaise(parseFloat(form.commissionRupees)),
       returnWindowDays: form.returnWindowDays !== '' ? parseInt(form.returnWindowDays, 10) : null,
       campaignType: form.campaignType !== '' ? form.campaignType : null,
       totalSlots: form.totalSlots !== '' ? parseInt(form.totalSlots, 10) : null,

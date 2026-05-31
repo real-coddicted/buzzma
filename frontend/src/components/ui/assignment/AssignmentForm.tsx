@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { publishAssignment } from '../../../api/assignmentApi'
 import { Toast } from '../Toast'
-
-function paise(amount: number) {
-  return `₹${(amount / 100).toLocaleString('en-IN')}`
-}
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 export interface AssignmentFormFields {
   yourCommissionPaise: number
@@ -86,14 +83,14 @@ export function AssignmentForm({
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Row 1 */}
           <div className="grid grid-cols-2 gap-4">
-            <ReadOnlyField label="Commission Offered" value={paise(commissionOfferedPaise)} />
-            <ReadOnlyField label="Base Price"         value={paise(basePricePaise)} />
+            <ReadOnlyField label="Commission Offered" value={`₹${formatRupees(paiseToRupees(commissionOfferedPaise))}`} />
+            <ReadOnlyField label="Base Price"         value={`₹${formatRupees(paiseToRupees(basePricePaise))}`} />
           </div>
 
           {/* Row 2 */}
           <div className="grid grid-cols-2 gap-4">
             {readOnly ? (
-              <ReadOnlyField label="Your Commission" value={paise(yourCommissionPaise)} />
+              <ReadOnlyField label="Your Commission" value={`₹${formatRupees(paiseToRupees(yourCommissionPaise))}`} />
             ) : (
               <div>
                 <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
@@ -113,7 +110,7 @@ export function AssignmentForm({
             )}
             <ReadOnlyField
               label="Offered Price"
-              value={paise(offeredPricePaise)}
+              value={`₹${formatRupees(paiseToRupees(offeredPricePaise))}`}
               hint="Base price + your commission"
             />
           </div>
@@ -121,7 +118,7 @@ export function AssignmentForm({
           {/* Row 3 — full width net earnings */}
           <ReadOnlyField
             label="Your Net Earnings"
-            value={paise(netEarningsPaise)}
+            value={`₹${formatRupees(paiseToRupees(netEarningsPaise))}`}
             hint="Commission offered + your commission"
             accent={netEarningsPaise >= 0 ? 'green' : 'red'}
           />
