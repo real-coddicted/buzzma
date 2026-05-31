@@ -7,6 +7,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
@@ -34,18 +35,21 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   private final CampaignAssignmentService campaignAssignmentService;
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignStateMachine stateMachine;
+  private final CampaignEventPublisher campaignEventPublisher;
 
   public CampaignServiceImpl(
       final CampaignRepository campaignRepository,
       final CampaignAssignmentRepository campaignAssignmentRepository,
       final CampaignAssignmentService campaignAssignmentService,
       final CampaignSlotRepository campaignSlotRepository,
-      final CampaignStateMachine stateMachine) {
+      final CampaignStateMachine stateMachine,
+      final CampaignEventPublisher campaignEventPublisher) {
     this.campaignRepository = campaignRepository;
     this.campaignAssignmentRepository = campaignAssignmentRepository;
     this.campaignAssignmentService = campaignAssignmentService;
     this.campaignSlotRepository = campaignSlotRepository;
     this.stateMachine = stateMachine;
+    this.campaignEventPublisher = campaignEventPublisher;
   }
 
   @Override
@@ -120,7 +124,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     if (!srcAssignmentIds.isEmpty()) {
       this.campaignAssignmentService.copy(srcAssignmentIds, saved.getId(), requesterId);
     }
-
+    this.campaignEventPublisher.publishCampaignCreatedEvent(saved.getId(), requesterId);
     return saved;
   }
 

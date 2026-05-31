@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
@@ -44,6 +45,7 @@ class CampaignServiceImplTest {
   @Mock private CampaignAssignmentService mockCampaignAssignmentService;
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignStateMachine mockStateMachine;
+  @Mock private CampaignEventPublisher mockCampaignEventPublisher;
 
   private CampaignServiceImpl campaignService;
 
@@ -55,7 +57,8 @@ class CampaignServiceImplTest {
             this.mockCampaignAssignmentRepository,
             this.mockCampaignAssignmentService,
             this.mockCampaignSlotRepository,
-            this.mockStateMachine);
+            this.mockStateMachine,
+            this.mockCampaignEventPublisher);
   }
 
   @Test

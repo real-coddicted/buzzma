@@ -10,6 +10,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.mapper.CampaignAssignmentMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
+import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -34,6 +35,7 @@ public class CampaignProcessor {
   private final CampaignAssignmentMapper campaignAssignmentMapper;
   private final CampaignAssignmentService campaignAssignmentService;
   private final CampaignSlotRepository campaignSlotRepository;
+  private final CampaignEventPublisher campaignEventPublisher;
 
   public CampaignProcessor(
       final CampaignService service,
@@ -42,7 +44,8 @@ public class CampaignProcessor {
       final CampaignAssignmentRepository campaignAssignmentRepository,
       final CampaignAssignmentMapper campaignAssignmentMapper,
       final CampaignAssignmentService campaignAssignmentService,
-      final CampaignSlotRepository campaignSlotRepository) {
+      final CampaignSlotRepository campaignSlotRepository,
+      final CampaignEventPublisher campaignEventPublisher) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
@@ -50,6 +53,7 @@ public class CampaignProcessor {
     this.campaignAssignmentMapper = campaignAssignmentMapper;
     this.campaignAssignmentService = campaignAssignmentService;
     this.campaignSlotRepository = campaignSlotRepository;
+    this.campaignEventPublisher = campaignEventPublisher;
   }
 
   public CampaignResponseDto getById(final UUID id) {
@@ -100,7 +104,7 @@ public class CampaignProcessor {
     } else {
       savedAssignments = List.of();
     }
-
+    this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     return this.campaignMapper.toResponse(savedCampaign, savedAssignments);
   }
 

@@ -14,6 +14,7 @@ import { ClaimReview } from './pages/ClaimReview'
 import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
 import { fetchNotifications } from './api/notificationApi'
+import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage, Notification } from './types'
@@ -34,6 +35,11 @@ export default function App() {
     window.addEventListener('auth:logout', handleLogout)
     return () => window.removeEventListener('auth:logout', handleLogout)
   }, [handleLogout])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    return initSSE()
+  }, [isAuthenticated])
 
   useEffect(() => {
     fetchNotifications().then(setNotifications)

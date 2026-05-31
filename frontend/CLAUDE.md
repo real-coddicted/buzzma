@@ -1,48 +1,65 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## Commands
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-```bash
-npm run dev       # Start Vite dev server (HMR)
-npm run build     # Type-check then bundle for production (tsc && vite build)
-npm run preview   # Serve the production build locally
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-There is no test runner or lint script configured.
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## Architecture
+---
 
-This is a React 18 + TypeScript + Vite + Tailwind CSS v3 marketing dashboard called "Pulse". All data is static mock data — there is no backend or API.
-
-**Navigation** is handled entirely via `useState<NavPage>` in `App.tsx`. There is no router; `activePage` is passed down through `AppLayout` and pages are conditionally rendered. Adding a new page means adding a value to the `NavPage` union in `src/types/index.ts`, a nav entry in `Sidebar.tsx`, and a conditional render in `App.tsx`.
-
-**Theme** (`light` | `dark`) is managed by `useTheme` (`src/hooks/useTheme.ts`), which persists to `localStorage` under the key `pulse-theme` and applies the Tailwind `dark` class to `<html>`. Dark mode is class-based throughout — every element uses paired `bg-*` / `dark:bg-*` utilities.
-
-**Design system** lives in `tailwind.config.ts`. Key token groups:
-- `neon.*` — eight accent colors (red, pink, orange, yellow, green, cyan, blue, purple) used for per-item color coding.
-- `surface.light-*` / `surface.dark-*` — background layers (base → raised → card → hover → border → muted).
-- `ink.light-*` / `ink.dark-*` — text hierarchy (primary, secondary, muted).
-- `shadow-neon-*` — glow shadows for neon accents.
-
-Components that need per-accent Tailwind classes define local lookup maps (e.g. `accentText`, `accentDot`, `accentBar`) as `Record<StatCardAccent, string>` — this keeps full class strings in source so Tailwind's scanner can detect them. Never construct these class names dynamically (e.g. `` `text-neon-${accent}` ``) or they will be purged from the production bundle.
-
-**Types** are split by domain under `src/types/`:
-- `index.ts` — barrel file; defines `Theme` and `NavPage`, re-exports everything from the domain files. All existing imports from `../types` or `../../types` resolve here.
-- `CampaignTypes.ts` — campaign, stat card, platform, and performance types.
-- `RegisterTypes.ts` — `LoginAs` and `RegisterForm`.
-- When adding new types, create or update the appropriate domain file and let `index.ts` re-export it. Never add domain types directly to `index.ts`. Page-level components should import directly from the domain file (e.g. `from '../types/RegisterTypes'`); shared components may import from `index.ts`.
-
-All mock data is in `src/data/mockData.ts`.
-
-**Component layers:**
-- `src/components/layout/` — `AppLayout` (shell), `Sidebar` (fixed left nav), `Topbar` (fixed top bar).
-- `src/components/ui/` — primitives: `Card`, `Button`, `Badge`, `StatCard`, `NavItem`, `ThemeToggle`, `icons`.
-- `src/pages/` — page-level compositions. Each page imports from `ui` and `data`. Pages that contain multiple related sub-views use a **container page** pattern (see below).
-
-**Container page pattern:** when a feature has multiple sub-views (e.g. login + register), create individual leaf pages (`Login.tsx`, `Register.tsx`) and a container page (`Auth.tsx`) that owns the view-switching state and wires the leaves together. The container exposes a single callback to `App.tsx` (e.g. `onAuth`). `App.tsx` only ever imports and renders the container — it has no knowledge of the internal sub-views. Apply this pattern whenever adding a new multi-view feature.
-
-**Component decomposition:** always build pages by composing small, focused components — never write a large monolithic page file. Each distinct UI section (header, summary cards, toolbar, grid, etc.) belongs in its own file under `src/components/ui/`. The page file in `src/pages/` is only responsible for state, data fetching, filtering logic, and stitching the components together. A page that grows beyond ~60 lines of JSX is a sign that something should be extracted.
-
-**Filter pill / status badge color matching:** when a toolbar has filter pills for a status type, the active pill must use the same neon color as the corresponding status badge. Define a `filterActiveClasses` lookup map (e.g. `Record<MyStatus | 'all', string>`) alongside the `statusConfig` map and reference it in the pill's active class — never hard-code a single accent (e.g. always `neon-blue`) for all active pills. The "All" pill defaults to `neon-blue`. Use full Tailwind class strings in the map; never construct them dynamically.
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

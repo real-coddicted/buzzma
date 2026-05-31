@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '../components/ui/Button'
 import { IconPlus } from '../components/ui/icons'
 import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
@@ -8,6 +8,7 @@ import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../ty
 import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { Toast } from '../components/ui/Toast'
+import { useSSE } from '../hooks/useSSE'
 
 
 function responseToForm(dto: CampaignResponseDto): CampaignForm {
@@ -49,24 +50,22 @@ export function Campaigns() {
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const loadCampaigns = useCallback(() => {
     setLoading(true)
     fetchCampaigns()
-      .then(data => { if (!cancelled) setCampaigns(data) })
-      .catch(err => { if (!cancelled) setErrorMsg((err as Error).message || 'Failed to load campaigns.') })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .then(setCampaigns)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
+      .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { loadCampaigns() }, [loadCampaigns])
+
+  useSSE('EVENT_TYPE_REFRESH', loadCampaigns, 'campaigns')
 
   async function handleCopyCampaign(id: string) {
     try {
       await copyCampaign(id)
-      setLoading(true)
-      fetchCampaigns()
-        .then(setCampaigns)
-        .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
-        .finally(() => setLoading(false))
+      loadCampaigns()
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to copy campaign.')
     }
@@ -88,11 +87,7 @@ export function Campaigns() {
     if (!editingCampaignId) return
     await publishCampaign(editingCampaignId)
     handleBack()
-    setLoading(true)
-    fetchCampaigns()
-      .then(setCampaigns)
-      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
-      .finally(() => setLoading(false))
+    loadCampaigns()
   }
 
   function handleBack() {
@@ -105,22 +100,14 @@ export function Campaigns() {
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
     await createCampaign(dto)
     handleBack()
-    setLoading(true)
-    fetchCampaigns()
-      .then(setCampaigns)
-      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
-      .finally(() => setLoading(false))
+    loadCampaigns()
   }
 
   async function handleUpdateCampaign(dto: CampaignRequestDto): Promise<void> {
     if (!editingCampaignId || !editingCampaignStatus) return
     await updateCampaign(editingCampaignId, dto, editingCampaignStatus)
     handleBack()
-    setLoading(true)
-    fetchCampaigns()
-      .then(setCampaigns)
-      .catch(err => setErrorMsg((err as Error).message || 'Failed to reload campaigns.'))
-      .finally(() => setLoading(false))
+    loadCampaigns()
   }
 
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0)
