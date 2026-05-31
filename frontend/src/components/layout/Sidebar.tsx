@@ -113,7 +113,6 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
             icon={<IconCampaign />}
             label="Campaigns"
             active={activePage === 'campaigns'}
-            badge={12}
             onClick={() => onNavigate('campaigns')}
           />
           <NavItem
