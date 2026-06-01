@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.entity;
 
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -17,13 +18,16 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "campaigns")
@@ -76,6 +80,9 @@ public class Campaign implements Auditable {
   @Column(name = "open_to_all", nullable = false)
   private boolean openToAll;
 
+  @Column(name = "commission_to_all_paise")
+  private BigInteger commissionToAllPaise;
+
   @Column(name = "campaign_price_paise")
   private BigInteger campaignPricePaise;
 
@@ -87,6 +94,10 @@ public class Campaign implements Auditable {
 
   @Column(name = "seller_name", length = 255)
   private String sellerName;
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "assignments_draft", columnDefinition = "jsonb")
+  private List<CampaignAssignmentRequestDto> assignmentsDraft;
 
   // Audit fields
   @Column(name = "created_by")

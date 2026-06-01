@@ -7,6 +7,7 @@ interface FormSlice {
   returnWindowDays: string
   openToAll: boolean
   assignees: LinkedEntity[]
+  commissionToAllRupees: string
 }
 
 interface Props {
@@ -56,6 +57,24 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
           {form.openToAll ? 'Any agency can participate' : 'Restricted to allowed agencies'}
         </span>
       </div>
+
+      {form.openToAll && (
+        <div>
+          <label className={labelClass}>Commission Offered</label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-light-muted dark:text-ink-dark-muted">₹</span>
+            <input
+              className={[inputClass, 'pl-6'].join(' ')}
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={form.commissionToAllRupees}
+              onChange={e => set('commissionToAllRupees', e.target.value)}
+            />
+          </div>
+        </div>
+      )}
 
       {!form.openToAll && (
         <LinkedEntitiesTable

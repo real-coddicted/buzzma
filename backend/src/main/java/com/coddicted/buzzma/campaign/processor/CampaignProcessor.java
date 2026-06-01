@@ -4,24 +4,23 @@ import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.Product;
-import com.coddicted.buzzma.campaign.mapper.CampaignAssignmentMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.service.ConnectionService;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,32 +31,37 @@ public class CampaignProcessor {
   private final CampaignMapper campaignMapper;
   private final ProductProcessor productProcessor;
   private final CampaignAssignmentRepository campaignAssignmentRepository;
-  private final CampaignAssignmentMapper campaignAssignmentMapper;
   private final CampaignAssignmentService campaignAssignmentService;
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignEventPublisher campaignEventPublisher;
+  private final ConnectionService connectionService;
 
   public CampaignProcessor(
       final CampaignService service,
       final CampaignMapper campaignMapper,
       final ProductProcessor productProcessor,
       final CampaignAssignmentRepository campaignAssignmentRepository,
-      final CampaignAssignmentMapper campaignAssignmentMapper,
       final CampaignAssignmentService campaignAssignmentService,
       final CampaignSlotRepository campaignSlotRepository,
-      final CampaignEventPublisher campaignEventPublisher) {
+      final CampaignEventPublisher campaignEventPublisher,
+      final ConnectionService connectionService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
     this.campaignAssignmentRepository = campaignAssignmentRepository;
-    this.campaignAssignmentMapper = campaignAssignmentMapper;
     this.campaignAssignmentService = campaignAssignmentService;
     this.campaignSlotRepository = campaignSlotRepository;
     this.campaignEventPublisher = campaignEventPublisher;
+    this.connectionService = connectionService;
   }
 
   public CampaignResponseDto getById(final UUID id) {
     final Campaign campaign = this.service.getById(id);
+    if (campaign.getStatus() == CampaignStatus.CAMPAIGN_STATUS_DRAFT
+        && campaign.getAssignmentsDraft() != null
+        && !campaign.getAssignmentsDraft().isEmpty()) {
+      return this.campaignMapper.toResponseFromDraft(campaign, campaign.getAssignmentsDraft());
+    }
     final List<CampaignAssignment> assignments =
         this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaign.getId());
     return this.campaignMapper.toResponse(campaign, assignments);
@@ -74,45 +78,17 @@ public class CampaignProcessor {
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
                 .build());
-
-    final CampaignSlot slot = new CampaignSlot();
-    slot.setCampaignId(savedCampaign.getId());
-    slot.setTotalSlots(savedCampaign.getTotalSlots());
-    slot.setSlotsAvailable(savedCampaign.getTotalSlots());
-    slot.setCreatedBy(requesterId);
-    slot.setUpdatedBy(requesterId);
-    slot.setDeleted(false);
-    final CampaignSlot savedSlot = this.campaignSlotRepository.save(slot);
-
-    final List<CampaignAssignment> savedAssignments;
-    if (request.getAssignees() != null && !request.getAssignees().isEmpty()) {
-      final List<CampaignAssignment> assignments =
-          this.campaignAssignmentMapper.toCampaignAssignments(request.getAssignees()).stream()
-              .map(
-                  a ->
-                      a.toBuilder()
-                          .id(null)
-                          .campaignId(savedCampaign.getId())
-                          .campaignSlot(savedSlot)
-                          .status(null)
-                          .createdBy(requesterId)
-                          .updatedBy(requesterId)
-                          .isDeleted(false)
-                          .build())
-              .toList();
-      savedAssignments = this.campaignAssignmentService.create(assignments);
-    } else {
-      savedAssignments = List.of();
-    }
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
-    return this.campaignMapper.toResponse(savedCampaign, savedAssignments);
+    if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
+      return publish(savedCampaign, requesterId);
+    }
+    return this.campaignMapper.toResponse(savedCampaign);
   }
 
   @Transactional
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     final Campaign existingCampaign = this.service.getById(id);
-    final int oldTotalSlots = existingCampaign.getTotalSlots();
 
     final Product updatedProduct =
         this.productProcessor.updateProduct(existingCampaign.getProduct(), request);
@@ -122,97 +98,107 @@ public class CampaignProcessor {
         existingCampaign.toBuilder().product(updatedProduct).updatedBy(requesterId).build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
-
-    final CampaignSlot savedSlot =
-        updateOrCreateSlot(id, savedCampaign, oldTotalSlots, requesterId);
-
-    final List<CampaignAssignment> savedAssignments =
-        syncAssignments(id, request, savedSlot, requesterId);
-
-    return this.campaignMapper.toResponse(savedCampaign, savedAssignments);
+    if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
+      return publish(savedCampaign, requesterId);
+    }
+    return this.campaignMapper.toResponse(savedCampaign);
   }
 
-  private CampaignSlot updateOrCreateSlot(
-      final UUID campaignId,
-      final Campaign savedCampaign,
-      final int oldTotalSlots,
-      final UUID requesterId) {
-    final Optional<CampaignSlot> existing =
-        this.campaignSlotRepository.findByCampaignIdAndIsDeletedFalse(campaignId);
-    // Todo: fluent
-    if (existing.isPresent()) {
-      final CampaignSlot slot = existing.get();
-      final int delta = savedCampaign.getTotalSlots() - oldTotalSlots;
-      slot.setTotalSlots(savedCampaign.getTotalSlots());
-      slot.setSlotsAvailable(Math.max(0, slot.getSlotsAvailable() + delta));
-      slot.setUpdatedBy(requesterId);
-      return this.campaignSlotRepository.save(slot);
+  private CampaignResponseDto publish(final Campaign campaign, final UUID requesterId) {
+    final List<CampaignAssignment> assignments = createSlotsAndAssignments(campaign, requesterId);
+    final Campaign publishedCampaign =
+        this.service.action(campaign.getId(), CampaignAction.CAMPAIGN_ACTION_PUBLISH, requesterId);
+    return this.campaignMapper.toResponse(publishedCampaign, assignments);
+  }
+
+  private List<CampaignAssignment> createSlotsAndAssignments(
+      final Campaign campaign, final UUID requesterId) {
+    if (campaign.isOpenToAll()) {
+      return createSlotsAndAssignmentsForOpenToAll(campaign, requesterId);
     }
+    return createSlotsAndAssignmentsFromDraft(campaign, requesterId);
+  }
+
+  private List<CampaignAssignment> createSlotsAndAssignmentsForOpenToAll(
+      final Campaign campaign, final UUID requesterId) {
     final CampaignSlot slot =
-        CampaignSlot.builder()
-            .campaignId(savedCampaign.getId())
-            .totalSlots(savedCampaign.getTotalSlots())
-            .slotsAvailable(savedCampaign.getTotalSlots())
-            .createdBy(requesterId)
-            .updatedBy(requesterId)
-            .isDeleted(false)
-            .build();
-    return this.campaignSlotRepository.save(slot);
-  }
-
-  private List<CampaignAssignment> syncAssignments(
-      final UUID campaignId,
-      final CampaignRequestDto request,
-      final CampaignSlot slot,
-      final UUID requesterId) {
-    final List<CampaignAssignment> existing =
-        this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaignId);
-    final Map<UUID, CampaignAssignment> existingByAssigneeId =
-        existing.stream()
-            .collect(Collectors.toMap(CampaignAssignment::getAssigneeId, Function.identity()));
-
-    final List<CampaignAssignmentRequestDto> requestedAssignees =
-        request.getAssignees() != null ? request.getAssignees() : List.of();
-
-    final List<UUID> requestedAssigneeIds =
-        requestedAssignees.stream().map(CampaignAssignmentRequestDto::getAssigneeId).toList();
-
-    // soft-delete assignments removed from the request
-    final List<CampaignAssignment> toDelete =
-        existing.stream()
-            .filter(a -> !requestedAssigneeIds.contains(a.getAssigneeId()))
-            .map(a -> a.toBuilder().isDeleted(true).updatedBy(requesterId).build())
-            .toList();
-    if (!toDelete.isEmpty()) {
-      this.campaignAssignmentService.update(toDelete);
-    }
-
-    // update existing or create new
-    final List<CampaignAssignment> toSave = new ArrayList<>();
-    for (final CampaignAssignmentRequestDto dto : requestedAssignees) {
-      final CampaignAssignment existingCampaignAssignment =
-          existingByAssigneeId.get(dto.getAssigneeId());
-      if (existingCampaignAssignment != null) {
-        toSave.add(
-            existingCampaignAssignment.toBuilder()
-                .commissionOfferedPaise(dto.getCommissionOfferedPaise())
-                .slotLimit(dto.getSlotOffered().intValue())
-                .adjustedCampaignPricePaise(dto.getAdjustedCampaignPricePaise())
-                .updatedBy(requesterId)
-                .build());
-      } else {
-        toSave.add(
-            this.campaignAssignmentMapper.toCampaignAssignment(dto).toBuilder()
-                .id(null)
-                .campaignId(campaignId)
-                .campaignSlot(slot)
-                .status(null)
+        this.campaignSlotRepository.save(
+            CampaignSlot.builder()
+                .campaignId(campaign.getId())
+                .totalSlots(campaign.getTotalSlots())
+                .slotsAvailable(campaign.getTotalSlots())
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
                 .isDeleted(false)
                 .build());
-      }
+
+    final List<CampaignAssignment> assignments =
+        this.connectionService
+            .getConnectionsByFromUserIdAndStatus(
+                campaign.getOwnerId(), ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+            .stream()
+            .map(
+                view ->
+                    CampaignAssignment.builder()
+                        .campaignId(campaign.getId())
+                        .assignorId(requesterId)
+                        .assigneeId(view.getConnection().getToUserId())
+                        .slotLimit(campaign.getTotalSlots())
+                        .campaignSlot(slot)
+                        .adjustedCampaignPricePaise(getAdjustedCampaignPricePaise(campaign))
+                        .commissionOfferedPaise(campaign.getCommissionToAllPaise())
+                        .createdBy(requesterId)
+                        .updatedBy(requesterId)
+                        .isDeleted(false)
+                        .build())
+            .toList();
+    return this.campaignAssignmentService.create(assignments);
+  }
+
+  private static BigInteger getAdjustedCampaignPricePaise(Campaign campaign) {
+    BigInteger adjustedPrice = campaign.getCampaignPricePaise();
+    if (campaign.getCommissionToAllPaise() != null) {
+      adjustedPrice = adjustedPrice.add(campaign.getCommissionToAllPaise());
     }
-    return this.campaignAssignmentService.update(toSave);
+    return adjustedPrice;
+  }
+
+  private List<CampaignAssignment> createSlotsAndAssignmentsFromDraft(
+      final Campaign campaign, final UUID requesterId) {
+    final List<CampaignAssignmentRequestDto> draft = campaign.getAssignmentsDraft();
+
+    final List<CampaignSlot> slots =
+        draft.stream()
+            .map(
+                entry ->
+                    CampaignSlot.builder()
+                        .campaignId(campaign.getId())
+                        .totalSlots(entry.getSlotOffered().intValue())
+                        .slotsAvailable(entry.getSlotOffered().intValue())
+                        .createdBy(requesterId)
+                        .updatedBy(requesterId)
+                        .isDeleted(false)
+                        .build())
+            .toList();
+    final List<CampaignSlot> savedSlots = this.campaignSlotRepository.saveAll(slots);
+
+    final List<CampaignAssignment> assignments = new ArrayList<>();
+    for (int i = 0; i < draft.size(); i++) {
+      final CampaignAssignmentRequestDto entry = draft.get(i);
+      assignments.add(
+          CampaignAssignment.builder()
+              .campaignId(campaign.getId())
+              .assignorId(entry.getAssignorId())
+              .assigneeId(entry.getAssigneeId())
+              .slotLimit(entry.getSlotOffered().intValue())
+              .adjustedCampaignPricePaise(entry.getAdjustedCampaignPricePaise())
+              .commissionOfferedPaise(entry.getCommissionOfferedPaise())
+              .campaignSlot(savedSlots.get(i))
+              .createdBy(requesterId)
+              .updatedBy(requesterId)
+              .isDeleted(false)
+              .build());
+    }
+    return this.campaignAssignmentService.create(assignments);
   }
 }

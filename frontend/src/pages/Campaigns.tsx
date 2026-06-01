@@ -5,7 +5,7 @@ import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
 import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, publishCampaign, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
@@ -24,7 +24,7 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     sellerName: dto.sellerName ?? '',
     originalPriceRupees: dto.productPricePaise != null ? paiseToRupees(dto.productPricePaise).toFixed(2) : '',
     campaignPriceRupees: dto.campaignPricePaise != null ? paiseToRupees(dto.campaignPricePaise).toFixed(2) : '',
-    commissionRupees: '',
+    commissionToAllRupees: dto.commissionToAllPaise != null ? paiseToRupees(dto.commissionToAllPaise).toFixed(2) : '',
     returnWindowDays: dto.returnWindowDays?.toString() ?? '',
     campaignType: (dto.campaignType ?? '') as CampaignType | '',
     startDate: yyyymmddToIso(dto.startDate),
@@ -83,13 +83,6 @@ export function Campaigns() {
     }
   }
 
-  async function handleLaunchFromEdit() {
-    if (!editingCampaignId) return
-    await publishCampaign(editingCampaignId)
-    handleBack()
-    loadCampaigns()
-  }
-
   function handleBack() {
     setShowNewCampaign(false)
     setEditingForm(null)
@@ -120,7 +113,6 @@ export function Campaigns() {
       <NewCampaignPage
         onBack={handleBack}
         onSubmit={editingCampaignId ? handleUpdateCampaign : handleCreateCampaign}
-        onLaunch={editingCampaignId ? handleLaunchFromEdit : undefined}
         initialForm={editingForm ?? undefined}
       />
     )

@@ -859,12 +859,12 @@ export interface components {
         UserSettingsDto: {
             dashboardTabEnabled?: boolean;
             campaignsTabEnabled?: boolean;
-            assignmentsTabEnabled?: boolean;
-            connectionsTabEnabled?: boolean;
             dealTabEnabled?: boolean;
             ticketsTabEnabled?: boolean;
             feedbackTabEnabled?: boolean;
             settingsTabEnabled?: boolean;
+            assignmentsTabEnabled?: boolean;
+            connectionsTabEnabled?: boolean;
         };
         TicketRequestDto: {
             /** Format: uuid */
@@ -1183,8 +1183,11 @@ export interface components {
             returnWindowDays?: number;
             assignees?: components["schemas"]["CampaignAssignmentRequestDto"][];
             openToAll?: boolean;
+            commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            /** @enum {string} */
+            action?: "CAMPAIGN_ACTION_PUBLISH" | "CAMPAIGN_ACTION_PAUSE" | "CAMPAIGN_ACTION_RESUME" | "CAMPAIGN_ACTION_CLOSE" | "CAMPAIGN_ACTION_COMPLETE";
         };
         CampaignAssignmentResponseDto: {
             /** Format: uuid */
@@ -1229,6 +1232,8 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            openToAll?: boolean;
+            commissionToAllPaise?: number;
             assignments?: components["schemas"]["CampaignAssignmentResponseDto"][];
             /** Format: date-time */
             createdAt?: string;
@@ -1407,10 +1412,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1419,21 +1424,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            paged?: boolean;
-            /** Format: int32 */
-            pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
             unpaged?: boolean;
+            paged?: boolean;
+            /** Format: int32 */
+            pageNumber?: number;
         };
         SortObject: {
             direction?: string;

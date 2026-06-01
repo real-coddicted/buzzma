@@ -16,7 +16,7 @@ interface FormSlice {
   sellerName: string
   originalPriceRupees: string
   campaignPriceRupees: string
-  commissionRupees: string
+  commissionToAllRupees: string
 }
 
 interface Props {

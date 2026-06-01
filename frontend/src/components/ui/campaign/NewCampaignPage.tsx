@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '../Button'
 import { Toast } from '../Toast'
-import { IconPlus, IconChevronRight, IconCheck, IconPlay } from '../icons'
+import { IconChevronRight, IconCheck, IconPlay } from '../icons'
 import type { CampaignRequestDto } from '../../../types'
 import { rupeesToPaise } from '../../../utils/currency'
 import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
@@ -11,12 +11,11 @@ import { CampaignSettingsFields } from './CampaignSettingsFields'
 interface Props {
   onBack: () => void
   onSubmit: (dto: CampaignRequestDto) => Promise<void>
-  onLaunch?: () => Promise<void>
   initialForm?: CampaignForm
 }
 
 
-export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Props) {
+export function NewCampaignPage({ onBack, onSubmit, initialForm }: Props) {
   const isEdit = !!initialForm
   const [form, setForm] = useState<CampaignForm>(initialForm ?? EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
@@ -35,13 +34,8 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
     return Object.keys(e).length === 0
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!validate()) return
-    setLoading(true)
-    setToastError(null)
-
-    const dto: CampaignRequestDto = {
+  function buildDto(action?: CampaignRequestDto['action']): CampaignRequestDto {
+    return {
       title: form.title.trim(),
       platform: form.platform,
       productBrandName: form.productBrandName.trim(),
@@ -49,9 +43,10 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
       productImageUrl: form.productImageUrl.trim(),
       productUrl: form.productUrl.trim(),
       sellerName: form.sellerName.trim() || null,
+
       originalPricePaise: rupeesToPaise(parseFloat(form.originalPriceRupees)),
       campaignPricePaise: rupeesToPaise(parseFloat(form.campaignPriceRupees)),
-      commissionOfferedPaise: rupeesToPaise(parseFloat(form.commissionRupees)),
+      ...(form.openToAll && form.commissionToAllRupees !== '' ? { commissionToAllPaise: rupeesToPaise(parseFloat(form.commissionToAllRupees)) } : {}),
       returnWindowDays: form.returnWindowDays !== '' ? parseInt(form.returnWindowDays, 10) : null,
       campaignType: form.campaignType !== '' ? form.campaignType : null,
       totalSlots: form.totalSlots !== '' ? parseInt(form.totalSlots, 10) : null,
@@ -60,10 +55,17 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
       termsAndConditions: form.termsAndConditions.trim() || null,
       startDate: form.startDate || null,
       endDate: form.endDate || null,
+      ...(action ? { action } : {}),
     }
+  }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!validate()) return
+    setLoading(true)
+    setToastError(null)
     try {
-      await onSubmit(dto)
+      await onSubmit(buildDto())
     } catch (err) {
       setToastError(err instanceof Error ? err.message : 'An unexpected error occurred.')
     } finally {
@@ -72,11 +74,11 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
   }
 
   async function handleLaunch() {
-    if (!onLaunch) return
+    if (!validate()) return
     setLaunching(true)
     setToastError(null)
     try {
-      await onLaunch()
+      await onSubmit(buildDto('CAMPAIGN_ACTION_PUBLISH'))
     } catch (err) {
       setToastError(err instanceof Error ? err.message : 'Failed to launch campaign.')
     } finally {
@@ -135,41 +137,27 @@ export function NewCampaignPage({ onBack, onSubmit, onLaunch, initialForm }: Pro
           <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
             Cancel
           </Button>
-          {isEdit ? (
-            <>
-              <Button
-                type="submit"
-                variant="secondary"
-                size="sm"
-                leftIcon={<IconCheck size={13} />}
-                loading={loading}
-                disabled={launching}
-              >
-                Update Campaign
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                leftIcon={<IconPlay size={13} />}
-                loading={launching}
-                disabled={loading}
-                onClick={handleLaunch}
-              >
-                Launch Campaign
-              </Button>
-            </>
-          ) : (
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              leftIcon={<IconPlus size={13} />}
-              loading={loading}
-            >
-              Create Campaign
-            </Button>
-          )}
+          <Button
+            type="submit"
+            variant="secondary"
+            size="sm"
+            leftIcon={<IconCheck size={13} />}
+            loading={loading}
+            disabled={launching}
+          >
+            {isEdit ? 'Update Campaign' : 'Save Draft'}
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            leftIcon={<IconPlay size={13} />}
+            loading={launching}
+            disabled={loading}
+            onClick={handleLaunch}
+          >
+            Launch Campaign
+          </Button>
         </div>
       </form>
 

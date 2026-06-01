@@ -10,7 +10,7 @@ export const EMPTY_FORM = {
   sellerName: '',
   originalPriceRupees: '',
   campaignPriceRupees: '',
-  commissionRupees: '',
+  commissionToAllRupees: '',
   returnWindowDays: '',
   campaignType: '' as CampaignType | '',
   startDate: '',

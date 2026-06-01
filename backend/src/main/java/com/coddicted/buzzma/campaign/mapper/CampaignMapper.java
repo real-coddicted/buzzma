@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.mapper;
 
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
@@ -29,6 +30,7 @@ public interface CampaignMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
+  @Mapping(source = "assignees", target = "assignmentsDraft")
   Campaign toCampaignEntity(CampaignRequestDto request);
 
   @Mapping(source = "product.id", target = "productId")
@@ -50,6 +52,17 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.type", target = "campaignType")
   @Mapping(source = "assignments", target = "assignments")
   CampaignResponseDto toResponse(Campaign campaign, List<CampaignAssignment> assignments);
+
+  @Mapping(source = "campaign.product.id", target = "productId")
+  @Mapping(source = "campaign.product.name", target = "productName")
+  @Mapping(source = "campaign.product.brandName", target = "productBrandName")
+  @Mapping(source = "campaign.product.imageUrl", target = "productImageUrl")
+  @Mapping(source = "campaign.product.productLink", target = "productLink")
+  @Mapping(source = "campaign.product.pricePaise", target = "productPricePaise")
+  @Mapping(source = "campaign.type", target = "campaignType")
+  @Mapping(source = "draftAssignments", target = "assignments")
+  CampaignResponseDto toResponseFromDraft(
+      Campaign campaign, List<CampaignAssignmentRequestDto> draftAssignments);
 
   @Mapping(source = "campaign.id", target = "campaignId")
   @Mapping(source = "campaign.title", target = "title")
@@ -85,5 +98,6 @@ public interface CampaignMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "deleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
+  @Mapping(source = "assignees", target = "assignmentsDraft")
   void updateCampaign(CampaignRequestDto request, @MappingTarget Campaign entity);
 }

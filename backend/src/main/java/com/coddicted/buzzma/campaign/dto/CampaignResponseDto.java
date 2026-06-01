@@ -56,6 +56,10 @@ public class CampaignResponseDto {
 
   String sellerName;
 
+  boolean openToAll;
+
+  BigInteger commissionToAllPaise;
+
   List<CampaignAssignmentResponseDto> assignments;
 
   // Audit fields

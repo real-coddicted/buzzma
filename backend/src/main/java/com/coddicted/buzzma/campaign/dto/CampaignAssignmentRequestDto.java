@@ -18,9 +18,9 @@ public class CampaignAssignmentRequestDto {
 
   @NotBlank UUID assigneeId;
 
-  BigInteger adjustedCampaignPricePaise = BigInteger.ZERO;
+  @Builder.Default BigInteger adjustedCampaignPricePaise = BigInteger.ZERO;
 
-  BigInteger commissionOfferedPaise = BigInteger.ZERO;
+  @Builder.Default BigInteger commissionOfferedPaise = BigInteger.ZERO;
 
-  Long slotOffered = 0L;
+  @Builder.Default Long slotOffered = 0L;
 }

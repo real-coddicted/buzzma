@@ -1,6 +1,7 @@
 import type { components } from '../types/api'
 import type { Campaign, CampaignRequestDto, CampaignStatus, CampaignType, Platform } from '../types'
 import { fetchWithAuth, getCurrentUser } from './client'
+import { rupeesToPaise } from '../utils/currency'
 
 const API_BASE = '/api/v1'
 
@@ -45,6 +46,7 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     campaignStatus: 'CAMPAIGN_STATUS_DRAFT',
     totalSlots: dto.totalSlots ?? 1,
     openToAll: dto.openToAll ?? true,
+    ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
     ...(dto.sellerName ? { sellerName: dto.sellerName } : {}),
@@ -55,11 +57,12 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
         campaignId: '',
         assignorId: user.id!,
         assigneeId: e.id,
-        campaignPricePaise: dto.campaignPricePaise,
-        commissionOfferedPaise: Math.round(e.commissionOffered * 100),
+        adjustedCampaignPricePaise: dto.campaignPricePaise + rupeesToPaise(e.commissionOffered),
+        commissionOfferedPaise: rupeesToPaise(e.commissionOffered),
         slotOffered: e.slotsAvailable,
       })),
     } : {}),
+    ...(dto.action ? { action: dto.action as BackendRequest['action'] } : {}),
   }
 
   const res = await fetchWithAuth(`${API_BASE}/campaigns`, {
@@ -134,6 +137,7 @@ export async function updateCampaign(
     campaignStatus,
     totalSlots: dto.totalSlots ?? 1,
     openToAll: dto.openToAll ?? true,
+    ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
     ...(dto.sellerName ? { sellerName: dto.sellerName } : {}),
@@ -144,11 +148,12 @@ export async function updateCampaign(
         campaignId: id,
         assignorId: user.id!,
         assigneeId: e.id,
-        campaignPricePaise: dto.campaignPricePaise,
-        commissionOfferedPaise: Math.round(e.commissionOffered * 100),
+        adjustedCampaignPricePaise: dto.campaignPricePaise + rupeesToPaise(e.commissionOffered),
+        commissionOfferedPaise: rupeesToPaise(e.commissionOffered),
         slotOffered: e.slotsAvailable,
       })),
     } : {}),
+    ...(dto.action ? { action: dto.action as BackendRequest['action'] } : {}),
   }
 
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`, {

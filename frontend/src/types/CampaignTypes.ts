@@ -91,7 +91,7 @@ export interface CampaignRequestDto {
   sellerName: string | null
   originalPricePaise: number
   campaignPricePaise: number
-  commissionOfferedPaise: number
+  commissionToAllPaise?: number
   returnWindowDays: number | null
   campaignType: CampaignType | null
   totalSlots: number | null
@@ -100,6 +100,7 @@ export interface CampaignRequestDto {
   termsAndConditions: string | null
   startDate: string | null
   endDate: string | null
+  action?: 'CAMPAIGN_ACTION_PUBLISH' | 'CAMPAIGN_ACTION_PAUSE' | 'CAMPAIGN_ACTION_RESUME' | 'CAMPAIGN_ACTION_CLOSE' | 'CAMPAIGN_ACTION_COMPLETE'
 }
 
 export interface PerformanceBar {

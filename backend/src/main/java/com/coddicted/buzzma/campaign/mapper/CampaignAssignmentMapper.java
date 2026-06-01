@@ -33,4 +33,9 @@ public interface CampaignAssignmentMapper {
   CampaignAssignmentResponseDto toResponse(CampaignAssignment entity);
 
   List<CampaignAssignmentResponseDto> toResponse(List<CampaignAssignment> entities);
+
+  @Mapping(target = "assigneeName", ignore = true)
+  CampaignAssignmentResponseDto fromRequest(CampaignAssignmentRequestDto request);
+
+  List<CampaignAssignmentResponseDto> fromRequests(List<CampaignAssignmentRequestDto> requests);
 }

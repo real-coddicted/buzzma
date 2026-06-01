@@ -136,7 +136,15 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     final List<UUID> campaignIds = campaigns.stream().map(Campaign::getId).toList();
     final Map<UUID, CampaignSlot> slotsByCampaignId =
         this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds).stream()
-            .collect(Collectors.toMap(CampaignSlot::getCampaignId, Function.identity()));
+            .collect(
+                Collectors.toMap(
+                    CampaignSlot::getCampaignId,
+                    Function.identity(),
+                    (a, b) ->
+                        a.toBuilder()
+                            .totalSlots(a.getTotalSlots() + b.getTotalSlots())
+                            .slotsAvailable(a.getSlotsAvailable() + b.getSlotsAvailable())
+                            .build()));
     return campaigns.stream()
         .map(
             campaign -> {
