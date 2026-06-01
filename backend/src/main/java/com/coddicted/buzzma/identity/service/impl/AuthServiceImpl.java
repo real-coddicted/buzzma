@@ -16,10 +16,14 @@ import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserCredentialService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.invite.entity.Invite;
+import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.service.InviteService;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.security.JwtService;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,13 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+  private static final Map<UserRole, Set<UserRole>> ALLOWED_ROLES_BY_INVITER =
+      Map.of(
+          UserRole.ROLE_ADMIN, Set.of(UserRole.ROLE_BRAND, UserRole.ROLE_AGENCY),
+          UserRole.ROLE_BRAND, Set.of(UserRole.ROLE_AGENCY),
+          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR),
+          UserRole.ROLE_MEDIATOR, Set.of(UserRole.ROLE_BUYER));
 
   private final JwtService jwtService;
   private final UserService userService;
@@ -80,26 +91,18 @@ public class AuthServiceImpl implements AuthService {
       final List<SecurityAnswer> securityAnswerList,
       final String inviteCode,
       final UUID requesterId) {
-    // can register
-    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, inviteCode)) {
-
-      // Save user
+    final Invite invite = this.inviteService.getByCode(inviteCode);
+    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, invite)) {
       user.setStatus(UserStatus.USER_STATUS_ACTIVE);
       final BuzzmaUser savedUser = this.userService.create(user);
-      // Save User Credential
       this.userCredentialService.create(
           userCredential.toBuilder().userId(savedUser.getId()).build(), requesterId);
-      // Save security answer
       securityAnswerList.forEach(
           securityAnswer -> {
             securityAnswer.setUserId(savedUser.getId());
             this.securityQuestionAnswerService.createSecurityAnswer(securityAnswer);
           });
-      // Consume invite
-      final Invite invite = this.inviteService.getByCode(inviteCode);
       this.inviteService.consume(invite, requesterId);
-
-      // create connection request
       this.connectionService.createConnection(
           Connection.builder()
               .fromUserId(invite.getOwnerId())
@@ -133,10 +136,13 @@ public class AuthServiceImpl implements AuthService {
       final UserCredential userCredential,
       final UserBankingDetail userBankingDetail,
       final List<SecurityAnswer> securityAnswerList,
-      final String inviteCode) {
+      final Invite invite) {
     final boolean validUser = validateUser(user);
     final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
-    final boolean validInvite = this.inviteService.verify(inviteCode);
+    final boolean validInvite =
+        invite.getStatus() == InviteStatus.INVITE_STATUS_ACTIVE
+            && invite.getUsedCount() < invite.getMaxUseCount();
+    validateRoleForInvite(user.getRole(), invite);
     final boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
     final boolean validPassword = validateUserCredential(userCredential);
     return validUser
@@ -144,6 +150,15 @@ public class AuthServiceImpl implements AuthService {
         && validSecurityAnswerList
         && validInvite
         && validPassword;
+  }
+
+  private void validateRoleForInvite(final UserRole requestedRole, final Invite invite) {
+    final BuzzmaUser owner = this.userService.getById(invite.getOwnerId());
+    final Set<UserRole> allowed = ALLOWED_ROLES_BY_INVITER.getOrDefault(owner.getRole(), Set.of());
+    if (!allowed.contains(requestedRole)) {
+      throw new BusinessRuleViolationException(
+          "Role " + requestedRole + " is not permitted for invites issued by " + owner.getRole());
+    }
   }
 
   private boolean validateUser(final BuzzmaUser user) {

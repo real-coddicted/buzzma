@@ -3,7 +3,7 @@ import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { loginUser } from '../api/authApi'
-import type { LoginAs, LoginForm } from '../types/LoginTypes'
+import type { LoginForm } from '../types/LoginTypes'
 
 interface LoginProps {
   captchaToken: string
@@ -22,7 +22,6 @@ const inputBase =
 
 export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
   const [form, setForm] = useState<LoginForm>({
-    loginAs: 'brand',
     mobile: '',
     password: '',
   })
@@ -99,24 +98,6 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
 
         <div className="rounded-2xl border border-neon-blue/20 bg-surface-dark-card shadow-neon-blue p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            {/* Login As */}
-            <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
-                Login As
-              </label>
-              <select
-                value={form.loginAs}
-                onChange={e => set('loginAs', e.target.value as LoginAs)}
-                onKeyDown={handleKeyDown}
-                className={inputBase + ' cursor-pointer'}
-              >
-                <option value="brand">Brand</option>
-                <option value="agency">Agency</option>
-                <option value="mediator">Mediator</option>
-                <option value="buyer">Buyer</option>
-              </select>
-            </div>
-
             {/* Mobile */}
             <div>
               <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
