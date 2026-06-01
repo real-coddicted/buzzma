@@ -14,6 +14,7 @@ import type {
   Notification,
   ClaimReviewItem,
 } from '../types'
+import type { ClaimProofItem } from '../components/ui/claim-review/ClaimProofGallery'
 
 type RawDeal = Omit<Deal, 'platformLabel' | 'dealTypeLabel'>
 
@@ -942,3 +943,33 @@ export const notifications: Notification[] = [
   { id: 'n3', title: 'Budget threshold hit (85%)',  message: 'You have used 85% of the budget for Winter Deals.',           time: '1h ago',  unread: false, pinned: false, accent: 'text-neon-orange' },
   { id: 'n4', title: 'New connection request',      message: 'StyleHub Brand wants to connect with your agency.',           time: '3h ago',  unread: false, pinned: false, accent: 'text-neon-blue'   },
 ]
+
+const MOCK_PROOF_IMAGES = [
+  'https://m.media-amazon.com/images/I/71oRS0tGhpL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/91xwqPW5RJL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/91rDpxnKnOL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/717SXKry9OL._AC_SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/81WTjYyqLyL._AC_SL1500_.jpg',
+]
+
+export function buildMockProofs(claim: ClaimReviewItem): ClaimProofItem[] {
+  const amount =
+    claim.amountPaise != null
+      ? `₹${(claim.amountPaise / 100).toLocaleString('en-IN')}`
+      : '—'
+
+  const fields = [
+    { label: 'Order ID',   value: claim.orderId,            matched: true  },
+    { label: 'Order Date', value: claim.orderDate,          matched: true  },
+    { label: 'Product',    value: claim.productName ?? '—',  matched: true  },
+    { label: 'Seller',     value: claim.sellerName ?? '—',   matched: false },
+    { label: 'Amount',     value: amount,                   matched: false },
+  ]
+
+  return MOCK_PROOF_IMAGES.map((imageUrl, i) => ({
+    id: `${claim.id}-proof-${i}`,
+    imageUrl,
+    imageAlt: `Proof screenshot ${i + 1}`,
+    fields,
+  }))
+}

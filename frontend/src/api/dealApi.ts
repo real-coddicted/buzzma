@@ -38,8 +38,8 @@ export interface ExploreDealsPage {
 export const EXPLORE_PAGE_SIZE = 6
 
 function dealResponseToDeal(dto: DealResponseDto): Deal {
-  const platform = (dto.platform ?? 'PLATFORM_AMAZON') as Platform
-  const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as CampaignType
+  const platform = dto.platform as Platform
+  const dealType = dto.dealType as CampaignType
   return {
     id: dto.id ?? '',
     campaignId: dto.campaignId ?? '',
@@ -73,8 +73,8 @@ export async function fetchExploreDeals(page: number): Promise<ExploreDealsPage>
 }
 
 export function campaignToDeal(dto: CampaignResponseDto): Deal {
-  const platform = (dto.platform ?? 'PLATFORM_AMAZON') as Platform
-  const dealType = (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as CampaignType
+  const platform = dto.platform as Platform
+  const dealType = dto.campaignType as CampaignType
   return {
     id: dto.id ?? '',
     campaignId: dto.id ?? '',
