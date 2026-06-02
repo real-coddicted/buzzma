@@ -13,6 +13,7 @@ final class Fixtures {
   static final UUID OWNER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
   static final UUID NON_OWNER_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
   static final UUID DEAL_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
+  static final UUID SLOT_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
 
   static final String SCREENSHOT_KEY = "claims/order-screenshot.jpg";
   static final String SCREENSHOT_FILENAME = "screenshot.jpg";

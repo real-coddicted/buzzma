@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -37,6 +38,7 @@ class ClaimServiceImplTest {
   @Mock private ClaimRepository mockClaimRepository;
   @Mock private ClaimScreenshotRepository mockClaimScreenshotRepository;
   @Mock private DealService mockDealService;
+  @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private StorageService mockStorageService;
   private ClaimServiceImpl claimService;
 
@@ -47,6 +49,7 @@ class ClaimServiceImplTest {
             this.mockClaimRepository,
             this.mockClaimScreenshotRepository,
             this.mockDealService,
+            this.mockCampaignSlotRepository,
             this.mockStorageService);
   }
 
@@ -55,6 +58,7 @@ class ClaimServiceImplTest {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
         .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -88,7 +92,6 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenAlreadyClaimed() {
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
         .thenReturn(true);
 

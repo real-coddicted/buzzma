@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -32,16 +33,19 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ClaimRepository claimRepository;
   private final ClaimScreenshotRepository claimScreenshotRepository;
   private final DealService dealService;
+  private final CampaignSlotRepository campaignSlotRepository;
   private final StorageService storageService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
       final ClaimScreenshotRepository claimScreenshotRepository,
       final DealService dealService,
+      final CampaignSlotRepository campaignSlotRepository,
       final StorageService storageService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.dealService = dealService;
+    this.campaignSlotRepository = campaignSlotRepository;
     this.storageService = storageService;
   }
 
@@ -54,13 +58,21 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String contentType,
       final Map<String, String> extractedDetails) {
 
-    final Deal deal = this.dealService.getById(claim.getDealId());
-
     if (this.claimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(
         claim.getOwnerId(), claim.getDealId())) {
       LOGGER.warn(
           "Owner {} already has a claim for deal {}", claim.getOwnerId(), claim.getDealId());
       throw new BusinessRuleViolationException("You have already claimed this deal");
+    }
+
+    final Deal deal = this.dealService.getById(claim.getDealId());
+
+    final int updated =
+        this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
+            deal.getCampaignSlot().getId());
+    if (updated == 0) {
+      LOGGER.warn("All slots claimed for deal {}", claim.getDealId());
+      throw new BusinessRuleViolationException("All slots have been claimed for this deal");
     }
 
     final String screenshotKey =
