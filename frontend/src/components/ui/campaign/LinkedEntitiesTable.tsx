@@ -4,6 +4,7 @@ import { IconTrash } from '../icons'
 import { SearchConnectionsBar } from '../connections/SearchConnectionsBar'
 import type { ConnectionOption } from '../connections/SearchConnectionsBar'
 import { fetchConnections } from '../../../api/connectionApi'
+import { RupeeInput } from '../RupeeInput'
 
 interface Props {
   entities: LinkedEntity[]
@@ -77,24 +78,19 @@ export function LinkedEntitiesTable({ entities, onChange }: Props) {
                   <td className="px-4 py-3">
                     <input
                       type="number"
-                      value={entity.slotsAvailable}
+                      value={entity.slotsAvailable || ''}
                       onChange={e => handleSlotsChange(entity.id, e.target.value)}
-                      min="0"
-                      className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all"
+                      className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <span className="text-ink-light-muted dark:text-ink-dark-muted">₹</span>
-                      <input
-                        type="number"
-                        value={entity.commissionOffered}
-                        onChange={e => handleCommissionChange(entity.id, e.target.value)}
-                        step="1"
-                        min="0"
-                        className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all"
-                      />
-                    </div>
+                    <RupeeInput
+                      value={entity.commissionOffered || ''}
+                      onChange={v => handleCommissionChange(entity.id, v)}
+                      symbolOffset="left-2"
+                      inputPadding="pl-5"
+                      className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg pr-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all"
+                    />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button

@@ -1,6 +1,7 @@
 import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
+import { RupeeInput } from '../RupeeInput'
 
 interface FormSlice {
   totalSlots: string
@@ -24,12 +25,12 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Total Slots</label>
-          <input className={inputClass} type="number" min="1" step="1" placeholder="e.g. 100" value={form.totalSlots} onChange={e => set('totalSlots', e.target.value)} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" placeholder="e.g. 100" value={form.totalSlots} onChange={e => set('totalSlots', e.target.value)} />
           {errors.totalSlots && <p className={errorClass}>{errors.totalSlots}</p>}
         </div>
         <div>
           <label className={labelClass}>Return Window (days)</label>
-          <input className={inputClass} type="number" min="0" step="1" placeholder="e.g. 30" value={form.returnWindowDays} onChange={e => set('returnWindowDays', e.target.value)} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" min="0" placeholder="e.g. 30" value={form.returnWindowDays} onChange={e => set('returnWindowDays', e.target.value)} />
           {errors.returnWindowDays && <p className={errorClass}>{errors.returnWindowDays}</p>}
         </div>
       </div>
@@ -61,18 +62,11 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
       {form.openToAll && (
         <div>
           <label className={labelClass}>Commission Offered</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-light-muted dark:text-ink-dark-muted">₹</span>
-            <input
-              className={[inputClass, 'pl-6'].join(' ')}
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={form.commissionToAllRupees}
-              onChange={e => set('commissionToAllRupees', e.target.value)}
-            />
-          </div>
+          <RupeeInput
+            value={form.commissionToAllRupees}
+            onChange={v => set('commissionToAllRupees', v)}
+            className={inputClass}
+          />
         </div>
       )}
 
