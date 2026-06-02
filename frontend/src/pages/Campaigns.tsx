@@ -30,12 +30,12 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     startDate: yyyymmddToIso(dto.startDate),
     endDate: yyyymmddToIso(dto.endDate),
     totalSlots: dto.totalSlots?.toString() ?? '',
-    openToAll: assignments.length === 0,
+    openToAll: dto.openToAll ?? false,
     assignees: assignments.map(a => ({
       id: a.assigneeId ?? '',
-      name: a.assigneeId ?? '',
+      name: a.assigneeName ?? '',
       slotsAvailable: a.slotOffered ?? 0,
-      commissionOffered: (a.commissionOfferedPaise ?? 0) / 100,
+      commissionOffered: paiseToRupees(a.commissionOfferedPaise ?? 0),
     })),
     termsAndConditions: dto.termsAndConditions ?? '',
   }

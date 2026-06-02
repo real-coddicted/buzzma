@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.processor;
 
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
@@ -17,10 +18,13 @@ import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.service.UserService;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +39,7 @@ public class CampaignProcessor {
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignEventPublisher campaignEventPublisher;
   private final ConnectionService connectionService;
+  private final UserService userService;
 
   public CampaignProcessor(
       final CampaignService service,
@@ -44,7 +49,8 @@ public class CampaignProcessor {
       final CampaignAssignmentService campaignAssignmentService,
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignEventPublisher campaignEventPublisher,
-      final ConnectionService connectionService) {
+      final ConnectionService connectionService,
+      final UserService userService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
@@ -53,6 +59,7 @@ public class CampaignProcessor {
     this.campaignSlotRepository = campaignSlotRepository;
     this.campaignEventPublisher = campaignEventPublisher;
     this.connectionService = connectionService;
+    this.userService = userService;
   }
 
   public CampaignResponseDto getById(final UUID id) {
@@ -60,11 +67,13 @@ public class CampaignProcessor {
     if (campaign.getStatus() == CampaignStatus.CAMPAIGN_STATUS_DRAFT
         && campaign.getAssignmentsDraft() != null
         && !campaign.getAssignmentsDraft().isEmpty()) {
-      return this.campaignMapper.toResponseFromDraft(campaign, campaign.getAssignmentsDraft());
+      final CampaignResponseDto draft =
+          this.campaignMapper.toResponseFromDraft(campaign, campaign.getAssignmentsDraft());
+      return enrichAssigneeNames(campaign, draft);
     }
     final List<CampaignAssignment> assignments =
         this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaign.getId());
-    return this.campaignMapper.toResponse(campaign, assignments);
+    return buildResponse(campaign, assignments);
   }
 
   @Transactional
@@ -108,7 +117,35 @@ public class CampaignProcessor {
     final List<CampaignAssignment> assignments = createSlotsAndAssignments(campaign, requesterId);
     final Campaign publishedCampaign =
         this.service.action(campaign.getId(), CampaignAction.CAMPAIGN_ACTION_PUBLISH, requesterId);
-    return this.campaignMapper.toResponse(publishedCampaign, assignments);
+    return buildResponse(publishedCampaign, assignments);
+  }
+
+  private CampaignResponseDto buildResponse(
+      final Campaign campaign, final List<CampaignAssignment> assignments) {
+    return enrichAssigneeNames(campaign, this.campaignMapper.toResponse(campaign, assignments));
+  }
+
+  private CampaignResponseDto enrichAssigneeNames(
+      final Campaign campaign, final CampaignResponseDto response) {
+    if (campaign.isOpenToAll()
+        || response.getAssignments() == null
+        || response.getAssignments().isEmpty()) {
+      return response;
+    }
+    final Map<UUID, String> nameById =
+        this.userService
+            .getByIds(
+                response.getAssignments().stream()
+                    .map(CampaignAssignmentResponseDto::getAssigneeId)
+                    .toList())
+            .stream()
+            .collect(Collectors.toMap(u -> u.getId(), u -> u.getName()));
+    return response.toBuilder()
+        .assignments(
+            response.getAssignments().stream()
+                .map(dto -> dto.toBuilder().assigneeName(nameById.get(dto.getAssigneeId())).build())
+                .toList())
+        .build();
   }
 
   private List<CampaignAssignment> createSlotsAndAssignments(

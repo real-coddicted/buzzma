@@ -16,7 +16,7 @@ export function LinkedEntitiesTable({ entities, onChange }: Props) {
 
   useEffect(() => {
     fetchConnections('connected').then(connections => {
-      setAvailableOptions(connections.map(c => ({ id: c.id, name: c.name })))
+      setAvailableOptions(connections.map(c => ({ id: c.toUserId, name: c.name })))
     }).catch(() => {})
   }, [])
 
