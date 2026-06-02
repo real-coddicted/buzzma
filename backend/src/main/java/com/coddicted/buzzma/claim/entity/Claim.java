@@ -104,5 +104,6 @@ public class Claim implements Auditable {
   private Instant updatedAt;
 
   @Column(name = "is_deleted", nullable = false)
+  @Builder.Default
   private Boolean isDeleted = false;
 }

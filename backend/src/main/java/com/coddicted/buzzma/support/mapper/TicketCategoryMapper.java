@@ -15,6 +15,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface TicketCategoryMapper {
 
   @Mapping(target = "subCategories", ignore = true)
+  @Mapping(target = "requiresOrderId", ignore = true)
+  @Mapping(target = "requiresDealId", ignore = true)
   TicketCategoryResponseDto toResponse(TicketCategory category);
 
   default TicketCategoryResponseDto toResponse(

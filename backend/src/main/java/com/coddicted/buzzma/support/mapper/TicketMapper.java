@@ -23,5 +23,8 @@ public interface TicketMapper {
   @Mapping(target = "updatedAt", ignore = true)
   Ticket toEntity(TicketRequestDto request);
 
+  @Mapping(target = "title", ignore = true)
+  @Mapping(target = "dealId", ignore = true)
+  @Mapping(target = "closedAt", ignore = true)
   TicketResponseDto toResponse(Ticket ticket);
 }

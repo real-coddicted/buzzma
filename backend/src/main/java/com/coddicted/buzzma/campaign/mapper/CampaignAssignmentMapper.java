@@ -30,6 +30,7 @@ public interface CampaignAssignmentMapper {
   List<CampaignAssignment> toCampaignAssignments(List<CampaignAssignmentRequestDto> request);
 
   @Mapping(source = "slotLimit", target = "slotOffered")
+  @Mapping(target = "assigneeName", ignore = true)
   CampaignAssignmentResponseDto toResponse(CampaignAssignment entity);
 
   List<CampaignAssignmentResponseDto> toResponse(List<CampaignAssignment> entities);

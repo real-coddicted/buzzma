@@ -23,6 +23,7 @@ public interface CampaignMapper {
   // ── Campaign ────────────────────────────────────────────────────────────────
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "product", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "createdBy", ignore = true)
   @Mapping(target = "updatedBy", ignore = true)
@@ -41,6 +42,7 @@ public interface CampaignMapper {
   @Mapping(source = "product.pricePaise", target = "productPricePaise")
   @Mapping(source = "type", target = "campaignType")
   @Mapping(target = "assignments", ignore = true)
+  @Mapping(target = "isDeleted", ignore = true)
   CampaignResponseDto toResponse(Campaign entity);
 
   @Mapping(source = "campaign.product.id", target = "productId")
@@ -51,6 +53,7 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.product.pricePaise", target = "productPricePaise")
   @Mapping(source = "campaign.type", target = "campaignType")
   @Mapping(source = "assignments", target = "assignments")
+  @Mapping(target = "isDeleted", ignore = true)
   CampaignResponseDto toResponse(Campaign campaign, List<CampaignAssignment> assignments);
 
   @Mapping(source = "campaign.product.id", target = "productId")
@@ -61,6 +64,7 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.product.pricePaise", target = "productPricePaise")
   @Mapping(source = "campaign.type", target = "campaignType")
   @Mapping(source = "draftAssignments", target = "assignments")
+  @Mapping(target = "isDeleted", ignore = true)
   CampaignResponseDto toResponseFromDraft(
       Campaign campaign, List<CampaignAssignmentRequestDto> draftAssignments);
 
