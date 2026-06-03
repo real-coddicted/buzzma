@@ -45,6 +45,9 @@ public class Campaign implements Auditable {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id;
 
+  @Column(name = "code", length = 16, unique = true)
+  private String code;
+
   @Column(name = "title", length = 200, nullable = false)
   private String title;
 

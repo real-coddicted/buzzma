@@ -30,4 +30,6 @@ public interface CampaignAssignmentService {
   List<CampaignAssignment> lockAssignments(List<UUID> campaignAssignments);
 
   CampaignAssignment getById(UUID campaignAssignmentId);
+
+  List<CampaignAssignment> getByCampaignId(UUID campaignId);
 }

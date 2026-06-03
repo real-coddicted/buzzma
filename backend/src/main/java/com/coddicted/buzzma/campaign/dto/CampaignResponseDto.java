@@ -19,6 +19,8 @@ public class CampaignResponseDto {
 
   UUID id;
 
+  String code;
+
   String title;
 
   UUID ownerId;

@@ -15,9 +15,11 @@ import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +38,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignStateMachine stateMachine;
   private final CampaignEventPublisher campaignEventPublisher;
+  private final CodeGenerationService codeGenerationService;
 
   public CampaignServiceImpl(
       final CampaignRepository campaignRepository,
@@ -43,13 +46,15 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       final CampaignAssignmentService campaignAssignmentService,
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignStateMachine stateMachine,
-      final CampaignEventPublisher campaignEventPublisher) {
+      final CampaignEventPublisher campaignEventPublisher,
+      final CodeGenerationService codeGenerationService) {
     this.campaignRepository = campaignRepository;
     this.campaignAssignmentRepository = campaignAssignmentRepository;
     this.campaignAssignmentService = campaignAssignmentService;
     this.campaignSlotRepository = campaignSlotRepository;
     this.stateMachine = stateMachine;
     this.campaignEventPublisher = campaignEventPublisher;
+    this.codeGenerationService = codeGenerationService;
   }
 
   @Override
@@ -62,7 +67,10 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   @Override
   @Transactional
   public Campaign create(final Campaign campaign) {
-    return this.campaignRepository.save(campaign);
+    return this.campaignRepository.save(
+        campaign.toBuilder()
+            .code(this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
+            .build());
   }
 
   @Override
@@ -108,6 +116,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     final Campaign copy =
         src.toBuilder()
             .id(null)
+            .code(this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
             .title(src.getTitle() + " (Copy)")
             .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
             .createdAt(null)

@@ -24,9 +24,11 @@ import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,6 +48,7 @@ class CampaignServiceImplTest {
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignStateMachine mockStateMachine;
   @Mock private CampaignEventPublisher mockCampaignEventPublisher;
+  @Mock private CodeGenerationService mockCodeGenerationService;
 
   private CampaignServiceImpl campaignService;
 
@@ -58,7 +61,8 @@ class CampaignServiceImplTest {
             this.mockCampaignAssignmentService,
             this.mockCampaignSlotRepository,
             this.mockStateMachine,
-            this.mockCampaignEventPublisher);
+            this.mockCampaignEventPublisher,
+            this.mockCodeGenerationService);
   }
 
   @Test
@@ -81,11 +85,16 @@ class CampaignServiceImplTest {
 
   @Test
   void testCreate() {
-    when(this.mockCampaignRepository.save(CAMPAIGN_1)).thenReturn(CAMPAIGN_1);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
+        .thenReturn(GENERATED_CODE);
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(this.mockCampaignRepository.save(captor.capture())).thenReturn(CAMPAIGN_1);
 
-    final Campaign result = this.campaignService.create(CAMPAIGN_1);
+    this.campaignService.create(CAMPAIGN_1);
 
-    assertEquals(CAMPAIGN_1, result);
+    final Campaign saved = captor.getValue();
+    assertEquals(GENERATED_CODE, saved.getCode());
+    assertEquals(CAMPAIGN_ID_1, saved.getId());
   }
 
   @Test
@@ -218,15 +227,17 @@ class CampaignServiceImplTest {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
     when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
         .thenReturn(List.of(ASSIGNMENT_1));
-    final ArgumentCaptor<Campaign> campaignCaptor = ArgumentCaptor.forClass(Campaign.class);
-    when(this.mockCampaignRepository.save(campaignCaptor.capture()))
-        .thenReturn(EXPECTED_CAMPAIGN_1);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
+        .thenReturn(GENERATED_CODE);
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(this.mockCampaignRepository.save(captor.capture())).thenReturn(EXPECTED_CAMPAIGN_1);
 
     final Campaign result = this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
 
     assertEquals(EXPECTED_CAMPAIGN_1, result);
-    final Campaign savedCopy = campaignCaptor.getValue();
+    final Campaign savedCopy = captor.getValue();
     assertNull(savedCopy.getId());
+    assertEquals(GENERATED_CODE, savedCopy.getCode());
     assertEquals(CAMPAIGN_STATUS_DRAFT, savedCopy.getStatus());
     assertEquals(REQUESTER_ID, savedCopy.getCreatedBy());
     assertEquals(REQUESTER_ID, savedCopy.getUpdatedBy());
@@ -241,9 +252,10 @@ class CampaignServiceImplTest {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
     when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
         .thenReturn(List.of());
-    final ArgumentCaptor<Campaign> campaignCaptor = ArgumentCaptor.forClass(Campaign.class);
-    when(this.mockCampaignRepository.save(campaignCaptor.capture()))
-        .thenReturn(EXPECTED_CAMPAIGN_1);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
+        .thenReturn(GENERATED_CODE);
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(this.mockCampaignRepository.save(captor.capture())).thenReturn(EXPECTED_CAMPAIGN_1);
 
     this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
 

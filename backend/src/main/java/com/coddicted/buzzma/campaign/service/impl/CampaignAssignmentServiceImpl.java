@@ -101,4 +101,9 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   public CampaignAssignment getById(final UUID campaignAssignmentId) {
     return mustFind(this.campaignAssignmentRepository, campaignAssignmentId, "Campaign Assignment");
   }
+
+  @Override
+  public List<CampaignAssignment> getByCampaignId(final UUID campaignId) {
+    return this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaignId);
+  }
 }

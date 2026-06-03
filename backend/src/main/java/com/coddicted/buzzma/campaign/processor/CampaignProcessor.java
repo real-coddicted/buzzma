@@ -12,10 +12,9 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
-import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
-import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -34,9 +33,8 @@ public class CampaignProcessor {
   private final CampaignService service;
   private final CampaignMapper campaignMapper;
   private final ProductProcessor productProcessor;
-  private final CampaignAssignmentRepository campaignAssignmentRepository;
   private final CampaignAssignmentService campaignAssignmentService;
-  private final CampaignSlotRepository campaignSlotRepository;
+  private final CampaignSlotService campaignSlotService;
   private final CampaignEventPublisher campaignEventPublisher;
   private final ConnectionService connectionService;
   private final UserService userService;
@@ -45,18 +43,16 @@ public class CampaignProcessor {
       final CampaignService service,
       final CampaignMapper campaignMapper,
       final ProductProcessor productProcessor,
-      final CampaignAssignmentRepository campaignAssignmentRepository,
       final CampaignAssignmentService campaignAssignmentService,
-      final CampaignSlotRepository campaignSlotRepository,
+      final CampaignSlotService campaignSlotService,
       final CampaignEventPublisher campaignEventPublisher,
       final ConnectionService connectionService,
       final UserService userService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
-    this.campaignAssignmentRepository = campaignAssignmentRepository;
     this.campaignAssignmentService = campaignAssignmentService;
-    this.campaignSlotRepository = campaignSlotRepository;
+    this.campaignSlotService = campaignSlotService;
     this.campaignEventPublisher = campaignEventPublisher;
     this.connectionService = connectionService;
     this.userService = userService;
@@ -72,7 +68,7 @@ public class CampaignProcessor {
       return enrichAssigneeNames(campaign, draft);
     }
     final List<CampaignAssignment> assignments =
-        this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaign.getId());
+        this.campaignAssignmentService.getByCampaignId(campaign.getId());
     return buildResponse(campaign, assignments);
   }
 
@@ -159,7 +155,7 @@ public class CampaignProcessor {
   private List<CampaignAssignment> createSlotsAndAssignmentsForOpenToAll(
       final Campaign campaign, final UUID requesterId) {
     final CampaignSlot slot =
-        this.campaignSlotRepository.save(
+        this.campaignSlotService.create(
             CampaignSlot.builder()
                 .campaignId(campaign.getId())
                 .totalSlots(campaign.getTotalSlots())
@@ -192,7 +188,7 @@ public class CampaignProcessor {
     return this.campaignAssignmentService.create(assignments);
   }
 
-  private static BigInteger getAdjustedCampaignPricePaise(Campaign campaign) {
+  private static BigInteger getAdjustedCampaignPricePaise(final Campaign campaign) {
     BigInteger adjustedPrice = campaign.getCampaignPricePaise();
     if (campaign.getCommissionToAllPaise() != null) {
       adjustedPrice = adjustedPrice.add(campaign.getCommissionToAllPaise());
@@ -217,7 +213,7 @@ public class CampaignProcessor {
                         .isDeleted(false)
                         .build())
             .toList();
-    final List<CampaignSlot> savedSlots = this.campaignSlotRepository.saveAll(slots);
+    final List<CampaignSlot> savedSlots = this.campaignSlotService.create(slots);
 
     final List<CampaignAssignment> assignments = new ArrayList<>();
     for (int i = 0; i < draft.size(); i++) {

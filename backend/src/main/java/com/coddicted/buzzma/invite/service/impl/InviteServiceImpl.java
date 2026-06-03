@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.invite.service.impl;
 
-import com.coddicted.buzzma.identity.constant.WellKnownInvitePrefix;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.invite.entity.Invite;
@@ -8,9 +7,10 @@ import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.persistence.InviteRepository;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
-import com.coddicted.buzzma.shared.common.CodeGenerator;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.time.LocalDate;
 import java.util.Map;
@@ -38,15 +38,15 @@ public class InviteServiceImpl extends BaseCrudService implements InviteService 
           UserRole.ROLE_BUYER, 0);
 
   private final InviteRepository inviteRepository;
-  private final CodeGenerator codeGenerator;
+  private final CodeGenerationService codeGenerationService;
   private final UserService userService;
 
   public InviteServiceImpl(
       final InviteRepository inviteRepository,
-      final CodeGenerator codeGenerator,
+      final CodeGenerationService codeGenerationService,
       final UserService userService) {
     this.inviteRepository = inviteRepository;
-    this.codeGenerator = codeGenerator;
+    this.codeGenerationService = codeGenerationService;
     this.userService = userService;
   }
 
@@ -143,7 +143,7 @@ public class InviteServiceImpl extends BaseCrudService implements InviteService 
   private String generateUniqueCode() {
     String code;
     do {
-      code = this.codeGenerator.generateHumanCode(WellKnownInvitePrefix.GENERAL_INVITE_PREFIX);
+      code = this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.INVITE);
     } while (this.inviteRepository.existsByCode(code));
     return code;
   }

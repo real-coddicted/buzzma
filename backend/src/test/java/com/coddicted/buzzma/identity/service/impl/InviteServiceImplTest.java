@@ -10,9 +10,10 @@ import com.coddicted.buzzma.invite.entity.Invite;
 import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.persistence.InviteRepository;
 import com.coddicted.buzzma.invite.service.impl.InviteServiceImpl;
-import com.coddicted.buzzma.shared.common.CodeGenerator;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class InviteServiceImplTest {
 
   @Mock private InviteRepository mockInviteRepository;
-  @Mock private CodeGenerator mockCodeGenerator;
+  @Mock private CodeGenerationService mockCodeGenerationService;
   @Mock private UserService mockUserService;
   private InviteServiceImpl inviteService;
 
@@ -33,7 +34,7 @@ class InviteServiceImplTest {
   void setUp() {
     this.inviteService =
         new InviteServiceImpl(
-            this.mockInviteRepository, this.mockCodeGenerator, this.mockUserService);
+            this.mockInviteRepository, this.mockCodeGenerationService, this.mockUserService);
   }
 
   @Test
@@ -58,7 +59,9 @@ class InviteServiceImplTest {
 
   @Test
   void testCreateUsesRoleDefaultMaxUseCount() {
-    doReturn(GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(GENERATED_CODE)
+        .when(this.mockCodeGenerationService)
+        .generateCodeFromSequence(WellKnownSequences.INVITE);
     doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
     doReturn(USER_1).when(this.mockUserService).getById(REQUESTER_ID);
 
@@ -78,7 +81,9 @@ class InviteServiceImplTest {
 
   @Test
   void testCreateUsesExplicitMaxUseCount() {
-    doReturn(GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(GENERATED_CODE)
+        .when(this.mockCodeGenerationService)
+        .generateCodeFromSequence(WellKnownSequences.INVITE);
     doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
 
     this.inviteService.create(INVITE_6, 0, REQUESTER_ID);
@@ -91,7 +96,9 @@ class InviteServiceImplTest {
   @Test
   void testCreateWithCodeCollision() {
     final String collidingCode = "INV-COLLISION";
-    doReturn(collidingCode, GENERATED_CODE).when(this.mockCodeGenerator).generateHumanCode("INV");
+    doReturn(collidingCode, GENERATED_CODE)
+        .when(this.mockCodeGenerationService)
+        .generateCodeFromSequence(WellKnownSequences.INVITE);
     doReturn(true).when(this.mockInviteRepository).existsByCode(collidingCode);
     doReturn(false).when(this.mockInviteRepository).existsByCode(GENERATED_CODE);
     doReturn(USER_1).when(this.mockUserService).getById(REQUESTER_ID);

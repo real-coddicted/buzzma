@@ -23,6 +23,7 @@ public interface CampaignMapper {
   // ── Campaign ────────────────────────────────────────────────────────────────
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "code", ignore = true)
   @Mapping(target = "product", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "createdBy", ignore = true)
@@ -94,6 +95,7 @@ public interface CampaignMapper {
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "code", ignore = true)
   @Mapping(target = "product", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "createdBy", ignore = true)

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.entity.Product;
@@ -11,6 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 final class Fixtures {
+
+  static final String GENERATED_CODE = "TESTCODE";
 
   static final UUID CAMPAIGN_ID_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
   static final UUID CAMPAIGN_ID_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -59,6 +62,17 @@ final class Fixtures {
 
   static final Deal DEAL_1 =
       FileUtils.loadResourceAsObject("/fixtures/input/campaign/deal-1.json", Deal.class);
+
+  static final UUID SLOT_ID_1 = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
+  static final UUID SLOT_ID_2 = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+  static final CampaignSlot SLOT_1 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/campaign/campaign-slot-1.json", CampaignSlot.class);
+
+  static final CampaignSlot SLOT_2 =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/campaign/campaign-slot-2.json", CampaignSlot.class);
 
   static final UUID PRODUCT_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
