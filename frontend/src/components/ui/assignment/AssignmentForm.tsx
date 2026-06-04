@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { publishAssignment } from '../../../api/assignmentApi'
 import { Toast } from '../Toast'
+import { RupeeInput } from '../RupeeInput'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 export interface AssignmentFormFields {
@@ -96,12 +97,10 @@ export function AssignmentForm({
                 <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Your Commission
                 </label>
-                <input
-                  type="number"
-                  placeholder="0.00"
+                <RupeeInput
                   value={yourCommission}
-                  onChange={e => setYourCommission(e.target.value)}
-                  className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
+                  onChange={setYourCommission}
+                  className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary pr-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
                 />
                 <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-1">
                   Positive or negative values allowed
