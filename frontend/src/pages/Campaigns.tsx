@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { IconPlus } from '../components/ui/icons'
 import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
@@ -42,7 +43,11 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
 }
 
 export function Campaigns() {
-  const [showNewCampaign, setShowNewCampaign] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const view = searchParams.get('view')
+  const showNewCampaign = view === 'new' || view === 'edit'
+
   const [editingForm, setEditingForm] = useState<CampaignForm | null>(null)
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null)
   const [editingCampaignStatus, setEditingCampaignStatus] = useState<NonNullable<CampaignResponseDto['status']> | null>(null)
@@ -77,17 +82,17 @@ export function Campaigns() {
       setEditingCampaignId(id)
       setEditingCampaignStatus(dto.status ?? 'CAMPAIGN_STATUS_DRAFT')
       setEditingForm(responseToForm(dto))
-      setShowNewCampaign(true)
+      setSearchParams({ view: 'edit', id })
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to load campaign.')
     }
   }
 
   function handleBack() {
-    setShowNewCampaign(false)
     setEditingForm(null)
     setEditingCampaignId(null)
     setEditingCampaignStatus(null)
+    navigate(-1)
   }
 
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
@@ -129,7 +134,7 @@ export function Campaigns() {
             {campaigns.length} total campaigns · {activeCnt} active
           </p>
         </div>
-        <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setShowNewCampaign(true)}>
+        <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
           New Campaign
         </Button>
       </div>

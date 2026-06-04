@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState, useMemo } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
@@ -21,15 +22,24 @@ import type { NavPage, Notification } from './types'
 
 export default function App() {
   const { theme, toggleTheme } = useTheme()
-  const [activePage, setActivePage] = useState<NavPage>('dashboard')
+  const navigate = useNavigate()
+  const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
+
+  const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users']), [])
+  const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
+  const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'dashboard'
+
+  const handleNavigate = useCallback((page: NavPage) => {
+    navigate('/' + page)
+  }, [navigate])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   const handleLogout = useCallback(() => {
     clearSession()
     setIsAuthenticated(false)
-    setActivePage('dashboard')
-  }, [])
+    navigate('/dashboard')
+  }, [navigate])
 
   useEffect(() => {
     window.addEventListener('auth:logout', handleLogout)
@@ -58,7 +68,8 @@ export default function App() {
       theme={theme}
       onToggleTheme={toggleTheme}
       activePage={activePage}
-      onNavigate={setActivePage}
+      canGoBack={location.key !== 'default'}
+      onNavigate={handleNavigate}
       notifications={notifications}
     >
       {activePage === 'dashboard'     && <Dashboard />}

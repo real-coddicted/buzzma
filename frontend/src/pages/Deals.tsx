@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { DealCard } from '../components/ui/deal/DealCard'
 import { ClaimedDealsList } from '../components/ui/deal/ClaimedDealsList'
@@ -16,9 +17,13 @@ import { PaginationToolbar } from '../components/ui/PaginationToolbar'
 import { Toast } from '../components/ui/Toast'
 
 export function Deals() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const view     = searchParams.get('view')
+  const activeTab: DealTab = (searchParams.get('tab') as DealTab) ?? 'explore'
+
   const [selectedDeal, setSelectedDeal]         = useState<Deal | null>(null)
   const [selectedClaimed, setSelectedClaimed]   = useState<Deal | null>(null)
-  const [activeTab, setActiveTab]           = useState<DealTab>('explore')
   const [search, setSearch]                 = useState('')
   const [typeFilter, setTypeFilter]         = useState<DealTypeFilter>('all')
   const [platformFilter, setPlatformFilter] = useState<DealPlatformFilter>('all')
@@ -62,12 +67,12 @@ export function Deals() {
     claimed: 5,
   }
 
-  if (selectedClaimed) {
-    return <ClaimedDealDetail deal={selectedClaimed} onBack={() => setSelectedClaimed(null)} />
+  if (view === 'claimed-detail' && selectedClaimed) {
+    return <ClaimedDealDetail deal={selectedClaimed} onBack={() => navigate(-1)} />
   }
 
-  if (selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />
+  if (view === 'detail' && selectedDeal) {
+    return <DealDetail deal={selectedDeal} onBack={() => navigate(-1)} />
   }
 
   const totalPages = explorePage?.totalPages ?? 1
@@ -85,7 +90,7 @@ export function Deals() {
         </p>
       </div>
 
-      <DealTabs value={activeTab} counts={counts} onChange={setActiveTab} />
+      <DealTabs value={activeTab} counts={counts} onChange={tab => setSearchParams(tab === 'explore' ? {} : { tab })} />
 
       <Card padded={false}>
         {activeTab === 'explore' && (
@@ -103,7 +108,7 @@ export function Deals() {
 
         <div className="p-4">
           {activeTab === 'claimed' ? (
-            <ClaimedDealsList onSelect={setSelectedClaimed} />
+            <ClaimedDealsList onSelect={deal => { setSelectedClaimed(deal); setSearchParams({ tab: 'claimed', view: 'claimed-detail', id: deal.id }) }} />
           ) : exploreLoading ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
               <Loading size={32} />
@@ -115,7 +120,7 @@ export function Deals() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredExplore.map(deal => (
-                <DealCard key={deal.id} deal={deal} onClick={() => setSelectedDeal(deal)} />
+                <DealCard key={deal.id} deal={deal} onClick={() => { setSelectedDeal(deal); setSearchParams({ view: 'detail', id: deal.id }) }} />
               ))}
             </div>
           )}

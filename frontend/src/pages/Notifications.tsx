@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { IconBell } from '../components/ui/icons'
 import { NotificationTabs } from '../components/ui/notifications/NotificationTabs'
 import { NotificationList } from '../components/ui/notifications/NotificationList'
@@ -13,7 +13,8 @@ interface NotificationsProps {
 }
 
 export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTogglePin }: NotificationsProps) {
-  const [activeTab, setActiveTab] = useState<NotificationTab>('unread')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab: NotificationTab = (searchParams.get('tab') as NotificationTab) ?? 'unread'
 
   const counts: Record<NotificationTab, number> = {
     unread: notifications.filter(n => n.unread).length,
@@ -36,7 +37,7 @@ export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTo
         </div>
       </div>
 
-      <NotificationTabs value={activeTab} counts={counts} onChange={setActiveTab} onMarkAllRead={onMarkAllRead} />
+      <NotificationTabs value={activeTab} counts={counts} onChange={tab => setSearchParams(tab === 'unread' ? {} : { tab })} onMarkAllRead={onMarkAllRead} />
 
       <NotificationList
         notifications={notifications}

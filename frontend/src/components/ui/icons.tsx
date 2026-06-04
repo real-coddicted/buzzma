@@ -149,6 +149,14 @@ export function IconChevronRight({ size = 16, ...p }: IconProps) {
   )
 }
 
+export function IconChevronLeft({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  )
+}
+
 export function IconPlay({ size = 14, ...p }: IconProps) {
   return (
     <svg {...base(size, p)} fill="currentColor" stroke="none">
