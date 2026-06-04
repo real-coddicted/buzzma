@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
-import { CLAIM_STEPS } from '../../../constants/claimSteps'
+import type { StepperStep } from '../Stepper'
+import { fetchStepConfig } from '../../../api/campaignApi'
+import { toStepperSteps } from '../../../constants/claimSteps'
 import { IconChevronRight } from '../icons'
 import { StepperHeader } from '../StepperHeader'
 import { DealInfo } from './DealInfo'
@@ -13,6 +15,13 @@ interface ClaimedDealDetailProps {
 
 export function ClaimedDealDetail({ deal, onBack }: ClaimedDealDetailProps) {
   const [currentStep, setCurrentStep] = useState(deal.currentStep ?? 0)
+  const [steps, setSteps] = useState<StepperStep[]>([])
+
+  useEffect(() => {
+    fetchStepConfig().then(config => {
+      setSteps(toStepperSteps(config[deal.dealType] ?? []))
+    })
+  }, [deal.dealType])
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -28,7 +37,7 @@ export function ClaimedDealDetail({ deal, onBack }: ClaimedDealDetailProps) {
 
       <StepperHeader
         label="Claim Progress"
-        steps={CLAIM_STEPS}
+        steps={steps}
         currentStep={currentStep}
         onStepClick={setCurrentStep}
         className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card px-5 py-4"

@@ -5,6 +5,23 @@ import { rupeesToPaise } from '../utils/currency'
 
 const API_BASE = '/api/v1'
 
+export interface CampaignStepDto {
+  type: string
+  label: string
+}
+
+export type StepConfig = Record<string, CampaignStepDto[]>
+
+let stepConfigCache: Promise<StepConfig> | null = null
+
+export function fetchStepConfig(): Promise<StepConfig> {
+  if (!stepConfigCache) {
+    stepConfigCache = fetchWithAuth(`${API_BASE}/campaigns/step-config`)
+      .then(r => r.json() as Promise<StepConfig>)
+  }
+  return stepConfigCache
+}
+
 type BackendRequest = components['schemas']['CampaignRequestDto']
 export type CampaignResponseDto = components['schemas']['CampaignResponseDto']
 type CampaignSummaryDto = components['schemas']['CampaignSummaryResponseDto']

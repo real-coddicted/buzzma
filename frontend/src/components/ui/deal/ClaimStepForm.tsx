@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
-import { CLAIM_STEPS } from '../../../constants/claimSteps'
+import type { CampaignStepDto } from '../../../api/campaignApi'
+import { fetchStepConfig } from '../../../api/campaignApi'
+import { STEP_TYPE_COLORS } from '../../../constants/claimSteps'
 import { DealOrderForm } from './DealOrderForm'
 import { ScreenshotUpload } from './ScreenshotUpload'
 
@@ -45,39 +48,46 @@ function OrderStep({ deal, onSuccess }: OrderStepProps) {
   )
 }
 
-function ReviewStep({ deal }: { deal: Deal }) {
-  const isRating = deal.dealType === 'CAMPAIGN_TYPE_RATING'
-
+function RatingStep({ deal }: { deal: Deal }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        {isRating
-          ? `Rate the product on ${deal.platformLabel} and upload a screenshot of your submitted rating.`
-          : `Write a review for the product on ${deal.platformLabel} and upload a screenshot of your published review.`}
+        Rate the product on {deal.platformLabel} and upload a screenshot of your submitted rating.
       </p>
-
-      {!isRating && (
-        <div>
-          <label className={labelClass}>
-            Review URL <span className="text-neon-red">*</span>
-          </label>
-          <input
-            type="url"
-            placeholder={`Paste your ${deal.platformLabel} review link`}
-            className={inputClass}
-          />
-        </div>
-      )}
-
       <ScreenshotUpload
-        label={isRating ? 'Rating Screenshot' : 'Review Screenshot'}
-        hint={isRating
-          ? 'Show the star rating you submitted on the product page.'
-          : 'Ensure your username and review text are clearly visible.'}
+        label="Rating Screenshot"
+        hint="Show the star rating you submitted on the product page."
       />
-
       <button className={submitBtnClass('bg-neon-purple hover:brightness-110')}>
-        Submit {isRating ? 'Rating' : 'Review'}
+        Submit Rating
+      </button>
+    </div>
+  )
+}
+
+function ReviewStep({ deal }: { deal: Deal }) {
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
+        Write a review for the product on {deal.platformLabel} and upload a screenshot of your
+        published review.
+      </p>
+      <div>
+        <label className={labelClass}>
+          Review URL <span className="text-neon-red">*</span>
+        </label>
+        <input
+          type="url"
+          placeholder={`Paste your ${deal.platformLabel} review link`}
+          className={inputClass}
+        />
+      </div>
+      <ScreenshotUpload
+        label="Review Screenshot"
+        hint="Ensure your username and review text are clearly visible."
+      />
+      <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
+        Submit Review
       </button>
     </div>
   )
@@ -127,7 +137,17 @@ interface ClaimStepFormProps {
 }
 
 export function ClaimStepForm({ deal, currentStep, onStepChange }: ClaimStepFormProps) {
-  const step = CLAIM_STEPS[currentStep]
+  const [steps, setSteps] = useState<CampaignStepDto[]>([])
+
+  useEffect(() => {
+    fetchStepConfig().then(config => {
+      setSteps(config[deal.dealType] ?? [])
+    })
+  }, [deal.dealType])
+
+  const step = steps[currentStep]
+  const stepType = step?.type ?? ''
+  const stepColor = STEP_TYPE_COLORS[stepType]?.color ?? 'text-neon-blue'
 
   function handleClaimSuccess(claim: ClaimResponseDto) {
     onStepChange(claim.currentStep ?? currentStep + 1)
@@ -137,17 +157,18 @@ export function ClaimStepForm({ deal, currentStep, onStepChange }: ClaimStepForm
     <div className="space-y-5">
       <div>
         <h3 className="text-base font-bold text-ink-light-primary dark:text-ink-dark-primary">
-          {step.label}
+          {step?.label ?? ''}
         </h3>
-        <p className={['text-[10px] font-semibold uppercase tracking-wider mt-0.5', step.color].join(' ')}>
-          Step {currentStep + 1} of {CLAIM_STEPS.length}
+        <p className={['text-[10px] font-semibold uppercase tracking-wider mt-0.5', stepColor].join(' ')}>
+          Step {currentStep + 1} of {steps.length}
         </p>
       </div>
 
-      {currentStep === 0 && <OrderStep deal={deal} onSuccess={handleClaimSuccess} />}
-      {currentStep === 1 && <ReviewStep deal={deal} />}
-      {currentStep === 2 && <ReturnStep />}
-      {currentStep === 3 && <CashbackStep />}
+      {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} />}
+      {stepType === 'RATING'        && <RatingStep deal={deal} />}
+      {stepType === 'REVIEW'        && <ReviewStep deal={deal} />}
+      {stepType === 'RETURN_WINDOW' && <ReturnStep />}
+      {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>
   )
 }

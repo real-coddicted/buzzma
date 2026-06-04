@@ -781,7 +781,7 @@ export const deals: RawDeal[] = [
     originalPricePaise: 59900,
     offeredPricePaise: 47900,
     status: 'claimed',
-    currentStep: 0,
+    currentStep: 1,
     sellerName: 'Maybelline India',
   },
   {

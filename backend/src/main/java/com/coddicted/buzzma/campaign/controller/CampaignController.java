@@ -2,14 +2,17 @@ package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -31,14 +34,22 @@ public class CampaignController {
   private final CampaignService service;
   private final CampaignMapper campaignMapper;
   private final CampaignProcessor campaignProcessor;
+  private final CampaignTypeStepService campaignTypeStepService;
 
   public CampaignController(
       final CampaignService service,
       final CampaignMapper campaignMapper,
-      final CampaignProcessor campaignProcessor) {
+      final CampaignProcessor campaignProcessor,
+      final CampaignTypeStepService campaignTypeStepService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.campaignProcessor = campaignProcessor;
+    this.campaignTypeStepService = campaignTypeStepService;
+  }
+
+  @GetMapping("/step-config")
+  public Map<String, List<CampaignStepDto>> getStepConfig() {
+    return campaignTypeStepService.getStepConfig();
   }
 
   @GetMapping

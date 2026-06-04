@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
+import type { StepperStep } from '../Stepper'
+import { fetchStepConfig } from '../../../api/campaignApi'
+import { toStepperSteps } from '../../../constants/claimSteps'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
-import { CLAIM_STEPS } from '../../../constants/claimSteps'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Stepper } from '../Stepper'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
@@ -12,6 +15,14 @@ interface ClaimedDealListItemProps {
 }
 
 export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedDealListItemProps) {
+  const [steps, setSteps] = useState<StepperStep[]>([])
+
+  useEffect(() => {
+    fetchStepConfig().then(config => {
+      setSteps(toStepperSteps(config[deal.dealType] ?? []))
+    })
+  }, [deal.dealType])
+
   return (
     <div
       onClick={onClick}
@@ -54,7 +65,7 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
           </span>
         </div>
 
-        <Stepper steps={CLAIM_STEPS} currentStep={currentStep} />
+        {steps.length > 0 && <Stepper steps={steps} currentStep={currentStep} />}
       </div>
     </div>
   )

@@ -80,7 +80,6 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_REVIEW'
   | 'CAMPAIGN_TYPE_ORDER'
   | 'CAMPAIGN_TYPE_DISCOUNT'
-  | 'CAMPAIGN_TYPE_AGENCY_DISCRETION'
 
 export interface CampaignRequestDto {
   title: string

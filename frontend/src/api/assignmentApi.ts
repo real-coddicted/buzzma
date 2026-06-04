@@ -32,7 +32,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
 
 export async function fetchUnpublishedAssignments(): Promise<AssignmentItem[]> {
   const res = await fetchWithAuth(
-    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_DRAFT`,
+    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_LOCKED`,
   )
   const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
   return (data.items ?? []).map(mapAssignment)
