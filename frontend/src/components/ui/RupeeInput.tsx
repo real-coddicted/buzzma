@@ -5,6 +5,7 @@ interface Props {
   className?: string
   symbolOffset?: string
   inputPadding?: string
+  disabled?: boolean
 }
 
 const noSpinner = '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
@@ -16,6 +17,7 @@ export function RupeeInput({
   className = '',
   symbolOffset = 'left-3',
   inputPadding = 'pl-6',
+  disabled,
 }: Props) {
   return (
     <div className="relative">
@@ -26,6 +28,7 @@ export function RupeeInput({
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
+        disabled={disabled}
         className={[inputPadding, noSpinner, className].join(' ')}
       />
     </div>

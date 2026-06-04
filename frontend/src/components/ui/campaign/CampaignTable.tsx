@@ -67,9 +67,10 @@ interface Props {
   loading?: boolean
   onEdit: (id: string) => void
   onCopy: (id: string) => void
+  onView: (id: string) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Props) {
+export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView }: Props) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -155,6 +156,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
                   </span>
                 </th>
               ))}
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start/End Date</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Status</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Platform</th>
               <th className="px-5 py-3 text-right font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Actions</th>
@@ -163,7 +165,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-5 py-12 text-center">
+                <td colSpan={8} className="px-5 py-12 text-center">
                   <div className="flex justify-center">
                     <Loading size={28} />
                   </div>
@@ -171,7 +173,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={8} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No campaigns match your filter.
                 </td>
               </tr>
@@ -184,9 +186,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
                   <td className="px-5 py-2.5">
                     <div>
                       <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{c.title}</span>
-                      <div className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-0.5 font-mono">
-                        {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
-                      </div>
+                      <div className="text-[10px] text-ink-light-secondary dark:text-ink-dark-secondary mt-0.5 font-mono">{c.code}</div>
                     </div>
                   </td>
                   <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
@@ -200,10 +200,13 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy }: Pr
                       <SlotsBar claimed={c.slotsClaimed} total={c.totalSlots ?? 0} />
                     </div>
                   </td>
+                  <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
+                    {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
+                  </td>
                   <td className="px-5 py-2.5"><StatusBadge status={c.status} /></td>
                   <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
                   <td className="px-5 py-2.5">
-                    <CampaignRowActions campaign={c} onEdit={() => onEdit(c.id)} onCopy={() => onCopy(c.id)} />
+                    <CampaignRowActions campaign={c} onEdit={() => onEdit(c.id)} onCopy={() => onCopy(c.id)} onView={() => onView(c.id)} />
                   </td>
                 </tr>
               ))

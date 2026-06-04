@@ -70,6 +70,7 @@ public interface CampaignMapper {
       Campaign campaign, List<CampaignAssignmentRequestDto> draftAssignments);
 
   @Mapping(source = "campaign.id", target = "campaignId")
+  @Mapping(source = "campaign.code", target = "code")
   @Mapping(source = "campaign.title", target = "title")
   @Mapping(source = "campaign.product.imageUrl", target = "productImageUrl")
   @Mapping(source = "campaign.product.name", target = "productName")

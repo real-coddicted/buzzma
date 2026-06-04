@@ -115,6 +115,7 @@ export const recentActivity: ActivityItem[] = [
 export const campaigns: Campaign[] = [
   {
     id: 'cmp-1',
+    code: 'CMP-001',
     title: 'Summer Sale 2025',
     status: 'active',
     platform: 'PLATFORM_AMAZON',
@@ -142,6 +143,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-2',
+    code: 'CMP-002',
     title: 'Q2 Retargeting Push',
     status: 'active',
     platform: 'PLATFORM_FLIPKART',
@@ -169,6 +171,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-3',
+    code: 'CMP-003',
     title: 'Brand Awareness Q2',
     status: 'active',
     platform: 'PLATFORM_NYKAA',
@@ -196,6 +199,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-4',
+    code: 'CMP-004',
     title: 'Product Launch — Nova',
     status: 'active',
     platform: 'PLATFORM_MYNTRA',
@@ -223,6 +227,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-5',
+    code: 'CMP-005',
     title: 'Spring Lead Gen',
     status: 'active',
     platform: 'PLATFORM_AMAZON',
@@ -250,6 +255,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-6',
+    code: 'CMP-006',
     title: 'Holiday Clearance',
     status: 'paused',
     platform: 'PLATFORM_FLIPKART',
@@ -277,6 +283,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-7',
+    code: 'CMP-007',
     title: 'Influencer Collab — May',
     status: 'draft',
     platform: 'PLATFORM_NYKAA',
@@ -304,6 +311,7 @@ export const campaigns: Campaign[] = [
   },
   {
     id: 'cmp-8',
+    code: 'CMP-008',
     title: 'Loyalty Reactivation',
     status: 'completed',
     platform: 'PLATFORM_MYNTRA',

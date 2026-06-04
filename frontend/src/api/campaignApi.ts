@@ -78,6 +78,7 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
   const data = (await res.json()) as CampaignSummaryDto[]
   return data.map(dto => ({
     id:                   dto.campaignId ?? '',
+    code:                 dto.code ?? '',
     title:                dto.title ?? '',
     status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
     platform:             (dto.platform ?? 'PLATFORM_AMAZON') as Platform,

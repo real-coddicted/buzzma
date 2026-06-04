@@ -9,9 +9,10 @@ import { RupeeInput } from '../RupeeInput'
 interface Props {
   entities: LinkedEntity[]
   onChange: (entities: LinkedEntity[]) => void
+  readOnly?: boolean
 }
 
-export function LinkedEntitiesTable({ entities, onChange }: Props) {
+export function LinkedEntitiesTable({ entities, onChange, readOnly }: Props) {
   const [availableOptions, setAvailableOptions] = useState<ConnectionOption[]>([])
 
   useEffect(() => {
@@ -44,13 +45,15 @@ export function LinkedEntitiesTable({ entities, onChange }: Props) {
 
   return (
     <>
-      <div className="mb-3">
-        <SearchConnectionsBar
-          options={unassignedOptions}
-          onAdd={handleAdd}
-          placeholder="Search linked entities…"
-        />
-      </div>
+      {!readOnly && (
+        <div className="mb-3">
+          <SearchConnectionsBar
+            options={unassignedOptions}
+            onAdd={handleAdd}
+            placeholder="Search linked entities…"
+          />
+        </div>
+      )}
 
       <div className="overflow-auto max-h-[420px] rounded-lg border border-surface-light-border dark:border-surface-dark-border">
         <table className="w-full text-xs">
@@ -80,6 +83,7 @@ export function LinkedEntitiesTable({ entities, onChange }: Props) {
                       type="number"
                       value={entity.slotsAvailable || ''}
                       onChange={e => handleSlotsChange(entity.id, e.target.value)}
+                      disabled={readOnly}
                       className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </td>
@@ -89,18 +93,21 @@ export function LinkedEntitiesTable({ entities, onChange }: Props) {
                       onChange={v => handleCommissionChange(entity.id, v)}
                       symbolOffset="left-2"
                       inputPadding="pl-5"
+                      disabled={readOnly}
                       className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg pr-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all"
                     />
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(entity.id)}
-                      className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
-                    >
-                      <IconTrash size={14} />
-                    </button>
-                  </td>
+                  {!readOnly && (
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(entity.id)}
+                        className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
+                      >
+                        <IconTrash size={14} />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

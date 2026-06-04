@@ -1,14 +1,15 @@
 import { Badge } from '../Badge'
-import { IconPause, IconCopy, IconEdit, IconX } from '../icons'
+import { IconPause, IconCopy, IconEdit, IconX, IconEye } from '../icons'
 import type { Campaign } from '../../../types'
 
 interface Props {
   campaign: Campaign
   onEdit: () => void
   onCopy: () => void
+  onView: () => void
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -23,6 +24,13 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy }: Props) {
         )}
         {c.status === 'active' && (
           <>
+            <button
+              title="View"
+              onClick={onView}
+              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
+            >
+              <IconEye size={13} />
+            </button>
             <button
               title="Pause"
               className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-yellow hover:bg-neon-yellow/10 transition-colors"

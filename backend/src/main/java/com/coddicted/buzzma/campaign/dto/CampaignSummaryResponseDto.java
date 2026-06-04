@@ -17,6 +17,8 @@ public class CampaignSummaryResponseDto {
 
   UUID campaignId;
 
+  String code;
+
   String title;
 
   URL productImageUrl;

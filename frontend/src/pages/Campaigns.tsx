@@ -46,11 +46,13 @@ export function Campaigns() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const view = searchParams.get('view')
-  const showNewCampaign = view === 'new' || view === 'edit'
+  const showNewCampaign = view === 'new' || view === 'edit' || view === 'view'
+  const isViewMode = view === 'view'
 
   const [editingForm, setEditingForm] = useState<CampaignForm | null>(null)
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null)
   const [editingCampaignStatus, setEditingCampaignStatus] = useState<NonNullable<CampaignResponseDto['status']> | null>(null)
+  const [campaignCode, setCampaignCode] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -76,12 +78,24 @@ export function Campaigns() {
     }
   }
 
+  async function handleViewCampaign(id: string) {
+    try {
+      const dto = await fetchCampaignById(id)
+      setEditingForm(responseToForm(dto))
+      setCampaignCode(dto.code ?? null)
+      setSearchParams({ view: 'view', id })
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to load campaign.')
+    }
+  }
+
   async function handleEditCampaign(id: string) {
     try {
       const dto = await fetchCampaignById(id)
       setEditingCampaignId(id)
       setEditingCampaignStatus(dto.status ?? 'CAMPAIGN_STATUS_DRAFT')
       setEditingForm(responseToForm(dto))
+      setCampaignCode(dto.code ?? null)
       setSearchParams({ view: 'edit', id })
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to load campaign.')
@@ -92,6 +106,7 @@ export function Campaigns() {
     setEditingForm(null)
     setEditingCampaignId(null)
     setEditingCampaignStatus(null)
+    setCampaignCode(null)
     navigate(-1)
   }
 
@@ -119,6 +134,8 @@ export function Campaigns() {
         onBack={handleBack}
         onSubmit={editingCampaignId ? handleUpdateCampaign : handleCreateCampaign}
         initialForm={editingForm ?? undefined}
+        readOnly={isViewMode}
+        campaignCode={campaignCode ?? undefined}
       />
     )
   }
@@ -151,6 +168,7 @@ export function Campaigns() {
         loading={loading}
         onEdit={handleEditCampaign}
         onCopy={handleCopyCampaign}
+        onView={handleViewCampaign}
       />
 
       {errorMsg && (

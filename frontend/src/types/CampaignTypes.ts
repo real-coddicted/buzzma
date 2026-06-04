@@ -42,6 +42,7 @@ export interface ActivityItem {
 
 export interface Campaign {
   id: string
+  code: string
   title: string
   status: CampaignStatus
   platform: Platform

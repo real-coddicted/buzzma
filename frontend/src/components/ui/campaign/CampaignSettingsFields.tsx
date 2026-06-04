@@ -15,9 +15,10 @@ interface Props {
   form: FormSlice
   errors: Partial<Record<string, string>>
   set: (field: keyof FormSlice, value: unknown) => void
+  readOnly?: boolean
 }
 
-export function CampaignSettingsFields({ form, errors, set }: Props) {
+export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
 
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
@@ -25,12 +26,12 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Total Slots</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" placeholder="e.g. 100" value={form.totalSlots} onChange={e => set('totalSlots', e.target.value)} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" placeholder="e.g. 100" value={form.totalSlots} onChange={e => set('totalSlots', e.target.value)} disabled={readOnly} />
           {errors.totalSlots && <p className={errorClass}>{errors.totalSlots}</p>}
         </div>
         <div>
           <label className={labelClass}>Return Window (days)</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" min="0" placeholder="e.g. 30" value={form.returnWindowDays} onChange={e => set('returnWindowDays', e.target.value)} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" min="0" placeholder="e.g. 30" value={form.returnWindowDays} onChange={e => set('returnWindowDays', e.target.value)} disabled={readOnly} />
           {errors.returnWindowDays && <p className={errorClass}>{errors.returnWindowDays}</p>}
         </div>
       </div>
@@ -40,9 +41,10 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
           type="button"
           role="switch"
           aria-checked={form.openToAll}
-          onClick={() => set('openToAll', !form.openToAll)}
+          onClick={() => !readOnly && set('openToAll', !form.openToAll)}
           className={[
-            'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-neon-blue/40',
+            'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none',
+            readOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus:ring-2 focus:ring-neon-blue/40',
             form.openToAll ? 'bg-neon-blue' : 'bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border',
           ].join(' ')}
         >
@@ -66,6 +68,7 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
             value={form.commissionToAllRupees}
             onChange={v => set('commissionToAllRupees', v)}
             className={inputClass}
+            disabled={readOnly}
           />
         </div>
       )}
@@ -74,6 +77,7 @@ export function CampaignSettingsFields({ form, errors, set }: Props) {
         <LinkedEntitiesTable
           entities={form.assignees}
           onChange={v => set('assignees', v)}
+          readOnly={readOnly}
         />
       )}
     </section>

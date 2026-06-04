@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '../Button'
 import { Toast } from '../Toast'
-import { IconChevronRight, IconCheck, IconPlay } from '../icons'
+import { IconChevronRight, IconCheck, IconPlay, IconCopy, IconCopyCheck } from '../icons'
 import type { CampaignRequestDto } from '../../../types'
 import { rupeesToPaise } from '../../../utils/currency'
 import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
@@ -12,16 +12,27 @@ interface Props {
   onBack: () => void
   onSubmit: (dto: CampaignRequestDto) => Promise<void>
   initialForm?: CampaignForm
+  readOnly?: boolean
+  campaignCode?: string
 }
 
 
-export function NewCampaignPage({ onBack, onSubmit, initialForm }: Props) {
-  const isEdit = !!initialForm
+export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campaignCode }: Props) {
+  const isEdit = !!initialForm && !readOnly
   const [form, setForm] = useState<CampaignForm>(initialForm ?? EMPTY_FORM)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [loading, setLoading] = useState(false)
   const [launching, setLaunching] = useState(false)
   const [toastError, setToastError] = useState<string | null>(null)
+  const [codeCopied, setCodeCopied] = useState(false)
+
+  function handleCopyCode() {
+    if (!campaignCode) return
+    navigator.clipboard.writeText(campaignCode).then(() => {
+      setCodeCopied(true)
+      setTimeout(() => setCodeCopied(false), 2000)
+    })
+  }
 
   function set(field: keyof typeof EMPTY_FORM, value: unknown) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -95,29 +106,46 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm }: Props) {
         </button>
         <IconChevronRight size={12} />
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium">
-          {isEdit ? 'Edit Campaign' : 'New Campaign'}
+          {readOnly ? 'View Campaign' : isEdit ? 'Edit Campaign' : 'New Campaign'}
         </span>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
-            {isEdit ? 'Edit Campaign' : 'New Campaign'}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
+              {readOnly ? 'View Campaign' : isEdit ? 'Edit Campaign' : 'New Campaign'}
+            </h1>
+            {campaignCode && (
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                title={codeCopied ? 'Copied!' : 'Copy code'}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-xs font-mono text-ink-light-primary dark:text-ink-dark-primary hover:border-neon-blue/40 hover:text-neon-blue transition-colors"
+              >
+                {campaignCode}
+                {codeCopied
+                  ? <IconCopyCheck size={12} className="text-neon-green" />
+                  : <IconCopy size={12} />
+                }
+              </button>
+            )}
+          </div>
           <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            {isEdit ? 'Update the details for this campaign.' : 'Fill in the details to create a new campaign.'}
+            {readOnly ? 'Campaign details (read-only).' : isEdit ? 'Update the details for this campaign.' : 'Fill in the details to create a new campaign.'}
           </p>
         </div>
       </div>
 
       <form id="new-campaign-form" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CampaignInfoFields form={form} errors={errors} set={set} />
+          <CampaignInfoFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
           <CampaignSettingsFields
             form={form}
             errors={errors}
             set={set}
+            readOnly={readOnly}
           />
         </div>
 
@@ -128,37 +156,40 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm }: Props) {
             placeholder="Enter campaign terms and conditions…"
             value={form.termsAndConditions}
             onChange={e => set('termsAndConditions', e.target.value)}
+            disabled={readOnly}
             className="w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border text-xs text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted px-3 py-2 outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all resize-none"
           />
         </section>
 
         {/* Footer actions */}
-        <div className="flex items-center justify-end gap-2 mt-6">
-          <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="secondary"
-            size="sm"
-            leftIcon={<IconCheck size={13} />}
-            loading={loading}
-            disabled={launching}
-          >
-            {isEdit ? 'Update Campaign' : 'Save Draft'}
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            leftIcon={<IconPlay size={13} />}
-            loading={launching}
-            disabled={loading}
-            onClick={handleLaunch}
-          >
-            Launch Campaign
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center justify-end gap-2 mt-6">
+            <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="secondary"
+              size="sm"
+              leftIcon={<IconCheck size={13} />}
+              loading={loading}
+              disabled={launching}
+            >
+              {isEdit ? 'Update Campaign' : 'Save Draft'}
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              leftIcon={<IconPlay size={13} />}
+              loading={launching}
+              disabled={loading}
+              onClick={handleLaunch}
+            >
+              Launch Campaign
+            </Button>
+          </div>
+        )}
       </form>
 
       {toastError && (
