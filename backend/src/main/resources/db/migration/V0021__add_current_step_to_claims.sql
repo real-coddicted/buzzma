@@ -1,0 +1,2 @@
+ALTER TABLE claims
+    ADD COLUMN current_step VARCHAR(20) NOT NULL;

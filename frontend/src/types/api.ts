@@ -740,6 +740,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/step-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStepConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assignments": {
         parameters: {
             query?: never;
@@ -1472,6 +1488,12 @@ export interface components {
             /** Format: int32 */
             slotsClaimed?: number;
             budgetPaise?: number;
+        };
+        CampaignStepDto: {
+            type?: string;
+            label?: string;
+            /** Format: int32 */
+            stepOrder?: number;
         };
         AssignmentResponseDto: {
             /** Format: uuid */
@@ -2877,6 +2899,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageClaimReviewResponseDto"];
+                };
+            };
+        };
+    };
+    getStepConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: components["schemas"]["CampaignStepDto"][];
+                    };
                 };
             };
         };

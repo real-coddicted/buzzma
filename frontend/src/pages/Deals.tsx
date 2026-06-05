@@ -10,11 +10,15 @@ import type { DealTab } from '../components/ui/deal/DealTabs'
 import { DealFilterBar } from '../components/ui/deal/DealFilterBar'
 import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
 import type { Deal } from '../types/DealTypes'
-import { fetchExploreDeals } from '../api/dealApi'
+import type { components } from '../types/api'
+import { fetchExploreDeals, claimResponseToDeal } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
+import { fetchRawClaims } from '../api/claimApi'
 import { Loading } from '../components/ui/Loading'
 import { PaginationToolbar } from '../components/ui/PaginationToolbar'
 import { Toast } from '../components/ui/Toast'
+
+type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 
 export function Deals() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -24,6 +28,7 @@ export function Deals() {
 
   const [selectedDeal, setSelectedDeal]         = useState<Deal | null>(null)
   const [selectedClaimed, setSelectedClaimed]   = useState<Deal | null>(null)
+  const [selectedClaimedResponse, setSelectedClaimedResponse] = useState<ClaimResponseDto | null>(null)
   const [search, setSearch]                 = useState('')
   const [typeFilter, setTypeFilter]         = useState<DealTypeFilter>('all')
   const [platformFilter, setPlatformFilter] = useState<DealPlatformFilter>('all')
@@ -31,7 +36,20 @@ export function Deals() {
   const [explorePage, setExplorePage]       = useState<ExploreDealsPage | null>(null)
   const [exploreLoading, setExploreLoading] = useState(true)
   const [currentPage, setCurrentPage]       = useState(1)
+
+  const [claimedResponses, setClaimedResponses] = useState<ClaimResponseDto[]>([])
+  const [claimedLoading, setClaimedLoading]     = useState(true)
+
   const [toastError, setToastError]         = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchRawClaims()
+      .then(data => { if (!cancelled) setClaimedResponses(data) })
+      .catch((err: unknown) => { if (!cancelled) setToastError(err instanceof Error ? err.message : 'Failed to load claimed deals.') })
+      .finally(() => { if (!cancelled) setClaimedLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -52,6 +70,8 @@ export function Deals() {
     return () => { cancelled = true }
   }, [currentPage])
 
+  const claimedDeals = useMemo(() => claimedResponses.map(claimResponseToDeal), [claimedResponses])
+
   const filteredExplore = useMemo(() => {
     if (!explorePage) return []
     return explorePage.items.filter(d => {
@@ -63,12 +83,28 @@ export function Deals() {
   }, [explorePage, search, typeFilter, platformFilter])
 
   const counts: Record<DealTab, number> = {
-    explore:     explorePage?.total ?? 0,
-    claimed: 5,
+    explore: explorePage?.total ?? 0,
+    claimed: claimedDeals.length,
   }
 
-  if (view === 'claimed-detail' && selectedClaimed) {
-    return <ClaimedDealDetail deal={selectedClaimed} onBack={() => navigate(-1)} />
+  function handleClaimedSelect(deal: Deal) {
+    setSelectedClaimed(deal)
+    setSelectedClaimedResponse(claimedResponses.find(r => r.id === deal.claimId) ?? null)
+  }
+
+  function clearSelectedClaimed() {
+    setSelectedClaimed(null)
+    setSelectedClaimedResponse(null)
+  }
+
+  if (selectedClaimed) {
+    return (
+      <ClaimedDealDetail
+        deal={selectedClaimed}
+        onBack={clearSelectedClaimed}
+        claimResponse={selectedClaimedResponse ?? undefined}
+      />
+    )
   }
 
   if (view === 'detail' && selectedDeal) {
@@ -86,7 +122,7 @@ export function Deals() {
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
           {activeTab === 'explore'
             ? explorePage ? `${explorePage.total} deals` : '…'
-            : '5 claimed deals'}
+            : claimedLoading ? '…' : `${claimedDeals.length} claimed deal${claimedDeals.length !== 1 ? 's' : ''}`}
         </p>
       </div>
 
@@ -108,7 +144,7 @@ export function Deals() {
 
         <div className="p-4">
           {activeTab === 'claimed' ? (
-            <ClaimedDealsList onSelect={deal => { setSelectedClaimed(deal); setSearchParams({ tab: 'claimed', view: 'claimed-detail', id: deal.id }) }} />
+            <ClaimedDealsList deals={claimedDeals} loading={claimedLoading} onSelect={handleClaimedSelect} />
           ) : exploreLoading ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
               <Loading size={32} />

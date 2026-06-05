@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Deal, DealTypeFilter } from '../../../types/DealTypes'
-import { fetchClaimedDeals } from '../../../api/dealApi'
 import { fetchDealTypes } from '../../../api/dealTypeApi'
 import { ALL_TYPES_OPTION, DEAL_TYPE_ACTIVE_CLASSES } from '../../../constants/deal'
 import { SearchInput } from '../SearchInput'
@@ -9,21 +8,17 @@ import type { FilterOption } from '../StatusFilterPills'
 import { ClaimedDealListItem } from './ClaimedDealListItem'
 
 interface ClaimedDealsListProps {
+  deals: Deal[]
+  loading: boolean
   onSelect: (deal: Deal) => void
 }
 
-export function ClaimedDealsList({ onSelect }: ClaimedDealsListProps) {
-  const [deals, setDeals]             = useState<Deal[]>([])
-  const [loading, setLoading]         = useState(true)
+export function ClaimedDealsList({ deals, loading, onSelect }: ClaimedDealsListProps) {
   const [search, setSearch]           = useState('')
   const [typeFilter, setTypeFilter]   = useState<DealTypeFilter>('all')
   const [typeOptions, setTypeOptions] = useState<FilterOption<DealTypeFilter>[]>([ALL_TYPES_OPTION])
 
   useEffect(() => {
-    fetchClaimedDeals().then(data => {
-      setDeals(data)
-      setLoading(false)
-    })
     fetchDealTypes().then(data => setTypeOptions([
       ALL_TYPES_OPTION,
       ...data.map(opt => ({ ...opt, activeClass: DEAL_TYPE_ACTIVE_CLASSES[opt.value] })),

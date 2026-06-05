@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -85,6 +86,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .isDeleted(false)
                 .createdBy(claim.getOwnerId())
                 .updatedBy(claim.getOwnerId())
+                .currentStep(CampaignStepType.ORDER)
                 .build());
 
     saveScreenshot(

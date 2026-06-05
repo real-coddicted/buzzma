@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
+import type { components } from '../../../types/api'
 import type { StepperStep } from '../Stepper'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps } from '../../../constants/claimSteps'
@@ -8,13 +9,17 @@ import { StepperHeader } from '../StepperHeader'
 import { DealInfo } from './DealInfo'
 import { ClaimDeal } from './ClaimDeal'
 
+type ClaimResponseDto = components['schemas']['ClaimResponseDto']
+
 interface ClaimedDealDetailProps {
   deal: Deal
   onBack: () => void
+  claimResponse?: ClaimResponseDto
 }
 
-export function ClaimedDealDetail({ deal, onBack }: ClaimedDealDetailProps) {
-  const [currentStep, setCurrentStep] = useState(deal.currentStep ?? 0)
+export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDetailProps) {
+  const apiCurrentStep = claimResponse?.currentStep ?? deal.currentStep ?? 0
+  const [viewedStep, setViewedStep] = useState(apiCurrentStep)
   const [steps, setSteps] = useState<StepperStep[]>([])
 
   useEffect(() => {
@@ -38,14 +43,20 @@ export function ClaimedDealDetail({ deal, onBack }: ClaimedDealDetailProps) {
       <StepperHeader
         label="Claim Progress"
         steps={steps}
-        currentStep={currentStep}
-        onStepClick={setCurrentStep}
+        currentStep={apiCurrentStep}
+        onStepClick={setViewedStep}
         className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card px-5 py-4"
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-14rem)]">
         <DealInfo deal={deal} />
-        <ClaimDeal deal={deal} initialStep={currentStep} />
+        <ClaimDeal
+          key={viewedStep}
+          deal={deal}
+          initialStep={viewedStep}
+          readOnly={viewedStep < apiCurrentStep}
+          claimResponse={claimResponse}
+        />
       </div>
     </div>
   )

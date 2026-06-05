@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
-import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.persistence.CampaignTypeStepRepository;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -21,17 +21,11 @@ public class CampaignTypeStepServiceImpl implements CampaignTypeStepService {
   }
 
   @Override
-  public Map<String, List<CampaignStepDto>> getStepConfig() {
+  public Map<CampaignType, List<CampaignTypeStep>> getStepConfig() {
     return campaignTypeStepRepository.findAll().stream()
         .sorted(Comparator.comparingInt(CampaignTypeStep::getStepOrder))
         .collect(
             Collectors.groupingBy(
-                s -> s.getId().getCampaignType().name(),
-                LinkedHashMap::new,
-                Collectors.mapping(
-                    s ->
-                        new CampaignStepDto(
-                            s.getId().getStepType().name(), s.getId().getStepType().getLabel()),
-                    Collectors.toList())));
+                s -> s.getId().getCampaignType(), LinkedHashMap::new, Collectors.toList()));
   }
 }

@@ -11,9 +11,11 @@ interface DealOrderFormProps {
   dealId: string
   campaignId: string
   onSuccess?: (claim: ClaimResponseDto) => void
+  readOnly?: boolean
+  claimValues?: Partial<FormFields>
 }
 
-interface FormFields {
+export interface FormFields {
   platform: string
   orderId: string
   amount: string
@@ -23,8 +25,8 @@ interface FormFields {
   accountName: string
 }
 
-export function DealOrderForm({ dealId, campaignId, onSuccess }: DealOrderFormProps) {
-  const [fields, setFields] = useState<FormFields>({
+export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues }: DealOrderFormProps) {
+  const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
     orderId:     '',
     amount:      '',
@@ -32,7 +34,8 @@ export function DealOrderForm({ dealId, campaignId, onSuccess }: DealOrderFormPr
     sellerName:  '',
     orderDate:   '',
     accountName: '',
-  })
+    ...claimValues,
+  }))
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
   const [extractedDetails, setExtractedDetails] = useState<Record<string, string>>({})
   const [extractionErrors, setExtractionErrors] = useState<Partial<Record<keyof FormFields, string>>>({})
@@ -118,34 +121,38 @@ export function DealOrderForm({ dealId, campaignId, onSuccess }: DealOrderFormPr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <ScreenshotUpload
-        label="Order Confirmation Screenshot"
-        hint="Ensure the order ID, amount, and product name are clearly visible."
-        onExtract={handleExtraction}
-        onFileChange={setScreenshotFile}
-      />
-      <Field
-        as="select"
-        label="Platform"
-        placeholder="Select platform"
-        value={fields.platform}
-        onChange={set('platform')}
-        options={[
-          { value: '', label: 'Select platform' },
-          { value: 'PLATFORM_AMAZON', label: 'Amazon' },
-          { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
-          { value: 'PLATFORM_NYKAA', label: 'Nykaa' },
-          { value: 'PLATFORM_MYNTRA', label: 'Myntra' },
-        ]}
-      />
-      <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}   />
-      <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount} />
-      <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')}   error={extractionErrors.productName} />
-      <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}   error={extractionErrors.sellerName} />
+      {!readOnly && (
+        <>
+          <ScreenshotUpload
+            label="Order Confirmation Screenshot"
+            hint="Ensure the order ID, amount, and product name are clearly visible."
+            onExtract={handleExtraction}
+            onFileChange={setScreenshotFile}
+          />
+          <Field
+            as="select"
+            label="Platform"
+            placeholder="Select platform"
+            value={fields.platform}
+            onChange={set('platform')}
+            options={[
+              { value: '', label: 'Select platform' },
+              { value: 'PLATFORM_AMAZON', label: 'Amazon' },
+              { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
+              { value: 'PLATFORM_NYKAA', label: 'Nykaa' },
+              { value: 'PLATFORM_MYNTRA', label: 'Myntra' },
+            ]}
+          />
+        </>
+      )}
+      <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
+      <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     readOnly={readOnly} />
+      <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} readOnly={readOnly} />
+      <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  readOnly={readOnly} />
 
       <div>
         <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-          Order Date <span className="text-neon-red">*</span>
+          Order Date {!readOnly && <span className="text-neon-red">*</span>}
           {extractionErrors.orderDate && <span className="text-neon-red font-normal ml-2">{extractionErrors.orderDate}</span>}
         </label>
         <div className="relative">
@@ -153,28 +160,31 @@ export function DealOrderForm({ dealId, campaignId, onSuccess }: DealOrderFormPr
             type="date"
             value={fields.orderDate}
             onChange={set('orderDate')}
+            disabled={readOnly}
             className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary pl-9 pr-3 py-2 outline-none focus:border-neon-blue/50 transition-colors"
           />
           <IconCalendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted pointer-events-none" />
         </div>
       </div>
 
-      <Field label="Account Name" placeholder="Name on your account" value={fields.accountName} onChange={set('accountName')} error={extractionErrors.accountName} />
+      <Field label="Account Name" placeholder="Name on your account" value={fields.accountName} onChange={set('accountName')} error={extractionErrors.accountName} readOnly={readOnly} />
 
-      {error && (
+      {!readOnly && error && (
         <p className="text-[11px] text-neon-red">{error}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={!isValid || isSubmitting}
-        className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {isSubmitting && (
-          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-        )}
-        {isSubmitting ? 'Submitting…' : 'Submit Claim'}
-      </button>
+      {!readOnly && (
+        <button
+          type="submit"
+          disabled={!isValid || isSubmitting}
+          className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isSubmitting && (
+            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          )}
+          {isSubmitting ? 'Submitting…' : 'Submit Claim'}
+        </button>
+      )}
     </form>
   )
 }
@@ -187,6 +197,7 @@ function Field({
   onChange,
   options,
   error,
+  readOnly,
 }: {
   as?: 'input' | 'select'
   label: string
@@ -195,19 +206,21 @@ function Field({
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
   options?: { value: string; label: string }[]
   error?: string
+  readOnly?: boolean
 }) {
   const inputClass = "w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
 
   return (
     <div>
       <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-        {label} <span className="text-neon-red">*</span>
+        {label} {!readOnly && <span className="text-neon-red">*</span>}
         {error && <span className="text-neon-red font-normal ml-2">{error}</span>}
       </label>
       {as === 'select' ? (
         <select
           value={value}
           onChange={onChange}
+          disabled={readOnly}
           className={inputClass}
         >
           {options?.map(opt => (
@@ -222,6 +235,7 @@ function Field({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          disabled={readOnly}
           className={inputClass}
         />
       )}

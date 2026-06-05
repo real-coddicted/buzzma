@@ -7,7 +7,6 @@ import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimScreenshotResponseDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
-import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
@@ -23,7 +22,7 @@ public interface ClaimMapper {
   @Mapping(source = "claim.id", target = "id")
   @Mapping(source = "deal", target = "deal")
   @Mapping(source = "claim.status", target = "status")
-  @Mapping(expression = "java(currentStep(claim.getStatus()))", target = "currentStep")
+  @Mapping(source = "currentStep", target = "currentStep")
   @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
   @Mapping(source = "claim.amountPaise", target = "amountPaise")
   @Mapping(source = "claim.productName", target = "productName")
@@ -39,7 +38,8 @@ public interface ClaimMapper {
   @Mapping(source = "claim.reviewStatus", target = "reviewStatus")
   @Mapping(source = "claim.createdAt", target = "createdAt")
   @Mapping(source = "claim.updatedAt", target = "updatedAt")
-  ClaimResponseDto toResponse(Claim claim, Deal deal, List<ClaimScreenshot> screenshots);
+  ClaimResponseDto toResponse(
+      Claim claim, Deal deal, List<ClaimScreenshot> screenshots, int currentStep);
 
   ClaimScreenshotResponseDto toScreenshotResponse(ClaimScreenshot screenshot);
 
@@ -57,6 +57,7 @@ public interface ClaimMapper {
   @Mapping(source = "ownerId", target = "ownerId")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "status", ignore = true)
+  @Mapping(target = "currentStep", ignore = true)
   @Mapping(target = "reviewStatus", ignore = true)
   @Mapping(target = "reviewerId", ignore = true)
   @Mapping(target = "mediatorVerified", ignore = true)
@@ -69,12 +70,4 @@ public interface ClaimMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   Claim toEntity(ClaimRequestDto request, UUID ownerId);
-
-  default int currentStep(final ClaimStatus status) {
-    return switch (status) {
-      case ORDERED -> 1;
-      case PROOF_SUBMITTED -> 2;
-      default -> 3;
-    };
-  }
 }

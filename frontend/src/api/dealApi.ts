@@ -9,6 +9,7 @@ const API_BASE = '/api/v1'
 
 type DealResponseDto = components['schemas']['DealResponseDto']
 type PagedDealsResponseDto = components['schemas']['PagedDealsResponseDto']
+type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 
 function toFullDeal(deal: typeof deals[number]): Deal {
   return {
@@ -23,9 +24,28 @@ export async function fetchDeals(): Promise<Deal[]> {
   return deals.map(toFullDeal)
 }
 
-export async function fetchClaimedDeals(): Promise<Deal[]> {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  return deals.filter(d => d.status === 'claimed').map(toFullDeal)
+export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
+  const d = dto.deal ?? {}
+  const platform = (d.platform ?? '') as Platform
+  const dealType = (d.dealType ?? '') as CampaignType
+  return {
+    id: d.id ?? '',
+    claimId: dto.id ?? '',
+    campaignId: d.campaignId ?? '',
+    productName: d.productName ?? '',
+    productImageUrl: d.productImageUrl ?? '',
+    productUrl: d.productUrl ?? '',
+    platform,
+    platformLabel: PLATFORM_LABELS[platform] ?? platform,
+    dealType,
+    dealTypeLabel: CAMPAIGN_TYPE_LABELS[dealType] ?? dealType,
+    originalPricePaise: d.originalPricePaise ?? 0,
+    offeredPricePaise: d.offeredPricePaise ?? 0,
+    sellerName: d.sellerName,
+    termsAndConditions: d.termsAndConditions,
+    status: 'claimed',
+    currentStep: dto.currentStep ?? 0,
+  }
 }
 
 export interface ExploreDealsPage {

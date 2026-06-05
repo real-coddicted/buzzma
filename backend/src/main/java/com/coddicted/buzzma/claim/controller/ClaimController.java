@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.claim.controller;
 
+import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
@@ -38,16 +40,19 @@ public class ClaimController {
 
   private final ClaimService claimService;
   private final DealService dealService;
+  private final CampaignTypeStepService campaignTypeStepService;
   private final ClaimMapper claimMapper;
   private final ClaimReviewProcessor claimReviewProcessor;
 
   public ClaimController(
       final ClaimService claimService,
       final DealService dealService,
+      final CampaignTypeStepService campaignTypeStepService,
       final ClaimMapper claimMapper,
       final ClaimReviewProcessor claimReviewProcessor) {
     this.claimService = claimService;
     this.dealService = dealService;
+    this.campaignTypeStepService = campaignTypeStepService;
     this.claimMapper = claimMapper;
     this.claimReviewProcessor = claimReviewProcessor;
   }
@@ -68,7 +73,7 @@ public class ClaimController {
             request.getExtractedDetails());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots);
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
   @PostMapping("/{id}/review")
@@ -87,7 +92,7 @@ public class ClaimController {
             screenshot.getContentType());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots);
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
   @PostMapping("/{id}/return")
@@ -104,18 +109,21 @@ public class ClaimController {
             screenshot.getContentType());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots);
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
   @GetMapping
   public List<ClaimResponseDto> list(@CurrentUserId final UUID requesterId) {
     return this.claimService.listByOwner(requesterId).stream()
         .map(
-            claim ->
-                this.claimMapper.toResponse(
-                    claim,
-                    this.dealService.getById(claim.getDealId()),
-                    this.claimService.listScreenshots(claim.getId())))
+            claim -> {
+              final Deal deal = this.dealService.getById(claim.getDealId());
+              return this.claimMapper.toResponse(
+                  claim,
+                  deal,
+                  this.claimService.listScreenshots(claim.getId()),
+                  currentStep(claim, deal));
+            })
         .toList();
   }
 
@@ -131,7 +139,20 @@ public class ClaimController {
     final Claim claim = this.claimService.getById(id, requesterId);
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots);
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  private int currentStep(final Claim claim, final Deal deal) {
+    final List<CampaignTypeStep> steps =
+        this.campaignTypeStepService
+            .getStepConfig()
+            .getOrDefault(deal.getCampaign().getType(), List.of());
+    for (final CampaignTypeStep step : steps) {
+      if (step.getId().getStepType() == claim.getCurrentStep()) {
+        return step.getStepOrder();
+      }
+    }
+    return 0;
   }
 
   private byte[] readBytes(final MultipartFile file) {

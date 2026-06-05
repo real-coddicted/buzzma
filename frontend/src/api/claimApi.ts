@@ -93,6 +93,11 @@ export async function fetchClaims(): Promise<ClaimReviewItem[]> {
   return data.map(mapClaim)
 }
 
+export async function fetchRawClaims(): Promise<ClaimResponseDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/claims`)
+  return (await res.json()) as ClaimResponseDto[]
+}
+
 export async function fetchClaimById(id: string): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/${id}`)
   const data = (await res.json()) as ClaimResponseDto

@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
+import type { components } from '../../../types/api'
 import { ClaimStepForm } from './ClaimStepForm'
+
+type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 
 interface ClaimDealProps {
   deal: Deal
   initialStep?: number
+  readOnly?: boolean
+  claimResponse?: ClaimResponseDto
 }
 
-export function ClaimDeal({ deal, initialStep = 0 }: ClaimDealProps) {
+export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimResponse }: ClaimDealProps) {
   const [currentStep, setCurrentStep] = useState(initialStep)
 
   return (
@@ -16,6 +21,8 @@ export function ClaimDeal({ deal, initialStep = 0 }: ClaimDealProps) {
         deal={deal}
         currentStep={currentStep}
         onStepChange={setCurrentStep}
+        readOnly={readOnly}
+        claimResponse={claimResponse}
       />
     </div>
   )

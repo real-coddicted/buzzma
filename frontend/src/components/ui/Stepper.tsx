@@ -17,7 +17,7 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
       {steps.map((step, i) => {
         const done    = i < currentStep
         const active  = i === currentStep
-        const clickable = !!onStepClick
+        const clickable = !!onStepClick && i <= currentStep
 
         return (
           <div
@@ -27,7 +27,7 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
           >
             <div
               className={['flex flex-col items-center gap-1 shrink-0', clickable ? 'cursor-pointer group' : ''].join(' ')}
-              onClick={() => onStepClick?.(i)}
+              onClick={clickable ? () => onStepClick!(i) : undefined}
             >
               <div className={[
                 'w-3 h-3 rounded-full border-2 transition-colors',

@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
+import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -33,23 +34,26 @@ public class CampaignController {
 
   private final CampaignService service;
   private final CampaignMapper campaignMapper;
+  private final CampaignTypeStepMapper campaignTypeStepMapper;
   private final CampaignProcessor campaignProcessor;
   private final CampaignTypeStepService campaignTypeStepService;
 
   public CampaignController(
       final CampaignService service,
       final CampaignMapper campaignMapper,
+      final CampaignTypeStepMapper campaignTypeStepMapper,
       final CampaignProcessor campaignProcessor,
       final CampaignTypeStepService campaignTypeStepService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
+    this.campaignTypeStepMapper = campaignTypeStepMapper;
     this.campaignProcessor = campaignProcessor;
     this.campaignTypeStepService = campaignTypeStepService;
   }
 
   @GetMapping("/step-config")
   public Map<String, List<CampaignStepDto>> getStepConfig() {
-    return campaignTypeStepService.getStepConfig();
+    return campaignTypeStepMapper.toCampaignStepDtoMap(campaignTypeStepService.getStepConfig());
   }
 
   @GetMapping

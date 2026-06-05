@@ -4,6 +4,7 @@ import type { components } from '../../../types/api'
 import type { CampaignStepDto } from '../../../api/campaignApi'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS } from '../../../constants/claimSteps'
+import { paiseToRupees } from '../../../utils/currency'
 import { DealOrderForm } from './DealOrderForm'
 import { ScreenshotUpload } from './ScreenshotUpload'
 
@@ -26,86 +27,135 @@ function submitBtnClass(color: string) {
 interface OrderStepProps {
   deal: Deal
   onSuccess: (claim: ClaimResponseDto) => void
+  readOnly?: boolean
+  claimResponse?: ClaimResponseDto
 }
 
-function OrderStep({ deal, onSuccess }: OrderStepProps) {
+function OrderStep({ deal, onSuccess, readOnly = false, claimResponse }: OrderStepProps) {
+  const claimValues = readOnly && claimResponse ? {
+    orderId:     claimResponse.ecommerceOrderId ?? '',
+    amount:      claimResponse.amountPaise != null ? String(paiseToRupees(claimResponse.amountPaise)) : '',
+    productName: claimResponse.productName ?? '',
+    sellerName:  claimResponse.sellerName ?? '',
+    orderDate:   claimResponse.orderDate != null
+      ? String(claimResponse.orderDate).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')
+      : '',
+    accountName: claimResponse.accountName ?? '',
+  } : undefined
   return (
     <div className="space-y-4">
-      <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Purchase this product on{' '}
-        <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-          {deal.platformLabel}
-        </span>{' '}
-        at the offered price, then upload the screenshot of your order confirmation and fill in
-        your order details below.
-      </p>
+      {!readOnly && (
+        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
+          Purchase this product on{' '}
+          <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
+            {deal.platformLabel}
+          </span>{' '}
+          at the offered price, then upload the screenshot of your order confirmation and fill in
+          your order details below.
+        </p>
+      )}
       <DealOrderForm
         dealId={deal.id}
         campaignId={deal.campaignId}
         onSuccess={onSuccess}
+        readOnly={readOnly}
+        claimValues={claimValues}
       />
     </div>
   )
 }
 
-function RatingStep({ deal }: { deal: Deal }) {
+function RatingStep({ deal, readOnly = false }: { deal: Deal; readOnly?: boolean }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Rate the product on {deal.platformLabel} and upload a screenshot of your submitted rating.
+        {readOnly
+          ? 'Rating submitted.'
+          : `Rate the product on ${deal.platformLabel} and upload a screenshot of your submitted rating.`}
       </p>
-      <ScreenshotUpload
-        label="Rating Screenshot"
-        hint="Show the star rating you submitted on the product page."
-      />
-      <button className={submitBtnClass('bg-neon-purple hover:brightness-110')}>
-        Submit Rating
-      </button>
+      {!readOnly && (
+        <>
+          <ScreenshotUpload
+            label="Rating Screenshot"
+            hint="Show the star rating you submitted on the product page."
+          />
+          <button className={submitBtnClass('bg-neon-purple hover:brightness-110')}>
+            Submit Rating
+          </button>
+        </>
+      )}
     </div>
   )
 }
 
-function ReviewStep({ deal }: { deal: Deal }) {
+function ReviewStep({ deal, readOnly = false, claimResponse }: { deal: Deal; readOnly?: boolean; claimResponse?: ClaimResponseDto }) {
   return (
     <div className="space-y-5">
-      <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Write a review for the product on {deal.platformLabel} and upload a screenshot of your
-        published review.
-      </p>
+      {!readOnly && (
+        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
+          Write a review for the product on {deal.platformLabel} and upload a screenshot of your
+          published review.
+        </p>
+      )}
       <div>
         <label className={labelClass}>
-          Review URL <span className="text-neon-red">*</span>
+          Review URL {!readOnly && <span className="text-neon-red">*</span>}
         </label>
-        <input
-          type="url"
-          placeholder={`Paste your ${deal.platformLabel} review link`}
-          className={inputClass}
-        />
+        {readOnly ? (
+          claimResponse?.reviewUrl ? (
+            <a
+              href={claimResponse.reviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-neon-blue hover:underline break-all"
+            >
+              {claimResponse.reviewUrl}
+            </a>
+          ) : (
+            <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">—</p>
+          )
+        ) : (
+          <input
+            type="url"
+            placeholder={`Paste your ${deal.platformLabel} review link`}
+            className={inputClass}
+          />
+        )}
       </div>
-      <ScreenshotUpload
-        label="Review Screenshot"
-        hint="Ensure your username and review text are clearly visible."
-      />
-      <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
-        Submit Review
-      </button>
+      {!readOnly && (
+        <>
+          <ScreenshotUpload
+            label="Review Screenshot"
+            hint="Ensure your username and review text are clearly visible."
+          />
+          <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
+            Submit Review
+          </button>
+        </>
+      )}
     </div>
   )
 }
 
-function ReturnStep() {
+function ReturnStep({ readOnly = false }: { readOnly?: boolean }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Upload a screenshot of return window completed page.
+        {readOnly
+          ? 'Return window screenshot submitted.'
+          : 'Upload a screenshot of return window completed page.'}
       </p>
-      <ScreenshotUpload
-        label="Return Window Completed Screenshot"
-        hint="Ensure the order ID and product name are clearly visible."
-      />
-      <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
-        Submit Screenshot
-      </button>
+      {!readOnly && (
+        <>
+          <ScreenshotUpload
+            label="Return Window Completed Screenshot"
+            hint="Ensure the order ID and product name are clearly visible."
+          />
+          <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
+            Submit Screenshot
+          </button>
+        </>
+      )}
     </div>
   )
 }
@@ -134,9 +184,12 @@ interface ClaimStepFormProps {
   deal: Deal
   currentStep: number
   onStepChange: (step: number) => void
+  readOnly?: boolean
+  claimResponse?: ClaimResponseDto
 }
 
-export function ClaimStepForm({ deal, currentStep, onStepChange }: ClaimStepFormProps) {
+
+export function ClaimStepForm({ deal, currentStep, onStepChange, readOnly = false, claimResponse }: ClaimStepFormProps) {
   const [steps, setSteps] = useState<CampaignStepDto[]>([])
 
   useEffect(() => {
@@ -164,10 +217,10 @@ export function ClaimStepForm({ deal, currentStep, onStepChange }: ClaimStepForm
         </p>
       </div>
 
-      {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} />}
-      {stepType === 'RATING'        && <RatingStep deal={deal} />}
-      {stepType === 'REVIEW'        && <ReviewStep deal={deal} />}
-      {stepType === 'RETURN_WINDOW' && <ReturnStep />}
+      {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={claimResponse} />}
+      {stepType === 'RATING'        && <RatingStep deal={deal} readOnly={readOnly} />}
+      {stepType === 'REVIEW'        && <ReviewStep deal={deal} readOnly={readOnly} claimResponse={claimResponse} />}
+      {stepType === 'RETURN_WINDOW' && <ReturnStep readOnly={readOnly} />}
       {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>
   )

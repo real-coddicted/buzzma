@@ -28,4 +28,5 @@ export interface Deal {
   termsAndConditions?: string
   status: DealStatus
   currentStep?: number
+  claimId?: string
 }

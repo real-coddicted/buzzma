@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.entity;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -60,6 +61,10 @@ public class Claim implements Auditable {
   @Enumerated(EnumType.STRING)
   @Column(name = "platform", nullable = false)
   private Platform platform;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "current_step", nullable = false, length = 20)
+  private CampaignStepType currentStep;
 
   @Column(name = "amount_paise")
   private BigInteger amountPaise;
