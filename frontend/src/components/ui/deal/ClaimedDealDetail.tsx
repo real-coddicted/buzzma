@@ -18,8 +18,8 @@ interface ClaimedDealDetailProps {
 }
 
 export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDetailProps) {
-  const apiCurrentStep = claimResponse?.currentStep ?? deal.currentStep ?? 0
-  const [viewedStep, setViewedStep] = useState(apiCurrentStep)
+  const [activeStep, setActiveStep] = useState(claimResponse?.currentStep ?? deal.currentStep ?? 0)
+  const [viewedStep, setViewedStep] = useState(activeStep)
   const [steps, setSteps] = useState<StepperStep[]>([])
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
       <StepperHeader
         label="Claim Progress"
         steps={steps}
-        currentStep={apiCurrentStep}
+        currentStep={activeStep}
         onStepClick={setViewedStep}
         className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card px-5 py-4"
       />
@@ -54,8 +54,9 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
           key={viewedStep}
           deal={deal}
           initialStep={viewedStep}
-          readOnly={viewedStep < apiCurrentStep}
+          readOnly={viewedStep < activeStep}
           claimResponse={claimResponse}
+          onStepChange={step => { setActiveStep(step); setViewedStep(step) }}
         />
       </div>
     </div>

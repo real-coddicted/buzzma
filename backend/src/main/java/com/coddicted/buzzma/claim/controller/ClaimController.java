@@ -10,6 +10,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
+import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
@@ -76,13 +77,31 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  @PostMapping("/{id}/rating")
+  public ClaimResponseDto submitRating(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitRating(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
   @PostMapping("/{id}/review")
   public ClaimResponseDto submitReview(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @RequestParam(required = false) final String reviewUrl,
       @RequestParam("screenshot") final MultipartFile screenshot) {
-    final Claim claim =
+    final ClaimWithDeal result =
         this.claimService.submitReview(
             id,
             requesterId,
@@ -90,7 +109,8 @@ public class ClaimController {
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());
-    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
@@ -100,14 +120,15 @@ public class ClaimController {
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @RequestParam("screenshot") final MultipartFile screenshot) {
-    final Claim claim =
+    final ClaimWithDeal result =
         this.claimService.submitReturn(
             id,
             requesterId,
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());
-    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }

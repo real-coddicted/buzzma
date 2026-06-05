@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public interface ClaimService {
       String contentType,
       Map<String, String> extractedDetails);
 
-  Claim submitReview(
+  ClaimWithDeal submitReview(
       UUID claimId,
       UUID ownerId,
       String reviewUrl,
@@ -25,7 +26,10 @@ public interface ClaimService {
       String filename,
       String contentType);
 
-  Claim submitReturn(
+  ClaimWithDeal submitRating(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitReturn(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
   Claim getById(UUID claimId, UUID ownerId);

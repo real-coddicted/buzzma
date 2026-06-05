@@ -4,6 +4,7 @@
   "dealId": "44444444-4444-4444-4444-444444444444",
   "ownerId": "22222222-2222-2222-2222-222222222222",
   "status": "ORDERED",
+  "currentStep": "ORDER",
   "isDeleted": false,
   "createdAt": "2024-01-01T00:00:00Z",
   "updatedAt": "2024-01-01T00:00:00Z",

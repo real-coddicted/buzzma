@@ -1,14 +1,17 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
+import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
+import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
@@ -16,6 +19,7 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +39,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ClaimScreenshotRepository claimScreenshotRepository;
   private final DealService dealService;
   private final CampaignSlotRepository campaignSlotRepository;
+  private final CampaignTypeStepService campaignTypeStepService;
   private final StorageService storageService;
 
   public ClaimServiceImpl(
@@ -42,11 +47,13 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final ClaimScreenshotRepository claimScreenshotRepository,
       final DealService dealService,
       final CampaignSlotRepository campaignSlotRepository,
+      final CampaignTypeStepService campaignTypeStepService,
       final StorageService storageService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.dealService = dealService;
     this.campaignSlotRepository = campaignSlotRepository;
+    this.campaignTypeStepService = campaignTypeStepService;
     this.storageService = storageService;
   }
 
@@ -101,7 +108,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
-  public Claim submitReview(
+  public ClaimWithDeal submitReview(
       final UUID claimId,
       final UUID ownerId,
       final String reviewUrl,
@@ -110,13 +117,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String contentType) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-
-    if (claim.getStatus() != ClaimStatus.ORDERED) {
-      LOGGER.warn(
-          "Claim {} in status {} cannot transition to PROOF_SUBMITTED", claimId, claim.getStatus());
-      throw new BusinessRuleViolationException(
-          "Review can only be submitted when claim is in ORDERED status");
-    }
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignTypeStep> steps =
+        this.campaignTypeStepService
+            .getStepConfig()
+            .getOrDefault(deal.getCampaign().getType(), List.of());
+    validatePrecedingStep(steps, CampaignStepType.REVIEW, claim.getCurrentStep());
 
     final String screenshotKey =
         this.storageService.store("claims", filename, contentType, screenshot);
@@ -124,19 +130,20 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.PROOF_SUBMITTED)
+                .status(ClaimStatus.REVIEW_SUBMITTED)
+                .currentStep(CampaignStepType.REVIEW)
                 .reviewUrl(reviewUrl)
                 .updatedBy(ownerId)
                 .build());
 
     saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_REVIEW, ownerId);
 
-    return updated;
+    return new ClaimWithDeal(updated, deal);
   }
 
   @Override
   @Transactional
-  public Claim submitReturn(
+  public ClaimWithDeal submitRating(
       final UUID claimId,
       final UUID ownerId,
       final byte[] screenshot,
@@ -144,24 +151,60 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String contentType) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-
-    if (claim.getStatus() != ClaimStatus.PROOF_SUBMITTED) {
-      LOGGER.warn(
-          "Claim {} in status {} cannot transition to UNDER_REVIEW", claimId, claim.getStatus());
-      throw new BusinessRuleViolationException(
-          "Return screenshot can only be submitted when claim is in PROOF_SUBMITTED status");
-    }
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignTypeStep> steps =
+        this.campaignTypeStepService
+            .getStepConfig()
+            .getOrDefault(deal.getCampaign().getType(), List.of());
+    validatePrecedingStep(steps, CampaignStepType.RATING, claim.getCurrentStep());
 
     final String screenshotKey =
         this.storageService.store("claims", filename, contentType, screenshot);
 
     final Claim updated =
         this.claimRepository.save(
-            claim.toBuilder().status(ClaimStatus.UNDER_REVIEW).updatedBy(ownerId).build());
+            claim.toBuilder()
+                .status(ClaimStatus.RATING_SUBMITTED)
+                .currentStep(CampaignStepType.RATING)
+                .updatedBy(ownerId)
+                .build());
+
+    saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RATING, ownerId);
+
+    return new ClaimWithDeal(updated, deal);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitReturn(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignTypeStep> steps =
+        this.campaignTypeStepService
+            .getStepConfig()
+            .getOrDefault(deal.getCampaign().getType(), List.of());
+    validatePrecedingStep(steps, CampaignStepType.RETURN_WINDOW, claim.getCurrentStep());
+
+    final String screenshotKey =
+        this.storageService.store("claims", filename, contentType, screenshot);
+
+    final Claim updated =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .status(ClaimStatus.UNDER_REVIEW)
+                .currentStep(CampaignStepType.RETURN_WINDOW)
+                .updatedBy(ownerId)
+                .build());
 
     saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
 
-    return updated;
+    return new ClaimWithDeal(updated, deal);
   }
 
   @Override
@@ -214,23 +257,41 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .build());
   }
 
-  private Claim loadAndVerifyOwnership(final UUID claimId, final UUID ownerId) {
-    final Claim claim =
-        this.claimRepository
-            .findByIdAndIsDeletedFalse(claimId)
-            .orElseThrow(
-                () -> {
-                  LOGGER.warn("Claim not found: {}", claimId);
-                  return new NotFoundException("Claim not found: " + claimId);
-                });
+  private void validatePrecedingStep(
+      final List<CampaignTypeStep> steps,
+      final CampaignStepType targetStep,
+      final CampaignStepType currentStep) {
+    final List<CampaignTypeStep> sorted =
+        steps.stream().sorted(Comparator.comparingInt(CampaignTypeStep::getStepOrder)).toList();
+    int targetIndex = -1;
+    for (int i = 0; i < sorted.size(); i++) {
+      if (sorted.get(i).getId().getStepType() == targetStep) {
+        targetIndex = i;
+        break;
+      }
+    }
+    if (targetIndex <= 0) {
+      throw new BusinessRuleViolationException("Invalid step configuration for " + targetStep);
+    }
+    final CampaignStepType expectedStep = sorted.get(targetIndex - 1).getId().getStepType();
+    if (currentStep != expectedStep) {
+      LOGGER.warn(
+          "Cannot submit {} — currentStep is {}, expected {}",
+          targetStep,
+          currentStep,
+          expectedStep);
+      throw new BusinessRuleViolationException(
+          targetStep.getLabel() + " can only be submitted after " + expectedStep.getLabel());
+    }
+  }
 
-    // Todo: claim should be accessed by it's owner, owner's mediator or agency of the mediator
-    //    if (!claim.getOwnerId().equals(ownerId)) {
-    //      LOGGER.warn(
-    //          "User {} attempted to access claim {} owned by {}", ownerId, claimId,
-    // claim.getOwnerId());
-    //      throw new ForbiddenException("Access denied");
-    //    }
-    return claim;
+  private Claim loadAndVerifyOwnership(final UUID claimId, final UUID ownerId) {
+    return this.claimRepository
+        .findByIdAndOwnerIdAndIsDeletedFalse(claimId, ownerId)
+        .orElseThrow(
+            () -> {
+              LOGGER.warn("Claim not found for id: {} and ownerId: {}", claimId, ownerId);
+              return new NotFoundException("Claim not found: " + claimId);
+            });
   }
 }

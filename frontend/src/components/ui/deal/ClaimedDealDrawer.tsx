@@ -14,6 +14,7 @@ interface ClaimedDealDrawerProps {
 
 export function ClaimedDealDrawer({ deal, onClose }: ClaimedDealDrawerProps) {
   const [steps, setSteps] = useState<StepperStep[]>([])
+  const [currentStep, setCurrentStep] = useState(deal.currentStep ?? 0)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -43,7 +44,7 @@ export function ClaimedDealDrawer({ deal, onClose }: ClaimedDealDrawerProps) {
         <StepperHeader
           label="Claim Progress"
           steps={steps}
-          currentStep={deal.currentStep ?? 0}
+          currentStep={currentStep}
           onClose={onClose}
           className="px-5 pt-5 pb-4 border-b border-surface-light-border dark:border-surface-dark-border flex-shrink-0"
         />
@@ -54,7 +55,7 @@ export function ClaimedDealDrawer({ deal, onClose }: ClaimedDealDrawerProps) {
 
           {/* Claim form */}
           <div className="p-5">
-            <ClaimDeal deal={deal} />
+            <ClaimDeal deal={deal} onStepChange={setCurrentStep} />
           </div>
         </div>
       </div>

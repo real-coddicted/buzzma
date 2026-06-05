@@ -10,17 +10,23 @@ interface ClaimDealProps {
   initialStep?: number
   readOnly?: boolean
   claimResponse?: ClaimResponseDto
+  onStepChange?: (step: number) => void
 }
 
-export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimResponse }: ClaimDealProps) {
+export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimResponse, onStepChange }: ClaimDealProps) {
   const [currentStep, setCurrentStep] = useState(initialStep)
+
+  function handleStepChange(step: number) {
+    setCurrentStep(step)
+    onStepChange?.(step)
+  }
 
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-6 overflow-y-auto">
       <ClaimStepForm
         deal={deal}
         currentStep={currentStep}
-        onStepChange={setCurrentStep}
+        onStepChange={handleStepChange}
         readOnly={readOnly}
         claimResponse={claimResponse}
       />

@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -8,6 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 
 final class Fixtures {
+
+  static final CampaignType CAMPAIGN_TYPE = CampaignType.CAMPAIGN_TYPE_REVIEW;
 
   static final UUID CLAIM_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
   static final UUID OWNER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -28,6 +31,9 @@ final class Fixtures {
 
   static final Claim CLAIM_2 =
       FileUtils.loadResourceAsObject("/fixtures/input/claim/claim-2.json", Claim.class);
+
+  static final Claim CLAIM_3 =
+      FileUtils.loadResourceAsObject("/fixtures/input/claim/claim-3.json", Claim.class);
 
   static final Claim CLAIM_INPUT =
       FileUtils.loadResourceAsObject("/fixtures/input/claim/claim-input.json", Claim.class);

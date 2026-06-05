@@ -5,6 +5,7 @@ import type { CampaignStepDto } from '../../../api/campaignApi'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS } from '../../../constants/claimSteps'
 import { paiseToRupees } from '../../../utils/currency'
+import { submitRating } from '../../../api/claimApi'
 import { DealOrderForm } from './DealOrderForm'
 import { ScreenshotUpload } from './ScreenshotUpload'
 
@@ -65,7 +66,32 @@ function OrderStep({ deal, onSuccess, readOnly = false, claimResponse }: OrderSt
   )
 }
 
-function RatingStep({ deal, readOnly = false }: { deal: Deal; readOnly?: boolean }) {
+interface RatingStepProps {
+  deal: Deal
+  claimId?: string
+  onSuccess: (claim: ClaimResponseDto) => void
+  readOnly?: boolean
+}
+
+function RatingStep({ deal, claimId, onSuccess, readOnly = false }: RatingStepProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit() {
+    if (!claimId || !file) return
+    setLoading(true)
+    setError(null)
+    try {
+      const claim = await submitRating(claimId, file)
+      onSuccess(claim)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit rating.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
@@ -78,9 +104,15 @@ function RatingStep({ deal, readOnly = false }: { deal: Deal; readOnly?: boolean
           <ScreenshotUpload
             label="Rating Screenshot"
             hint="Show the star rating you submitted on the product page."
+            onFileChange={setFile}
           />
-          <button className={submitBtnClass('bg-neon-purple hover:brightness-110')}>
-            Submit Rating
+          {error && <p className="text-xs text-neon-red">{error}</p>}
+          <button
+            className={submitBtnClass('bg-neon-purple hover:brightness-110')}
+            onClick={handleSubmit}
+            disabled={!file || !claimId || loading}
+          >
+            {loading ? 'Submitting…' : 'Submit Rating'}
           </button>
         </>
       )}
@@ -191,6 +223,7 @@ interface ClaimStepFormProps {
 
 export function ClaimStepForm({ deal, currentStep, onStepChange, readOnly = false, claimResponse }: ClaimStepFormProps) {
   const [steps, setSteps] = useState<CampaignStepDto[]>([])
+  const [localClaim, setLocalClaim] = useState<ClaimResponseDto | undefined>(undefined)
 
   useEffect(() => {
     fetchStepConfig().then(config => {
@@ -201,8 +234,10 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, readOnly = fals
   const step = steps[currentStep]
   const stepType = step?.type ?? ''
   const stepColor = STEP_TYPE_COLORS[stepType]?.color ?? 'text-neon-blue'
+  const effectiveClaim = localClaim ?? claimResponse
 
   function handleClaimSuccess(claim: ClaimResponseDto) {
+    setLocalClaim(claim)
     onStepChange(claim.currentStep ?? currentStep + 1)
   }
 
@@ -217,9 +252,9 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, readOnly = fals
         </p>
       </div>
 
-      {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={claimResponse} />}
-      {stepType === 'RATING'        && <RatingStep deal={deal} readOnly={readOnly} />}
-      {stepType === 'REVIEW'        && <ReviewStep deal={deal} readOnly={readOnly} claimResponse={claimResponse} />}
+      {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} />}
+      {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} />}
+      {stepType === 'REVIEW'        && <ReviewStep deal={deal} readOnly={readOnly} claimResponse={effectiveClaim} />}
       {stepType === 'RETURN_WINDOW' && <ReturnStep readOnly={readOnly} />}
       {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>

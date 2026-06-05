@@ -17,6 +17,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
   Optional<Claim> findByIdAndIsDeletedFalse(UUID id);
 
+  Optional<Claim> findByIdAndOwnerIdAndIsDeletedFalse(UUID id, UUID ownerId);
+
   boolean existsByOwnerIdAndDealIdAndIsDeletedFalse(UUID ownerId, UUID dealId);
 
   Page<Claim> findByCampaignIdInAndIsDeletedFalse(Collection<UUID> campaignIds, Pageable pageable);
