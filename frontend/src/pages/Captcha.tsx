@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
 
 interface CaptchaProps {
   onVerify: (token: string) => void
