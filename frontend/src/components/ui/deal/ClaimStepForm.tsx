@@ -5,7 +5,7 @@ import type { CampaignStepDto } from '../../../api/campaignApi'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS } from '../../../constants/claimSteps'
 import { paiseToRupees } from '../../../utils/currency'
-import { submitRating } from '../../../api/claimApi'
+import { submitRating, submitReview, submitReturn } from '../../../api/claimApi'
 import { DealOrderForm } from './DealOrderForm'
 import { ScreenshotUpload } from './ScreenshotUpload'
 
@@ -120,7 +120,34 @@ function RatingStep({ deal, claimId, onSuccess, readOnly = false }: RatingStepPr
   )
 }
 
-function ReviewStep({ deal, readOnly = false, claimResponse }: { deal: Deal; readOnly?: boolean; claimResponse?: ClaimResponseDto }) {
+interface ReviewStepProps {
+  deal: Deal
+  claimId?: string
+  onSuccess: (claim: ClaimResponseDto) => void
+  readOnly?: boolean
+  claimResponse?: ClaimResponseDto
+}
+
+function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse }: ReviewStepProps) {
+  const [reviewUrl, setReviewUrl] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit() {
+    if (!claimId || !file) return
+    setLoading(true)
+    setError(null)
+    try {
+      const claim = await submitReview(claimId, file, reviewUrl || undefined)
+      onSuccess(claim)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit review.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-5">
       {!readOnly && (
@@ -149,6 +176,8 @@ function ReviewStep({ deal, readOnly = false, claimResponse }: { deal: Deal; rea
         ) : (
           <input
             type="url"
+            value={reviewUrl}
+            onChange={e => setReviewUrl(e.target.value)}
             placeholder={`Paste your ${deal.platformLabel} review link`}
             className={inputClass}
           />
@@ -159,9 +188,15 @@ function ReviewStep({ deal, readOnly = false, claimResponse }: { deal: Deal; rea
           <ScreenshotUpload
             label="Review Screenshot"
             hint="Ensure your username and review text are clearly visible."
+            onFileChange={setFile}
           />
-          <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
-            Submit Review
+          {error && <p className="text-xs text-neon-red">{error}</p>}
+          <button
+            className={submitBtnClass('bg-neon-cyan hover:brightness-110')}
+            onClick={handleSubmit}
+            disabled={!file || !claimId || loading}
+          >
+            {loading ? 'Submitting…' : 'Submit Review'}
           </button>
         </>
       )}
@@ -169,7 +204,31 @@ function ReviewStep({ deal, readOnly = false, claimResponse }: { deal: Deal; rea
   )
 }
 
-function ReturnStep({ readOnly = false }: { readOnly?: boolean }) {
+interface ReturnStepProps {
+  claimId?: string
+  onSuccess: (claim: ClaimResponseDto) => void
+  readOnly?: boolean
+}
+
+function ReturnStep({ claimId, onSuccess, readOnly = false }: ReturnStepProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit() {
+    if (!claimId || !file) return
+    setLoading(true)
+    setError(null)
+    try {
+      const claim = await submitReturn(claimId, file)
+      onSuccess(claim)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit return screenshot.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
@@ -182,9 +241,15 @@ function ReturnStep({ readOnly = false }: { readOnly?: boolean }) {
           <ScreenshotUpload
             label="Return Window Completed Screenshot"
             hint="Ensure the order ID and product name are clearly visible."
+            onFileChange={setFile}
           />
-          <button className={submitBtnClass('bg-neon-cyan hover:brightness-110')}>
-            Submit Screenshot
+          {error && <p className="text-xs text-neon-red">{error}</p>}
+          <button
+            className={submitBtnClass('bg-neon-cyan hover:brightness-110')}
+            onClick={handleSubmit}
+            disabled={!file || !claimId || loading}
+          >
+            {loading ? 'Submitting…' : 'Submit Screenshot'}
           </button>
         </>
       )}
@@ -254,8 +319,8 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, readOnly = fals
 
       {stepType === 'ORDER'         && <OrderStep  deal={deal} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} />}
       {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} />}
-      {stepType === 'REVIEW'        && <ReviewStep deal={deal} readOnly={readOnly} claimResponse={effectiveClaim} />}
-      {stepType === 'RETURN_WINDOW' && <ReturnStep readOnly={readOnly} />}
+      {stepType === 'REVIEW'        && <ReviewStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} />}
+      {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} />}
       {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>
   )

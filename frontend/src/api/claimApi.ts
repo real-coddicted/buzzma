@@ -124,6 +124,65 @@ export interface SubmitClaimParams {
   extractedDetails: Record<string, string>
 }
 
+export async function submitReturn(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/return`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (res.status === 401) {
+    clearSession()
+    window.dispatchEvent(new CustomEvent('auth:logout'))
+    throw new Error('Session expired. Please sign in again.')
+  }
+
+  if (!res.ok) {
+    let message = 'Failed to submit return screenshot. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export async function submitReview(claimId: string, screenshot: File, reviewUrl?: string): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+  if (reviewUrl) formData.append('reviewUrl', reviewUrl)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/review`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (res.status === 401) {
+    clearSession()
+    window.dispatchEvent(new CustomEvent('auth:logout'))
+    throw new Error('Session expired. Please sign in again.')
+  }
+
+  if (!res.ok) {
+    let message = 'Failed to submit review. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
 export async function submitRating(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
   const formData = new FormData()
   formData.append('screenshot', screenshot)
