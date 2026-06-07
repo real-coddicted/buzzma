@@ -13,18 +13,14 @@ type BackendSecurityQuestion = components['schemas']['SecurityQuestion']
 const questionIdByText = new Map<string, string>()
 
 export async function fetchSecurityQuestions(): Promise<SecurityQuestion[]> {
-  try {
-    const res = await fetch('/api/v1/security-questions')
-    if (!res.ok) throw new Error()
-    const data: BackendSecurityQuestion[] = await res.json()
-    questionIdByText.clear()
-    for (const q of data) {
-      if (q.id && q.question) questionIdByText.set(q.question, q.id)
-    }
-    return data.map(q => q.question ?? '').filter(Boolean)
-  } catch {
-    return securityQuestions
+  const res = await fetch('/api/v1/security-questions')
+  if (!res.ok) throw new Error('Failed to load security questions.')
+  const data: BackendSecurityQuestion[] = await res.json()
+  questionIdByText.clear()
+  for (const q of data) {
+    if (q.id && q.question) questionIdByText.set(q.question, q.id)
   }
+  return data.map(q => q.question ?? '').filter(Boolean)
 }
 
 export async function loginUser(form: LoginForm, captchaToken: string): Promise<LoginResponse> {

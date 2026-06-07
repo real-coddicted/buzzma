@@ -1,7 +1,6 @@
 import type { components } from '../types/api'
 import type { Deal, Platform, CampaignType } from '../types/DealTypes'
 import type { CampaignResponseDto } from './campaignApi'
-import { deals, platforms, dealTypes } from '../data/mockData'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 import { fetchWithAuth } from './client'
 
@@ -10,19 +9,6 @@ const API_BASE = '/api/v1'
 type DealResponseDto = components['schemas']['DealResponseDto']
 type PagedDealsResponseDto = components['schemas']['PagedDealsResponseDto']
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
-
-function toFullDeal(deal: typeof deals[number]): Deal {
-  return {
-    ...deal,
-    platformLabel: platforms.find(p => p.value === deal.platform)?.label ?? deal.platform,
-    dealTypeLabel: dealTypes.find(t => t.value === deal.dealType)?.label ?? deal.dealType,
-  }
-}
-
-export async function fetchDeals(): Promise<Deal[]> {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  return deals.map(toFullDeal)
-}
 
 export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
   const d = dto.deal ?? {}

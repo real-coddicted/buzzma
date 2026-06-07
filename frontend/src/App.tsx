@@ -14,7 +14,7 @@ import { Notifications } from './pages/Notifications'
 import { ClaimReview } from './pages/ClaimReview'
 import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
-import { fetchNotifications } from './api/notificationApi'
+import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllRead as apiMarkAllRead } from './api/notificationApi'
 import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
@@ -52,12 +52,28 @@ export default function App() {
   }, [isAuthenticated])
 
   useEffect(() => {
-    fetchNotifications().then(setNotifications)
-  }, [])
+    if (!isAuthenticated) return
+    fetchNotifications().then(setNotifications).catch(console.error)
+  }, [isAuthenticated])
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
-  const toggleRead  = (id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: !n.unread } : n))
-  const togglePin   = (id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n))
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+    apiMarkAllRead().catch(console.error)
+  }
+
+  const toggleRead = (id: string) => {
+    setNotifications(prev => prev.map(n => {
+      if (n.id !== id) return n
+      const next = { ...n, unread: !n.unread }
+      ;(next.unread ? markAsUnread : markAsRead)(id).catch(console.error)
+      return next
+    }))
+  }
+
+  const togglePin = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n))
+    pinNotification(id).catch(console.error)
+  }
 
   if (!isAuthenticated) {
     return <Auth onAuth={() => setIsAuthenticated(true)} />

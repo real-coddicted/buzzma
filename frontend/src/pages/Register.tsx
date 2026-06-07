@@ -39,17 +39,22 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
+  const [toastError, setToastError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({})
 
   useEffect(() => {
-    fetchSecurityQuestions().then(qs => {
-      setQuestions(qs)
-      setForm(prev => ({
-        ...prev,
-        securityQuestion1: qs[0] ?? '',
-        securityQuestion2: qs[1] ?? '',
-      }))
-    })
+    fetchSecurityQuestions()
+      .then(qs => {
+        setQuestions(qs)
+        setForm(prev => ({
+          ...prev,
+          securityQuestion1: qs[0] ?? '',
+          securityQuestion2: qs[1] ?? '',
+        }))
+      })
+      .catch((err: unknown) => {
+        setToastError(err instanceof Error ? err.message : 'Failed to load security questions.')
+      })
   }, [])
 
   function set<K extends keyof RegisterForm>(key: K, value: RegisterForm[K]) {
@@ -106,6 +111,9 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
         type="success"
         onDismiss={onRegister}
       />
+    )}
+    {toastError && (
+      <Toast message={toastError} type="error" onDismiss={() => setToastError(null)} />
     )}
     <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 py-10 relative overflow-hidden">
       <AuthBackground variant="green" />
