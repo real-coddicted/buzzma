@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Service
 @ConditionalOnProperty(name = "app.storage.type", havingValue = "local")
@@ -45,13 +47,17 @@ public class LocalStorageServiceImpl implements StorageService {
   }
 
   @Override
-  public byte[] retrieve(final String storageKey) {
+  public ResponseBytes<GetObjectResponse> retrieve(final String storageKey) {
     try {
       final Path path = Paths.get(this.properties.getBaseDir()).resolve(storageKey);
       if (!Files.exists(path)) {
         throw new NotFoundException("File not found: " + storageKey);
       }
-      return Files.readAllBytes(path);
+      final byte[] data = Files.readAllBytes(path);
+      final String contentType = Files.probeContentType(path);
+      final GetObjectResponse sdkResponse =
+          GetObjectResponse.builder().contentType(contentType).build();
+      return ResponseBytes.fromByteArray(sdkResponse, data);
     } catch (final IOException e) {
       throw new RuntimeException("Failed to retrieve file: " + storageKey, e);
     }

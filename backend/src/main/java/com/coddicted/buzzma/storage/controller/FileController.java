@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RestController
 @RequestMapping("/api/v1/files")
@@ -42,10 +44,15 @@ public class FileController {
   // Todo: Add currentUserId
   @GetMapping
   public ResponseEntity<byte[]> retrieve(@RequestParam("key") final String storageKey) {
-    final byte[] data = this.storageService.retrieve(storageKey);
+    final ResponseBytes<GetObjectResponse> response = this.storageService.retrieve(storageKey);
+    final String contentType = response.response().contentType();
+    final MediaType mediaType =
+        contentType != null
+            ? MediaType.parseMediaType(contentType)
+            : MediaType.APPLICATION_OCTET_STREAM;
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(data);
+        .contentType(mediaType)
+        .body(response.asByteArray());
   }
 }

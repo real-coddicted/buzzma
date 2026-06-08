@@ -14,6 +14,7 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -54,14 +55,12 @@ public class GarageStorageServiceImpl implements StorageService {
   }
 
   @Override
-  public byte[] retrieve(final String storageKey) {
+  public ResponseBytes<GetObjectResponse> retrieve(final String storageKey) {
     try {
       final GetObjectRequest getRequest =
           GetObjectRequest.builder().bucket(this.bucket).key(storageKey).build();
 
-      final ResponseBytes<?> responseBytes =
-          this.s3Client.getObject(getRequest, ResponseTransformer.toBytes());
-      return responseBytes.asByteArray();
+      return this.s3Client.getObject(getRequest, ResponseTransformer.toBytes());
     } catch (final NoSuchKeyException e) {
       throw new NotFoundException("File not found: " + storageKey);
     }

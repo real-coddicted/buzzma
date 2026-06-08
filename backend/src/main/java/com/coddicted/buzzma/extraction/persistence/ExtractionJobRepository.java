@@ -11,8 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExtractionJobRepository extends JpaRepository<ExtractionJob, UUID> {
 
-  List<ExtractionJob> findBySubmittedByAndIsDeletedFalse(UUID submittedBy);
-
   Optional<ExtractionJob> findByIdAndIsDeletedFalse(UUID id);
 
   List<ExtractionJob> findByStatusAndAttemptCountLessThan(

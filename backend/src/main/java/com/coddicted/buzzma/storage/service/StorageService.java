@@ -1,10 +1,13 @@
 package com.coddicted.buzzma.storage.service;
 
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
 public interface StorageService {
 
   String store(String folder, String originalFilename, String contentType, byte[] data);
 
-  byte[] retrieve(String storageKey);
+  ResponseBytes<GetObjectResponse> retrieve(String storageKey);
 
   void delete(String storageKey);
 }
