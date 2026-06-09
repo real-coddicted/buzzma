@@ -4,6 +4,9 @@ import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconProfile, IconX } from '../ui/icons'
 import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
+import type { components } from '../../types/api'
+
+type UserSettingsDto = components['schemas']['UserSettingsDto']
 
 const SIDEBAR_WIDTH_PX = 240
 const ACCOUNT_MENU_GAP_PX = 2
@@ -14,6 +17,7 @@ interface SidebarProps {
   onNavigate: (page: NavPage) => void
   isOpen: boolean
   onClose: () => void
+  userSettings: UserSettingsDto | null
 }
 
 function getInitial(name?: string): string {
@@ -47,7 +51,9 @@ function SectionLabel({ label }: { label: string }) {
   )
 }
 
-export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings }: SidebarProps) {
+  // When settings haven't loaded yet (null), show all items by default
+  const show = (flag?: boolean) => !userSettings || flag !== false
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -103,42 +109,54 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
 
         <SectionLabel label="Main" />
         <div className="flex flex-col gap-1">
-          <NavItem
-            icon={<IconDashboard />}
-            label="Dashboard"
-            active={activePage === 'dashboard'}
-            onClick={() => onNavigate('dashboard')}
-          />
-          <NavItem
-            icon={<IconCampaign />}
-            label="Campaigns"
-            active={activePage === 'campaigns'}
-            onClick={() => onNavigate('campaigns')}
-          />
-          <NavItem
-            icon={<IconUsers />}
-            label="Connections"
-            active={activePage === 'connections'}
-            onClick={() => onNavigate('connections')}
-          />
-          <NavItem
-            icon={<IconList />}
-            label="Assignments"
-            active={activePage === 'assignments'}
-            onClick={() => onNavigate('assignments')}
-          />
-          <NavItem
-            icon={<IconBolt />}
-            label="Deals"
-            active={activePage === 'deals'}
-            onClick={() => onNavigate('deals')}
-          />
-          <NavItem
-            icon={<IconChart />}
-            label="Claim Review"
-            active={activePage === 'claim-review'}
-            onClick={() => onNavigate('claim-review')}
-          />
+          {show(userSettings?.dashboardTabEnabled) && (
+            <NavItem
+              icon={<IconDashboard />}
+              label="Dashboard"
+              active={activePage === 'dashboard'}
+              onClick={() => onNavigate('dashboard')}
+            />
+          )}
+          {show(userSettings?.campaignsTabEnabled) && (
+            <NavItem
+              icon={<IconCampaign />}
+              label="Campaigns"
+              active={activePage === 'campaigns'}
+              onClick={() => onNavigate('campaigns')}
+            />
+          )}
+          {show(userSettings?.connectionsTabEnabled) && (
+            <NavItem
+              icon={<IconUsers />}
+              label="Connections"
+              active={activePage === 'connections'}
+              onClick={() => onNavigate('connections')}
+            />
+          )}
+          {show(userSettings?.assignmentsTabEnabled) && (
+            <NavItem
+              icon={<IconList />}
+              label="Assignments"
+              active={activePage === 'assignments'}
+              onClick={() => onNavigate('assignments')}
+            />
+          )}
+          {show(userSettings?.dealTabEnabled) && (
+            <NavItem
+              icon={<IconBolt />}
+              label="Deals"
+              active={activePage === 'deals'}
+              onClick={() => onNavigate('deals')}
+            />
+          )}
+          {show(userSettings?.claimReviewEnabled) && (
+            <NavItem
+              icon={<IconChart />}
+              label="Claim Review"
+              active={activePage === 'claim-review'}
+              onClick={() => onNavigate('claim-review')}
+            />
+          )}
           <NavItem
             icon={<IconProfile />}
             label="Users"
@@ -149,32 +167,38 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose }: SidebarProp
 
         <div className="flex-1" />
 
-        <NavItem
-          icon={<IconList />}
-          label="My Tickets"
-          active={activePage === 'my-tickets'}
-          onClick={() => onNavigate('my-tickets')}
-        />
-
-        <NavItem
-          icon={<IconFeedback />}
-          label="Feedback"
-          active={activePage === 'feedback'}
-          onClick={() => onNavigate('feedback')}
-        />
-
-        <div
-          ref={triggerRef}
-          onMouseEnter={openMenu}
-          onMouseLeave={scheduleClose}
-        >
+        {show(userSettings?.ticketsTabEnabled) && (
           <NavItem
-            icon={<IconSettings />}
-            label="Account"
-            active={false}
-            onClick={() => (isAccountMenuOpen ? scheduleClose() : openMenu())}
+            icon={<IconList />}
+            label="My Tickets"
+            active={activePage === 'my-tickets'}
+            onClick={() => onNavigate('my-tickets')}
           />
-        </div>
+        )}
+
+        {show(userSettings?.feedbackTabEnabled) && (
+          <NavItem
+            icon={<IconFeedback />}
+            label="Feedback"
+            active={activePage === 'feedback'}
+            onClick={() => onNavigate('feedback')}
+          />
+        )}
+
+        {show(userSettings?.settingsTabEnabled) && (
+          <div
+            ref={triggerRef}
+            onMouseEnter={openMenu}
+            onMouseLeave={scheduleClose}
+          >
+            <NavItem
+              icon={<IconSettings />}
+              label="Account"
+              active={false}
+              onClick={() => (isAccountMenuOpen ? scheduleClose() : openMenu())}
+            />
+          </div>
+        )}
 
         <button
           onClick={() => window.dispatchEvent(new Event('auth:logout'))}

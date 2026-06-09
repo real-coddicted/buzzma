@@ -3,6 +3,9 @@ import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import type { Theme, NavPage, Notification } from '../../types'
+import type { components } from '../../types/api'
+
+type UserSettingsDto = components['schemas']['UserSettingsDto']
 
 interface AppLayoutProps {
   children: ReactNode
@@ -12,6 +15,7 @@ interface AppLayoutProps {
   canGoBack: boolean
   onNavigate: (page: NavPage) => void
   notifications: Notification[]
+  userSettings: UserSettingsDto | null
 }
 
 export function AppLayout({
@@ -22,6 +26,7 @@ export function AppLayout({
   canGoBack,
   onNavigate,
   notifications,
+  userSettings,
 }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -40,6 +45,7 @@ export function AppLayout({
         onNavigate={handleNavigate}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        userSettings={userSettings}
       />
       <Topbar
         theme={theme}

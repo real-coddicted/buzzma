@@ -16,16 +16,21 @@ import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
 import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllRead as apiMarkAllRead } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
+import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import type { NavPage, Notification } from './types'
+import type { components } from './types/api'
+
+type UserSettingsDto = components['schemas']['UserSettingsDto']
 
 export default function App() {
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
+  const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
 
   const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
@@ -39,6 +44,7 @@ export default function App() {
   const handleLogout = useCallback(() => {
     clearSession()
     setIsAuthenticated(false)
+    setUserSettings(null)
     navigate('/dashboard')
   }, [navigate])
 
@@ -50,6 +56,11 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return
     return initSSE()
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    fetchUserSettings().then(setUserSettings).catch(console.error)
   }, [isAuthenticated])
 
   useEffect(() => {
@@ -88,6 +99,7 @@ export default function App() {
       canGoBack={location.key !== 'default'}
       onNavigate={handleNavigate}
       notifications={notifications}
+      userSettings={userSettings}
     >
       {activePage === 'dashboard'     && <Dashboard />}
       {activePage === 'campaigns'     && <Campaigns />}

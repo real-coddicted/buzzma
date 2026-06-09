@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get"];
+        get?: never;
         put: operations["update"];
         post?: never;
         delete: operations["delete"];
@@ -107,7 +107,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["get"];
         put?: never;
         post: operations["create"];
         delete?: never;
@@ -286,22 +286,6 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["extractSync"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/extraction/jobs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listJobs"];
-        put?: never;
-        post: operations["submitJob"];
         delete?: never;
         options?: never;
         head?: never;
@@ -708,22 +692,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/extraction/jobs/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getJob"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/deals/unclaimed": {
         parameters: {
             query?: never;
@@ -926,6 +894,7 @@ export interface components {
             assignmentsTabEnabled?: boolean;
             connectionsTabEnabled?: boolean;
             dealTabEnabled?: boolean;
+            claimReviewEnabled?: boolean;
             ticketsTabEnabled?: boolean;
             feedbackTabEnabled?: boolean;
             settingsTabEnabled?: boolean;
@@ -1084,24 +1053,6 @@ export interface components {
         ValidationError: {
             field?: string;
             message?: string;
-        };
-        ExtractionJobResponseDto: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            submittedBy?: string;
-            /** @enum {string} */
-            status?: "EXTRACTION_JOB_STATUS_PENDING" | "EXTRACTION_JOB_STATUS_PROCESSING" | "EXTRACTION_JOB_STATUS_COMPLETED" | "EXTRACTION_JOB_STATUS_FAILED";
-            originalFilename?: string;
-            /** Format: int32 */
-            attemptCount?: number;
-            errorMessage?: string;
-            result?: components["schemas"]["ExtractionResult"];
-            validationErrors?: components["schemas"]["ValidationError"][];
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
         };
         ConnectionRequestDto: {
             /** Format: uuid */
@@ -1600,28 +1551,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
-                };
-            };
-        };
-    };
     update: {
         parameters: {
             query?: never;
@@ -1761,6 +1690,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSettingsDto"];
+                };
             };
         };
     };
@@ -2129,53 +2078,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExtractionResult"];
-                };
-            };
-        };
-    };
-    listJobs: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExtractionJobResponseDto"][];
-                };
-            };
-        };
-    };
-    submitJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: binary */
-                    image: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExtractionJobResponseDto"];
                 };
             };
         };
@@ -2896,28 +2798,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FeedbackResponseDto"][];
-                };
-            };
-        };
-    };
-    getJob: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExtractionJobResponseDto"];
                 };
             };
         };
