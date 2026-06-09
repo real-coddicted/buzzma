@@ -15,6 +15,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -41,6 +42,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignTypeStepService campaignTypeStepService;
   private final StorageService storageService;
+  private final ExtractionService extractionService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -48,13 +50,15 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final DealService dealService,
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignTypeStepService campaignTypeStepService,
-      final StorageService storageService) {
+      final StorageService storageService,
+      final ExtractionService extractionService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.dealService = dealService;
     this.campaignSlotRepository = campaignSlotRepository;
     this.campaignTypeStepService = campaignTypeStepService;
     this.storageService = storageService;
+    this.extractionService = extractionService;
   }
 
   @Override
@@ -136,7 +140,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .updatedBy(ownerId)
                 .build());
 
-    saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_REVIEW, ownerId);
+    final ClaimScreenshot reviewScreenshot =
+        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_REVIEW, ownerId);
+    this.extractionService.submitJob(reviewScreenshot.getId(), ownerId);
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -169,7 +175,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .updatedBy(ownerId)
                 .build());
 
-    saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RATING, ownerId);
+    final ClaimScreenshot ratingScreenshot =
+        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RATING, ownerId);
+    this.extractionService.submitJob(ratingScreenshot.getId(), ownerId);
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -202,7 +210,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .updatedBy(ownerId)
                 .build());
 
-    saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
+    final ClaimScreenshot returnScreenshot =
+        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
+    this.extractionService.submitJob(returnScreenshot.getId(), ownerId);
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -233,18 +243,18 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return this.claimRepository.findByCampaignIdInAndIsDeletedFalse(campaignIdList, pageable);
   }
 
-  private void saveScreenshot(
+  private ClaimScreenshot saveScreenshot(
       final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
-    saveScreenshot(claimId, storageKey, type, actorId, null);
+    return saveScreenshot(claimId, storageKey, type, actorId, null);
   }
 
-  private void saveScreenshot(
+  private ClaimScreenshot saveScreenshot(
       final UUID claimId,
       final String storageKey,
       final ScreenshotType type,
       final UUID actorId,
       final Map<String, String> extractedDetails) {
-    this.claimScreenshotRepository.save(
+    return this.claimScreenshotRepository.save(
         ClaimScreenshot.builder()
             .claimId(claimId)
             .storageKey(storageKey)

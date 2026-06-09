@@ -27,6 +27,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -51,6 +53,7 @@ class ClaimServiceImplTest {
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignTypeStepService mockCampaignTypeStepService;
   @Mock private StorageService mockStorageService;
+  @Mock private ExtractionService mockExtractionService;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -62,7 +65,8 @@ class ClaimServiceImplTest {
             this.mockDealService,
             this.mockCampaignSlotRepository,
             this.mockCampaignTypeStepService,
-            this.mockStorageService);
+            this.mockStorageService,
+            this.mockExtractionService);
   }
 
   @Test
@@ -132,6 +136,7 @@ class ClaimServiceImplTest {
         .thenReturn(SCREENSHOT_KEY);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_2);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
 
     final ClaimWithDeal result =
         this.claimService.submitRating(
@@ -149,6 +154,7 @@ class ClaimServiceImplTest {
     verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
     assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
     assertEquals(SCREENSHOT_TYPE_RATING, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
   }
 
   @Test
@@ -194,6 +200,7 @@ class ClaimServiceImplTest {
         .thenReturn(SCREENSHOT_KEY);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
 
     final ClaimWithDeal result =
         this.claimService.submitReview(
@@ -212,6 +219,7 @@ class ClaimServiceImplTest {
     verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
     assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
     assertEquals(SCREENSHOT_TYPE_REVIEW, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
   }
 
   @Test
@@ -288,6 +296,7 @@ class ClaimServiceImplTest {
         .thenReturn(SCREENSHOT_KEY);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
 
     final ClaimWithDeal result =
         this.claimService.submitReturn(
@@ -305,6 +314,7 @@ class ClaimServiceImplTest {
     verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
     assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
     assertEquals(SCREENSHOT_TYPE_RETURN, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
   }
 
   @Test
