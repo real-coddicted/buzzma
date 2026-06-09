@@ -1,14 +1,15 @@
 {
   "userId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
   "settings": {
-    "isDashboardTabEnabled": true,
-    "isCampaignsTabEnabled": false,
-    "isAssignmentsTabEnabled": true,
-    "isConnectionsTabEnabled": true,
-    "isDealTabEnabled": true,
-    "isTicketsTabEnabled": true,
-    "isFeedbackTabEnabled": true,
-    "isSettingsTabEnabled": true
+    "dashboardTabEnabled": true,
+    "campaignsTabEnabled": false,
+    "assignmentsTabEnabled": true,
+    "connectionsTabEnabled": true,
+    "dealTabEnabled": true,
+    "claimReviewEnabled": false,
+    "ticketsTabEnabled": true,
+    "feedbackTabEnabled": true,
+    "settingsTabEnabled": true
   },
   "isDeleted": false
 }

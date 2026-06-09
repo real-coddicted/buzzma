@@ -8,12 +8,13 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class UserSettingsDto {
-  boolean isDashboardTabEnabled;
-  boolean isCampaignsTabEnabled;
-  boolean isAssignmentsTabEnabled;
-  boolean isConnectionsTabEnabled;
-  boolean isDealTabEnabled;
-  boolean isTicketsTabEnabled;
-  boolean isFeedbackTabEnabled;
-  boolean isSettingsTabEnabled;
+  boolean dashboardTabEnabled;
+  boolean campaignsTabEnabled;
+  boolean assignmentsTabEnabled;
+  boolean connectionsTabEnabled;
+  boolean dealTabEnabled;
+  boolean claimReviewEnabled;
+  boolean ticketsTabEnabled;
+  boolean feedbackTabEnabled;
+  boolean settingsTabEnabled;
 }

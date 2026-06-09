@@ -8,56 +8,59 @@ public final class SettingsUtils {
 
   public static Settings getAdminSettings() {
     return Settings.builder()
-        .isDashboardTabEnabled(true)
-        .isCampaignsTabEnabled(true)
-        .isAssignmentsTabEnabled(true)
-        .isConnectionsTabEnabled(true)
-        .isDealTabEnabled(true)
-        .isTicketsTabEnabled(true)
-        .isFeedbackTabEnabled(true)
-        .isSettingsTabEnabled(true)
+        .dashboardTabEnabled(true)
+        .campaignsTabEnabled(true)
+        .assignmentsTabEnabled(true)
+        .connectionsTabEnabled(true)
+        .dealTabEnabled(true)
+        .claimReviewEnabled(true)
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 
   public static Settings getBrandSettings() {
     return Settings.builder()
-        .isDashboardTabEnabled(true)
-        .isCampaignsTabEnabled(true)
-        .isConnectionsTabEnabled(true)
-        .isTicketsTabEnabled(true)
-        .isFeedbackTabEnabled(true)
-        .isSettingsTabEnabled(true)
+        .dashboardTabEnabled(true)
+        .campaignsTabEnabled(true)
+        .connectionsTabEnabled(true)
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 
   public static Settings getAgencySettings() {
     return Settings.builder()
-        .isDashboardTabEnabled(true)
-        .isCampaignsTabEnabled(true)
-        .isConnectionsTabEnabled(true)
-        .isTicketsTabEnabled(true)
-        .isFeedbackTabEnabled(true)
-        .isSettingsTabEnabled(true)
+        .dashboardTabEnabled(true)
+        .campaignsTabEnabled(true)
+        .connectionsTabEnabled(true)
+        .claimReviewEnabled(true)
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 
   public static Settings getMediatorSettings() {
     return Settings.builder()
-        .isDashboardTabEnabled(true)
-        .isAssignmentsTabEnabled(true)
-        .isConnectionsTabEnabled(true)
-        .isTicketsTabEnabled(true)
-        .isFeedbackTabEnabled(true)
-        .isSettingsTabEnabled(true)
+        .dashboardTabEnabled(true)
+        .assignmentsTabEnabled(true)
+        .connectionsTabEnabled(true)
+        .claimReviewEnabled(true)
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 
   public static Settings getBuyerSettings() {
     return Settings.builder()
-        .isDealTabEnabled(true)
-        .isTicketsTabEnabled(true)
-        .isFeedbackTabEnabled(true)
-        .isSettingsTabEnabled(true)
+        .dealTabEnabled(true)
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 }

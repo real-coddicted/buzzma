@@ -18,6 +18,8 @@ import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.invite.entity.Invite;
 import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.service.InviteService;
+import com.coddicted.buzzma.settings.entity.UserSettings;
+import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.security.JwtService;
@@ -46,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
   private final InviteService inviteService;
   private final SecurityQuestionAnswerService securityQuestionAnswerService;
   private final ConnectionService connectionService;
+  private final UserSettingsService userSettingsService;
 
   public AuthServiceImpl(
       final JwtService jwtService,
@@ -54,7 +57,8 @@ public class AuthServiceImpl implements AuthService {
       final UserBankingDetailService userBankingDetailService,
       final InviteService inviteService,
       final SecurityQuestionAnswerService securityQuestionAnswerService,
-      final ConnectionService connectionService) {
+      final ConnectionService connectionService,
+      final UserSettingsService userSettingsService) {
     this.jwtService = jwtService;
     this.userService = userService;
     this.userCredentialService = userCredentialService;
@@ -62,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
     this.inviteService = inviteService;
     this.securityQuestionAnswerService = securityQuestionAnswerService;
     this.connectionService = connectionService;
+    this.userSettingsService = userSettingsService;
   }
 
   @Override
@@ -94,21 +99,37 @@ public class AuthServiceImpl implements AuthService {
     final Invite invite = this.inviteService.getByCode(inviteCode);
     if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, invite)) {
       user.setStatus(UserStatus.USER_STATUS_ACTIVE);
+      // save user
       final BuzzmaUser savedUser = this.userService.create(user);
+
+      // save user credentials
       this.userCredentialService.create(
           userCredential.toBuilder().userId(savedUser.getId()).build(), requesterId);
+      // save user security question's answers
       securityAnswerList.forEach(
           securityAnswer -> {
             securityAnswer.setUserId(savedUser.getId());
             this.securityQuestionAnswerService.createSecurityAnswer(securityAnswer);
           });
+      // consume invite
       this.inviteService.consume(invite, requesterId);
+
+      // create connection between inviter and new user
       this.connectionService.createConnection(
           Connection.builder()
               .fromUserId(invite.getOwnerId())
               .toUserId(savedUser.getId())
               .status(ConnectionStatus.CONNECTION_STATUS_REQUESTED)
               .build());
+
+      // build and save userSettings with default settings based on user role
+      final UserSettings userSettings =
+          this.userSettingsService.getDefaultSettingsByUserRole(user.getRole()).toBuilder()
+              .userId(savedUser.getId())
+              .build();
+
+      this.userSettingsService.create(userSettings, requesterId);
+
       return savedUser;
     }
 

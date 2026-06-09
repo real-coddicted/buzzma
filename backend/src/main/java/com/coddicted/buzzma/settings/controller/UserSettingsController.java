@@ -34,10 +34,9 @@ public class UserSettingsController {
     this.userSettingsMapper = userSettingsMapper;
   }
 
-  @GetMapping("/{userId}")
-  public UserSettingsDto get(
-      @CurrentUserId final UUID requesterId, @PathVariable final UUID userId) {
-    final UserSettings userSettings = this.userSettingsService.getByUserId(userId);
+  @GetMapping
+  public UserSettingsDto get(@CurrentUserId final UUID requesterId) {
+    final UserSettings userSettings = this.userSettingsService.getByUserId(requesterId);
     return this.userSettingsMapper.toUserSettingsDto(userSettings);
   }
 
