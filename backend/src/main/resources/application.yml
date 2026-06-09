@@ -46,6 +46,11 @@ app:
     interval-ms: ${COOLING_SETTLER_INTERVAL_MS:3600000}
   wallet:
     max-balance-paise: ${WALLET_MAX_BALANCE_PAISE:100000000}
+  extraction:
+    scheduler:
+      fixed-delay-ms: ${EXTRACTION_SCHEDULER_DELAY_MS:30000}
+      batch-size: ${EXTRACTION_SCHEDULER_BATCH_SIZE:5}
+      thread-pool-size: ${EXTRACTION_SCHEDULER_THREAD_POOL_SIZE:5}
   storage:
     type: ${STORAGE_TYPE:garage}
     base-dir: ${STORAGE_BASE_DIR:./storage}
