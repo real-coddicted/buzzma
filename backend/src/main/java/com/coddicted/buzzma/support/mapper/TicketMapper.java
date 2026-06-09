@@ -26,5 +26,12 @@ public interface TicketMapper {
   @Mapping(target = "title", ignore = true)
   @Mapping(target = "dealId", ignore = true)
   @Mapping(target = "closedAt", ignore = true)
+  @Mapping(target = "raisedByName", ignore = true)
+  @Mapping(target = "assigneeName", ignore = true)
   TicketResponseDto toResponse(Ticket ticket);
+
+  @Mapping(target = "title", ignore = true)
+  @Mapping(target = "dealId", ignore = true)
+  @Mapping(target = "closedAt", ignore = true)
+  TicketResponseDto toResponse(Ticket ticket, String raisedByName, String assigneeName);
 }

@@ -50,10 +50,14 @@ public class SecurityConfig {
                         "/api/v1/extraction/sync",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/v3/api-docs/**")
+                        "/v3/api-docs/**",
+                        // Todo: added only for testing, should be removed later
+                        "/h2-console/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        // Todo: needs to removed, only for development
+        .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
         .exceptionHandling(
             ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

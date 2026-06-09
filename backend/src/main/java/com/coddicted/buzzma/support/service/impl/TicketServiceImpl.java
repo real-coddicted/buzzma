@@ -1,22 +1,25 @@
 package com.coddicted.buzzma.support.service.impl;
 
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_ASSIGNED;
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_CLOSED;
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_OPEN;
+import static com.coddicted.buzzma.support.entity.TicketAction.TICKET_ACTION_CLOSE;
+import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_IN_PROGRESS;
 
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.support.entity.Ticket;
-import com.coddicted.buzzma.support.entity.TicketStatus;
+import com.coddicted.buzzma.support.entity.TicketAction;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
 import com.coddicted.buzzma.support.entity.TicketSubCategoryMetadata;
+import com.coddicted.buzzma.support.notification.TicketEventPublisher;
 import com.coddicted.buzzma.support.persistence.TicketRepository;
+import com.coddicted.buzzma.support.router.TicketRouter;
 import com.coddicted.buzzma.support.service.TicketCategoryService;
 import com.coddicted.buzzma.support.service.TicketService;
-import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,14 +31,20 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
   private final TicketRepository ticketRepository;
   private final TicketCategoryService ticketCategoryService;
   private final TicketStateMachine stateMachine;
+  private final TicketRouter ticketRouter;
+  private final TicketEventPublisher ticketEventPublisher;
 
   public TicketServiceImpl(
       final TicketRepository ticketRepository,
       final TicketCategoryService ticketCategoryService,
-      final TicketStateMachine stateMachine) {
+      final TicketStateMachine stateMachine,
+      final TicketRouter ticketRouter,
+      final TicketEventPublisher ticketEventPublisher) {
     this.ticketRepository = ticketRepository;
     this.ticketCategoryService = ticketCategoryService;
     this.stateMachine = stateMachine;
+    this.ticketRouter = ticketRouter;
+    this.ticketEventPublisher = ticketEventPublisher;
   }
 
   @Override
@@ -53,15 +62,21 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
       }
     }
 
-    final Ticket toSave =
+    final Ticket prepared =
         ticket.toBuilder()
-            .status(TICKET_STATUS_OPEN)
+            .status(TICKET_STATUS_IN_PROGRESS)
             .isDeleted(false)
             .raisedBy(requesterId)
             .createdBy(requesterId)
             .updatedBy(requesterId)
             .build();
-    return this.ticketRepository.save(toSave);
+    // assign ticket
+    final Ticket assignedTicket = this.ticketRouter.route(prepared);
+    // save ticket
+    final Ticket saved = this.ticketRepository.save(assignedTicket);
+    // publish event
+    this.ticketEventPublisher.publishTicketCreatedEvent(saved);
+    return saved;
   }
 
   @Override
@@ -72,25 +87,40 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
 
   @Override
   @Transactional(readOnly = true)
-  public List<Ticket> listByRaisedBy(final UUID userId) {
-    return this.ticketRepository.findAllByRaisedByAndIsDeletedFalse(userId);
+  public Page<Ticket> listByRaisedBy(final UUID userId, final Pageable pageable) {
+    return this.ticketRepository.findAllByRaisedByAndIsDeletedFalse(userId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<Ticket> listByAssigneeId(final UUID userId, final Pageable pageable) {
+    return this.ticketRepository.findAllByAssigneeIdAndIsDeletedFalse(userId, pageable);
+  }
+
+  @Override
+  public Page<Ticket> listTickets(final int page, final int size) {
+    return this.ticketRepository.findAllByIsDeletedFalse(PageRequest.of(page, size));
   }
 
   @Override
   @Transactional
   public Ticket assign(final UUID ticketId, final UUID assigneeId, final UUID requesterId) {
     final Ticket ticket = mustFind(this.ticketRepository, ticketId, "Ticket");
-    this.stateMachine.transition(ticket, TICKET_STATUS_ASSIGNED);
-    final Ticket updated = ticket.toBuilder().assigneeId(assigneeId).updatedBy(requesterId).build();
+    final Ticket updated =
+        ticket.toBuilder()
+            .assigneeId(assigneeId)
+            .status(TICKET_STATUS_IN_PROGRESS)
+            .updatedBy(requesterId)
+            .build();
     return this.ticketRepository.save(updated);
   }
 
   @Override
   @Transactional
   public Ticket updateStatus(
-      final UUID ticketId, final TicketStatus status, final UUID requesterId) {
+      final UUID ticketId, final TicketAction action, final UUID requesterId) {
     final Ticket ticket = mustFind(this.ticketRepository, ticketId, "Ticket");
-    this.stateMachine.transition(ticket, status);
+    this.stateMachine.transition(ticket, action);
     final Ticket updated = ticket.toBuilder().updatedBy(requesterId).build();
     return this.ticketRepository.save(updated);
   }
@@ -99,7 +129,7 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
   @Transactional
   public Ticket close(final UUID ticketId, final UUID requesterId) {
     final Ticket ticket = mustFind(this.ticketRepository, ticketId, "Ticket");
-    this.stateMachine.transition(ticket, TICKET_STATUS_CLOSED);
+    this.stateMachine.transition(ticket, TICKET_ACTION_CLOSE);
     final Ticket updated = ticket.toBuilder().updatedBy(requesterId).build();
     return this.ticketRepository.save(updated);
   }

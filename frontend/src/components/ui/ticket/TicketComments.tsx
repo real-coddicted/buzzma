@@ -1,9 +1,25 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '../Button'
 import { fetchTicketComments, postTicketComment } from '../../../api/ticketApi'
 import type { Ticket, TicketComment } from '../../../types/TicketTypes'
 
-const canComment = (status: Ticket['status']) => status === 'Open' || status === 'InProgress'
+const canComment = (status: Ticket['status']) => status === 'Open' || status === 'InProgress' || status === 'WaitingForUser'
+
+const USER_COLORS = [
+  { card: 'bg-neon-blue/5 border-neon-blue/20',   name: 'text-neon-blue'   },
+  { card: 'bg-neon-orange/5 border-neon-orange/20', name: 'text-neon-orange' },
+  { card: 'bg-neon-purple/5 border-neon-purple/20', name: 'text-neon-purple' },
+  { card: 'bg-neon-green/5 border-neon-green/20',  name: 'text-neon-green'  },
+  { card: 'bg-neon-pink/5 border-neon-pink/20',    name: 'text-neon-pink'   },
+]
+
+function buildUserColorMap(comments: TicketComment[]) {
+  const map = new Map<string, number>()
+  for (const c of comments) {
+    if (!map.has(c.userId)) map.set(c.userId, map.size % USER_COLORS.length)
+  }
+  return map
+}
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString('en-IN', {
@@ -24,6 +40,7 @@ export function TicketComments({ ticket }: Props) {
   const [posting, setPosting] = useState(false)
   const [postError, setPostError] = useState(false)
   const listEndRef = useRef<HTMLDivElement>(null)
+  const colorMap = useMemo(() => buildUserColorMap(comments), [comments])
 
   useEffect(() => {
     setCommentsLoading(true)
@@ -92,19 +109,14 @@ export function TicketComments({ ticket }: Props) {
         ) : (
           <div className="space-y-3">
             {comments.map(c => {
-              const isSupport = c.role === 'support'
+              const color = USER_COLORS[colorMap.get(c.userId)!]
               return (
                 <div
                   key={c.id}
-                  className={[
-                    'rounded-lg px-3 py-2.5 border text-xs',
-                    isSupport
-                      ? 'bg-neon-pink/5 border-neon-pink/20'
-                      : 'bg-neon-orange/5 border-neon-orange/20',
-                  ].join(' ')}
+                  className={['rounded-lg px-3 py-2.5 border text-xs', color.card].join(' ')}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className={['font-semibold', isSupport ? 'text-neon-pink' : 'text-neon-orange'].join(' ')}>
+                    <span className={['font-semibold', color.name].join(' ')}>
                       {c.userName}
                     </span>
                     <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted">

@@ -16,6 +16,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   notifications:  { title: 'Notifications',  subtitle: 'All your alerts and updates' },
   'claim-review': { title: 'Claim Review',   subtitle: 'Review and manage your claims' },
   users:           { title: 'Users',            subtitle: 'Manage users and their access' },
+  'tickets':       { title: 'Tickets',          subtitle: 'View and action on user tickets' },
 }
 
 interface TopbarProps {

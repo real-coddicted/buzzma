@@ -14,6 +14,7 @@ public class TicketCommentResponseDto {
   UUID id;
   UUID ticketId;
   UUID authorId;
+  String authorName;
   String content;
   Instant createdAt;
 }

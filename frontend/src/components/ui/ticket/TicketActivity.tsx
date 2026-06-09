@@ -34,7 +34,7 @@ export function TicketActivity({ ticket }: Props) {
   useEffect(() => {
     setLoading(true)
     setError(false)
-    fetchTicketActivity(ticket.id)
+    fetchTicketActivity(ticket)
       .then(setEvents)
       .catch(() => setError(true))
       .finally(() => setLoading(false))

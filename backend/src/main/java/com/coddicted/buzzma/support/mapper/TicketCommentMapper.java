@@ -22,5 +22,8 @@ public interface TicketCommentMapper {
   @Mapping(target = "updatedAt", ignore = true)
   TicketComment toEntity(TicketCommentRequestDto request);
 
+  @Mapping(target = "authorName", ignore = true)
   TicketCommentResponseDto toResponse(TicketComment comment);
+
+  TicketCommentResponseDto toResponse(TicketComment comment, String authorName);
 }

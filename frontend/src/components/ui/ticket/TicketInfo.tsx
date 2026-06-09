@@ -51,6 +51,22 @@ export function TicketInfo({ ticket }: Props) {
           </Row>
         )}
 
+        {(ticket.raisedByName || ticket.raisedBy) && (
+          <Row label="Raised by">
+            <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
+              {ticket.raisedByName ?? ticket.raisedBy}
+            </span>
+          </Row>
+        )}
+
+        {(ticket.assigneeName || ticket.assigneeId) && (
+          <Row label="Assignee">
+            <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
+              {ticket.assigneeName ?? ticket.assigneeId}
+            </span>
+          </Row>
+        )}
+
         <Row label="Raised on">
           <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
             {formatDate(ticket.createdAt)}

@@ -14,6 +14,7 @@ public class TicketResponseDto {
 
   UUID id;
   UUID raisedBy;
+  String raisedByName;
   UUID categoryId;
   UUID subCategoryId;
   String title;
@@ -22,6 +23,7 @@ public class TicketResponseDto {
   String dealId;
   TicketStatus status;
   UUID assigneeId;
+  String assigneeName;
   Instant closedAt;
   UUID createdBy;
   UUID updatedBy;

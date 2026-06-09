@@ -107,8 +107,8 @@ checkstyle {
   maxWarnings = 0
 }
 
-tasks.named('spotlessJavaCheck') {
-  dependsOn 'spotlessJavaApply'
+tasks.named('compileJava') {
+  dependsOn 'spotlessApply'
 }
 
 tasks.named('check') {

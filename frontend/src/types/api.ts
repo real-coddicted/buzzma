@@ -123,7 +123,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list"];
+        get?: never;
         put?: never;
         post: operations["create_1"];
         delete?: never;
@@ -315,7 +315,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_3"];
         put?: never;
         post: operations["create_4"];
         delete?: never;
@@ -347,7 +347,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_4"];
         put?: never;
         post: operations["create_5"];
         delete?: never;
@@ -411,7 +411,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_6"];
+        get: operations["list_5"];
         put?: never;
         post: operations["create_6"];
         delete?: never;
@@ -596,6 +596,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tickets/raised": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listTicketsRaisedByUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/assigned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listTicketsAssignedToUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ticket-categories": {
         parameters: {
             query?: never;
@@ -603,7 +635,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_1"];
+        get: operations["list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -619,7 +651,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -635,7 +667,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -889,10 +921,10 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         UserSettingsDto: {
-            assignmentsTabEnabled?: boolean;
-            connectionsTabEnabled?: boolean;
             dashboardTabEnabled?: boolean;
             campaignsTabEnabled?: boolean;
+            assignmentsTabEnabled?: boolean;
+            connectionsTabEnabled?: boolean;
             dealTabEnabled?: boolean;
             ticketsTabEnabled?: boolean;
             feedbackTabEnabled?: boolean;
@@ -913,6 +945,7 @@ export interface components {
             id?: string;
             /** Format: uuid */
             raisedBy?: string;
+            raisedByName?: string;
             /** Format: uuid */
             categoryId?: string;
             /** Format: uuid */
@@ -922,9 +955,10 @@ export interface components {
             orderId?: string;
             dealId?: string;
             /** @enum {string} */
-            status?: "TICKET_STATUS_OPEN" | "TICKET_STATUS_ASSIGNED" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_CLOSED";
+            status?: "TICKET_STATUS_OPEN" | "TICKET_STATUS_IN_PROGRESS" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_RESOLVED" | "TICKET_STATUS_CLOSED";
             /** Format: uuid */
             assigneeId?: string;
+            assigneeName?: string;
             /** Format: date-time */
             closedAt?: string;
             /** Format: uuid */
@@ -946,6 +980,7 @@ export interface components {
             ticketId?: string;
             /** Format: uuid */
             authorId?: string;
+            authorName?: string;
             content?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -1347,7 +1382,7 @@ export interface components {
         };
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
-            status: "TICKET_STATUS_OPEN" | "TICKET_STATUS_ASSIGNED" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_CLOSED";
+            action: "TICKET_ACTION_CLOSE" | "TICKET_ACTION_MARK_RESOLVE" | "TICKET_ACTION_REQUEST_ADDITIONAL_INFO" | "TICKET_ACTION_INFO_PROVIDED" | "TICKET_ACTION_REOPEN";
         };
         TicketCategoryResponseDto: {
             /** Format: uuid */
@@ -1445,10 +1480,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1457,21 +1492,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -1749,26 +1784,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserSettingsDto"];
-                };
-            };
-        };
-    };
-    list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TicketResponseDto"][];
                 };
             };
         };
@@ -2165,7 +2180,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_3: {
         parameters: {
             query?: {
                 status?: "CONNECTION_STATUS_REQUESTED" | "CONNECTION_STATUS_ACCEPTED" | "CONNECTION_STATUS_REJECTED";
@@ -2235,7 +2250,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2366,7 +2381,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -2735,7 +2750,53 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    listTicketsRaisedByUser: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TicketResponseDto"][];
+                };
+            };
+        };
+    };
+    listTicketsAssignedToUser: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TicketResponseDto"][];
+                };
+            };
+        };
+    };
+    list: {
         parameters: {
             query?: never;
             header?: never;
@@ -2755,7 +2816,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2775,7 +2836,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_2: {
         parameters: {
             query?: never;
             header?: never;

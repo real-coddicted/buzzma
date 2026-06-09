@@ -18,14 +18,12 @@ function toDisplayName(value?: string): string {
 
 function mapStatus(status?: TicketResponseDto['status']): TicketStatus {
   switch (status) {
-    case 'TICKET_STATUS_ASSIGNED':
-    case 'TICKET_STATUS_WAITING_FOR_USER_ACTION':
-      return 'InProgress'
-    case 'TICKET_STATUS_CLOSED':
-      return 'Resolved'
+    case 'TICKET_STATUS_IN_PROGRESS':           return 'InProgress'
+    case 'TICKET_STATUS_WAITING_FOR_USER_ACTION': return 'WaitingForUser'
+    case 'TICKET_STATUS_RESOLVED':              return 'Resolved'
+    case 'TICKET_STATUS_CLOSED':                return 'Closed'
     case 'TICKET_STATUS_OPEN':
-    default:
-      return 'Open'
+    default:                                    return 'Open'
   }
 }
 
@@ -62,6 +60,10 @@ function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket
 
   return {
     id: dto.id ?? '',
+    raisedBy: dto.raisedBy,
+    raisedByName: dto.raisedByName,
+    assigneeId: dto.assigneeId,
+    assigneeName: dto.assigneeName,
     categoryDisplayName: category?.displayName ?? 'Unknown',
     subCategoryDisplayName: subCategory?.displayName ?? 'Unknown',
     orderId: dto.orderId ?? null,
@@ -76,7 +78,7 @@ function mapComment(dto: TicketCommentResponseDto): TicketComment {
   return {
     id: dto.id ?? '',
     userId: dto.authorId ?? '',
-    userName: dto.authorId ? `User ${dto.authorId.slice(0, 8)}` : 'Support',
+    userName: dto.authorName ?? (dto.authorId ? `User ${dto.authorId.slice(0, 8)}` : 'Support'),
     role: 'support',
     message: dto.content ?? '',
     createdAt: dto.createdAt ?? new Date().toISOString(),
@@ -91,7 +93,7 @@ export async function fetchTicketCategories(): Promise<TicketCategory[]> {
 
 export async function fetchMyTickets(): Promise<Ticket[]> {
   const [ticketsRes, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets`),
+    fetchWithAuth(`${API_BASE}/tickets/raised`),
     fetchTicketCategories(),
   ])
 
@@ -138,11 +140,51 @@ export async function postTicketComment(ticketId: string, message: string): Prom
   return mapComment(created)
 }
 
-export async function fetchTicketActivity(ticketId: string): Promise<TicketActivityEvent[]> {
-  const [tickets, comments] = await Promise.all([fetchMyTickets(), fetchTicketComments(ticketId)])
-  const ticket = tickets.find(item => item.id === ticketId)
+export async function fetchAssignedTickets(): Promise<Ticket[]> {
+  const [ticketsRes, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets/assigned`),
+    fetchTicketCategories(),
+  ])
+  const tickets = (await ticketsRes.json()) as TicketResponseDto[]
+  return tickets.map(ticket => mapTicket(ticket, categories))
+}
 
-  if (!ticket) return []
+export async function fetchAllTickets(): Promise<Ticket[]> {
+  return fetchMyTickets()
+}
+
+export async function closeTicket(ticketId: string): Promise<Ticket> {
+  const [res, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/close`, { method: 'POST' }),
+    fetchTicketCategories(),
+  ])
+  return mapTicket((await res.json()) as TicketResponseDto, categories)
+}
+
+export async function updateTicketStatus(ticketId: string, action: components['schemas']['TicketStatusUpdateRequestDto']['action']): Promise<Ticket> {
+  const [res, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action }),
+    }),
+    fetchTicketCategories(),
+  ])
+  return mapTicket((await res.json()) as TicketResponseDto, categories)
+}
+
+export async function assignTicket(ticketId: string, assigneeId: string): Promise<Ticket> {
+  const [res, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/assign`, {
+      method: 'POST',
+      body: JSON.stringify({ assigneeId } satisfies components['schemas']['TicketAssignRequestDto']),
+    }),
+    fetchTicketCategories(),
+  ])
+  return mapTicket((await res.json()) as TicketResponseDto, categories)
+}
+
+export async function fetchTicketActivity(ticket: Ticket): Promise<TicketActivityEvent[]> {
+  const comments = await fetchTicketComments(ticket.id)
 
   const events: TicketActivityEvent[] = [
     {

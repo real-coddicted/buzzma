@@ -15,6 +15,7 @@ import { ClaimReview } from './pages/ClaimReview'
 import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
 import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllRead as apiMarkAllRead } from './api/notificationApi'
+import { fetchAllTickets } from './api/ticketApi'
 import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
@@ -26,7 +27,7 @@ export default function App() {
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
 
-  const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users']), [])
+  const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
   const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'dashboard'
 
@@ -107,6 +108,7 @@ export default function App() {
       )}
       {activePage === 'claim-review' && <ClaimReview />}
       {activePage === 'users'         && <Users />}
+      {activePage === 'tickets' && <MyTickets title="Tickets" fetchFn={fetchAllTickets} />}
     </AppLayout>
   )
 }

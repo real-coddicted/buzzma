@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.service;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ public interface UserService {
   BuzzmaUser update(BuzzmaUser user);
 
   BuzzmaUser getByMobile(String mobile);
+
+  BuzzmaUser getByRole(UserRole role);
 
   void delete(UUID id, UUID requesterId);
 

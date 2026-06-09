@@ -1,42 +1,55 @@
 package com.coddicted.buzzma.support.service.impl;
 
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_ASSIGNED;
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_CLOSED;
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_OPEN;
-import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_WAITING_FOR_USER_ACTION;
-
 import com.coddicted.buzzma.shared.exception.InvalidStateTransitionException;
 import com.coddicted.buzzma.support.entity.Ticket;
+import com.coddicted.buzzma.support.entity.TicketAction;
 import com.coddicted.buzzma.support.entity.TicketStatus;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TicketStateMachine {
 
-  private static final Map<TicketStatus, Set<TicketStatus>> TRANSITIONS =
+  private static final Map<TicketStatus, Map<TicketAction, TicketStatus>> TRANSITIONS =
       new EnumMap<>(TicketStatus.class);
 
   static {
-    TRANSITIONS.put(TICKET_STATUS_OPEN, EnumSet.of(TICKET_STATUS_ASSIGNED, TICKET_STATUS_CLOSED));
-    TRANSITIONS.put(
-        TICKET_STATUS_ASSIGNED,
-        EnumSet.of(TICKET_STATUS_WAITING_FOR_USER_ACTION, TICKET_STATUS_CLOSED));
-    TRANSITIONS.put(
-        TICKET_STATUS_WAITING_FOR_USER_ACTION,
-        EnumSet.of(TICKET_STATUS_ASSIGNED, TICKET_STATUS_CLOSED));
-    TRANSITIONS.put(TICKET_STATUS_CLOSED, EnumSet.noneOf(TicketStatus.class));
+    Map<TicketAction, TicketStatus> fromOpen = new EnumMap<>(TicketAction.class);
+    fromOpen.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
+    TRANSITIONS.put(TicketStatus.TICKET_STATUS_OPEN, fromOpen);
+
+    Map<TicketAction, TicketStatus> fromInProgress = new EnumMap<>(TicketAction.class);
+    fromInProgress.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
+    fromInProgress.put(
+        TicketAction.TICKET_ACTION_MARK_RESOLVE, TicketStatus.TICKET_STATUS_RESOLVED);
+    fromInProgress.put(
+        TicketAction.TICKET_ACTION_REQUEST_ADDITIONAL_INFO,
+        TicketStatus.TICKET_STATUS_WAITING_FOR_USER_ACTION);
+    TRANSITIONS.put(TicketStatus.TICKET_STATUS_IN_PROGRESS, fromInProgress);
+
+    Map<TicketAction, TicketStatus> fromWaiting = new EnumMap<>(TicketAction.class);
+    fromWaiting.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
+    fromWaiting.put(
+        TicketAction.TICKET_ACTION_INFO_PROVIDED, TicketStatus.TICKET_STATUS_IN_PROGRESS);
+    TRANSITIONS.put(TicketStatus.TICKET_STATUS_WAITING_FOR_USER_ACTION, fromWaiting);
+
+    Map<TicketAction, TicketStatus> fromResolved = new EnumMap<>(TicketAction.class);
+    fromResolved.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
+    fromResolved.put(TicketAction.TICKET_ACTION_REOPEN, TicketStatus.TICKET_STATUS_IN_PROGRESS);
+    TRANSITIONS.put(TicketStatus.TICKET_STATUS_RESOLVED, fromResolved);
+
+    TRANSITIONS.put(TicketStatus.TICKET_STATUS_CLOSED, new EnumMap<>(TicketAction.class));
   }
 
-  public void transition(final Ticket ticket, final TicketStatus target) {
-    final Set<TicketStatus> allowed = TRANSITIONS.get(ticket.getStatus());
-    if (!allowed.contains(target)) {
+  public void transition(final Ticket ticket, final TicketAction action) {
+    final Map<TicketAction, TicketStatus> allowed =
+        TRANSITIONS.getOrDefault(ticket.getStatus(), new EnumMap<>(TicketAction.class));
+    final TicketStatus next = allowed.get(action);
+    if (next == null) {
       throw new InvalidStateTransitionException(
-          "Cannot transition ticket from " + ticket.getStatus() + " to " + target);
+          "Cannot apply action " + action + " to ticket in status " + ticket.getStatus());
     }
-    ticket.setStatus(target);
+    ticket.setStatus(next);
   }
 }

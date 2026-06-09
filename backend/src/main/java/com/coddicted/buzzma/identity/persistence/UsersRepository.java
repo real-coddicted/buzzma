@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.persistence;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -14,4 +15,6 @@ public interface UsersRepository extends JpaRepository<BuzzmaUser, UUID> {
   Optional<BuzzmaUser> findByMobileAndIsDeletedFalse(String mobile);
 
   boolean existsUserByMobileAndIsDeletedFalse(String mobile);
+
+  Optional<BuzzmaUser> findFirstByRoleAndIsDeletedFalse(UserRole role);
 }

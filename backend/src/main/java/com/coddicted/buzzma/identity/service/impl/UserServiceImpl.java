@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.service.impl;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
@@ -55,6 +56,14 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Transactional(readOnly = true)
   public List<BuzzmaUser> getByIds(List<UUID> ids) {
     return repository.findAllById(ids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public BuzzmaUser getByRole(final UserRole role) {
+    return this.repository
+        .findFirstByRoleAndIsDeletedFalse(role)
+        .orElseThrow(() -> new NotFoundException("No user found with role: " + role));
   }
 
   @Override

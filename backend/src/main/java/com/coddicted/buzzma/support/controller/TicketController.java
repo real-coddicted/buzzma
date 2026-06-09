@@ -1,5 +1,7 @@
 package com.coddicted.buzzma.support.controller;
 
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import com.coddicted.buzzma.support.dto.TicketAssignRequestDto;
 import com.coddicted.buzzma.support.dto.TicketAttachmentResponseDto;
@@ -18,8 +20,14 @@ import com.coddicted.buzzma.support.service.TicketCommentService;
 import com.coddicted.buzzma.support.service.TicketService;
 import jakarta.validation.Valid;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +53,7 @@ public class TicketController {
   private final TicketMapper ticketMapper;
   private final TicketCommentMapper ticketCommentMapper;
   private final TicketAttachmentMapper ticketAttachmentMapper;
+  private final UserService userService;
 
   public TicketController(
       final TicketService ticketService,
@@ -52,13 +61,15 @@ public class TicketController {
       final TicketAttachmentService ticketAttachmentService,
       final TicketMapper ticketMapper,
       final TicketCommentMapper ticketCommentMapper,
-      final TicketAttachmentMapper ticketAttachmentMapper) {
+      final TicketAttachmentMapper ticketAttachmentMapper,
+      final UserService userService) {
     this.ticketService = ticketService;
     this.ticketCommentService = ticketCommentService;
     this.ticketAttachmentService = ticketAttachmentService;
     this.ticketMapper = ticketMapper;
     this.ticketCommentMapper = ticketCommentMapper;
     this.ticketAttachmentMapper = ticketAttachmentMapper;
+    this.userService = userService;
   }
 
   @PostMapping
@@ -67,20 +78,35 @@ public class TicketController {
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final TicketRequestDto request) {
     final Ticket ticket =
         this.ticketService.create(this.ticketMapper.toEntity(request), requesterId);
-    return this.ticketMapper.toResponse(ticket);
+    return toResponseWithNames(ticket);
   }
 
-  @GetMapping
-  public List<TicketResponseDto> list(@CurrentUserId final UUID requesterId) {
-    return this.ticketService.listByRaisedBy(requesterId).stream()
-        .map(this.ticketMapper::toResponse)
-        .toList();
+  @GetMapping("/raised")
+  public List<TicketResponseDto> listTicketsRaisedByUser(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final Pageable pageable = PageRequest.of(page, size);
+    final Page<Ticket> tickets = this.ticketService.listByRaisedBy(requesterId, pageable);
+    final Map<UUID, String> nameMap = buildNameMap(tickets);
+    return tickets.stream().map(t -> toResponseWithNames(t, nameMap)).toList();
+  }
+
+  @GetMapping("/assigned")
+  public List<TicketResponseDto> listTicketsAssignedToUser(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final Pageable pageable = PageRequest.of(page, size);
+    final Page<Ticket> tickets = this.ticketService.listByAssigneeId(requesterId, pageable);
+    final Map<UUID, String> nameMap = buildNameMap(tickets);
+    return tickets.stream().map(t -> toResponseWithNames(t, nameMap)).toList();
   }
 
   @GetMapping("/{id}")
   public TicketResponseDto getById(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    return this.ticketMapper.toResponse(this.ticketService.getById(id));
+    return toResponseWithNames(this.ticketService.getById(id));
   }
 
   @DeleteMapping("/{id}")
@@ -94,8 +120,7 @@ public class TicketController {
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @Valid @RequestBody final TicketAssignRequestDto request) {
-    return this.ticketMapper.toResponse(
-        this.ticketService.assign(id, request.getAssigneeId(), requesterId));
+    return toResponseWithNames(this.ticketService.assign(id, request.getAssigneeId(), requesterId));
   }
 
   @PatchMapping("/{id}/status")
@@ -103,14 +128,14 @@ public class TicketController {
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @Valid @RequestBody final TicketStatusUpdateRequestDto request) {
-    return this.ticketMapper.toResponse(
-        this.ticketService.updateStatus(id, request.getStatus(), requesterId));
+    return toResponseWithNames(
+        this.ticketService.updateStatus(id, request.getAction(), requesterId));
   }
 
   @PostMapping("/{id}/close")
   public TicketResponseDto close(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    return this.ticketMapper.toResponse(this.ticketService.close(id, requesterId));
+    return toResponseWithNames(this.ticketService.close(id, requesterId));
   }
 
   @PostMapping("/{id}/comments")
@@ -123,15 +148,15 @@ public class TicketController {
         this.ticketCommentService.addComment(
             this.ticketCommentMapper.toEntity(request).toBuilder().ticketId(id).build(),
             requesterId);
-    return this.ticketCommentMapper.toResponse(comment);
+    return toCommentResponseWithName(comment);
   }
 
   @GetMapping("/{id}/comments")
   public List<TicketCommentResponseDto> listComments(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    return this.ticketCommentService.listByTicketId(id).stream()
-        .map(this.ticketCommentMapper::toResponse)
-        .toList();
+    final List<TicketComment> comments = this.ticketCommentService.listByTicketId(id);
+    final Map<UUID, String> nameMap = buildCommentNameMap(comments);
+    return comments.stream().map(c -> toCommentResponseWithName(c, nameMap)).toList();
   }
 
   @PostMapping("/{id}/attachments")
@@ -152,5 +177,48 @@ public class TicketController {
     return this.ticketAttachmentService.listByTicketId(id).stream()
         .map(this.ticketAttachmentMapper::toResponse)
         .toList();
+  }
+
+  private Map<UUID, String> buildNameMap(final Page<Ticket> tickets) {
+    return buildNameMap(tickets.getContent());
+  }
+
+  private TicketResponseDto toResponseWithNames(final Ticket ticket) {
+    return toResponseWithNames(ticket, buildNameMap(List.of(ticket)));
+  }
+
+  private Map<UUID, String> buildNameMap(final List<Ticket> tickets) {
+    final List<UUID> ids = new ArrayList<>();
+    for (final Ticket t : tickets) {
+      ids.add(t.getRaisedBy());
+      if (t.getAssigneeId() != null) {
+        ids.add(t.getAssigneeId());
+      }
+    }
+    return this.userService.getByIds(ids).stream()
+        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+  }
+
+  private TicketResponseDto toResponseWithNames(
+      final Ticket ticket, final Map<UUID, String> nameMap) {
+    final String raisedByName = nameMap.get(ticket.getRaisedBy());
+    final String assigneeName =
+        ticket.getAssigneeId() != null ? nameMap.get(ticket.getAssigneeId()) : null;
+    return this.ticketMapper.toResponse(ticket, raisedByName, assigneeName);
+  }
+
+  private Map<UUID, String> buildCommentNameMap(final List<TicketComment> comments) {
+    final List<UUID> ids = comments.stream().map(TicketComment::getAuthorId).toList();
+    return this.userService.getByIds(ids).stream()
+        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+  }
+
+  private TicketCommentResponseDto toCommentResponseWithName(final TicketComment comment) {
+    return toCommentResponseWithName(comment, buildCommentNameMap(List.of(comment)));
+  }
+
+  private TicketCommentResponseDto toCommentResponseWithName(
+      final TicketComment comment, final Map<UUID, String> nameMap) {
+    return this.ticketCommentMapper.toResponse(comment, nameMap.get(comment.getAuthorId()));
   }
 }
