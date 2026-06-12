@@ -37,7 +37,6 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
   })
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [apiError, setApiError] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [toastError, setToastError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({})
@@ -88,16 +87,15 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
     e.preventDefault()
     if (!validate()) return
     setSubmitting(true)
-    setApiError(null)
     try {
       const res = await registerUser(form, captchaToken)
       if (res.success) {
         setShowToast(true)
       } else {
-        setApiError(res.message)
+        setToastError(res.message)
       }
     } catch {
-      setApiError('Something went wrong. Please try again.')
+      setToastError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -331,10 +329,6 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
                 })}
               </div>
             </div>
-
-            {apiError && (
-              <p className="text-xs text-neon-red text-center">{apiError}</p>
-            )}
 
             <Button type="submit" variant="green" size="lg" loading={submitting} className="w-full mt-2">
               Create Account
