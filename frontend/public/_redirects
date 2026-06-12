@@ -1,2 +1,0 @@
-/api/events/* https://test-backend.buzzmah.com/api/events/:splat 200
-/api/*         https://test-backend.buzzmah.com/api/:splat 200
