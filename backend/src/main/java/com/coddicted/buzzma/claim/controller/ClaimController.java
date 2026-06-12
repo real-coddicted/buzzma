@@ -13,6 +13,8 @@ import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.identity.security.BuzzmaUserDetails;
+import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
@@ -150,8 +152,8 @@ public class ClaimController {
 
   @GetMapping("/review")
   public Page<ClaimReviewResponseDto> listClaimsToReview(
-      @CurrentUserId final UUID requesterId, final Pageable pageable) {
-    return this.claimReviewProcessor.listClaimReviews(requesterId, pageable);
+      @CurrentUser BuzzmaUserDetails requester, final Pageable pageable) {
+    return this.claimReviewProcessor.listClaimReviews(requester.getUser(), pageable);
   }
 
   @GetMapping("/{id}")

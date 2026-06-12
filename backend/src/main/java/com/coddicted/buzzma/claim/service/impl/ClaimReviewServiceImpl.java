@@ -49,10 +49,10 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
   @Override
   @Transactional(readOnly = true)
-  public Page<ClaimReviewModel> getClaimReviews(final UUID requesterId, final Pageable pageable) {
-    final BuzzmaUser requester = this.userService.getById(requesterId);
+  public Page<ClaimReviewModel> getClaimReviews(
+      final BuzzmaUser requester, final Pageable pageable) {
     final Map<UUID, Campaign> campaignById =
-        getApplicableCampaignIds(requesterId, requester.getRole());
+        getApplicableCampaignIds(requester.getId(), requester.getRole());
     return fetchClaims(campaignById, requester.getRole(), pageable);
   }
 
@@ -94,7 +94,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
             ClaimReviewModel.builder()
                 .claim(claim)
                 .campaign(campaignById.get(claim.getCampaignId()))
-                .userRole(userRole)
                 .build());
   }
 }

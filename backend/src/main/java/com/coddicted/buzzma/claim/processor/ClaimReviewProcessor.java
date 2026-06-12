@@ -3,7 +3,7 @@ package com.coddicted.buzzma.claim.processor;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
-import java.util.UUID;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -21,9 +21,9 @@ public class ClaimReviewProcessor {
   }
 
   public Page<ClaimReviewResponseDto> listClaimReviews(
-      final UUID requesterId, final Pageable pageable) {
+      final BuzzmaUser requester, final Pageable pageable) {
     return this.claimReviewService
-        .getClaimReviews(requesterId, pageable)
+        .getClaimReviews(requester, pageable)
         .map(this.claimReviewMapper::toResponse);
   }
 }
