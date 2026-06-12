@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.UUID;
@@ -29,6 +30,8 @@ public class ClaimReviewResponseDto {
   BigInteger matchScore;
 
   ClaimReviewStatus claimReviewStatus;
+
+  UserRole userRole;
 
   Instant createdAt;
   Instant updatedAt;

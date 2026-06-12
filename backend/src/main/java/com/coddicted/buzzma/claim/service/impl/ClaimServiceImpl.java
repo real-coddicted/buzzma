@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
+import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -38,6 +39,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   private final ClaimRepository claimRepository;
   private final ClaimScreenshotRepository claimScreenshotRepository;
+  private final CampaignService campaignService;
   private final DealService dealService;
   private final CampaignSlotRepository campaignSlotRepository;
   private final CampaignTypeStepService campaignTypeStepService;
@@ -47,6 +49,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
       final ClaimScreenshotRepository claimScreenshotRepository,
+      final CampaignService campaignService,
       final DealService dealService,
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignTypeStepService campaignTypeStepService,
@@ -54,6 +57,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final ExtractionService extractionService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
+    this.campaignService = campaignService;
     this.dealService = dealService;
     this.campaignSlotRepository = campaignSlotRepository;
     this.campaignTypeStepService = campaignTypeStepService;
@@ -295,13 +299,25 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
   }
 
-  private Claim loadAndVerifyOwnership(final UUID claimId, final UUID ownerId) {
-    return this.claimRepository
-        .findByIdAndOwnerIdAndIsDeletedFalse(claimId, ownerId)
-        .orElseThrow(
-            () -> {
-              LOGGER.warn("Claim not found for id: {} and ownerId: {}", claimId, ownerId);
-              return new NotFoundException("Claim not found: " + claimId);
-            });
+  private Claim loadAndVerifyOwnership(final UUID claimId, final UUID requesterId) {
+    final Claim claim =
+        this.claimRepository
+            .findByIdAndIsDeletedFalse(claimId)
+            .orElseThrow(() -> new NotFoundException("Claim not found: " + claimId));
+
+    if (requesterId.equals(claim.getOwnerId())
+        || requesterId.equals(this.campaignService.getById(claim.getCampaignId()).getOwnerId())
+        || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())) {
+      return claim;
+    }
+
+    LOGGER.warn(
+        "Requester {} is not authorized to access claim {} (owner: {}, campaignId: {}, dealId: {})",
+        requesterId,
+        claimId,
+        claim.getOwnerId(),
+        claim.getCampaignId(),
+        claim.getDealId());
+    throw new NotFoundException("Claim not found: " + claimId);
   }
 }
