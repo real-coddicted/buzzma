@@ -22,6 +22,7 @@ import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
+import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.security.JwtService;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,19 @@ public class AuthServiceImpl implements AuthService {
   public BuzzmaUser refresh(final String refreshToken) {
     final UUID userId = this.jwtService.validateRefreshToken(refreshToken);
     return this.userService.getById(userId);
+  }
+
+  @Override
+  public boolean updatePassword(
+      final String currentPassword, final String newPassword, final UUID requesterId) {
+    if (this.userCredentialService.verify(requesterId, currentPassword)) {
+      final UserCredential existingUserCredential =
+          this.userCredentialService.getByUserId(requesterId, requesterId);
+      final UserCredential updatedUserCredential =
+          existingUserCredential.toBuilder().passwordHash(newPassword).build();
+      return this.userCredentialService.update(updatedUserCredential, requesterId);
+    }
+    throw new PasswordMatchException("Current password is incorrect");
   }
 
   private boolean canRegister(

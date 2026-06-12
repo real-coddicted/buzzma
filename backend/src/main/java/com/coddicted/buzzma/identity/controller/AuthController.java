@@ -3,6 +3,7 @@ package com.coddicted.buzzma.identity.controller;
 import com.coddicted.buzzma.identity.dto.SecurityQuestionResponseDto;
 import com.coddicted.buzzma.identity.dto.auth.ForgotPasswordLookupRequestDto;
 import com.coddicted.buzzma.identity.dto.auth.PasswordResetRequestDto;
+import com.coddicted.buzzma.identity.dto.auth.PasswordUpdateRequestDto;
 import com.coddicted.buzzma.identity.dto.auth.RefreshTokenRequestDto;
 import com.coddicted.buzzma.identity.dto.auth.TokensDto;
 import com.coddicted.buzzma.identity.dto.auth.UserRegistrationRequestDto;
@@ -55,7 +56,8 @@ public class AuthController {
   public UserSignInResponseDto signIn(@Valid @RequestBody final UserSignInRequestDto request) {
     this.turnstileClient.verify(request.getCaptchaToken());
     final BuzzmaUser user =
-        authService.signIn(authMapper.toUser(request), authMapper.toCredential(request));
+        this.authService.signIn(
+            this.authMapper.toUser(request), this.authMapper.toCredential(request));
     return buildUserSignInResponse(user);
   }
 
@@ -63,11 +65,11 @@ public class AuthController {
   @ResponseStatus(HttpStatus.CREATED)
   public void register(@Valid @RequestBody final UserRegistrationRequestDto request) {
     this.turnstileClient.verify(request.getCaptchaToken());
-    authService.register(
-        authMapper.toUser(request),
-        authMapper.toCredential(request),
-        authMapper.toBankingDetail(request),
-        authMapper.toSecurityAnswers(request.getSecurityQuestionList()),
+    this.authService.register(
+        this.authMapper.toUser(request),
+        this.authMapper.toCredential(request),
+        this.authMapper.toBankingDetail(request),
+        this.authMapper.toSecurityAnswers(request.getSecurityQuestionList()),
         request.getInviteCode(),
         null);
   }
@@ -77,34 +79,43 @@ public class AuthController {
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final ForgotPasswordLookupRequestDto request) {
     final List<SecurityQuestionWrapper> wrappers =
-        authService.getSecurityQuestionsByMobile(request.getMobile(), requesterId);
-    return securityQuestionMapper.toResponseList(wrappers);
+        this.authService.getSecurityQuestionsByMobile(request.getMobile(), requesterId);
+    return this.securityQuestionMapper.toResponseList(wrappers);
   }
 
   @PostMapping("/password-reset")
   public boolean passwordReset(
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final PasswordResetRequestDto request) {
-    return authService.resetPassword(request.getMobile(), request.getNewPassword(), requesterId);
+    return this.authService.resetPassword(
+        request.getMobile(), request.getNewPassword(), requesterId);
+  }
+
+  @PostMapping("/password-update")
+  public boolean passwordUpdate(
+      @CurrentUserId final UUID requesterId,
+      @Valid @RequestBody final PasswordUpdateRequestDto request) {
+    return this.authService.updatePassword(
+        request.getCurrentPassword(), request.getNewPassword(), requesterId);
   }
 
   @PostMapping("/refresh")
   public TokensDto refresh(@Valid @RequestBody final RefreshTokenRequestDto request) {
-    final BuzzmaUser user = authService.refresh(request.getRefreshToken());
+    final BuzzmaUser user = this.authService.refresh(request.getRefreshToken());
     return buildTokens(user);
   }
 
   private UserSignInResponseDto buildUserSignInResponse(final BuzzmaUser user) {
     return UserSignInResponseDto.builder()
         .tokens(buildTokens(user))
-        .userSummary(authMapper.toUserSummary(user))
+        .userSummary(this.authMapper.toUserSummary(user))
         .build();
   }
 
   private TokensDto buildTokens(final BuzzmaUser user) {
     return TokensDto.builder()
-        .accessToken(jwtService.generateAccessToken(user.getId()))
-        .refreshToken(jwtService.generateRefreshToken(user.getId()))
+        .accessToken(this.jwtService.generateAccessToken(user.getId()))
+        .refreshToken(this.jwtService.generateRefreshToken(user.getId()))
         .build();
   }
 }

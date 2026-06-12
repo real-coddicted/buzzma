@@ -71,6 +71,14 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
   }
 
+  @ExceptionHandler(PasswordMatchException.class)
+  public ResponseEntity<Map<String, Object>> handlePasswordMatch(PasswordMatchException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "PASSWORD_MISMATCH");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.badRequest().body(body);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
     LOGGER.error(ex.getMessage(), ex);

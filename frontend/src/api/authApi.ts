@@ -3,10 +3,11 @@ import type { SecurityQuestion } from '../types/ForgotPasswordTypes'
 import type { RegisterForm, RegisterResponse } from '../types/RegisterTypes'
 import type { LoginForm, LoginResponse } from '../types/LoginTypes'
 import type { components } from '../types/api'
-import { clearCurrentUser, setAccessToken, setCurrentUser } from './client'
+import { clearCurrentUser, fetchWithAuth, setAccessToken, setCurrentUser } from './client'
 
 type SignInResponse = components['schemas']['UserSignInResponseDto']
 type UserRegistrationRequestDto = components['schemas']['UserRegistrationRequestDto']
+type PasswordUpdateRequestDto = components['schemas']['PasswordUpdateRequestDto']
 type SecurityQuestionWrapper = components['schemas']['SecurityQuestionWrapper']
 type BackendSecurityQuestion = components['schemas']['SecurityQuestion']
 
@@ -89,6 +90,14 @@ export async function registerUser(form: RegisterForm, captchaToken: string): Pr
   }
 
   return { success: true, message: '' }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const body: PasswordUpdateRequestDto = { currentPassword, newPassword }
+  await fetchWithAuth('/api/v1/auth/password-update', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
 }
 
 export async function fetchUserSecurityQuestion(_mobile: string): Promise<SecurityQuestion> {

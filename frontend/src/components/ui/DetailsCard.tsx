@@ -64,8 +64,15 @@ function CopyableCode({ code }: { code: string }) {
   )
 }
 
+const nameLabels: Record<string, string> = {
+  brand:    'Brand Name',
+  agency:   'Agency Name',
+  mediator: 'Mediator Name',
+  buyer:    'Buyer Name',
+}
+
 export function DetailsCard({ details }: DetailsCardProps) {
-  const { code, type, name, mobile } = details
+  const { code, type, name, mobile, email } = details
 
   return (
     <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5">
@@ -79,14 +86,24 @@ export function DetailsCard({ details }: DetailsCardProps) {
       </div>
 
       <div className="space-y-4">
-        <CopyableCode code={code} />
-        <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+        {code && (
+          <>
+            <CopyableCode code={code} />
+            <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+          </>
+        )}
         <Field
-          label={type === 'brand' ? 'Brand Name' : 'Agency Name'}
+          label={nameLabels[type] ?? 'Name'}
           value={name}
         />
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
         <Field label="Mobile" value={mobile} />
+        {email && (
+          <>
+            <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+            <Field label="Email" value={email} />
+          </>
+        )}
       </div>
     </div>
   )

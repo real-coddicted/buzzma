@@ -25,4 +25,6 @@ public interface AuthService {
   boolean resetPassword(String mobile, String newPassword, UUID requesterId);
 
   BuzzmaUser refresh(String refreshToken);
+
+  boolean updatePassword(String currentPassword, String newPassword, UUID requesterId);
 }

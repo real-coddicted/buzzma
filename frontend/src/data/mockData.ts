@@ -357,6 +357,7 @@ export const currentUser: UserDetails = {
   type: 'brand',
   name: 'Acme Corp',
   mobile: '+91 9876543210',
+  email: 'acme@example.com',
 }
 
 export const dealTypes: DealTypeOption[] = [
