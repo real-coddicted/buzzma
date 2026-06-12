@@ -1,6 +1,7 @@
 import type { components } from '../types/api'
 import type { ClaimReviewItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
 import { fetchWithAuth, getAccessToken, clearSession } from './client'
+import { rupeesToPaise } from '../utils/currency'
 
 const API_BASE = '/api/v1'
 
@@ -232,7 +233,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   formData.append('dealId', params.dealId)
   formData.append('platform', params.platform)
   formData.append('orderId', params.orderId)
-  formData.append('amount', String(Math.round(params.amount)))
+  formData.append('amount', String(rupeesToPaise(params.amount)))
   formData.append('productName', params.productName)
   formData.append('sellerName', params.sellerName)
   // Convert YYYY-MM-DD to YYYYMMDD integer expected by the backend
