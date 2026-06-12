@@ -16,6 +16,7 @@ export interface ClaimProofItem {
   id: string
   imageUrl: string
   imageAlt?: string
+  score?: number
   fields: ExtractedField[]
 }
 
@@ -52,9 +53,11 @@ export function ClaimProofGallery({
 
   const safeIndex = Math.min(selectedIndex, items.length - 1)
   const selected = items[safeIndex]
-  const score = selected.fields.length === 0
-    ? 0
-    : Math.round((selected.fields.filter(f => f.matched).length / selected.fields.length) * 100)
+  const score = selected.score != null
+    ? Math.round(selected.score * 100)
+    : selected.fields.length === 0
+      ? 0
+      : Math.round((selected.fields.filter(f => f.matched).length / selected.fields.length) * 100)
 
   return (
     <div className="flex flex-col gap-4">

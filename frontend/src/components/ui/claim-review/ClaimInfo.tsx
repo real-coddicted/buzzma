@@ -5,9 +5,9 @@ import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between items-center gap-4 py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">
+    <div className="flex justify-between items-start gap-4 py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">
       <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">{label}</span>
-      <span className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary text-right truncate">{children}</span>
+      <span className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary text-right break-words min-w-0">{children}</span>
     </div>
   )
 }
