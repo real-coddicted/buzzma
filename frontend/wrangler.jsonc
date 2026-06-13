@@ -2,8 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "buzzma",
   "compatibility_date": "2025-05-01",
+  "main": "worker.js",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "BACKEND_URL": "https://test-backend.buzzmah.com"
   }
 }
