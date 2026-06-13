@@ -6,11 +6,12 @@ export type ExtractionResult = components['schemas']['ExtractionResult']
 // Export type alias for backwards compatibility
 export type ExtractionResponse = ExtractionResult
 
-export async function extractOrderDetails(file: File, requesterId?: string): Promise<ExtractionResult> {
+export async function extractOrderDetails(file: File, campaignId: string, requesterId?: string): Promise<ExtractionResult> {
   const formData = new FormData()
   formData.append('image', file)
 
   const url = new URL('/api/v1/extraction/sync', window.location.origin)
+  url.searchParams.append('campaignId', campaignId)
   if (requesterId) {
     url.searchParams.append('requesterId', requesterId)
   }

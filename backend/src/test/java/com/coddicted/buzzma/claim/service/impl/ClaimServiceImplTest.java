@@ -86,7 +86,12 @@ class ClaimServiceImplTest {
 
     final Claim result =
         this.claimService.createClaim(
-            CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE, EXTRACTED_DETAILS);
+            CLAIM_INPUT,
+            SCREENSHOT_BYTES,
+            SCREENSHOT_FILENAME,
+            CONTENT_TYPE,
+            EXTRACTED_DETAILS,
+            0.85);
 
     assertEquals(CLAIM_1, result);
     final Claim saved = claimCaptor.getValue();
@@ -123,7 +128,8 @@ class ClaimServiceImplTest {
                     SCREENSHOT_BYTES,
                     SCREENSHOT_FILENAME,
                     CONTENT_TYPE,
-                    EXTRACTED_DETAILS));
+                    EXTRACTED_DETAILS,
+                    null));
     assertEquals("You have already claimed this deal", ex.getMessage());
   }
 

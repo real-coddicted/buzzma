@@ -10,6 +10,7 @@ export interface ExtractedField {
   label: string
   value: string
   matched: boolean
+  score?: number | null
 }
 
 export interface ClaimProofItem {

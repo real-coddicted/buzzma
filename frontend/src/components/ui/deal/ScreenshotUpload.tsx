@@ -4,11 +4,12 @@ import { extractOrderDetails, type ExtractionResponse } from '../../../api/extra
 interface ScreenshotUploadProps {
   label: string
   hint?: string
+  campaignId?: string
   onExtract?: (data: ExtractionResponse) => void
   onFileChange?: (file: File) => void
 }
 
-export function ScreenshotUpload({ label, hint, onExtract, onFileChange }: ScreenshotUploadProps) {
+export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileChange }: ScreenshotUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -23,10 +24,10 @@ export function ScreenshotUpload({ label, hint, onExtract, onFileChange }: Scree
     setError(null)
     onFileChange?.(file)
 
-    if (onExtract) {
+    if (onExtract && campaignId) {
       setIsLoading(true)
       try {
-        const extractedData = await extractOrderDetails(file)
+        const extractedData = await extractOrderDetails(file, campaignId)
         onExtract(extractedData)
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to extract order details'

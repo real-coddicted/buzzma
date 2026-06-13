@@ -4,8 +4,10 @@ import { ScreenshotUpload } from './ScreenshotUpload'
 import type { ExtractionResponse } from '../../../api/extractionApi'
 import { submitClaim } from '../../../api/claimApi'
 import type { components } from '../../../types/api'
+import { ScoreBadge } from '../../utils/ScoreBadge'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
+type ScoredValue = components['schemas']['ScoredValue']
 
 interface DealOrderFormProps {
   dealId: string
@@ -25,6 +27,14 @@ export interface FormFields {
   accountName: string
 }
 
+const scoreKeyMap: Partial<Record<string, keyof FormFields>> = {
+  platform:    'platform',
+  productName: 'productName',
+  sellerName:  'sellerName',
+  orderDate:   'orderDate',
+  amount:      'amount',
+}
+
 export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues }: DealOrderFormProps) {
   const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
@@ -37,7 +47,9 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
     ...claimValues,
   }))
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
-  const [extractedDetails, setExtractedDetails] = useState<Record<string, string>>({})
+  const [extractedDetails, setExtractedDetails] = useState<Record<string, ScoredValue>>({})
+  const [overallScore, setOverallScore] = useState<number | null>(null)
+  const [fieldScores, setFieldScores] = useState<Partial<Record<keyof FormFields, number>>>({})
   const [extractionErrors, setExtractionErrors] = useState<Partial<Record<keyof FormFields, string>>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +69,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
       setFields(prev => ({ ...prev, [key]: e.target.value }))
       setExtractionErrors(prev => { const next = { ...prev }; delete next[key]; return next })
     }
-  
+
 
   function handleExtraction(data: ExtractionResponse) {
     setFields(prev => ({
@@ -70,6 +82,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
       orderDate:   data.orderDate   ?? prev.orderDate,
       accountName: data.orderedBy   ?? prev.accountName,
     }))
+
     const errors: Partial<Record<keyof FormFields, string>> = {}
     for (const ve of data.validationErrors ?? []) {
       if (!ve.field || !ve.message) continue
@@ -77,14 +90,17 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
       if (formKey) errors[formKey] = ve.message
     }
     setExtractionErrors(errors)
-    // Capture all extracted fields for the backend, excluding non-string data
-    setExtractedDetails(
-      Object.fromEntries(
-        Object.entries(data)
-          .filter(([k, v]) => k !== 'validationErrors' && v !== undefined && v !== null)
-          .map(([k, v]) => [k, String(v)])
-      )
-    )
+
+    const result = data.extractedResult ?? {}
+    setExtractedDetails(result)
+    setOverallScore(data.overallScore ?? null)
+
+    const scores: Partial<Record<keyof FormFields, number>> = {}
+    for (const [apiKey, formKey] of Object.entries(scoreKeyMap)) {
+      const sv = result[apiKey]
+      if (sv?.score != null) scores[formKey!] = sv.score
+    }
+    setFieldScores(scores)
   }
 
   const isValid =
@@ -110,6 +126,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
         accountName:     fields.accountName,
         screenshot:      screenshotFile,
         extractedDetails,
+        overallScore,
       })
       onSuccess?.(claim)
     } catch (err) {
@@ -126,6 +143,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
           <ScreenshotUpload
             label="Order Confirmation Screenshot"
             hint="Ensure the order ID, amount, and product name are clearly visible."
+            campaignId={campaignId}
             onExtract={handleExtraction}
             onFileChange={setScreenshotFile}
           />
@@ -135,6 +153,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             placeholder="Select platform"
             value={fields.platform}
             onChange={set('platform')}
+            score={fieldScores.platform}
             options={[
               { value: '', label: 'Select platform' },
               { value: 'PLATFORM_AMAZON', label: 'Amazon' },
@@ -146,14 +165,15 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
         </>
       )}
       <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
-      <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     readOnly={readOnly} />
-      <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} readOnly={readOnly} />
-      <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  readOnly={readOnly} />
+      <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     score={fieldScores.amount}     readOnly={readOnly} />
+      <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} score={fieldScores.productName} readOnly={readOnly} />
+      <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />
 
       <div>
         <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
           Order Date {!readOnly && <span className="text-neon-red">*</span>}
           {extractionErrors.orderDate && <span className="text-neon-red font-normal ml-2">{extractionErrors.orderDate}</span>}
+          {!extractionErrors.orderDate && <ScoreBadge score={fieldScores.orderDate} />}
         </label>
         <div className="relative">
           <input
@@ -197,6 +217,7 @@ function Field({
   onChange,
   options,
   error,
+  score,
   readOnly,
 }: {
   as?: 'input' | 'select'
@@ -206,6 +227,7 @@ function Field({
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
   options?: { value: string; label: string }[]
   error?: string
+  score?: number
   readOnly?: boolean
 }) {
   const inputClass = "w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
@@ -215,6 +237,7 @@ function Field({
       <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
         {label} {!readOnly && <span className="text-neon-red">*</span>}
         {error && <span className="text-neon-red font-normal ml-2">{error}</span>}
+        {!error && <ScoreBadge score={score} />}
       </label>
       {as === 'select' ? (
         <select

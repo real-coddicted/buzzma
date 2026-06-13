@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.entity;
 
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.Column;
@@ -57,7 +58,7 @@ public class ClaimScreenshot implements Auditable {
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "extracted_details", columnDefinition = "jsonb")
-  private Map<String, String> extractedDetails;
+  private Map<String, ScoredValue> extractedDetails;
 
   @Column(name = "created_by")
   private UUID createdBy;

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +19,6 @@ public class ClaimScreenshotResponseDto {
   ScreenshotType type;
   ScreenshotVerificationStatus verificationStatus;
   Double score;
-  Map<String, String> extractedDetails;
+  Map<String, ScoredValue> extractedDetails;
   Instant createdAt;
 }

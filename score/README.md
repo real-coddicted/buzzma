@@ -4,16 +4,22 @@ Scoring service for fuzzy text similarity matching.
 
 ## Setup
 
+Install [uv](https://docs.astral.sh/uv/) if you don't have it:
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then install dependencies from the lockfile:
+
+```bash
+uv sync
 ```
 
 ## Run
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8082 --reload
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8082 --reload
 ```
 
 API docs available at `http://localhost:8082/docs`.
@@ -52,5 +58,5 @@ curl -X POST http://localhost:8082/api/v1/score \
 ## Tests
 
 ```bash
-pytest tests/
+uv run pytest tests/
 ```

@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.service;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,7 +17,8 @@ public interface ClaimService {
       byte[] screenshot,
       String screenshotFilename,
       String contentType,
-      Map<String, String> extractedDetails);
+      Map<String, ScoredValue> extractedDetails,
+      Double overallScore);
 
   ClaimWithDeal submitReview(
       UUID claimId,

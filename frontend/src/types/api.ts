@@ -1081,6 +1081,16 @@ export interface components {
             amount?: number;
             orderedBy?: string;
             validationErrors?: components["schemas"]["ValidationError"][];
+            extractedResult?: {
+                [key: string]: components["schemas"]["ScoredValue"];
+            };
+            /** Format: double */
+            overallScore?: number;
+        };
+        ScoredValue: {
+            extractedValue?: string;
+            /** Format: double */
+            score?: number;
         };
         ValidationError: {
             field?: string;
@@ -1126,8 +1136,10 @@ export interface components {
             /** Format: binary */
             screenshot: string;
             extractedDetails: {
-                [key: string]: string;
+                [key: string]: components["schemas"]["ScoredValue"];
             };
+            /** Format: double */
+            overallScore?: number;
         };
         ClaimResponseDto: {
             /** Format: uuid */
@@ -1169,7 +1181,7 @@ export interface components {
             /** Format: double */
             score?: number;
             extractedDetails?: {
-                [key: string]: string;
+                [key: string]: components["schemas"]["ScoredValue"];
             };
             /** Format: date-time */
             createdAt?: string;
@@ -1489,6 +1501,8 @@ export interface components {
             totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ClaimReviewResponseDto"][];
@@ -1498,8 +1512,6 @@ export interface components {
             /** Format: int32 */
             numberOfElements?: number;
             pageable?: components["schemas"]["PageableObject"];
-            first?: boolean;
-            last?: boolean;
             empty?: boolean;
         };
         PageableObject: {
@@ -2109,8 +2121,9 @@ export interface operations {
     };
     extractSync: {
         parameters: {
-            query?: {
+            query: {
                 requesterId?: string;
+                campaignId: string;
             };
             header?: never;
             path?: never;

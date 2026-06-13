@@ -73,7 +73,8 @@ public class ClaimController {
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType(),
-            request.getExtractedDetails());
+            request.getExtractedDetails(),
+            request.getOverallScore());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));

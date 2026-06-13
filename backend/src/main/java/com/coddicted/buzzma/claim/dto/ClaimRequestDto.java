@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.dto;
 
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,5 +33,7 @@ public class ClaimRequestDto {
 
   @NotNull final MultipartFile screenshot;
 
-  @NotNull private Map<String, String> extractedDetails;
+  @NotNull private Map<String, ScoredValue> extractedDetails;
+
+  private Double overallScore;
 }

@@ -1,4 +1,5 @@
 import { IconCheck, IconX } from '../icons'
+import { ScoreBadge } from '../../utils/ScoreBadge'
 import type { ExtractedField } from './ClaimProofGallery'
 
 interface ClaimProofExtractedDataProps {
@@ -32,6 +33,7 @@ export function ClaimProofExtractedData({ fields }: ClaimProofExtractedDataProps
             <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
               {field.label}
             </span>
+            <ScoreBadge score={field.score} />
           </div>
           <span className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary text-right break-words min-w-0">
             {field.value}

@@ -5,8 +5,8 @@
   "type": "SCREENSHOT_TYPE_ORDER",
   "verificationStatus": "SCREENSHOT_VERIFICATION_STATUS_PENDING",
   "extractedDetails": {
-    "orderId": "403-1234567-8901234",
-    "productName": "Test Product"
+    "orderId": { "extractedValue": "403-1234567-8901234", "score": null },
+    "productName": { "extractedValue": "Test Product", "score": null }
   },
   "deleted": false
 }

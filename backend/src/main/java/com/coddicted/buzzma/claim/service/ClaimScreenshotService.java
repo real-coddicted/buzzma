@@ -7,7 +7,11 @@ import java.util.UUID;
 public interface ClaimScreenshotService {
 
   ExtractionResult extractSync(
-      byte[] imageBytes, String originalFilename, String contentType, UUID requesterId);
+      byte[] imageBytes,
+      String originalFilename,
+      String contentType,
+      UUID requesterId,
+      UUID campaignId);
 
   void process(ExtractionJob job);
 }

@@ -80,10 +80,11 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           imageUrl: url,
           imageAlt: `Screenshot ${i + 1}`,
           score: s.score,
-          fields: Object.entries(s.extractedDetails ?? {}).map(([key, value]) => ({
+          fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => ({
             label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-            value,
-            matched: true,
+            value: sv.extractedValue ?? '',
+            matched: sv.score != null ? sv.score >= 0.5 : true,
+            score: sv.score,
           })),
         })))
       })

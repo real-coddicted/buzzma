@@ -27,9 +27,14 @@ public class ExtractionController {
   @PostMapping(value = "/sync", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ExtractionResult extractSync(
       @RequestParam(name = "requesterId", required = false) final UUID requesterId,
+      @RequestParam(name = "campaignId") final UUID campaignId,
       @RequestPart("image") final MultipartFile image)
       throws IOException {
     return claimScreenshotService.extractSync(
-        image.getBytes(), image.getOriginalFilename(), image.getContentType(), requesterId);
+        image.getBytes(),
+        image.getOriginalFilename(),
+        image.getContentType(),
+        requesterId,
+        campaignId);
   }
 }

@@ -16,6 +16,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -72,7 +73,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String screenshotFilename,
       final String contentType,
-      final Map<String, String> extractedDetails) {
+      final Map<String, ScoredValue> extractedDetails,
+      final Double overallScore) {
 
     if (this.claimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(
         claim.getOwnerId(), claim.getDealId())) {
@@ -109,7 +111,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         screenshotKey,
         ScreenshotType.SCREENSHOT_TYPE_ORDER,
         saved.getOwnerId(),
-        extractedDetails);
+        extractedDetails,
+        overallScore);
 
     return saved;
   }
@@ -249,7 +252,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   private ClaimScreenshot saveScreenshot(
       final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
-    return saveScreenshot(claimId, storageKey, type, actorId, null);
+    return saveScreenshot(claimId, storageKey, type, actorId, null, null);
   }
 
   private ClaimScreenshot saveScreenshot(
@@ -257,7 +260,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String storageKey,
       final ScreenshotType type,
       final UUID actorId,
-      final Map<String, String> extractedDetails) {
+      final Map<String, ScoredValue> extractedDetails,
+      final Double score) {
     return this.claimScreenshotRepository.save(
         ClaimScreenshot.builder()
             .claimId(claimId)
@@ -265,6 +269,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .type(type)
             .verificationStatus(ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
             .extractedDetails(extractedDetails)
+            .score(score)
             .isDeleted(false)
             .createdBy(actorId)
             .updatedBy(actorId)

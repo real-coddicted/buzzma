@@ -1,5 +1,5 @@
 import type { components } from '../types/api'
-import type { ClaimReviewItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
+import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
 import { fetchWithAuth, getAccessToken, clearSession } from './client'
 import { rupeesToPaise } from '../utils/currency'
 
@@ -71,7 +71,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
       storageKey: s.storageKey ?? '',
       type: s.type ?? '',
       score: s.score,
-      extractedDetails: s.extractedDetails,
+      extractedDetails: s.extractedDetails as ClaimScreenshotItem['extractedDetails'],
     })),
   }
 }
@@ -125,6 +125,8 @@ export async function fetchClaimsToReview(page = 0, size = 50): Promise<ClaimRev
   return (data.content ?? []).map(mapClaimReview)
 }
 
+type ScoredValue = components['schemas']['ScoredValue']
+
 export interface SubmitClaimParams {
   campaignId: string
   dealId: string
@@ -136,7 +138,8 @@ export interface SubmitClaimParams {
   orderDate: string   // YYYY-MM-DD from date picker
   accountName: string
   screenshot: File
-  extractedDetails: Record<string, string>
+  extractedDetails: Record<string, ScoredValue>
+  overallScore?: number | null
 }
 
 export async function submitReturn(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
@@ -240,8 +243,11 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   formData.append('orderDate', params.orderDate.replace(/-/g, ''))
   formData.append('accountName', params.accountName)
   formData.append('screenshot', params.screenshot)
-  for (const [key, value] of Object.entries(params.extractedDetails)) {
-    formData.append(`extractedDetails[${key}]`, value)
+  for (const [key, sv] of Object.entries(params.extractedDetails)) {
+    formData.append(`extractedDetails[${key}]`, JSON.stringify(sv))
+  }
+  if (params.overallScore != null) {
+    formData.append('overallScore', String(params.overallScore))
   }
 
   const token = getAccessToken()

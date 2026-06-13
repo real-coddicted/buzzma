@@ -2,8 +2,8 @@ package com.coddicted.buzzma.extraction.entity;
 
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -19,5 +19,7 @@ public class ExtractionResult {
   String sellerName;
   BigDecimal amount;
   String orderedBy;
-  List<ValidationError> validationErrors = new ArrayList<>();
+  List<ValidationError> validationErrors;
+  Map<String, ScoredValue> extractedResult;
+  Double overallScore;
 }

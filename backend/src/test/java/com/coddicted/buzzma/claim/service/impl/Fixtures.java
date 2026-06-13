@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.Map;
 import java.util.UUID;
@@ -23,8 +24,11 @@ final class Fixtures {
   static final String CONTENT_TYPE = "image/jpeg";
   static final String REVIEW_URL = "https://example.com/review";
   static final byte[] SCREENSHOT_BYTES = {1, 2, 3};
-  static final Map<String, String> EXTRACTED_DETAILS =
-      Map.of("orderId", "403-1234567-8901234", "productName", "Test Product");
+  static final Map<String, ScoredValue> EXTRACTED_DETAILS =
+      Map.of(
+          "orderId",
+              ScoredValue.builder().extractedValue("403-1234567-8901234").score(null).build(),
+          "productName", ScoredValue.builder().extractedValue("Test Product").score(null).build());
 
   static final Claim CLAIM_1 =
       FileUtils.loadResourceAsObject("/fixtures/input/claim/claim-1.json", Claim.class);

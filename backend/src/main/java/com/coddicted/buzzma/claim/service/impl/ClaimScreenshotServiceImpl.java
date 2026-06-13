@@ -1,5 +1,7 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
@@ -8,6 +10,7 @@ import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.RatingExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ReturnExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ReviewExtractionResult;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.entity.ValidationError;
 import com.coddicted.buzzma.extraction.service.ExtractionResultValidator;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
@@ -15,8 +18,16 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.gemini.GeminiClient;
 import com.coddicted.buzzma.shared.gemini.GeminiException;
+import com.coddicted.buzzma.shared.score.PayloadItem;
+import com.coddicted.buzzma.shared.score.ScoreApiClient;
+import com.coddicted.buzzma.shared.score.ScoreRequestDto;
+import com.coddicted.buzzma.shared.score.ScoreResponseDto;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +49,8 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   private final ExtractionResultValidator validator;
   private final StorageService storageService;
   private final ObjectMapper objectMapper;
+  private final CampaignService campaignService;
+  private final ScoreApiClient scoreApiClient;
 
   public ClaimScreenshotServiceImpl(
       final ClaimScreenshotRepository screenshotRepository,
@@ -45,13 +58,17 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       final GeminiExtractionPromptBuilder promptBuilder,
       final ExtractionResultValidator validator,
       final StorageService storageService,
-      final ObjectMapper objectMapper) {
+      final ObjectMapper objectMapper,
+      final CampaignService campaignService,
+      final ScoreApiClient scoreApiClient) {
     this.screenshotRepository = screenshotRepository;
     this.geminiClient = geminiClient;
     this.promptBuilder = promptBuilder;
     this.validator = validator;
     this.storageService = storageService;
     this.objectMapper = objectMapper;
+    this.campaignService = campaignService;
+    this.scoreApiClient = scoreApiClient;
   }
 
   @Override
@@ -60,29 +77,43 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       final byte[] imageBytes,
       final String originalFilename,
       final String contentType,
-      final UUID requesterId) {
-    LOGGER.debug("extractSync: starting for requester {}", requesterId);
+      final UUID requesterId,
+      final UUID campaignId) {
+    LOGGER.debug("extractSync: starting for requester {}, campaign {}", requesterId, campaignId);
 
-    final ExtractionResult result;
+    final ExtractionResult raw;
     try {
-      result = callGemini(imageBytes, contentType);
+      raw = callGemini(imageBytes, contentType);
     } catch (final GeminiException e) {
       LOGGER.warn(
           "extractSync: Gemini call failed for requester {}: {}", requesterId, e.getMessage());
       throw new BusinessRuleViolationException("Extraction failed: " + e.getMessage());
     }
 
-    final List<ValidationError> errors = this.validator.validate(result);
+    final List<ValidationError> errors = this.validator.validate(raw);
     if (!errors.isEmpty()) {
       final String errorSummary =
           errors.stream()
               .map(ve -> ve.getField() + ": " + ve.getMessage())
               .collect(Collectors.joining("; "));
       LOGGER.warn("extractSync: validation failed for requester {}: {}", requesterId, errorSummary);
-      result.getValidationErrors().addAll(errors);
     }
 
-    return result;
+    final Campaign campaign = this.campaignService.getById(campaignId);
+    final ScoringResult scoring = scoreFields(raw, campaign);
+
+    return ExtractionResult.builder()
+        .platform(raw.getPlatform())
+        .orderId(raw.getOrderId())
+        .orderDate(raw.getOrderDate())
+        .productName(raw.getProductName())
+        .sellerName(raw.getSellerName())
+        .amount(raw.getAmount())
+        .orderedBy(raw.getOrderedBy())
+        .validationErrors(errors)
+        .extractedResult(scoring.extractedResult())
+        .overallScore(scoring.overallScore())
+        .build();
   }
 
   @Override
@@ -104,6 +135,122 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
               screenshot.getType(),
               job.getId());
     }
+  }
+
+  private ScoringResult scoreFields(final ExtractionResult result, final Campaign campaign) {
+    final Map<String, ScoredValue> map = new HashMap<>();
+
+    // Local match: orderDate
+    final double orderDateScore = scoreOrderDate(result.getOrderDate(), campaign);
+    map.put(
+        "orderDate",
+        ScoredValue.builder().extractedValue(result.getOrderDate()).score(orderDateScore).build());
+
+    // Local match: amount
+    final double amountScore = scoreAmount(result.getAmount(), campaign);
+    map.put(
+        "amount",
+        ScoredValue.builder()
+            .extractedValue(result.getAmount() != null ? result.getAmount().toPlainString() : null)
+            .score(amountScore)
+            .build());
+
+    // Unscored fields
+    map.put(
+        "orderId", ScoredValue.builder().extractedValue(result.getOrderId()).score(null).build());
+    map.put(
+        "orderedBy",
+        ScoredValue.builder().extractedValue(result.getOrderedBy()).score(null).build());
+
+    // Score API: platform, productName, sellerName
+    final String platformValue = result.getPlatform() != null ? result.getPlatform().name() : null;
+    final ScoreRequestDto request =
+        ScoreRequestDto.builder()
+            .key("orderData")
+            .payload(
+                List.of(
+                    PayloadItem.builder()
+                        .label("platformName")
+                        .expected(
+                            campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
+                        .actual(platformValue != null ? platformValue : "")
+                        .build(),
+                    PayloadItem.builder()
+                        .label("productName")
+                        .expected(campaign.getProduct().getName())
+                        .actual(result.getProductName() != null ? result.getProductName() : "")
+                        .build(),
+                    PayloadItem.builder()
+                        .label("sellerName")
+                        .expected(campaign.getSellerName() != null ? campaign.getSellerName() : "")
+                        .actual(result.getSellerName() != null ? result.getSellerName() : "")
+                        .build()))
+            .build();
+
+    final List<ScoreResponseDto> scoreResponses = this.scoreApiClient.score(List.of(request));
+    final ScoreResponseDto orderDataResponse =
+        scoreResponses.stream()
+            .filter(r -> "orderData".equals(r.getKey()))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException("Score API returned no result for key 'orderData'"));
+
+    final Map<String, Double> labelScores =
+        orderDataResponse.getScores().stream()
+            .collect(Collectors.toMap(ls -> ls.getLabel(), ls -> ls.getScore()));
+
+    map.put(
+        "platform",
+        ScoredValue.builder()
+            .extractedValue(platformValue)
+            .score(labelScores.get("platformName"))
+            .build());
+    map.put(
+        "productName",
+        ScoredValue.builder()
+            .extractedValue(result.getProductName())
+            .score(labelScores.get("productName"))
+            .build());
+    map.put(
+        "sellerName",
+        ScoredValue.builder()
+            .extractedValue(result.getSellerName())
+            .score(labelScores.get("sellerName"))
+            .build());
+
+    return new ScoringResult(map, orderDataResponse.getOverallScore());
+  }
+
+  private double scoreOrderDate(final String orderDate, final Campaign campaign) {
+    if (orderDate == null || campaign.getStartDate() == null) {
+      return 0.0;
+    }
+    final int dateInt;
+    try {
+      final LocalDate date = LocalDate.parse(orderDate);
+      dateInt = date.getYear() * 10000 + date.getMonthValue() * 100 + date.getDayOfMonth();
+    } catch (final DateTimeParseException e) {
+      LOGGER.warn("scoreOrderDate: could not parse orderDate '{}': {}", orderDate, e.getMessage());
+      return 0.0;
+    }
+    if (dateInt < campaign.getStartDate()) {
+      return 0.0;
+    }
+    if (campaign.getEndDate() != null && dateInt > campaign.getEndDate()) {
+      return 0.0;
+    }
+    return 1.0;
+  }
+
+  private double scoreAmount(final BigDecimal amount, final Campaign campaign) {
+    if (amount == null
+        || campaign.getProduct() == null
+        || campaign.getProduct().getPricePaise() == null) {
+      return 0.0;
+    }
+    final BigInteger amountPaise = amount.multiply(BigDecimal.valueOf(100)).toBigInteger();
+    return amountPaise.compareTo(campaign.getProduct().getPricePaise()) >= 0 ? 1.0 : 0.0;
   }
 
   private void processRatingScreenshot(final ExtractionJob job, final ClaimScreenshot screenshot) {
@@ -136,11 +283,20 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getAccountName(),
         screenshot.getId());
 
-    final Map<String, String> details = new HashMap<>();
-    details.put("productName", extracted.getProductName());
-    details.put("accountName", extracted.getAccountName());
+    final Map<String, ScoredValue> details = new HashMap<>();
     details.put(
-        "rating", extracted.getRating() != null ? String.valueOf(extracted.getRating()) : null);
+        "productName",
+        ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
+    details.put(
+        "accountName",
+        ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
+    details.put(
+        "rating",
+        ScoredValue.builder()
+            .extractedValue(
+                extracted.getRating() != null ? String.valueOf(extracted.getRating()) : null)
+            .score(null)
+            .build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
@@ -179,11 +335,19 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getReviewDate(),
         screenshot.getId());
 
-    final Map<String, String> details = new HashMap<>();
-    details.put("productName", extracted.getProductName());
-    details.put("reviewText", extracted.getReviewText());
-    details.put("accountName", extracted.getAccountName());
-    details.put("reviewDate", extracted.getReviewDate());
+    final Map<String, ScoredValue> details = new HashMap<>();
+    details.put(
+        "productName",
+        ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
+    details.put(
+        "reviewText",
+        ScoredValue.builder().extractedValue(extracted.getReviewText()).score(null).build());
+    details.put(
+        "accountName",
+        ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
+    details.put(
+        "reviewDate",
+        ScoredValue.builder().extractedValue(extracted.getReviewDate()).score(null).build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
@@ -222,11 +386,25 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getReturnWindowClosedDate(),
         screenshot.getId());
 
-    final Map<String, String> details = new HashMap<>();
-    details.put("productName", extracted.getProductName());
-    details.put("accountName", extracted.getAccountName());
-    details.put("returnWindowClosedText", extracted.getReturnWindowClosedText());
-    details.put("returnWindowClosedDate", extracted.getReturnWindowClosedDate());
+    final Map<String, ScoredValue> details = new HashMap<>();
+    details.put(
+        "productName",
+        ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
+    details.put(
+        "accountName",
+        ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
+    details.put(
+        "returnWindowClosedText",
+        ScoredValue.builder()
+            .extractedValue(extracted.getReturnWindowClosedText())
+            .score(null)
+            .build());
+    details.put(
+        "returnWindowClosedDate",
+        ScoredValue.builder()
+            .extractedValue(extracted.getReturnWindowClosedDate())
+            .score(null)
+            .build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
@@ -275,4 +453,6 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
     return "image/jpeg";
   }
+
+  private record ScoringResult(Map<String, ScoredValue> extractedResult, double overallScore) {}
 }
