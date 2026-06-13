@@ -20,6 +20,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
+import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -49,6 +50,7 @@ class ClaimServiceImplTest {
 
   @Mock private ClaimRepository mockClaimRepository;
   @Mock private ClaimScreenshotRepository mockClaimScreenshotRepository;
+  @Mock private CampaignService mockCampaignService;
   @Mock private DealService mockDealService;
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignTypeStepService mockCampaignTypeStepService;
@@ -62,6 +64,7 @@ class ClaimServiceImplTest {
         new ClaimServiceImpl(
             this.mockClaimRepository,
             this.mockClaimScreenshotRepository,
+            this.mockCampaignService,
             this.mockDealService,
             this.mockCampaignSlotRepository,
             this.mockCampaignTypeStepService,
@@ -126,7 +129,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitRating() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -159,7 +162,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitRatingWhenWrongStep() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -176,8 +179,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitRatingWhenNotFound() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
-        .thenReturn(Optional.empty());
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -190,7 +192,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReview() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -224,7 +226,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReviewWhenWrongStep() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -246,8 +248,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReviewWhenNotFound() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
-        .thenReturn(Optional.empty());
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -286,7 +287,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReturn() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_3));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -319,7 +320,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReturnWhenWrongStep() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     final var steps = stepConfig();
@@ -336,8 +337,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testSubmitReturnWhenNotFound() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
-        .thenReturn(Optional.empty());
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(
@@ -366,7 +366,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testGetById() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
 
     final Claim result = this.claimService.getById(CLAIM_ID, OWNER_ID);
@@ -376,8 +376,7 @@ class ClaimServiceImplTest {
 
   @Test
   void testGetByIdWhenNotFound() {
-    when(this.mockClaimRepository.findByIdAndOwnerIdAndIsDeletedFalse(CLAIM_ID, OWNER_ID))
-        .thenReturn(Optional.empty());
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.claimService.getById(CLAIM_ID, OWNER_ID));

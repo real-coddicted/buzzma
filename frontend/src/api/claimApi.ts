@@ -65,6 +65,13 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     reviewUrl: dto.reviewUrl ?? undefined,
     currentStep: dto.currentStep ?? undefined,
     reviewerComments: dto.reviewerComments ?? undefined,
+    screenshots: (dto.screenshots ?? []).map(s => ({
+      id: s.id ?? '',
+      storageKey: s.storageKey ?? '',
+      type: s.type ?? '',
+      score: s.score,
+      extractedDetails: s.extractedDetails,
+    })),
   }
 }
 
@@ -102,6 +109,13 @@ export async function fetchClaimById(id: string): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/${id}`)
   const data = (await res.json()) as ClaimResponseDto
   return mapClaim(data)
+}
+
+export async function fetchScreenshotUrl(storageKey: string): Promise<string> {
+  const res = await fetchWithAuth(`${API_BASE}/files?key=${encodeURIComponent(storageKey)}`)
+  if (!res.ok) throw new Error('Failed to fetch screenshot')
+  const blob = await res.blob()
+  return URL.createObjectURL(blob)
 }
 
 export async function fetchClaimsToReview(page = 0, size = 50): Promise<ClaimReviewItem[]> {

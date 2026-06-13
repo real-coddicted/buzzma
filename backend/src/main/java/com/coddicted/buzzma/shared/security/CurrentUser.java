@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 /**
  * Injects the authenticated user' into a controller method parameter.
  *
- * <p>Works in conjunction with {@link com.coddicted.buzzma.identity.security.BuzzmaUserDetails}:
+ * <p>Works in conjunction with {@link com.coddicted.buzzma.identity.entity.BuzzmaUser},
  *
  * <p>Use {@code @AuthenticationPrincipal(expression = "user")} internally via this meta-annotation.
  */
