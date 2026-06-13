@@ -42,22 +42,12 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/api/v1/auth/**",
                         "/api/health/**",
-                        "/api/v1/security-questions",
-                        "/api/media/**",
-                        // Todo: added only for testing, should be removed later
-                        "/api/v1/files/**",
-                        "/api/notifications/push/public-key",
-                        "/api/v1/extraction/sync",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        // Todo: added only for testing, should be removed later
-                        "/h2-console/**")
+                        "/v3/api-docs/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        // Todo: needs to removed, only for development
-        .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
         .exceptionHandling(
             ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
