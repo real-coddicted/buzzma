@@ -20,9 +20,11 @@ export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
       }}
     >
       <span
-        className="absolute top-0.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 shadow-md"
+        className="absolute w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 shadow-md"
         style={{
-          left: theme === 'dark' ? 'calc(100% - 26px)' : '2px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          left: theme === 'dark' ? 'calc(100% - 25px)' : '2px',
           background: theme === 'dark'
             ? 'linear-gradient(135deg, #bd93f9 0%, #57c7ff 100%)'
             : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
