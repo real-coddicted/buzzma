@@ -1,0 +1,24 @@
+name: Restrict PR Source Branch
+
+on:
+  pull_request:
+    branches:
+      - main  # Triggers only for PRs targeting the main branch
+
+jobs:
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if source branch is allowed
+        run: |
+          ALLOWED_BRANCH="develop"
+          SOURCE_BRANCH="${{ gitea.head_ref }}"
+          
+          echo "Target branch: main"
+          echo "Source branch: $SOURCE_BRANCH"
+          
+          if [ "$SOURCE_BRANCH" != "$ALLOWED_BRANCH" ]; then
+            echo "ERROR: Merges to 'main' are only allowed from '$ALLOWED_BRANCH'."
+            exit 1
+          fi
+          echo "Success: Source branch is valid."
