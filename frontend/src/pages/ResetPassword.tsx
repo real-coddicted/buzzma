@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../components/ui/Button'
+import { APP_NAME } from '../constants/app'
 import type { ResetPasswordForm } from '../types/ForgotPasswordTypes'
 
 interface ResetPasswordProps {
@@ -91,7 +92,7 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <span className="text-2xl font-bold text-neon-blue tracking-tight">Buzzma</span>
+          <span className="text-2xl font-bold text-neon-blue tracking-tight">{APP_NAME}</span>
           <p className="mt-1 text-sm text-ink-light-muted dark:text-ink-dark-muted">
             Set a new password
           </p>

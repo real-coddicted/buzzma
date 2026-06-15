@@ -1,4 +1,5 @@
 import type { Deal } from '../../../types/DealTypes'
+import { APP_NAME } from '../../../constants/app'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
@@ -95,7 +96,7 @@ export function DealInfo({ deal }: DealInfoProps) {
                   'Order ID must be submitted within 48 hours of purchase.',
                   'Refunded, cancelled, or returned orders are not eligible for deal claims.',
                   'Screenshot of the order confirmation may be required for verification.',
-                  'Buzzma reserves the right to reject claims that do not meet the stated criteria.',
+                  `${APP_NAME} reserves the right to reject claims that do not meet the stated criteria.`,
                   'Cashback or commission, if applicable, will be credited within 7–14 business days post verification.',
                 ]
             ).map((term, i) => (

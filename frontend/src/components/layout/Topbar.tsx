@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconChevronRight, IconChevronLeft, IconMenu } from '../ui/icons'
 import type { Theme, NavPage, Notification } from '../../types'
@@ -9,7 +10,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   connections:  { title: 'Connections',  subtitle: 'Manage your brand and agency connections' },
   assignments:  { title: 'Assignments',  subtitle: 'View and manage your assignments' },
   deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
-  feedback:        { title: 'Feedback',         subtitle: 'Share your thoughts on Buzzma' },
+  feedback:        { title: 'Feedback',         subtitle: `Share your thoughts on ${APP_NAME}` },
   profile:         { title: 'Profile',          subtitle: 'Your profile details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },
   'my-tickets':   { title: 'My Tickets',     subtitle: 'Track the status of your support tickets' },
@@ -55,7 +56,7 @@ export function Topbar({ theme, onToggleTheme, activePage, canGoBack, onNavigate
             <IconChevronLeft size={14} />
           </button>
         )}
-        <span className="hidden sm:inline">Buzzma</span>
+        <span className="hidden sm:inline">{APP_NAME}</span>
         <IconChevronRight size={12} className="hidden sm:inline" />
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">{title}</span>
       </div>

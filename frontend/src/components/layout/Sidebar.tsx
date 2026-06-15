@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { APP_NAME } from '../../constants/app'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconProfile, IconX } from '../ui/icons'
@@ -35,7 +36,7 @@ function Logo() {
         B
       </div>
       <span className="text-base font-bold tracking-tight text-ink-light-primary dark:text-ink-dark-primary">
-        Buzzma
+        {APP_NAME}
       </span>
     </div>
   )

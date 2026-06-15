@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { APP_NAME } from '../constants/app'
 import { FeedbackForm } from '../components/ui/feedback/FeedbackForm'
 import { getCurrentUser } from '../api/client'
 
@@ -15,7 +16,7 @@ export function Feedback() {
           Portal Feedback
         </h1>
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          Help us improve Buzzma — your feedback goes directly to the product team.
+          Help us improve {APP_NAME} — your feedback goes directly to the product team.
         </p>
       </div>
 

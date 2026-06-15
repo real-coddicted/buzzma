@@ -1,4 +1,5 @@
 import { Button } from '../Button'
+import { APP_NAME } from '../../../constants/app'
 import { IconCheck } from '../icons'
 
 interface FeedbackSuccessStateProps {
@@ -15,7 +16,7 @@ export function FeedbackSuccessState({ onReset }: FeedbackSuccessStateProps) {
         Thanks for your feedback!
       </h2>
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">
-        Your response has been recorded. We read every submission and use it to improve Buzzma.
+        Your response has been recorded. We read every submission and use it to improve {APP_NAME}.
       </p>
       <Button variant="secondary" size="sm" onClick={onReset}>
         Submit another response

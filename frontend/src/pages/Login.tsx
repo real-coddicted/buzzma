@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { APP_NAME } from '../constants/app'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
@@ -91,7 +92,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <span className="text-3xl font-bold text-neon-blue tracking-tight">Buzzma</span>
+            <span className="text-3xl font-bold text-neon-blue tracking-tight">{APP_NAME}</span>
           </div>
           <p className="text-sm text-ink-dark-muted">Sign in to your account</p>
         </div>
