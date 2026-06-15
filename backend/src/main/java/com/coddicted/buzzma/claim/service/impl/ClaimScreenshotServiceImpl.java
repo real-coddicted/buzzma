@@ -100,7 +100,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
 
     final Campaign campaign = this.campaignService.getById(campaignId);
-    final ScoringResult scoring = scoreFields(raw, campaign);
+    final ExtractedScoredResult scoring = scoreFields(raw, campaign);
 
     return ExtractionResult.builder()
         .platform(raw.getPlatform())
@@ -137,7 +137,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
   }
 
-  private ScoringResult scoreFields(final ExtractionResult result, final Campaign campaign) {
+  private ExtractedScoredResult scoreFields(final ExtractionResult result, final Campaign campaign) {
     final Map<String, ScoredValue> map = new HashMap<>();
 
     // Local match: orderDate
@@ -219,7 +219,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .score(labelScores.get("sellerName"))
             .build());
 
-    return new ScoringResult(map, orderDataResponse.getOverallScore());
+    return new ExtractedScoredResult(map, orderDataResponse.getOverallScore());
   }
 
   private double scoreOrderDate(final String orderDate, final Campaign campaign) {
@@ -454,5 +454,5 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     return "image/jpeg";
   }
 
-  private record ScoringResult(Map<String, ScoredValue> extractedResult, double overallScore) {}
+  private record ExtractedScoredResult(Map<String, ScoredValue> extractedResult, double overallScore) {}
 }
