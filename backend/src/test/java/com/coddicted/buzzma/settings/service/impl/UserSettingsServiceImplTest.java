@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.persistence.UserSettingsRepository;
@@ -22,11 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserSettingsServiceImplTest {
 
   @Mock private UserSettingsRepository mockUserSettingsRepository;
+  @Mock private UserService mockUserService;
   private UserSettingsServiceImpl userSettingsService;
 
   @BeforeEach
   void setUp() {
-    this.userSettingsService = new UserSettingsServiceImpl(this.mockUserSettingsRepository);
+    this.userSettingsService =
+        new UserSettingsServiceImpl(this.mockUserSettingsRepository, this.mockUserService);
   }
 
   @Test

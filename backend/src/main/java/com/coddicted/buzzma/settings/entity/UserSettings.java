@@ -8,6 +8,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,10 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "user_settings")
+@Table(
+    name = "user_settings",
+    uniqueConstraints =
+        @UniqueConstraint(name = "uq_user_settings_user_id", columnNames = "user_id"))
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter

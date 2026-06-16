@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.settings.service.impl;
 
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.persistence.UserSettingsRepository;
@@ -20,9 +22,12 @@ public class UserSettingsServiceImpl extends BaseCrudService implements UserSett
   private static final Logger LOGGER = LoggerFactory.getLogger(UserSettingsServiceImpl.class);
 
   private final UserSettingsRepository userSettingsRepository;
+  private final UserService userService;
 
-  public UserSettingsServiceImpl(final UserSettingsRepository userSettingsRepository) {
+  public UserSettingsServiceImpl(
+      final UserSettingsRepository userSettingsRepository, final UserService userService) {
     this.userSettingsRepository = userSettingsRepository;
+    this.userService = userService;
   }
 
   @Override
@@ -62,6 +67,27 @@ public class UserSettingsServiceImpl extends BaseCrudService implements UserSett
     final UserSettings updated =
         existing.toBuilder().settings(userSettings.getSettings()).updatedBy(requesterId).build();
     return this.userSettingsRepository.save(updated);
+  }
+
+  @Override
+  @Transactional
+  public UserSettings setToDefault(final UUID userId, final UUID requesterId) {
+    final BuzzmaUser user = this.userService.getById(userId);
+    final Settings defaultSettings = getDefaultSettingsByUserRole(user.getRole()).getSettings();
+    return this.userSettingsRepository
+        .findByUserIdAndIsDeletedFalse(userId)
+        .map(
+            existing -> {
+              final UserSettings updated =
+                  existing.toBuilder().settings(defaultSettings).updatedBy(requesterId).build();
+              return this.userSettingsRepository.save(updated);
+            })
+        .orElseGet(
+            () -> {
+              final UserSettings toCreate =
+                  UserSettings.builder().userId(userId).settings(defaultSettings).build();
+              return create(toCreate, requesterId);
+            });
   }
 
   @Override

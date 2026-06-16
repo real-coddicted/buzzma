@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,6 +47,14 @@ public class UserSettingsController {
     final UserSettings userSettings = this.userSettingsMapper.toEntity(request);
     final UserSettings created = this.userSettingsService.create(userSettings, requesterId);
     return this.userSettingsMapper.toUserSettingsDto(created);
+  }
+
+  @PostMapping("/setToDefault")
+  // TODO add pre-auth check for admin role
+  public UserSettingsDto addDefault(
+      @CurrentUserId final UUID requesterId, @RequestParam final UUID userId) {
+    final UserSettings userSettings = this.userSettingsService.setToDefault(userId, requesterId);
+    return this.userSettingsMapper.toUserSettingsDto(userSettings);
   }
 
   @PutMapping("/{userId}")

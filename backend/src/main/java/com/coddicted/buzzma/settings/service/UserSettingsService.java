@@ -14,4 +14,6 @@ public interface UserSettingsService {
   UserSettings update(UserSettings userSettings, UUID requesterId);
 
   void delete(UUID userId, UUID requesterId);
+
+  UserSettings setToDefault(UUID userId, UUID requesterId);
 }
