@@ -27,3 +27,9 @@ spring:
 app:
   turnstile:
     enabled: ${TURNSTILE_ENABLED:false}
+  seed:
+    initial-user: true
+
+logging:
+  level:
+    com.coddicted.buzzma.shared.web.com.coddicted.buzzma.config.RequestLoggingFilter: DEBUG
