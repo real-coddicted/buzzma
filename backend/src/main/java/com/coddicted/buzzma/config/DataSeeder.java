@@ -1,15 +1,12 @@
 package com.coddicted.buzzma.config;
 
-import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
-import com.coddicted.buzzma.campaign.entity.CampaignSlot;
-import com.coddicted.buzzma.campaign.entity.Product;
-import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.shared.common.PasswordService;
-import com.coddicted.buzzma.shared.util.FileUtils;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +15,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Component
 public class DataSeeder implements ApplicationRunner {
@@ -36,32 +26,41 @@ public class DataSeeder implements ApplicationRunner {
   private final PasswordService passwordService;
   private final JdbcTemplate jdbcTemplate;
   private final boolean seedInitialUser;
+  private final String seedName;
+  private final String seedMobile;
+  private final String seedPassword;
 
   public DataSeeder(
       final PasswordService passwordService,
       final JdbcTemplate jdbcTemplate,
-      @Value("${app.seed.initial-user:false}") final boolean seedInitialUser) {
+      @Value("${app.seed.initial-user:false}") final boolean seedInitialUser,
+      @Value("${app.seed.name}") final String seedName,
+      @Value("${app.seed.mobile}") final String seedMobile,
+      @Value("${app.seed.password}") final String seedPassword) {
     this.passwordService = passwordService;
     this.jdbcTemplate = jdbcTemplate;
     this.seedInitialUser = seedInitialUser;
+    this.seedName = seedName;
+    this.seedMobile = seedMobile;
+    this.seedPassword = seedPassword;
   }
 
   @Override
   @Transactional
   public void run(final ApplicationArguments args) {
     LOGGER.warn("==========================================================");
-    if (!seedInitialUser) {
+    if (!seedInitialUser
+        || StringUtils.isBlank(seedName)
+        || StringUtils.isBlank(seedMobile)
+        || StringUtils.isBlank(seedPassword)) {
       LOGGER.warn("No data seed has been initialised");
       return;
     }
-    seedUser("Test Admin 1", "9000000001", "test1234", UserRole.ROLE_ADMIN, ADMIN_ID);
-
+    seedUser(seedName, seedMobile, seedPassword, UserRole.ROLE_ADMIN, ADMIN_ID);
 
     LOGGER.warn("  Data SEED — test credentials created");
     LOGGER.warn("==========================================================");
   }
-
-
 
   private boolean rowExists(final String table, final UUID id) {
     final Integer count =
@@ -101,5 +100,4 @@ public class DataSeeder implements ApplicationRunner {
         now,
         false);
   }
-
 }

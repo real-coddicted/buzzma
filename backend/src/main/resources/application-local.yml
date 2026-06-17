@@ -16,6 +16,8 @@ spring:
   flyway:
     baseline-on-migrate: false
     baseline-version: 1
+    user: sa
+    password:
   servlet:
     multipart:
       max-file-size: 10MB
@@ -29,6 +31,9 @@ app:
     enabled: ${TURNSTILE_ENABLED:false}
   seed:
     initial-user: true
+    name: Test Admin 1
+    mobile: "9000000001"
+    password: test1234
 
 logging:
   level:
