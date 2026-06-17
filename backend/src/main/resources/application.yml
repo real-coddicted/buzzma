@@ -18,6 +18,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    user: ${FLYWAY_MIGRATOR_USER:}
+    password: ${FLYWAY_MIGRATOR_PASSWORD:}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -66,4 +68,6 @@ app:
 logging:
   level:
     com.coddicted.buzzma.shared.web.com.coddicted.buzzma.config.RequestLoggingFilter: DEBUG
+
+
 

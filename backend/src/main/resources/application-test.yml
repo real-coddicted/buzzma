@@ -1,21 +1,20 @@
 spring:
   datasource:
-    url: jdbc:h2:file:~/buzzmah-db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
     hikari:
       data-source-properties: {}
-  h2:
-    console:
-      enabled: true
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     baseline-on-migrate: false
     baseline-version: 1
+    user: ${FLYWAY_MIGRATOR_USER:}
+    password: ${FLYWAY_MIGRATOR_PASSWORD:}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -26,4 +25,4 @@ spring:
 
 app:
   turnstile:
-    enabled: false
+    enabled: ${TURNSTILE_ENABLED:false}
