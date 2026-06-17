@@ -35,6 +35,9 @@ server:
 app:
   seed:
     initial-user: ${SEED_DATA:false}
+    name: ${SEED_DATA_USER:}
+    mobile: ${SEED_DATA_MOBILE:}
+    password: ${SEED_DATA_PASSWORD:}
   gemini:
     api-key: ${GEMINI_API_KEY:}
     model: ${GEMINI_MODEL:gemini-2.5-flash}
