@@ -28,12 +28,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AuthServiceImpl.class);
 
   private static final Map<UserRole, Set<UserRole>> ALLOWED_ROLES_BY_INVITER =
       Map.of(
@@ -132,6 +136,8 @@ public class AuthServiceImpl implements AuthService {
       this.userSettingsService.create(userSettings, requesterId);
 
       return savedUser;
+    } else {
+      LOG.warn("User {} not eligible to register", user.getUsername());
     }
 
     return null;
@@ -173,7 +179,7 @@ public class AuthServiceImpl implements AuthService {
       final List<SecurityAnswer> securityAnswerList,
       final Invite invite) {
     final boolean validUser = validateUser(user);
-    final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
+    //    final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
     final boolean validInvite =
         invite.getStatus() == InviteStatus.INVITE_STATUS_ACTIVE
             && invite.getUsedCount() < invite.getMaxUseCount();
@@ -181,7 +187,7 @@ public class AuthServiceImpl implements AuthService {
     final boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
     final boolean validPassword = validateUserCredential(userCredential);
     return validUser
-        && validBankingDetails
+        //        && validBankingDetails
         && validSecurityAnswerList
         && validInvite
         && validPassword;

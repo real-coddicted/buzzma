@@ -137,7 +137,8 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
   }
 
-  private ExtractedScoredResult scoreFields(final ExtractionResult result, final Campaign campaign) {
+  private ExtractedScoredResult scoreFields(
+      final ExtractionResult result, final Campaign campaign) {
     final Map<String, ScoredValue> map = new HashMap<>();
 
     // Local match: orderDate
@@ -454,5 +455,6 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     return "image/jpeg";
   }
 
-  private record ExtractedScoredResult(Map<String, ScoredValue> extractedResult, double overallScore) {}
+  private record ExtractedScoredResult(
+      Map<String, ScoredValue> extractedResult, double overallScore) {}
 }

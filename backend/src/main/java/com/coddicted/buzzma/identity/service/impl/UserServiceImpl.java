@@ -8,11 +8,15 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImpl extends BaseCrudService implements UserService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
 
   private final UsersRepository repository;
 
@@ -68,6 +72,10 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
 
   @Override
   public boolean existsByMobile(String mobile) {
-    return this.repository.existsUserByMobileAndIsDeletedFalse(mobile);
+    if (this.repository.existsUserByMobileAndIsDeletedFalse(mobile)) {
+      LOG.info("User with mobile {} already exists", mobile);
+      return true;
+    }
+    return false;
   }
 }
