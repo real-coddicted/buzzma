@@ -1,4 +1,4 @@
-import type { StepperStep } from '../components/ui/Stepper'
+import type { StepperStep, StepVerificationStatus } from '../components/ui/Stepper'
 import type { CampaignStepDto } from '../api/campaignApi'
 
 const FALLBACK_COLORS: Omit<StepperStep, 'label'> = {
@@ -15,4 +15,23 @@ export const STEP_TYPE_COLORS: Record<string, Omit<StepperStep, 'label'>> = {
 
 export function toStepperSteps(steps: CampaignStepDto[]): StepperStep[] {
   return steps.map(s => ({ label: s.label, ...(STEP_TYPE_COLORS[s.type] ?? FALLBACK_COLORS) }))
+}
+
+const SCREENSHOT_TYPE_TO_STEP_TYPE: Record<string, string> = {
+  SCREENSHOT_TYPE_ORDER:   'ORDER',
+  SCREENSHOT_TYPE_RATING:  'RATING',
+  SCREENSHOT_TYPE_REVIEW:  'REVIEW',
+  SCREENSHOT_TYPE_RETURN:  'RETURN_WINDOW',
+}
+
+export function getStepVerificationStatuses(
+  stepTypes: string[],
+  screenshots: { type?: string; verificationStatus?: string }[],
+): Array<StepVerificationStatus | undefined> {
+  return stepTypes.map(stepType => {
+    const match = screenshots.find(s => SCREENSHOT_TYPE_TO_STEP_TYPE[s.type ?? ''] === stepType)
+    if (match?.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED') return 'verified'
+    if (match?.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED') return 'rejected'
+    return undefined
+  })
 }

@@ -1,4 +1,4 @@
-import type { StepperStep } from './Stepper'
+import type { StepperStep, StepVerificationStatus } from './Stepper'
 import { Stepper } from './Stepper'
 
 interface StepperHeaderProps {
@@ -7,10 +7,11 @@ interface StepperHeaderProps {
   currentStep: number
   onClose?: () => void
   onStepClick?: (index: number) => void
+  stepStatuses?: Array<StepVerificationStatus | undefined>
   className?: string
 }
 
-export function StepperHeader({ label, steps, currentStep, onClose, onStepClick, className = '' }: StepperHeaderProps) {
+export function StepperHeader({ label, steps, currentStep, onClose, onStepClick, stepStatuses, className = '' }: StepperHeaderProps) {
   return (
     <div className={className}>
       <div className="flex items-center justify-between mb-1">
@@ -26,7 +27,7 @@ export function StepperHeader({ label, steps, currentStep, onClose, onStepClick,
           </button>
         )}
       </div>
-      <Stepper steps={steps} currentStep={currentStep} onStepClick={onStepClick} />
+      <Stepper steps={steps} currentStep={currentStep} onStepClick={onStepClick} stepStatuses={stepStatuses} />
     </div>
   )
 }

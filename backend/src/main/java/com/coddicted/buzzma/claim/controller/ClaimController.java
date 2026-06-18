@@ -7,6 +7,7 @@ import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
@@ -28,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -130,6 +132,20 @@ public class ClaimController {
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/screenshots/review")
+  // TODO Preauth for Agency role only
+  public ClaimResponseDto reviewScreenshot(
+      @CurrentUserId final UUID reviewerId,
+      @Valid @RequestBody final ScreenshotReviewRequestDto request) {
+    final ClaimWithDeal result =
+        this.claimService.reviewScreenshot(
+            request.getScreenshotId(), request.getClaimId(), request.getAction(), reviewerId);
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

@@ -3,7 +3,7 @@ import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import type { StepperStep } from '../Stepper'
 import { fetchStepConfig } from '../../../api/campaignApi'
-import { toStepperSteps } from '../../../constants/claimSteps'
+import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { IconChevronRight } from '../icons'
 import { StepperHeader } from '../StepperHeader'
 import { DealInfo } from './DealInfo'
@@ -21,12 +21,18 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
   const [activeStep, setActiveStep] = useState(claimResponse?.currentStep ?? deal.currentStep ?? 0)
   const [viewedStep, setViewedStep] = useState(activeStep)
   const [steps, setSteps] = useState<StepperStep[]>([])
+  const [rawStepTypes, setRawStepTypes] = useState<string[]>([])
 
   useEffect(() => {
     fetchStepConfig().then(config => {
-      setSteps(toStepperSteps(config[deal.dealType] ?? []))
+      const cfg = config[deal.dealType] ?? []
+      setSteps(toStepperSteps(cfg))
+      setRawStepTypes(cfg.map(s => s.type))
     })
   }, [deal.dealType])
+
+  const stepStatuses = getStepVerificationStatuses(rawStepTypes, claimResponse?.screenshots ?? [])
+  const viewedStepRejected = stepStatuses[viewedStep] === 'rejected'
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -45,6 +51,7 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
         steps={steps}
         currentStep={activeStep}
         onStepClick={setViewedStep}
+        stepStatuses={stepStatuses}
         className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card px-5 py-4"
       />
 
@@ -54,7 +61,7 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
           key={viewedStep}
           deal={deal}
           initialStep={viewedStep}
-          readOnly={viewedStep < activeStep}
+          readOnly={viewedStep < activeStep && !viewedStepRejected}
           claimResponse={claimResponse}
           onStepChange={step => { setActiveStep(step); setViewedStep(step) }}
         />

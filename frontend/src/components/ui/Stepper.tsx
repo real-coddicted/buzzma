@@ -1,3 +1,7 @@
+import { IconCheck, IconX } from './icons'
+
+export type StepVerificationStatus = 'verified' | 'rejected'
+
 export interface StepperStep {
   label: string
   color: string
@@ -9,15 +13,17 @@ interface StepperProps {
   steps: StepperStep[]
   currentStep: number
   onStepClick?: (index: number) => void
+  stepStatuses?: Array<StepVerificationStatus | undefined>
 }
 
-export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
+export function Stepper({ steps, currentStep, onStepClick, stepStatuses }: StepperProps) {
   return (
     <div className="flex items-center">
       {steps.map((step, i) => {
-        const done    = i < currentStep
-        const active  = i === currentStep
+        const done      = i < currentStep
+        const active    = i === currentStep
         const clickable = !!onStepClick && i <= currentStep
+        const status    = stepStatuses?.[i]
 
         return (
           <div
@@ -29,13 +35,23 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
               className={['flex flex-col items-center gap-1 shrink-0', clickable ? 'cursor-pointer group' : ''].join(' ')}
               onClick={clickable ? () => onStepClick!(i) : undefined}
             >
-              <div className={[
-                'w-3 h-3 rounded-full border-2 transition-colors',
-                done   ? `${step.dotColor} border-transparent` : '',
-                active ? `border-current ${step.color} bg-transparent ring-2 ring-current ring-offset-1 ring-offset-surface-light-card dark:ring-offset-surface-dark-card` : '',
-                !done && !active ? 'bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border' : '',
-                clickable && !active ? 'group-hover:scale-125' : '',
-              ].join(' ')} />
+              {status === 'verified' ? (
+                <div className="rounded-full bg-neon-green p-0.5 flex items-center justify-center">
+                  <IconCheck size={10} className="text-white" />
+                </div>
+              ) : status === 'rejected' ? (
+                <div className="rounded-full bg-neon-red p-0.5 flex items-center justify-center">
+                  <IconX size={10} className="text-white" />
+                </div>
+              ) : (
+                <div className={[
+                  'w-3 h-3 rounded-full border-2 transition-colors',
+                  done   ? `${step.dotColor} border-transparent` : '',
+                  active ? `border-current ${step.color} bg-transparent ring-2 ring-current ring-offset-1 ring-offset-surface-light-card dark:ring-offset-surface-dark-card` : '',
+                  !done && !active ? 'bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border' : '',
+                  clickable && !active ? 'group-hover:scale-125' : '',
+                ].join(' ')} />
+              )}
               <span className={[
                 'text-[9px] font-medium whitespace-nowrap transition-colors',
                 done || active ? step.color : 'text-ink-light-muted dark:text-ink-dark-muted',

@@ -250,6 +250,37 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return this.claimRepository.findByCampaignIdInAndIsDeletedFalse(campaignIdList, pageable);
   }
 
+  @Override
+  @Transactional
+  public ClaimWithDeal reviewScreenshot(
+      final UUID screenshotId,
+      final UUID claimId,
+      final ScreenshotVerificationStatus action,
+      final UUID reviewerId) {
+
+    Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
+
+    final ClaimScreenshot screenshot =
+        this.claimScreenshotRepository
+            .findById(screenshotId)
+            .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
+
+    if (!claimId.equals(screenshot.getClaimId())) {
+      throw new NotFoundException("Screenshot not found: " + screenshotId);
+    }
+
+    this.claimScreenshotRepository.save(
+        screenshot.toBuilder().verificationStatus(action).updatedBy(reviewerId).build());
+
+    if (action == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED) {
+      claim =
+          this.claimRepository.save(
+              claim.toBuilder().status(ClaimStatus.PROOF_REJECTED).updatedBy(reviewerId).build());
+    }
+
+    return new ClaimWithDeal(claim, this.dealService.getById(claim.getDealId()));
+  }
+
   private ClaimScreenshot saveScreenshot(
       final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
     return saveScreenshot(claimId, storageKey, type, actorId, null, null);

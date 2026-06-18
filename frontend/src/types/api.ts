@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user-settings/setToDefault": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["addDefault"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets": {
         parameters: {
             query?: never;
@@ -382,6 +398,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["submitRating"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/screenshots/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reviewScreenshot"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1146,7 +1178,7 @@ export interface components {
             id?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -1177,7 +1209,7 @@ export interface components {
             /** @enum {string} */
             type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
             /** @enum {string} */
-            verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_FAILED";
+            verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
             /** Format: double */
             score?: number;
             extractedDetails?: {
@@ -1206,6 +1238,14 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+        };
+        ScreenshotReviewRequestDto: {
+            /** Format: uuid */
+            screenshotId: string;
+            /** Format: uuid */
+            claimId: string;
+            /** @enum {string} */
+            action: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
@@ -1803,6 +1843,28 @@ export interface operations {
             };
         };
     };
+    addDefault: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSettingsDto"];
+                };
+            };
+        };
+    };
     create_1: {
         parameters: {
             query?: never;
@@ -2336,6 +2398,30 @@ export interface operations {
                     /** Format: binary */
                     screenshot: string;
                 };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    reviewScreenshot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScreenshotReviewRequestDto"];
             };
         };
         responses: {

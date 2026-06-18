@@ -3,12 +3,14 @@ import { IconChevronRight } from '../components/ui/icons'
 import { ClaimDetailsTabs, type ClaimDetailsTab } from '../components/ui/claim-review/ClaimDetailsTabs'
 import { ClaimInfo } from '../components/ui/claim-review/ClaimInfo'
 import { ClaimProofGallery, type ClaimProofItem } from '../components/ui/claim-review/ClaimProofGallery'
+import { ClaimProofActions } from '../components/ui/claim-review/ClaimProofActions'
 import { DealInfo } from '../components/ui/deal/DealInfo'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
 import { fetchCampaignById } from '../api/campaignApi'
-import { fetchClaimById, fetchScreenshotUrl } from '../api/claimApi'
+import { fetchClaimById, fetchScreenshotUrl, reviewScreenshot } from '../api/claimApi'
 import { campaignToDeal } from '../api/dealApi'
+import { getCurrentUser } from '../api/client'
 import type { ClaimReviewItem, Deal } from '../types'
 
 interface ClaimDetailsProps {
@@ -26,6 +28,9 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
   const [proofLoading, setProofLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const blobUrlsRef = useRef<string[]>([])
+
+  const userRole = getCurrentUser()?.role
+  const isAgency = userRole === 'ROLE_AGENCY'
 
   useEffect(() => {
     if (!claim.campaignId) {
@@ -80,6 +85,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           imageUrl: url,
           imageAlt: `Screenshot ${i + 1}`,
           score: s.score,
+          verificationStatus: s.verificationStatus,
           fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => ({
             label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
             value: sv.extractedValue ?? '',
@@ -124,12 +130,27 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           ? <Loading size={32} className="m-auto" />
           : <ClaimProofGallery
               items={proofItems}
-              onApprove={item => console.log('approve', item.id)}
-              onRequestProof={item => console.log('request-proof', item.id)}
-              onVerified={item => console.log('verified', item.id)}
-              onReject={item => console.log('reject', item.id)}
+              isAgency={isAgency}
+              onApproveScreenshot={item =>
+                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED')
+                  .then(updated => setClaimDetail(updated))
+                  .catch(err => setError((err as Error).message))
+              }
+              onRejectScreenshot={item =>
+                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED')
+                  .then(updated => setClaimDetail(updated))
+                  .catch(err => setError((err as Error).message))
+              }
             />
       )}
+
+      <ClaimProofActions
+        userRole={userRole}
+        isUnderReview={claimDetail?.isUnderReview ?? false}
+        onApprove={() => console.log('approve claim', claim.id)}
+        onVerified={() => console.log('verified claim', claim.id)}
+        onReject={() => console.log('reject claim', claim.id)}
+      />
 
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>

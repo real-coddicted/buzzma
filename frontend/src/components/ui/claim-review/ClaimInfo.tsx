@@ -2,6 +2,7 @@ import type { ClaimReviewItem } from '../../../types'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { ReviewStatusCell } from './ReviewStatusCell'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { IconInfo } from '../icons'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -12,6 +13,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
+const CLAIM_INFO_TOOLTIP =
+  'Details on this page are as filled by the buyer.\nPlease see Proof tab for AI extracted values from screenshots submitted as proof for this claim.\nPlease note that values extracted using AI tools could occasionally be incorrect.'
+
 interface ClaimInfoProps {
   claim: ClaimReviewItem
 }
@@ -20,9 +24,17 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden flex flex-col">
       <div className="px-5 pt-5 pb-3 flex-shrink-0">
-        <h2 className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary leading-snug">
-          Claim Info
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary leading-snug">
+            Claim Info
+          </h2>
+          <div className="relative group flex-shrink-0">
+            <IconInfo size={15} className="text-ink-light-muted dark:text-ink-dark-muted cursor-help" />
+            <div className="absolute left-0 top-full mt-1.5 w-72 p-3 rounded-xl bg-surface-light-card dark:bg-surface-dark-card border border-surface-light-border dark:border-surface-dark-border shadow-lg text-xs text-ink-light-secondary dark:text-ink-dark-secondary leading-relaxed z-20 hidden group-hover:block whitespace-pre-line">
+              {CLAIM_INFO_TOOLTIP}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="px-5 pb-5 overflow-y-auto">

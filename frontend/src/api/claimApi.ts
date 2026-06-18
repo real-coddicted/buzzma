@@ -66,12 +66,14 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     reviewUrl: dto.reviewUrl ?? undefined,
     currentStep: dto.currentStep ?? undefined,
     reviewerComments: dto.reviewerComments ?? undefined,
+    isUnderReview: status === 'UNDER_REVIEW',
     screenshots: (dto.screenshots ?? []).map(s => ({
       id: s.id ?? '',
       storageKey: s.storageKey ?? '',
       type: s.type ?? '',
       score: s.score,
       extractedDetails: s.extractedDetails as ClaimScreenshotItem['extractedDetails'],
+      verificationStatus: s.verificationStatus as ClaimScreenshotItem['verificationStatus'],
     })),
   }
 }
@@ -228,6 +230,25 @@ export async function submitRating(claimId: string, screenshot: File): Promise<C
   }
 
   return (await res.json()) as ClaimResponseDto
+}
+
+type ScreenshotVerificationAction = 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
+
+export async function reviewScreenshot(screenshotId: string, claimId: string, action: ScreenshotVerificationAction): Promise<ClaimReviewItem> {
+  const res = await fetchWithAuth(`${API_BASE}/claims/screenshots/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ screenshotId, claimId, action }),
+  })
+  if (!res.ok) {
+    let message = 'Failed to submit screenshot review.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  return mapClaim((await res.json()) as ClaimResponseDto)
 }
 
 export async function submitClaim(params: SubmitClaimParams): Promise<ClaimResponseDto> {
