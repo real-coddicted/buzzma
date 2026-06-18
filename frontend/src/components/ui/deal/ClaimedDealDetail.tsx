@@ -18,6 +18,7 @@ interface ClaimedDealDetailProps {
 }
 
 export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDetailProps) {
+  const [effectiveClaim, setEffectiveClaim] = useState(claimResponse)
   const [activeStep, setActiveStep] = useState(claimResponse?.currentStep ?? deal.currentStep ?? 0)
   const [viewedStep, setViewedStep] = useState(activeStep)
   const [steps, setSteps] = useState<StepperStep[]>([])
@@ -31,7 +32,7 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
     })
   }, [deal.dealType])
 
-  const stepStatuses = getStepVerificationStatuses(rawStepTypes, claimResponse?.screenshots ?? [])
+  const stepStatuses = getStepVerificationStatuses(rawStepTypes, effectiveClaim?.screenshots ?? [])
   const viewedStepRejected = stepStatuses[viewedStep] === 'rejected'
 
   return (
@@ -62,8 +63,9 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
           deal={deal}
           initialStep={viewedStep}
           readOnly={viewedStep < activeStep && !viewedStepRejected}
-          claimResponse={claimResponse}
+          claimResponse={effectiveClaim}
           onStepChange={step => { setActiveStep(step); setViewedStep(step) }}
+          onClaimUpdate={setEffectiveClaim}
         />
       </div>
     </div>

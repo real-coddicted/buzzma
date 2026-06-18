@@ -17,6 +17,13 @@ export function toStepperSteps(steps: CampaignStepDto[]): StepperStep[] {
   return steps.map(s => ({ label: s.label, ...(STEP_TYPE_COLORS[s.type] ?? FALLBACK_COLORS) }))
 }
 
+export const STEP_TYPE_TO_SCREENSHOT_TYPE: Record<string, string> = {
+  ORDER: 'SCREENSHOT_TYPE_ORDER',
+  RATING: 'SCREENSHOT_TYPE_RATING',
+  REVIEW: 'SCREENSHOT_TYPE_REVIEW',
+  RETURN_WINDOW: 'SCREENSHOT_TYPE_RETURN',
+}
+
 const SCREENSHOT_TYPE_TO_STEP_TYPE: Record<string, string> = {
   SCREENSHOT_TYPE_ORDER:   'ORDER',
   SCREENSHOT_TYPE_RATING:  'RATING',

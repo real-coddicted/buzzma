@@ -8,6 +8,7 @@ import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
+import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
@@ -64,6 +65,7 @@ public class ClaimController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  // TODO add preauth for buyer role only
   public ClaimResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid final ClaimRequestDto request) {
 
@@ -83,6 +85,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/rating")
+  // TODO add preauth for buyer role only
   public ClaimResponseDto submitRating(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -101,6 +104,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/review")
+  // TODO add preauth for buyer role only
   public ClaimResponseDto submitReview(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -121,6 +125,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/return")
+  // TODO add preauth for buyer role only
   public ClaimResponseDto submitReturn(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -129,6 +134,28 @@ public class ClaimController {
         this.claimService.submitReturn(
             id,
             requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/update")
+  // TODO add preauth for buyer role only
+  public ClaimResponseDto updateScreenshot(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @Valid final UpdateClaimRequestDto request) {
+    final MultipartFile screenshot = request.getScreenshot();
+    final ClaimWithDeal result =
+        this.claimService.updateScreenshot(
+            id,
+            requesterId,
+            request.getScreenshotId(),
+            request.getScreenshotType(),
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());

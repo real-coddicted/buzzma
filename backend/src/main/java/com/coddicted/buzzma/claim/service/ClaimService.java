@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
@@ -45,4 +46,13 @@ public interface ClaimService {
 
   ClaimWithDeal reviewScreenshot(
       UUID screenshotId, UUID claimId, ScreenshotVerificationStatus action, UUID reviewerId);
+
+  ClaimWithDeal updateScreenshot(
+      UUID claimId,
+      UUID requesterId,
+      UUID screenshotId,
+      ScreenshotType screenshotType,
+      byte[] screenshot,
+      String filename,
+      String contentType);
 }

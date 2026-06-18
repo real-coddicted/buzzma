@@ -22,6 +22,7 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -279,6 +280,82 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
 
     return new ClaimWithDeal(claim, this.dealService.getById(claim.getDealId()));
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal updateScreenshot(
+      final UUID claimId,
+      final UUID requesterId,
+      final UUID screenshotId,
+      final ScreenshotType screenshotType,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, requesterId);
+
+    final ClaimScreenshot existing =
+        this.claimScreenshotRepository
+            .findById(screenshotId)
+            .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
+
+    if (!claimId.equals(existing.getClaimId())) {
+      throw new NotFoundException("Screenshot not found: " + screenshotId);
+    }
+    if (screenshotType != existing.getType()) {
+      throw new BusinessRuleViolationException(
+          "Screenshot type mismatch: expected " + existing.getType());
+    }
+
+    this.storageService.delete(existing.getStorageKey());
+    final String newKey = this.storageService.store("claims", filename, contentType, screenshot);
+
+    final ClaimScreenshot updated =
+        this.claimScreenshotRepository.save(
+            existing.toBuilder()
+                .storageKey(newKey)
+                .verificationStatus(
+                    ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
+                .extractedDetails(null)
+                .score(null)
+                .updatedAt(Instant.now())
+                .updatedBy(requesterId)
+                .build());
+
+    this.extractionService.submitJob(updated.getId(), requesterId);
+
+    final Claim finalClaim = verifyAndUpdateClaimStatus(claim, requesterId);
+    return new ClaimWithDeal(finalClaim, this.dealService.getById(finalClaim.getDealId()));
+  }
+
+  private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
+    final List<ClaimScreenshot> screenshots =
+        this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            claim.getId());
+
+    final boolean hasReturn =
+        screenshots.stream().anyMatch(s -> s.getType() == ScreenshotType.SCREENSHOT_TYPE_RETURN);
+    if (!hasReturn) {
+      return claim;
+    }
+
+    final boolean hasRejected =
+        screenshots.stream()
+            .anyMatch(
+                s ->
+                    s.getVerificationStatus()
+                        == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED);
+    if (hasRejected) {
+      return claim;
+    }
+
+    return this.claimRepository.save(
+        claim.toBuilder()
+            .status(ClaimStatus.UNDER_REVIEW)
+            .updatedAt(Instant.now())
+            .updatedBy(requesterId)
+            .build());
   }
 
   private ClaimScreenshot saveScreenshot(

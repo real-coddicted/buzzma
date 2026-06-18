@@ -42,6 +42,14 @@ export function clearSession(): void {
   clearCurrentUser()
 }
 
+export function throwIfUnauthorized(res: Response): void {
+  if (res.status === 401) {
+    clearSession()
+    window.dispatchEvent(new CustomEvent('auth:logout'))
+    throw new Error('Session expired. Please sign in again.')
+  }
+}
+
 const DEFAULT_TIMEOUT_MS = 5000
 
 export async function fetchWithAuth(
@@ -73,11 +81,7 @@ export async function fetchWithAuth(
     clearTimeout(timer)
   }
 
-  if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
-    throw new Error('Session expired. Please sign in again.')
-  }
+  throwIfUnauthorized(res)
 
   if (!res.ok) {
     // Try to extract a message from the response body first

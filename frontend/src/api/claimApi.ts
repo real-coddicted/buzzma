@@ -1,6 +1,6 @@
 import type { components } from '../types/api'
 import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
-import { fetchWithAuth, getAccessToken, clearSession } from './client'
+import { fetchWithAuth, getAccessToken, throwIfUnauthorized } from './client'
 import { rupeesToPaise } from '../utils/currency'
 
 const API_BASE = '/api/v1'
@@ -155,11 +155,7 @@ export async function submitReturn(claimId: string, screenshot: File): Promise<C
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
 
-  if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
-    throw new Error('Session expired. Please sign in again.')
-  }
+  throwIfUnauthorized(res)
 
   if (!res.ok) {
     let message = 'Failed to submit return screenshot. Please try again.'
@@ -185,11 +181,7 @@ export async function submitReview(claimId: string, screenshot: File, reviewUrl?
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
 
-  if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
-    throw new Error('Session expired. Please sign in again.')
-  }
+  throwIfUnauthorized(res)
 
   if (!res.ok) {
     let message = 'Failed to submit review. Please try again.'
@@ -214,14 +206,42 @@ export async function submitRating(claimId: string, screenshot: File): Promise<C
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
 
-  if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
-    throw new Error('Session expired. Please sign in again.')
-  }
+  throwIfUnauthorized(res)
 
   if (!res.ok) {
     let message = 'Failed to submit rating. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export async function updateScreenshot(
+  claimId: string,
+  screenshotId: string,
+  screenshotType: string,
+  screenshot: File
+): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshotId', screenshotId)
+  formData.append('screenshotType', screenshotType)
+  formData.append('screenshot', screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/update`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to update screenshot. Please try again.'
     try {
       const body = (await res.clone().json()) as Record<string, unknown>
       if (typeof body['message'] === 'string') message = body['message']
@@ -278,11 +298,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
 
-  if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
-    throw new Error('Session expired. Please sign in again.')
-  }
+  throwIfUnauthorized(res)
 
   if (!res.ok) {
     let message = 'Failed to submit claim. Please try again.'

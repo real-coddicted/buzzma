@@ -11,9 +11,10 @@ interface ClaimDealProps {
   readOnly?: boolean
   claimResponse?: ClaimResponseDto
   onStepChange?: (step: number) => void
+  onClaimUpdate?: (claim: ClaimResponseDto) => void
 }
 
-export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimResponse, onStepChange }: ClaimDealProps) {
+export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimResponse, onStepChange, onClaimUpdate }: ClaimDealProps) {
   const [currentStep, setCurrentStep] = useState(initialStep)
 
   function handleStepChange(step: number) {
@@ -27,6 +28,7 @@ export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimRespon
         deal={deal}
         currentStep={currentStep}
         onStepChange={handleStepChange}
+        onClaimUpdate={onClaimUpdate}
         readOnly={readOnly}
         claimResponse={claimResponse}
       />
