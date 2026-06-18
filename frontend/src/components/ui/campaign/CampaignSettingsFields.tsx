@@ -26,12 +26,27 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Total Slots</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" placeholder="e.g. 100" value={form.totalSlots} onChange={e => set('totalSlots', e.target.value)} disabled={readOnly} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} 
+          type="number" 
+          placeholder="e.g. 100" 
+          value={form.totalSlots} 
+          onChange={e => set('totalSlots', e.target.value)} 
+          disabled={readOnly} 
+          onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
+          />
           {errors.totalSlots && <p className={errorClass}>{errors.totalSlots}</p>}
         </div>
         <div>
           <label className={labelClass}>Return Window (days)</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} type="number" min="0" placeholder="e.g. 30" value={form.returnWindowDays} onChange={e => set('returnWindowDays', e.target.value)} disabled={readOnly} />
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} 
+          type="number" 
+          min="0" 
+          placeholder="e.g. 30" 
+          value={form.returnWindowDays} 
+          onChange={e => set('returnWindowDays', e.target.value)} 
+          disabled={readOnly} 
+          onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
+          />
           {errors.returnWindowDays && <p className={errorClass}>{errors.returnWindowDays}</p>}
         </div>
       </div>

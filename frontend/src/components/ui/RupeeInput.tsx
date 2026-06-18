@@ -28,6 +28,7 @@ export function RupeeInput({
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
+      onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
         disabled={disabled}
         className={[inputPadding, noSpinner, className].join(' ')}
       />

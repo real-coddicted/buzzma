@@ -84,6 +84,7 @@ export function LinkedEntitiesTable({ entities, onChange, readOnly }: Props) {
                       value={entity.slotsAvailable || ''}
                       onChange={e => handleSlotsChange(entity.id, e.target.value)}
                       disabled={readOnly}
+                      onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
                       className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </td>
