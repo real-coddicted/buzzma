@@ -1,8 +1,25 @@
 import type { components } from '../types/api'
-import type { Deal, Platform, CampaignType } from '../types/DealTypes'
+import type { Deal, Platform, CampaignType, ReviewStatus } from '../types/DealTypes'
 import type { CampaignResponseDto } from './campaignApi'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 import { fetchWithAuth } from './client'
+
+function claimStatusToReviewStatus(status: string): ReviewStatus {
+  switch (status) {
+    case 'APPROVED':
+    case 'REWARD_PENDING':
+    case 'COMPLETED':
+      return 'approved'
+    case 'REJECTED':
+    case 'FAILED':
+      return 'rejected'
+    case 'UNDER_REVIEW':
+    case 'ADDITIONAL_PROOF_REQUESTED':
+      return 'in-review'
+    default:
+      return 'pending'
+  }
+}
 
 const API_BASE = '/api/v1'
 
@@ -31,6 +48,8 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     termsAndConditions: d.termsAndConditions,
     status: 'claimed',
     currentStep: dto.currentStep ?? 0,
+    reviewStatus: claimStatusToReviewStatus(dto.status ?? 'CREATED'),
+    screenshots: (dto.screenshots ?? []).map(s => ({ type: s.type, verificationStatus: s.verificationStatus })),
   }
 }
 

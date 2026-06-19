@@ -10,6 +10,7 @@ import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
@@ -18,6 +19,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -327,6 +329,66 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim finalClaim = verifyAndUpdateClaimStatus(claim, requesterId);
     return new ClaimWithDeal(finalClaim, this.dealService.getById(finalClaim.getDealId()));
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitClaimReview(
+      final UUID claimId,
+      final UUID reviewerId,
+      final UserRole reviewerRole,
+      final ReviewerDecision decision,
+      final String reviewerComment) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
+
+    if (decision == ReviewerDecision.VERIFIED && reviewerRole != UserRole.ROLE_MEDIATOR) {
+      throw new BusinessRuleViolationException(
+          "VERIFIED decision is only allowed for MEDIATOR role");
+    }
+    if (reviewerRole == UserRole.ROLE_MEDIATOR && decision != ReviewerDecision.VERIFIED) {
+      throw new BusinessRuleViolationException("MEDIATOR can only submit VERIFIED decision");
+    }
+
+    final Claim updated;
+    if (reviewerRole == UserRole.ROLE_MEDIATOR) {
+      updated =
+          this.claimRepository.save(
+              claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
+    } else if (decision == ReviewerDecision.APPROVED) {
+      final List<ClaimScreenshot> screenshots =
+          this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(claimId);
+      screenshots.forEach(
+          s ->
+              this.claimScreenshotRepository.save(
+                  s.toBuilder()
+                      .verificationStatus(
+                          ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
+                      .updatedAt(Instant.now())
+                      .updatedBy(reviewerId)
+                      .build()));
+      updated =
+          this.claimRepository.save(
+              claim.toBuilder()
+                  .status(ClaimStatus.APPROVED)
+                  .reviewerComments(reviewerComment)
+                  .reviewerId(reviewerId)
+                  .updatedAt(Instant.now())
+                  .updatedBy(reviewerId)
+                  .build());
+    } else {
+      updated =
+          this.claimRepository.save(
+              claim.toBuilder()
+                  .status(ClaimStatus.REJECTED)
+                  .reviewerComments(reviewerComment)
+                  .reviewerId(reviewerId)
+                  .updatedAt(Instant.now())
+                  .updatedBy(reviewerId)
+                  .build());
+    }
+
+    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
   }
 
   private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {

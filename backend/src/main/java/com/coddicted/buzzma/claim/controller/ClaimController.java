@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
+import com.coddicted.buzzma.claim.dto.ClaimReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
@@ -159,6 +160,24 @@ public class ClaimController {
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
             screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/submitReview")
+  public ClaimResponseDto submitClaimReview(
+      @CurrentUser final BuzzmaUser requester,
+      @PathVariable final UUID id,
+      @Valid @RequestBody final ClaimReviewRequestDto request) {
+    final ClaimWithDeal result =
+        this.claimService.submitClaimReview(
+            id,
+            requester.getId(),
+            requester.getRole(),
+            request.getReviewerDecision(),
+            request.getReviewerComment());
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

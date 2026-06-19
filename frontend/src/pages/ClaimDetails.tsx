@@ -8,7 +8,7 @@ import { DealInfo } from '../components/ui/deal/DealInfo'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
 import { fetchCampaignById } from '../api/campaignApi'
-import { fetchClaimById, fetchScreenshotUrl, reviewScreenshot } from '../api/claimApi'
+import { fetchClaimById, fetchScreenshotUrl, reviewScreenshot, submitClaimReview } from '../api/claimApi'
 import { campaignToDeal } from '../api/dealApi'
 import { getCurrentUser } from '../api/client'
 import type { ClaimReviewItem, Deal } from '../types'
@@ -136,8 +136,8 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
                   .then(updated => setClaimDetail(updated))
                   .catch(err => setError((err as Error).message))
               }
-              onRejectScreenshot={item =>
-                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED')
+              onRejectScreenshot={(item, comment) =>
+                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED', comment)
                   .then(updated => setClaimDetail(updated))
                   .catch(err => setError((err as Error).message))
               }
@@ -147,9 +147,22 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
       <ClaimProofActions
         userRole={userRole}
         isUnderReview={claimDetail?.isUnderReview ?? false}
-        onApprove={() => console.log('approve claim', claim.id)}
-        onVerified={() => console.log('verified claim', claim.id)}
-        onReject={() => console.log('reject claim', claim.id)}
+        mediatorVerified={claimDetail?.mediatorVerified ?? false}
+        onApprove={comment =>
+          submitClaimReview(claim.id, 'APPROVED', comment || undefined)
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
+        onVerified={() =>
+          submitClaimReview(claim.id, 'VERIFIED')
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
+        onReject={comment =>
+          submitClaimReview(claim.id, 'REJECTED', comment)
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
       />
 
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}

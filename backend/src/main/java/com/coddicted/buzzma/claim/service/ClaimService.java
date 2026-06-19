@@ -2,10 +2,12 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,4 +57,11 @@ public interface ClaimService {
       byte[] screenshot,
       String filename,
       String contentType);
+
+  ClaimWithDeal submitClaimReview(
+      UUID claimId,
+      UUID reviewerId,
+      UserRole reviewerRole,
+      ReviewerDecision decision,
+      String reviewerComment);
 }

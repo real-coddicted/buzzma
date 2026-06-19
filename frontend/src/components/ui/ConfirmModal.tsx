@@ -4,6 +4,7 @@ interface ConfirmModalProps {
   title: string
   message: string
   confirmLabel: string
+  cancelLabel?: string
   /** Accent of the confirm button — `red` for destructive actions (default). */
   tone?: ConfirmTone
   /** While true the action is in flight: buttons disable and dismissal is blocked. */
@@ -21,6 +22,7 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel,
+  cancelLabel = 'Cancel',
   tone = 'red',
   busy = false,
   onConfirm,
@@ -48,7 +50,7 @@ export function ConfirmModal({
             disabled={busy}
             className="flex-1 py-2 text-sm font-semibold rounded-lg bg-surface-light-raised dark:bg-surface-dark-raised text-ink-light-primary dark:text-ink-dark-primary hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Cancel
+            {cancelLabel}
           </button>
           <button
             onClick={onConfirm}

@@ -254,14 +254,35 @@ export async function updateScreenshot(
 
 type ScreenshotVerificationAction = 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
 
-export async function reviewScreenshot(screenshotId: string, claimId: string, action: ScreenshotVerificationAction): Promise<ClaimReviewItem> {
+export async function reviewScreenshot(screenshotId: string, claimId: string, action: ScreenshotVerificationAction, reviewerComment?: string): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/screenshots/review`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ screenshotId, claimId, action }),
+    body: JSON.stringify({ screenshotId, claimId, action, reviewerComment }),
   })
   if (!res.ok) {
     let message = 'Failed to submit screenshot review.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  return mapClaim((await res.json()) as ClaimResponseDto)
+}
+
+export async function submitClaimReview(
+  claimId: string,
+  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED',
+  comment?: string
+): Promise<ClaimReviewItem> {
+  const res = await fetchWithAuth(`${API_BASE}/claims/${claimId}/submitReview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewerDecision: decision, reviewerComment: comment ?? '' }),
+  })
+  if (!res.ok) {
+    let message = 'Failed to submit claim review.'
     try {
       const body = (await res.clone().json()) as Record<string, unknown>
       if (typeof body['message'] === 'string') message = body['message']

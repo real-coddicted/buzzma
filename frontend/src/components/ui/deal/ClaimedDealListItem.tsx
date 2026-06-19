@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { StepperStep } from '../Stepper'
 import { fetchStepConfig } from '../../../api/campaignApi'
-import { toStepperSteps } from '../../../constants/claimSteps'
+import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
+import { REVIEW_STATUS_CONFIG } from '../claim-review/claimReviewConstants'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Stepper } from '../Stepper'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
@@ -16,12 +17,17 @@ interface ClaimedDealListItemProps {
 
 export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedDealListItemProps) {
   const [steps, setSteps] = useState<StepperStep[]>([])
+  const [rawStepTypes, setRawStepTypes] = useState<string[]>([])
 
   useEffect(() => {
     fetchStepConfig().then(config => {
-      setSteps(toStepperSteps(config[deal.dealType] ?? []))
+      const cfg = config[deal.dealType] ?? []
+      setSteps(toStepperSteps(cfg))
+      setRawStepTypes(cfg.map((s: { type: string }) => s.type))
     })
   }, [deal.dealType])
+
+  const stepStatuses = getStepVerificationStatuses(rawStepTypes, deal.screenshots ?? [])
 
   return (
     <div
@@ -58,6 +64,11 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
               ].join(' ')}>
                 {deal.dealTypeLabel}
               </span>
+              {deal.reviewStatus && deal.reviewStatus !== 'pending' && (
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${REVIEW_STATUS_CONFIG[deal.reviewStatus].classes}`}>
+                  {REVIEW_STATUS_CONFIG[deal.reviewStatus].label}
+                </span>
+              )}
             </div>
           </div>
           <span className="text-sm font-bold text-neon-green shrink-0">
@@ -65,7 +76,7 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
           </span>
         </div>
 
-        {steps.length > 0 && <Stepper steps={steps} currentStep={currentStep} />}
+        {steps.length > 0 && <Stepper steps={steps} currentStep={currentStep} stepStatuses={stepStatuses} />}
       </div>
     </div>
   )

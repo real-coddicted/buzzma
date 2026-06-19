@@ -34,6 +34,10 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
 
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, effectiveClaim?.screenshots ?? [])
   const viewedStepRejected = stepStatuses[viewedStep] === 'rejected'
+  const claimRejected = effectiveClaim?.status === 'REJECTED'
+  const claimApproved = effectiveClaim?.status === 'APPROVED'
+    || effectiveClaim?.status === 'REWARD_PENDING'
+    || effectiveClaim?.status === 'COMPLETED'
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -56,13 +60,28 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
         className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card px-5 py-4"
       />
 
+      {claimRejected && (
+        <div className="rounded-xl border border-neon-red/30 bg-neon-red/10 px-4 py-3 text-sm text-neon-red space-y-0.5">
+          <p className="font-semibold">Your claim has been rejected</p>
+          {effectiveClaim?.reviewerComments && (
+            <p className="text-neon-red/80">{effectiveClaim.reviewerComments}</p>
+          )}
+        </div>
+      )}
+
+      {claimApproved && (
+        <div className="rounded-xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm text-neon-green">
+          <p className="font-semibold">Your claim has been approved</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-14rem)]">
         <DealInfo deal={deal} />
         <ClaimDeal
           key={viewedStep}
           deal={deal}
           initialStep={viewedStep}
-          readOnly={viewedStep < activeStep && !viewedStepRejected}
+          readOnly={claimRejected || (viewedStep < activeStep && !viewedStepRejected)}
           claimResponse={effectiveClaim}
           onStepChange={step => { setActiveStep(step); setViewedStep(step) }}
           onClaimUpdate={setEffectiveClaim}

@@ -6,6 +6,7 @@ import { ClaimProofThumbnailRail } from './ClaimProofThumbnailRail'
 import { ClaimProofImageLens, LENS_FRACTION } from './ClaimProofImageLens'
 import { ClaimProofExtractedData } from './ClaimProofExtractedData'
 import { ClaimProofScoreBar } from './ClaimProofScoreBar'
+import { ReviewerCommentBox } from './ReviewerCommentBox'
 import type { ScreenshotVerificationStatus } from '../../../types/ClaimReviewTypes'
 
 export interface ExtractedField {
@@ -28,7 +29,7 @@ interface ClaimProofGalleryProps {
   items: ClaimProofItem[]
   isAgency: boolean
   onApproveScreenshot?: (item: ClaimProofItem) => void
-  onRejectScreenshot?: (item: ClaimProofItem) => void
+  onRejectScreenshot?: (item: ClaimProofItem, comment: string) => void
 }
 
 const ZOOM = 1 / LENS_FRACTION
@@ -45,6 +46,23 @@ export function ClaimProofGallery({
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [hovering, setHovering] = useState(false)
   const [pos, setPos] = useState({ x: 50, y: 50 })
+  const [comment, setComment] = useState('')
+  const [commentError, setCommentError] = useState('')
+
+  function handleSelectScreenshot(index: number) {
+    setSelectedIndex(index)
+    setComment('')
+    setCommentError('')
+  }
+
+  function handleRejectScreenshot() {
+    if (!comment.trim()) {
+      setCommentError('A comment is required when rejecting a screenshot.')
+      return
+    }
+    setCommentError('')
+    onRejectScreenshot?.(selected, comment)
+  }
 
   if (items.length === 0) {
     return (
@@ -70,7 +88,7 @@ export function ClaimProofGallery({
         <ClaimProofThumbnailRail
           items={items}
           selectedIndex={safeIndex}
-          onSelect={setSelectedIndex}
+          onSelect={handleSelectScreenshot}
         />
 
         <ClaimProofImageLens
@@ -110,34 +128,42 @@ export function ClaimProofGallery({
               <div className="mt-auto flex flex-col gap-3">
                 <ClaimProofScoreBar score={score} />
                 {isAgency && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      leftIcon={<IconCheck size={12} />}
-                      onClick={() => onApproveScreenshot?.(selected)}
+                  <>
+                    <ReviewerCommentBox
+                      value={comment}
+                      onChange={v => { setComment(v); if (commentError) setCommentError('') }}
                       disabled={selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' || selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'}
-                      className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      leftIcon={<IconX size={12} />}
-                      onClick={() => onRejectScreenshot?.(selected)}
-                      disabled={selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' || selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'}
-                      className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
-                    >
-                      Reject
-                    </Button>
-                    {selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' && (
-                      <span className="text-xs text-neon-green font-medium">Screenshot already verified!</span>
-                    )}
-                    {selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && (
-                      <span className="text-xs text-neon-red font-medium">Screenshot rejected earlier!</span>
-                    )}
-                  </div>
+                      error={commentError}
+                    />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        leftIcon={<IconCheck size={12} />}
+                        onClick={() => onApproveScreenshot?.(selected)}
+                        disabled={selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' || selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'}
+                        className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        leftIcon={<IconX size={12} />}
+                        onClick={handleRejectScreenshot}
+                        disabled={selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' || selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'}
+                        className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
+                      >
+                        Reject
+                      </Button>
+                      {selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' && (
+                        <span className="text-xs text-neon-green font-medium">Screenshot already verified!</span>
+                      )}
+                      {selected.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && (
+                        <span className="text-xs text-neon-red font-medium">Screenshot rejected earlier!</span>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
