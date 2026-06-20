@@ -203,7 +203,11 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private boolean validateUser(final BuzzmaUser user) {
-    return !this.userService.existsByMobile(user.getMobile());
+    if (this.userService.existsByMobile(user.getMobile())) {
+      throw new BusinessRuleViolationException(
+          "Registration failed. User with mobile number already exists");
+    }
+    return true;
   }
 
   private boolean validateUserBankingDetails(
