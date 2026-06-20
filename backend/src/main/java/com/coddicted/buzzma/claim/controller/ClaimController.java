@@ -191,7 +191,11 @@ public class ClaimController {
       @Valid @RequestBody final ScreenshotReviewRequestDto request) {
     final ClaimWithDeal result =
         this.claimService.reviewScreenshot(
-            request.getScreenshotId(), request.getClaimId(), request.getAction(), reviewerId);
+            request.getScreenshotId(),
+            request.getClaimId(),
+            request.getAction(),
+            reviewerId,
+            request.getReviewerComments());
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

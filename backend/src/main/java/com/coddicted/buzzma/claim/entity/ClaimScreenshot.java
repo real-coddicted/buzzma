@@ -60,6 +60,9 @@ public class ClaimScreenshot implements Auditable {
   @Column(name = "extracted_details", columnDefinition = "jsonb")
   private Map<String, ScoredValue> extractedDetails;
 
+  @Column(name = "reviewer_comments", columnDefinition = "TEXT")
+  private String reviewerComments;
+
   @Column(name = "created_by")
   private UUID createdBy;
 

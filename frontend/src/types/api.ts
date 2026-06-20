@@ -1260,6 +1260,7 @@ export interface components {
             productName?: string;
             productImageUrl?: string;
             productUrl?: string;
+            code?: string;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** @enum {string} */
@@ -1291,6 +1292,7 @@ export interface components {
             claimId: string;
             /** @enum {string} */
             action: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
+            reviewerComments?: string;
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
@@ -1478,6 +1480,7 @@ export interface components {
             role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
             /** @enum {string} */
             status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
+            code?: string;
             avatar?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -1582,10 +1585,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1594,9 +1597,9 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {

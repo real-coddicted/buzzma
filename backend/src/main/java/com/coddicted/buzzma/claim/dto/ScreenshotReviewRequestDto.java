@@ -13,4 +13,6 @@ public class ScreenshotReviewRequestDto {
   @NotNull private UUID claimId;
 
   @NotNull private ScreenshotVerificationStatus action;
+
+  private String reviewerComments;
 }

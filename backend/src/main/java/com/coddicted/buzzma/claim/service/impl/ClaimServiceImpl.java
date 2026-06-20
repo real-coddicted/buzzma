@@ -259,7 +259,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final UUID screenshotId,
       final UUID claimId,
       final ScreenshotVerificationStatus action,
-      final UUID reviewerId) {
+      final UUID reviewerId,
+      final String reviewerComments) {
 
     Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
 
@@ -273,7 +274,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
 
     this.claimScreenshotRepository.save(
-        screenshot.toBuilder().verificationStatus(action).updatedBy(reviewerId).build());
+        screenshot.toBuilder()
+            .verificationStatus(action)
+            .reviewerComments(reviewerComments)
+            .updatedAt(Instant.now())
+            .updatedBy(reviewerId)
+            .build());
 
     if (action == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED) {
       claim =

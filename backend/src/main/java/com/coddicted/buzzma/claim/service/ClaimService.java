@@ -47,7 +47,11 @@ public interface ClaimService {
   Page<Claim> listClaimByCampaignIds(List<UUID> campaignIdList, Pageable pageable);
 
   ClaimWithDeal reviewScreenshot(
-      UUID screenshotId, UUID claimId, ScreenshotVerificationStatus action, UUID reviewerId);
+      UUID screenshotId,
+      UUID claimId,
+      ScreenshotVerificationStatus action,
+      UUID reviewerId,
+      String reviewerComments);
 
   ClaimWithDeal updateScreenshot(
       UUID claimId,

@@ -258,7 +258,7 @@ export async function reviewScreenshot(screenshotId: string, claimId: string, ac
   const res = await fetchWithAuth(`${API_BASE}/claims/screenshots/review`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ screenshotId, claimId, action, reviewerComment }),
+    body: JSON.stringify({ screenshotId, claimId, action, reviewerComments: reviewerComment }),
   })
   if (!res.ok) {
     let message = 'Failed to submit screenshot review.'
