@@ -18,6 +18,7 @@ public class DealResponseDto {
   String productName;
   String productImageUrl;
   String productUrl;
+  String code;
   Platform platform;
   CampaignType dealType;
   BigInteger originalPricePaise;

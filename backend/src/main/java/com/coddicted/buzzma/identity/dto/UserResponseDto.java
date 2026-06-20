@@ -28,6 +28,8 @@ public class UserResponseDto {
 
   String status;
 
+  String code;
+
   @Nullable String mediatorCode;
 
   @Nullable String parentCode;

@@ -55,6 +55,9 @@ public class BuzzmaUser implements Auditable {
   @Column(name = "status")
   private UserStatus status;
 
+  @Column(name = "code", length = 16, unique = true)
+  private String code;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;

@@ -57,6 +57,9 @@ public class Ticket implements Auditable {
   @Column(name = "assignee_id")
   private UUID assigneeId;
 
+  @Column(name = "code", length = 16, unique = true)
+  private String code;
+
   @Column(name = "created_by")
   private UUID createdBy;
 

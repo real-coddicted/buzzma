@@ -51,6 +51,9 @@ public class Deal implements Auditable {
   @Column(name = "deal_price_paise", nullable = false)
   private BigInteger dealPricePaise;
 
+  @Column(name = "code", length = 16, unique = true)
+  private String code;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;

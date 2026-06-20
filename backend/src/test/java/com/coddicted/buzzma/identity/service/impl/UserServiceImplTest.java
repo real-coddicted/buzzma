@@ -2,12 +2,15 @@ package com.coddicted.buzzma.identity.service.impl;
 
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,11 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserServiceImplTest {
 
   @Mock private UsersRepository mockUsersRepository;
+  @Mock private CodeGenerationService mockCodeGenerationService;
   private UserServiceImpl userService;
 
   @BeforeEach
   void setUp() {
-    this.userService = new UserServiceImpl(this.mockUsersRepository);
+    this.userService =
+        new UserServiceImpl(this.mockUsersRepository, this.mockCodeGenerationService);
   }
 
   @Test
@@ -47,12 +52,14 @@ class UserServiceImplTest {
 
   @Test
   void testCreate() {
-    when(this.mockUsersRepository.save(USER_1)).thenReturn(EXPECTED_USER_1);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.USER))
+        .thenReturn(USER_CODE);
+    when(this.mockUsersRepository.save(any(BuzzmaUser.class))).thenReturn(EXPECTED_USER_1);
 
     final BuzzmaUser result = this.userService.create(USER_1);
 
     assertEquals(EXPECTED_USER_1, result);
-    verify(this.mockUsersRepository).save(USER_1);
+    verify(this.mockUsersRepository).save(any(BuzzmaUser.class));
   }
 
   @Test

@@ -14,6 +14,7 @@ import java.util.UUID;
 final class Fixtures {
 
   static final String GENERATED_CODE = "TESTCODE";
+  static final String DEAL_CODE = "test-deal-code";
 
   static final UUID CAMPAIGN_ID_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
   static final UUID CAMPAIGN_ID_2 = UUID.fromString("22222222-2222-2222-2222-222222222222");

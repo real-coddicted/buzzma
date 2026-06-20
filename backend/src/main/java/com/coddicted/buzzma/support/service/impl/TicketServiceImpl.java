@@ -4,7 +4,9 @@ import static com.coddicted.buzzma.support.entity.TicketAction.TICKET_ACTION_CLO
 import static com.coddicted.buzzma.support.entity.TicketStatus.TICKET_STATUS_IN_PROGRESS;
 
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.support.entity.Ticket;
 import com.coddicted.buzzma.support.entity.TicketAction;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
@@ -33,18 +35,21 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
   private final TicketStateMachine stateMachine;
   private final TicketRouter ticketRouter;
   private final TicketEventPublisher ticketEventPublisher;
+  private final CodeGenerationService codeGenerationService;
 
   public TicketServiceImpl(
       final TicketRepository ticketRepository,
       final TicketCategoryService ticketCategoryService,
       final TicketStateMachine stateMachine,
       final TicketRouter ticketRouter,
-      final TicketEventPublisher ticketEventPublisher) {
+      final TicketEventPublisher ticketEventPublisher,
+      final CodeGenerationService codeGenerationService) {
     this.ticketRepository = ticketRepository;
     this.ticketCategoryService = ticketCategoryService;
     this.stateMachine = stateMachine;
     this.ticketRouter = ticketRouter;
     this.ticketEventPublisher = ticketEventPublisher;
+    this.codeGenerationService = codeGenerationService;
   }
 
   @Override
@@ -62,10 +67,14 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
       }
     }
 
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.TICKET);
+
     final Ticket prepared =
         ticket.toBuilder()
             .status(TICKET_STATUS_IN_PROGRESS)
             .isDeleted(false)
+            .code(code)
             .raisedBy(requesterId)
             .createdBy(requesterId)
             .updatedBy(requesterId)

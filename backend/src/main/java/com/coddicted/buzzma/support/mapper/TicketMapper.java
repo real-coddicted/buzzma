@@ -15,6 +15,7 @@ public interface TicketMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "raisedBy", ignore = true)
   @Mapping(target = "status", ignore = true)
+  @Mapping(target = "code", ignore = true)
   @Mapping(target = "assigneeId", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(target = "createdBy", ignore = true)

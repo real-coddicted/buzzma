@@ -5,4 +5,5 @@ public interface WellKnownSequences {
   String DEAL = "deal_code_seq";
   String USER = "user_code_seq";
   String INVITE = "invite_code_seq";
+  String TICKET = "ticket_code_seq";
 }

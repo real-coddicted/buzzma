@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.InvalidStateTransitionException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.support.entity.Ticket;
 import com.coddicted.buzzma.support.entity.TicketStatus;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
@@ -37,6 +39,7 @@ class TicketServiceImplTest {
   private static final UUID CATEGORY_ID = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
   private static final UUID SUB_CATEGORY_ID =
       UUID.fromString("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+  private static final String TICKET_CODE = "test-ticket-code";
 
   private static final Ticket ASSIGNED_TICKET =
       Ticket.builder()
@@ -59,6 +62,8 @@ class TicketServiceImplTest {
   @Mock private TicketCategoryService mockTicketCategoryService;
   @Mock private TicketRouter mockTicketRouter;
   @Mock private TicketEventPublisher mockTicketEventPublisher;
+  @Mock private CodeGenerationService mockCodeGenerationService;
+
   private TicketServiceImpl ticketService;
 
   @BeforeEach
@@ -69,7 +74,8 @@ class TicketServiceImplTest {
             this.mockTicketCategoryService,
             new TicketStateMachine(),
             this.mockTicketRouter,
-            this.mockTicketEventPublisher);
+            this.mockTicketEventPublisher,
+            this.mockCodeGenerationService);
   }
 
   @Test
@@ -85,6 +91,8 @@ class TicketServiceImplTest {
     when(this.mockTicketRouter.route(
             org.mockito.ArgumentMatchers.argThat(t -> USER_ID.equals(t.getRaisedBy()))))
         .thenReturn(ASSIGNED_TICKET);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.TICKET))
+        .thenReturn(TICKET_CODE);
     final ArgumentCaptor<Ticket> captor = forClass(Ticket.class);
     when(this.mockTicketRepository.save(captor.capture())).thenReturn(ASSIGNED_TICKET);
 

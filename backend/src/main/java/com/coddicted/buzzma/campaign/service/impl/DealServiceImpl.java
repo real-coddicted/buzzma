@@ -4,6 +4,8 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.DealRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +20,12 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
   private static final Logger LOGGER = LoggerFactory.getLogger(DealServiceImpl.class);
 
   private final DealRepository dealRepository;
+  private final CodeGenerationService codeGenerationService;
 
-  public DealServiceImpl(final DealRepository dealRepository) {
+  public DealServiceImpl(
+      final DealRepository dealRepository, final CodeGenerationService codeGenerationService) {
     this.dealRepository = dealRepository;
+    this.codeGenerationService = codeGenerationService;
   }
 
   @Override
@@ -30,7 +35,10 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
 
   @Override
   public Deal create(final Deal deal) {
-    return this.dealRepository.save(deal);
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.DEAL);
+    final Deal toSave = deal.toBuilder().code(code).build();
+    return this.dealRepository.save(toSave);
   }
 
   @Override

@@ -5,7 +5,9 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -19,47 +21,53 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
 
   private final UsersRepository repository;
+  private final CodeGenerationService codeGenerationService;
 
-  public UserServiceImpl(UsersRepository repository) {
+  public UserServiceImpl(
+      final UsersRepository repository, final CodeGenerationService codeGenerationService) {
     this.repository = repository;
+    this.codeGenerationService = codeGenerationService;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public BuzzmaUser getById(UUID id) {
-    return mustFind(repository, id, "Users");
+  public BuzzmaUser getById(final UUID id) {
+    return mustFind(this.repository, id, "Users");
   }
 
   @Override
   @Transactional
-  public BuzzmaUser create(BuzzmaUser entity) {
-    return repository.save(entity);
+  public BuzzmaUser create(final BuzzmaUser entity) {
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.USER);
+    final BuzzmaUser user = entity.toBuilder().code(code).build();
+    return this.repository.save(user);
   }
 
   @Override
   @Transactional
-  public BuzzmaUser update(BuzzmaUser entity) {
-    BuzzmaUser existingEntity = mustFind(repository, entity.getId(), "Users");
-    return repository.save(entity);
+  public BuzzmaUser update(final BuzzmaUser entity) {
+    final BuzzmaUser existingEntity = mustFind(this.repository, entity.getId(), "Users");
+    return this.repository.save(entity);
   }
 
   @Override
-  public BuzzmaUser getByMobile(String mobile) {
+  public BuzzmaUser getByMobile(final String mobile) {
     return this.repository
         .findByMobileAndIsDeletedFalse(mobile)
         .orElseThrow(() -> new NotFoundException("user" + " not found: " + mobile));
   }
 
   @Override
-  public void delete(UUID id, UUID requesterId) {
-    BuzzmaUser existingEntity = mustFind(repository, id, "Users");
-    repository.save(existingEntity.toBuilder().isDeleted(true).updatedBy(requesterId).build());
+  public void delete(final UUID id, final UUID requesterId) {
+    final BuzzmaUser existingEntity = mustFind(this.repository, id, "Users");
+    this.repository.save(existingEntity.toBuilder().isDeleted(true).updatedBy(requesterId).build());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<BuzzmaUser> getByIds(List<UUID> ids) {
-    return repository.findAllById(ids);
+  public List<BuzzmaUser> getByIds(final List<UUID> ids) {
+    return this.repository.findAllById(ids);
   }
 
   @Override
@@ -71,7 +79,7 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   }
 
   @Override
-  public boolean existsByMobile(String mobile) {
+  public boolean existsByMobile(final String mobile) {
     if (this.repository.existsUserByMobileAndIsDeletedFalse(mobile)) {
       LOG.info("User with mobile {} already exists", mobile);
       return true;

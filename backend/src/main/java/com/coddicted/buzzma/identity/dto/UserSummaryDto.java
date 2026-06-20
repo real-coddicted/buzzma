@@ -26,6 +26,8 @@ public class UserSummaryDto {
 
   UserStatus status;
 
+  String code;
+
   @Nullable String avatar;
 
   Instant createdAt;
