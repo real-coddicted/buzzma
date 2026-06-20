@@ -7,7 +7,5 @@ public interface ExtractionService {
 
   ExtractionJob submitJob(UUID claimScreenshotId, UUID requesterId);
 
-  ExtractionJob processJob(ExtractionJob job);
-
   ExtractionJob getById(UUID jobId);
 }

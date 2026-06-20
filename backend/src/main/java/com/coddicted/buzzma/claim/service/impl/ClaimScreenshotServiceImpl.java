@@ -2,9 +2,11 @@ package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.RatingExtractionResult;
@@ -14,6 +16,7 @@ import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.entity.ValidationError;
 import com.coddicted.buzzma.extraction.service.ExtractionResultValidator;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
+import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.gemini.GeminiClient;
@@ -51,6 +54,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   private final ObjectMapper objectMapper;
   private final CampaignService campaignService;
   private final ScoreApiClient scoreApiClient;
+  private final ClaimService claimService;
 
   public ClaimScreenshotServiceImpl(
       final ClaimScreenshotRepository screenshotRepository,
@@ -60,7 +64,8 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       final StorageService storageService,
       final ObjectMapper objectMapper,
       final CampaignService campaignService,
-      final ScoreApiClient scoreApiClient) {
+      final ScoreApiClient scoreApiClient,
+      final ClaimService claimService) {
     this.screenshotRepository = screenshotRepository;
     this.geminiClient = geminiClient;
     this.promptBuilder = promptBuilder;
@@ -69,6 +74,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     this.objectMapper = objectMapper;
     this.campaignService = campaignService;
     this.scoreApiClient = scoreApiClient;
+    this.claimService = claimService;
   }
 
   @Override
@@ -126,6 +132,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .orElseThrow(
                 () -> new NotFoundException("ClaimScreenshot not found: " + claimScreenshotId));
     switch (screenshot.getType()) {
+      case SCREENSHOT_TYPE_ORDER -> processOrderScreenshot(job, screenshot);
       case SCREENSHOT_TYPE_RATING -> processRatingScreenshot(job, screenshot);
       case SCREENSHOT_TYPE_REVIEW -> processReviewScreenshot(job, screenshot);
       case SCREENSHOT_TYPE_RETURN -> processReturnScreenshot(job, screenshot);
@@ -171,18 +178,18 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .payload(
                 List.of(
                     PayloadItem.builder()
-                        .label("platformName")
+                        .label(BuzzmahConstants.PLATFORM_NAME)
                         .expected(
                             campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
                         .actual(platformValue != null ? platformValue : "")
                         .build(),
                     PayloadItem.builder()
-                        .label("productName")
+                        .label(BuzzmahConstants.PRODUCT_NAME)
                         .expected(campaign.getProduct().getName())
                         .actual(result.getProductName() != null ? result.getProductName() : "")
                         .build(),
                     PayloadItem.builder()
-                        .label("sellerName")
+                        .label(BuzzmahConstants.SELLER_NAME)
                         .expected(campaign.getSellerName() != null ? campaign.getSellerName() : "")
                         .actual(result.getSellerName() != null ? result.getSellerName() : "")
                         .build()))
@@ -202,22 +209,22 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .collect(Collectors.toMap(ls -> ls.getLabel(), ls -> ls.getScore()));
 
     map.put(
-        "platform",
+        BuzzmahConstants.PLATFORM,
         ScoredValue.builder()
             .extractedValue(platformValue)
-            .score(labelScores.get("platformName"))
+            .score(labelScores.get(BuzzmahConstants.PLATFORM_NAME))
             .build());
     map.put(
-        "productName",
+        BuzzmahConstants.PRODUCT_NAME,
         ScoredValue.builder()
             .extractedValue(result.getProductName())
-            .score(labelScores.get("productName"))
+            .score(labelScores.get(BuzzmahConstants.PRODUCT_NAME))
             .build());
     map.put(
-        "sellerName",
+        BuzzmahConstants.SELLER_NAME,
         ScoredValue.builder()
             .extractedValue(result.getSellerName())
-            .score(labelScores.get("sellerName"))
+            .score(labelScores.get(BuzzmahConstants.SELLER_NAME))
             .build());
 
     return new ExtractedScoredResult(map, orderDataResponse.getOverallScore());
@@ -252,6 +259,37 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
     final BigInteger amountPaise = amount.multiply(BigDecimal.valueOf(100)).toBigInteger();
     return amountPaise.compareTo(campaign.getProduct().getPricePaise()) >= 0 ? 1.0 : 0.0;
+  }
+
+  private void processOrderScreenshot(final ExtractionJob job, final ClaimScreenshot screenshot) {
+    final String storageKey = screenshot.getStorageKey();
+    LOGGER.info(
+        "processOrderScreenshot: calling Gemini for job {}, screenshot {}, storageKey {}",
+        job.getId(),
+        screenshot.getId(),
+        storageKey);
+
+    final byte[] imageBytes = this.storageService.retrieve(storageKey).asByteArray();
+    final String mimeType = mimeTypeFromFilename(storageKey);
+    final ExtractionResult extracted = callGemini(imageBytes, mimeType);
+
+    LOGGER.info(
+        "processOrderScreenshot: extracted platform={} orderId={} productName={} for screenshot {}",
+        extracted.getPlatform(),
+        extracted.getOrderId(),
+        extracted.getProductName(),
+        screenshot.getId());
+
+    Claim claim = this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
+    Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final ExtractedScoredResult scoring = scoreFields(extracted, campaign);
+
+    screenshot.setExtractedDetails(scoring.extractedResult);
+    screenshot.setScore(scoring.overallScore);
+    this.screenshotRepository.save(screenshot);
+
+    LOGGER.info(
+        "processOrderScreenshot: saved extracted details for screenshot {}", screenshot.getId());
   }
 
   private void processRatingScreenshot(final ExtractionJob job, final ClaimScreenshot screenshot) {

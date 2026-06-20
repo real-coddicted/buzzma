@@ -3,7 +3,7 @@ package com.coddicted.buzzma.extraction.scheduler;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionJobStatus;
 import com.coddicted.buzzma.extraction.persistence.ExtractionJobRepository;
-import com.coddicted.buzzma.extraction.service.ExtractionService;
+import com.coddicted.buzzma.extraction.service.ExtractionJobService;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -22,7 +22,7 @@ public class ExtractionJobScheduler {
   private static final int MAX_ATTEMPTS = 3;
 
   private final ExtractionJobRepository jobRepository;
-  private final ExtractionService extractionService;
+  private final ExtractionJobService extractionJobService;
   private final Executor taskExecutor;
 
   @Value("${app.extraction.scheduler.batch-size:5}")
@@ -30,10 +30,10 @@ public class ExtractionJobScheduler {
 
   public ExtractionJobScheduler(
       final ExtractionJobRepository jobRepository,
-      final ExtractionService extractionService,
+      final ExtractionJobService extractionJobService,
       @Qualifier("extractionTaskExecutor") final Executor taskExecutor) {
     this.jobRepository = jobRepository;
-    this.extractionService = extractionService;
+    this.extractionJobService = extractionJobService;
     this.taskExecutor = taskExecutor;
   }
 
@@ -56,7 +56,7 @@ public class ExtractionJobScheduler {
                     CompletableFuture.runAsync(
                         () -> {
                           try {
-                            extractionService.processJob(job);
+                            extractionJobService.processJob(job);
                           } catch (final Exception e) {
                             LOGGER.error(
                                 "ExtractionJobScheduler: unexpected error processing job {}: {}",
