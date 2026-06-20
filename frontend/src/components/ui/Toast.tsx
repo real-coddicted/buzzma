@@ -19,7 +19,7 @@ const iconPath: Record<ToastType, string> = {
   error:   'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
 }
 
-export function Toast({ message, type = 'success', duration = 3000, onDismiss }: ToastProps) {
+export function Toast({ message, type = 'success', duration = 10000, onDismiss }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(onDismiss, duration)
     return () => clearTimeout(timer)

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { extractOrderDetails, type ExtractionResponse } from '../../../api/extractionApi'
+import { Toast } from '../Toast'
 
 interface ScreenshotUploadProps {
   label: string
@@ -7,6 +8,12 @@ interface ScreenshotUploadProps {
   campaignId?: string
   onExtract?: (data: ExtractionResponse) => void
   onFileChange?: (file: File) => void
+}
+
+function resolveError(raw: string): string {
+  if (raw.includes('timed out') || raw.includes('AbortError')) return raw
+  if (raw.includes('Session expired')) return raw
+  return 'Screenshot data extraction failed. Please try again or contact support if the issue persists.'
 }
 
 export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileChange }: ScreenshotUploadProps) {
@@ -30,8 +37,8 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
         const extractedData = await extractOrderDetails(file, campaignId)
         onExtract(extractedData)
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to extract order details'
-        setError(message)
+        const raw = err instanceof Error ? err.message : ''
+        setError(resolveError(raw))
       } finally {
         setIsLoading(false)
       }
@@ -81,9 +88,7 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
       {fileName && (
         <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted truncate">{fileName}</p>
       )}
-      {error && (
-        <p className="text-[11px] text-neon-red">{error}</p>
-      )}
+      {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
       <input
         ref={inputRef}
         type="file"
