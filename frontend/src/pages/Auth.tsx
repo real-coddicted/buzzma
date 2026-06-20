@@ -31,6 +31,7 @@ export function Auth({ onAuth }: AuthProps) {
         onLogin={onAuth}
         onGoToRegister={() => setView('register')}
         onGoToForgotPassword={() => setView('forgot-password')}
+        onCaptchaExpired={() => { setCaptchaToken(''); setView('captcha') }}
       />
     )
   }
@@ -39,7 +40,7 @@ export function Auth({ onAuth }: AuthProps) {
     return (
       <Register
         captchaToken={captchaToken}
-        onRegister={() => setView('login')}
+        onRegister={() => { setCaptchaToken(''); setView('captcha') }}
         onGoToLogin={() => setView('login')}
       />
     )

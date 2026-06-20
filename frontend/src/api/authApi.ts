@@ -31,6 +31,7 @@ export async function loginUser(form: LoginForm, captchaToken: string): Promise<
     body: JSON.stringify({ mobile: form.mobile, password: form.password, captchaToken }),
   })
   if (!res.ok) {
+    if (res.status === 403) return { success: false, message: 'Captcha verification failed. Please verify again.', captchaFailed: true }
     const message = res.status === 401 ? 'Invalid mobile number or password' : 'Something went wrong. Please try again.'
     return { success: false, message }
   }
