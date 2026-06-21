@@ -9,13 +9,18 @@ Work through each issue **one at a time** and **sequentially**. Do not start the
 ## Step 1 — Setup (do this once at the start of every run)
 
 1. Read `.claude/agent-config.json` — all settings references below come from this file.
-2. Fetch the list of authorized approvers:
+2. Resolve the effective `assignee` using this priority order (stop at the first that succeeds):
+   a. Check the `ISSUE_AGENT_ASSIGNEE` environment variable — if set and non-empty, use it. (Set this in `.claude/settings.local.json` under `"env"` to configure it per-developer without touching version-controlled files.)
+   b. Call `mcp__gitea__get_me` — use the `login` field of the response as the assignee.
+   c. Use `agent-config.json` `assignee` field if it is non-null.
+   Store the resolved value as `{assignee}` for use throughout this run. If all three sources fail or return null, abort with an error.
+3. Fetch the list of authorized approvers:
    - Use `mcp__gitea__search_org_teams` to find the team named `{gitea.approvalTeam}` in org `{gitea.org}`. Get its numeric ID.
    - Then call the Gitea REST API to get its members:
      `GET {gitea.baseUrl}/api/v1/teams/{teamId}/members`
      (use curl via Bash, passing the Gitea token from the environment if needed)
    - Store the list of usernames as `authorizedApprovers`.
-3. Print a brief startup summary: how many authorized approvers found, what batch size will be used.
+4. Print a brief startup summary: resolved assignee, how many authorized approvers found, what batch size will be used.
 
 ---
 

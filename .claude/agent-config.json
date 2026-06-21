@@ -22,7 +22,7 @@
     "prRaised": "ai/pr-raised",
     "failed": "ai/implementation-failed"
   },
-  "assignee": "anupam",
+  "assignee": null,
   "branchPrefix": "claude/issue-",
   "batch": {
     "size": 5
