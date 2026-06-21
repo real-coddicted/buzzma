@@ -22,8 +22,8 @@ interface ClaimInfoProps {
 
 export function ClaimInfo({ claim }: ClaimInfoProps) {
   return (
-    <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden flex flex-col">
-      <div className="px-5 pt-5 pb-3 flex-shrink-0">
+    <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
+      <div className="px-5 pt-5 pb-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary leading-snug">
             Claim Info
@@ -37,7 +37,7 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
         </div>
       </div>
 
-      <div className="px-5 pb-5 overflow-y-auto">
+      <div className="px-5 pb-5">
         <Row label="Campaign">{claim.campaignName}</Row>
         {claim.productName && <Row label="Product">{claim.productName}</Row>}
         {claim.sellerName && <Row label="Seller">{claim.sellerName}</Row>}

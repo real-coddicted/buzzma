@@ -21,12 +21,12 @@ export function DealInfo({ deal }: DealInfoProps) {
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
   return (
-    <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden flex flex-col">
+    <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
       <a
         href={deal.productUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="relative h-64 flex-shrink-0 block group"
+        className="relative h-64 block group"
         aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
       >
         <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
@@ -38,8 +38,8 @@ export function DealInfo({ deal }: DealInfoProps) {
         )}
       </a>
 
-      {/* Static: badges + title + price */}
-      <div className="px-5 pt-5 pb-3 flex-shrink-0 space-y-3">
+      {/* badges + title + price */}
+      <div className="px-5 pt-5 pb-3 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={['text-[10px] font-semibold px-2 py-0.5 rounded-full border', PLATFORM_COLORS[deal.platform]].join(' ')}>
             {deal.platformLabel}
@@ -71,8 +71,7 @@ export function DealInfo({ deal }: DealInfoProps) {
         </a>
       </div>
 
-      {/* Scrollable: details table + T&C */}
-      <div className="px-5 pb-5 overflow-y-auto space-y-4">
+      <div className="px-5 pb-5 space-y-4">
         <div>
           <Row label="Platform"       value={deal.platformLabel} />
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
