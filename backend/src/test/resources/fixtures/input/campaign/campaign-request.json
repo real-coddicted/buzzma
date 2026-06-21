@@ -1,0 +1,15 @@
+{
+  "title": "Test Campaign",
+  "ownerId": "00000000-0000-0000-0000-000000000001",
+  "platform": "PLATFORM_AMAZON",
+  "productName": "Test Product",
+  "productImageUrl": "http://example.com/img.jpg",
+  "productUrl": "http://example.com/product",
+  "productBrandName": "Test Brand",
+  "originalPricePaise": 10000,
+  "campaignType": "CAMPAIGN_TYPE_REVIEW",
+  "campaignStatus": "CAMPAIGN_STATUS_DRAFT",
+  "campaignPricePaise": 8000,
+  "totalSlots": 10,
+  "openToAll": false
+}

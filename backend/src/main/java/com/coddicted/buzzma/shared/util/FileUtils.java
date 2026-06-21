@@ -26,4 +26,15 @@ public final class FileUtils {
       throw new UncheckedIOException(e);
     }
   }
+
+  public static String loadResourceAsString(final String resourcePath) {
+    try (InputStream stream = FileUtils.class.getResourceAsStream(resourcePath)) {
+      if (stream == null) {
+        throw new IllegalArgumentException("file resource not found: " + resourcePath);
+      }
+      return new String(stream.readAllBytes());
+    } catch (final IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 }

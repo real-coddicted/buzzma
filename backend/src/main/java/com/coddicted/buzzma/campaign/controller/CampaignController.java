@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +54,8 @@ public class CampaignController {
 
   @GetMapping("/step-config")
   public Map<String, List<CampaignStepDto>> getStepConfig() {
-    return campaignTypeStepMapper.toCampaignStepDtoMap(campaignTypeStepService.getStepConfig());
+    return this.campaignTypeStepMapper.toCampaignStepDtoMap(
+        this.campaignTypeStepService.getStepConfig());
   }
 
   @GetMapping
@@ -68,12 +70,14 @@ public class CampaignController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
   public CampaignResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final CampaignRequestDto request) {
     return this.campaignProcessor.create(requesterId, request);
   }
 
   @PatchMapping("/{id}")
+  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
   public CampaignResponseDto updateCampaign(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
