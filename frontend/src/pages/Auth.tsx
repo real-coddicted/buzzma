@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Captcha } from './Captcha'
 import { Login } from './Login'
 import { Register } from './Register'
@@ -11,13 +12,26 @@ interface AuthProps {
   onAuth: () => void
 }
 
+const PATH_TO_VIEW: Record<string, AuthView> = {
+  '/login': 'login',
+  '/register': 'register',
+  '/forgot-password': 'forgot-password',
+  '/reset-password': 'reset-password',
+}
+
 export function Auth({ onAuth }: AuthProps) {
-  const [view, setView] = useState<AuthView>('captcha')
+  const navigate = useNavigate()
+  const location = useLocation()
   const [captchaToken, setCaptchaToken] = useState<string>('')
+
+  const routedView = PATH_TO_VIEW[location.pathname] ?? 'captcha'
+  const view: AuthView = routedView !== 'captcha' && !captchaToken ? 'captcha' : routedView
 
   function handleCaptchaVerify(token: string) {
     setCaptchaToken(token)
-    setView('login')
+    if (routedView === 'captcha') {
+      navigate('/login')
+    }
   }
 
   if (view === 'captcha') {
@@ -29,9 +43,9 @@ export function Auth({ onAuth }: AuthProps) {
       <Login
         captchaToken={captchaToken}
         onLogin={onAuth}
-        onGoToRegister={() => setView('register')}
-        onGoToForgotPassword={() => setView('forgot-password')}
-        onCaptchaExpired={() => { setCaptchaToken(''); setView('captcha') }}
+        onGoToRegister={() => navigate('/register')}
+        onGoToForgotPassword={() => navigate('/forgot-password')}
+        onCaptchaExpired={() => setCaptchaToken('')}
       />
     )
   }
@@ -40,8 +54,8 @@ export function Auth({ onAuth }: AuthProps) {
     return (
       <Register
         captchaToken={captchaToken}
-        onRegister={() => { setCaptchaToken(''); setView('captcha') }}
-        onGoToLogin={() => setView('login')}
+        onRegister={() => { setCaptchaToken(''); navigate('/login') }}
+        onGoToLogin={() => navigate('/login')}
       />
     )
   }
@@ -49,16 +63,16 @@ export function Auth({ onAuth }: AuthProps) {
   if (view === 'forgot-password') {
     return (
       <ForgotPassword
-        onSuccess={() => setView('reset-password')}
-        onGoToLogin={() => setView('login')}
+        onSuccess={() => navigate('/reset-password')}
+        onGoToLogin={() => navigate('/login')}
       />
     )
   }
 
   return (
     <ResetPassword
-      onSuccess={() => setView('login')}
-      onGoToLogin={() => setView('login')}
+      onSuccess={() => navigate('/login')}
+      onGoToLogin={() => navigate('/login')}
     />
   )
 }
