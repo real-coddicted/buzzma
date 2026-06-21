@@ -32,7 +32,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-.claude/
+.claude/settings.local.json
 .openspec/
 
 .env
