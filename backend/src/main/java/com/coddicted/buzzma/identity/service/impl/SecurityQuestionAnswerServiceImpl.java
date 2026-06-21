@@ -8,10 +8,13 @@ import com.coddicted.buzzma.identity.persistence.SecurityQuestionRepository;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.common.PasswordService;
+import com.coddicted.buzzma.shared.constants.WellKnownCaches;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,36 +36,40 @@ public class SecurityQuestionAnswerServiceImpl extends BaseCrudService
   }
 
   @Override
+  @Cacheable(WellKnownCaches.SECURITY_QUESTIONS_CACHE)
   public List<SecurityQuestion> listSecurityQuestions() {
-    return questionRepository.findAllByIsDeletedFalse();
+    return this.questionRepository.findAllByIsDeletedFalse();
   }
 
   @Override
   @Transactional
+  @CacheEvict(cacheNames = WellKnownCaches.SECURITY_QUESTIONS_CACHE, allEntries = true)
   public SecurityQuestion createSecurityQuestion(final SecurityQuestion securityQuestion) {
-    return questionRepository.save(securityQuestion);
+    return this.questionRepository.save(securityQuestion);
   }
 
   @Override
   @Transactional
+  @CacheEvict(cacheNames = WellKnownCaches.SECURITY_QUESTIONS_CACHE, allEntries = true)
   public SecurityQuestion updateSecurityQuestion(final SecurityQuestion securityQuestion) {
-    return questionRepository.save(securityQuestion);
+    return this.questionRepository.save(securityQuestion);
   }
 
   @Override
   @Transactional
+  @CacheEvict(cacheNames = WellKnownCaches.SECURITY_QUESTIONS_CACHE, allEntries = true)
   public SecurityQuestion deleteSecurityQuestion(final UUID id, final UUID requesterId) {
-    final SecurityQuestion question = mustFind(questionRepository, id, "SecurityQuestion");
-    return questionRepository.save(
+    final SecurityQuestion question = mustFind(this.questionRepository, id, "SecurityQuestion");
+    return this.questionRepository.save(
         question.toBuilder().isDeleted(true).updatedBy(requesterId).build());
   }
 
   @Override
   @Transactional
   public SecurityAnswer createSecurityAnswer(final SecurityAnswer securityAnswer) {
-    return answerRepository.save(
+    return this.answerRepository.save(
         securityAnswer.toBuilder()
-            .answerHash(passwordService.hashPassword(securityAnswer.getAnswerHash()))
+            .answerHash(this.passwordService.hashPassword(securityAnswer.getAnswerHash()))
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build());
@@ -76,23 +83,24 @@ public class SecurityQuestionAnswerServiceImpl extends BaseCrudService
             .map(
                 a ->
                     a.toBuilder()
-                        .answerHash(passwordService.hashPassword(a.getAnswerHash()))
+                        .answerHash(this.passwordService.hashPassword(a.getAnswerHash()))
                         .build())
             .toList();
-    return answerRepository.saveAll(hashed);
+    return this.answerRepository.saveAll(hashed);
   }
 
   @Override
-  public List<SecurityQuestionWrapper> getSecurityQuestionsByUserId(UUID userId) {
+  public List<SecurityQuestionWrapper> getSecurityQuestionsByUserId(final UUID userId) {
     return this.answerRepository.findSecurityQuestionByUserId(userId);
   }
 
   @Override
   public boolean verifySecurityAnswer(final SecurityAnswer securityAnswer) {
     final SecurityAnswer stored =
-        answerRepository
+        this.answerRepository
             .findByUserIdAndQuestionId(securityAnswer.getUserId(), securityAnswer.getQuestionId())
             .orElseThrow(() -> new NotFoundException("Security answer not found"));
-    return passwordService.verifyPassword(securityAnswer.getAnswerHash(), stored.getAnswerHash());
+    return this.passwordService.verifyPassword(
+        securityAnswer.getAnswerHash(), stored.getAnswerHash());
   }
 }
