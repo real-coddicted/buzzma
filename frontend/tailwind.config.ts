@@ -7,14 +7,14 @@ export default {
     extend: {
       colors: {
         neon: {
-          red:    '#ff5c57',
-          pink:   '#ff79c6',
-          orange: '#ffb86c',
-          yellow: '#f1fa8c',
-          green:  '#50fa7b',
-          cyan:   '#8be9fd',
-          blue:   '#57c7ff',
-          purple: '#bd93f9',
+          red:    'rgb(var(--neon-red) / <alpha-value>)',
+          pink:   'rgb(var(--neon-pink) / <alpha-value>)',
+          orange: 'rgb(var(--neon-orange) / <alpha-value>)',
+          yellow: 'rgb(var(--neon-yellow) / <alpha-value>)',
+          green:  'rgb(var(--neon-green) / <alpha-value>)',
+          cyan:   'rgb(var(--neon-cyan) / <alpha-value>)',
+          blue:   'rgb(var(--neon-blue) / <alpha-value>)',
+          purple: 'rgb(var(--neon-purple) / <alpha-value>)',
         },
         surface: {
           // dark surfaces

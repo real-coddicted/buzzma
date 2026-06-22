@@ -11,7 +11,7 @@ export function Captcha({ onVerify }: CaptchaProps) {
   const [failed, setFailed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-surface-dark-base flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex flex-col items-center justify-center gap-4">
       <TurnstileWidget
         siteKey={SITE_KEY}
         onVerify={onVerify}

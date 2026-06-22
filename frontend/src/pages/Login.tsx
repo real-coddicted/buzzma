@@ -15,10 +15,10 @@ interface LoginProps {
 }
 
 const inputBase =
-  'w-full rounded-lg border bg-surface-dark-hover ' +
-  'border-surface-dark-border ' +
-  'text-ink-dark-primary ' +
-  'placeholder:text-ink-dark-muted ' +
+  'w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover ' +
+  'border-surface-light-border dark:border-surface-dark-border ' +
+  'text-ink-light-primary dark:text-ink-dark-primary ' +
+  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
@@ -84,7 +84,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
         onDismiss={() => setToastError(null)}
       />
     )}
-    <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground variant="blue" />
 
       <div className="w-full max-w-md relative z-10">
@@ -97,14 +97,14 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
             </div>
             <span className="text-3xl font-bold text-neon-blue tracking-tight">{APP_NAME}</span>
           </div>
-          <p className="text-sm text-ink-dark-muted">Sign in to your account</p>
+          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">Sign in to your account</p>
         </div>
 
-        <div className="rounded-2xl border border-neon-blue/20 bg-surface-dark-card shadow-neon-blue p-6">
+        <div className="rounded-2xl border border-neon-blue/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-blue p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Mobile */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -122,7 +122,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -137,7 +137,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-dark-muted hover:text-ink-dark-primary transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -165,7 +165,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
               <button
                 type="button"
                 onClick={onGoToForgotPassword}
-                className="text-xs text-ink-dark-muted hover:text-neon-blue transition-colors"
+                className="text-xs text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue transition-colors"
               >
                 Forgot password?
               </button>
@@ -173,7 +173,7 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-dark-muted mt-6">
+        <p className="text-center text-xs text-ink-light-muted dark:text-ink-dark-muted mt-6">
           Don't have an account?{' '}
           <button
             type="button"

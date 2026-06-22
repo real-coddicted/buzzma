@@ -5,10 +5,26 @@
 @layer base {
   :root {
     color-scheme: light;
+    --neon-red:    220 38 38;
+    --neon-pink:   219 39 119;
+    --neon-orange: 217 119 6;
+    --neon-yellow: 202 138 4;
+    --neon-green:  22 163 74;
+    --neon-cyan:   8 145 178;
+    --neon-blue:   59 130 246;
+    --neon-purple: 124 58 237;
   }
 
   .dark {
     color-scheme: dark;
+    --neon-red:    255 92 87;
+    --neon-pink:   255 121 198;
+    --neon-orange: 255 184 108;
+    --neon-yellow: 241 250 140;
+    --neon-green:  80 250 123;
+    --neon-cyan:   139 233 253;
+    --neon-blue:   87 199 255;
+    --neon-purple: 189 147 249;
   }
 
   * {

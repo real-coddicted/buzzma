@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 
-const NEONS = ['#57c7ff','#50fa7b','#bd93f9','#ff79c6','#8be9fd','#ffb86c','#f1fa8c','#ff5c57']
+const NEONS = ['--neon-blue','--neon-green','--neon-purple','--neon-pink','--neon-cyan','--neon-orange','--neon-yellow','--neon-red']
 
 const glow = (c: string) =>
-  `drop-shadow(0 0 4px ${c}) drop-shadow(0 0 10px ${c}88)`
+  `drop-shadow(0 0 4px rgb(var(${c}))) drop-shadow(0 0 10px rgb(var(${c}) / 0.53))`
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
 const rnd  = (a: number, b: number) => a + Math.random() * (b - a)
@@ -85,9 +85,10 @@ export function AuthBackground({ variant }: Props) {
         >
           <svg
             width={ic.size} height={ic.size} viewBox="0 0 24 24"
-            stroke={ic.color} strokeWidth="1.5" fill="none"
+            strokeWidth="1.5" fill="none"
             strokeLinecap="round" strokeLinejoin="round"
             style={{
+              stroke:  `rgb(var(${ic.color}))`,
               opacity: ic.lit ? 0.65 : 0.09,
               filter:  ic.lit ? glow(ic.color) : undefined,
             }}

@@ -11,10 +11,10 @@ interface ForgotPasswordProps {
 }
 
 const inputBase =
-  'w-full rounded-lg border bg-surface-dark-hover ' +
-  'border-surface-dark-border ' +
-  'text-ink-dark-primary ' +
-  'placeholder:text-ink-dark-muted ' +
+  'w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover ' +
+  'border-surface-light-border dark:border-surface-dark-border ' +
+  'text-ink-light-primary dark:text-ink-dark-primary ' +
+  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-purple focus:ring-1 focus:ring-neon-purple/30'
 
@@ -61,7 +61,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
   }
 
   return (
-    <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground variant="purple" />
 
       <div className="w-full max-w-md relative z-10">
@@ -74,14 +74,14 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
             </div>
             <span className="text-3xl font-bold text-neon-purple tracking-tight">{APP_NAME}</span>
           </div>
-          <p className="text-sm text-ink-dark-muted">Verify your identity</p>
+          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">Verify your identity</p>
         </div>
 
-        <div className="rounded-2xl border border-neon-purple/20 bg-surface-dark-card shadow-neon-purple p-6">
+        <div className="rounded-2xl border border-neon-purple/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-purple p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Role */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Role
               </label>
               <select
@@ -96,7 +96,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
 
             {/* Mobile */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -115,17 +115,17 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
             {/* Security Question — shown after mobile lookup */}
             {(questionLoading || form.securityQuestion) && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Security Question
                 </label>
 
                 {questionLoading ? (
-                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-surface-dark-border bg-surface-dark-hover">
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
                     <span className="inline-block w-3.5 h-3.5 border-2 border-neon-purple border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                    <span className="text-sm text-ink-dark-muted">Fetching your question…</span>
+                    <span className="text-sm text-ink-light-muted dark:text-ink-dark-muted">Fetching your question…</span>
                   </div>
                 ) : (
-                  <div className="px-3 py-2.5 rounded-lg border border-surface-dark-border bg-surface-dark-hover text-sm text-ink-dark-primary">
+                  <div className="px-3 py-2.5 rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-sm text-ink-light-primary dark:text-ink-dark-primary">
                     {form.securityQuestion}
                   </div>
                 )}
@@ -135,7 +135,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
             {/* Answer — only once question is loaded */}
             {form.securityQuestion && !questionLoading && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Answer
                 </label>
                 <input
@@ -157,7 +157,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-dark-muted mt-6">
+        <p className="text-center text-xs text-ink-light-muted dark:text-ink-dark-muted mt-6">
           Remember your password?{' '}
           <button
             type="button"

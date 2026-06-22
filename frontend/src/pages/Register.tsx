@@ -13,10 +13,10 @@ interface RegisterProps {
 }
 
 const inputBase =
-  'w-full rounded-lg border bg-surface-dark-hover ' +
-  'border-surface-dark-border ' +
-  'text-ink-dark-primary ' +
-  'placeholder:text-ink-dark-muted ' +
+  'w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover ' +
+  'border-surface-light-border dark:border-surface-dark-border ' +
+  'text-ink-light-primary dark:text-ink-dark-primary ' +
+  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-green focus:ring-1 focus:ring-neon-green/30'
 
@@ -114,7 +114,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
     {toastError && (
       <Toast message={toastError} type="error" onDismiss={() => setToastError(null)} />
     )}
-    <div className="min-h-screen bg-surface-dark-base flex items-center justify-center p-4 py-10 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4 py-10 relative overflow-hidden">
       <AuthBackground variant="green" />
 
       <div className="w-full max-w-md relative z-10">
@@ -127,14 +127,14 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
             </div>
             <span className="text-3xl font-bold text-neon-green tracking-tight">{APP_NAME}</span>
           </div>
-          <p className="text-sm text-ink-dark-muted">Create your account</p>
+          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">Create your account</p>
         </div>
 
-        <div className="rounded-2xl border border-neon-green/20 bg-surface-dark-card shadow-neon-green p-6">
+        <div className="rounded-2xl border border-neon-green/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-green p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Register As */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Register As
               </label>
               <select
@@ -152,7 +152,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
             {/* Conditional name field */}
             {form.registerAs === 'brand' && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Brand Name
                 </label>
                 <input
@@ -169,7 +169,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
             )}
             {form.registerAs === 'agency' && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Agency Name
                 </label>
                 <input
@@ -186,7 +186,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
             )}
             {form.registerAs === 'mediator' && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Mediator Name
                 </label>
                 <input
@@ -203,7 +203,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
             )}
             {form.registerAs === 'buyer' && (
               <div>
-                <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+                <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                   Buyer Name
                 </label>
                 <input
@@ -221,7 +221,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
 
             {/* Mobile */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -238,7 +238,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -252,7 +252,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-dark-muted hover:text-ink-dark-primary transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -274,7 +274,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
 
             {/* Invite Code */}
             <div>
-              <label className="block text-xs font-medium text-ink-dark-secondary mb-1.5">
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
                 Invite Code
               </label>
               <input
@@ -337,7 +337,7 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-dark-muted mt-6">
+        <p className="text-center text-xs text-ink-light-muted dark:text-ink-dark-muted mt-6">
           Already have an account?{' '}
           <button
             type="button"
