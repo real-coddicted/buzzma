@@ -62,7 +62,14 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
   }
   if (form.totalSlots !== '') {
     const ts = parseInt(form.totalSlots, 10)
-    if (isNaN(ts) || ts < 1) e.totalSlots = 'Must be a positive integer'
+    if (isNaN(ts) || ts < 1) {
+      e.totalSlots = 'Must be a positive integer'
+    } else if (!form.openToAll && form.assignees && form.assignees.length > 0) {
+      const assignedSlots = form.assignees.reduce((sum, item) => sum + (item.slotsAvailable || 0), 0)
+      if (assignedSlots > ts) {
+        e.totalSlots = `Total assigned slots (${assignedSlots}) cannot exceed campaign total slots (${ts})`
+      }
+    }
   }
 
   return e

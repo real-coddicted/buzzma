@@ -18,6 +18,7 @@ import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,7 @@ public class CampaignProcessor {
 
   @Transactional
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
+    validateCampaignSlots(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
     final Campaign savedCampaign =
         this.service.create(
@@ -93,6 +95,7 @@ public class CampaignProcessor {
   @Transactional
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
+    validateCampaignSlots(request);
     final Campaign existingCampaign = this.service.getById(id);
 
     final Product updatedProduct =
@@ -233,5 +236,23 @@ public class CampaignProcessor {
               .build());
     }
     return this.campaignAssignmentService.create(assignments);
+  }
+
+  private void validateCampaignSlots(final CampaignRequestDto request) {
+    if (!request.isOpenToAll() && request.getAssignees() != null) {
+      long totalAssignedSlots =
+          request.getAssignees().stream()
+              .mapToLong(
+                  assignee -> assignee.getSlotOffered() != null ? assignee.getSlotOffered() : 0L)
+              .sum();
+      if (request.getTotalSlots() != null && totalAssignedSlots > request.getTotalSlots()) {
+        throw new BusinessRuleViolationException(
+            "Total assigned slots ("
+                + totalAssignedSlots
+                + ") cannot exceed campaign total slots ("
+                + request.getTotalSlots()
+                + ")");
+      }
+    }
   }
 }
