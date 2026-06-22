@@ -1,6 +1,9 @@
 package com.coddicted.buzzma.shared.security;
 
 import com.coddicted.buzzma.identity.security.JwtAuthenticationFilter;
+import com.coddicted.buzzma.shared.ratelimit.AuthBucketCache;
+import com.coddicted.buzzma.shared.ratelimit.RateLimitFilter;
+import com.coddicted.buzzma.shared.ratelimit.UserBucketCache;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +27,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final AuthBucketCache authBucketCache;
+  private final UserBucketCache userBucketCache;
 
-  public SecurityConfig(final JwtAuthenticationFilter jwtAuthenticationFilter) {
+  public SecurityConfig(
+      final JwtAuthenticationFilter jwtAuthenticationFilter,
+      final AuthBucketCache authBucketCache,
+      final UserBucketCache userBucketCache) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.authBucketCache = authBucketCache;
+    this.userBucketCache = userBucketCache;
   }
 
   @Bean
@@ -51,7 +61,9 @@ public class SecurityConfig {
                     .authenticated())
         .exceptionHandling(
             ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-        .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterAfter(
+            new RateLimitFilter(authBucketCache, userBucketCache), JwtAuthenticationFilter.class);
     return http.build();
   }
 

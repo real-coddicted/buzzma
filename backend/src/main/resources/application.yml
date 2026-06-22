@@ -49,6 +49,17 @@ app:
     refresh-secret: ${JWT_REFRESH_SECRET:change-me-refresh-secret-min-32-chars!!}
     access-expiry-ms: ${JWT_ACCESS_EXPIRY_MS:900000}
     refresh-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}
+  rate-limit:
+    auth:
+      capacity: ${RATE_LIMIT_AUTH_CAPACITY:10}
+      refill-tokens: ${RATE_LIMIT_AUTH_REFILL_TOKENS:10}
+      refill-period: ${RATE_LIMIT_AUTH_REFILL_PERIOD:PT1M}
+      expire-after-access: ${RATE_LIMIT_AUTH_EXPIRE_AFTER_ACCESS:PT5M}
+    user:
+      capacity: ${RATE_LIMIT_USER_CAPACITY:10}
+      refill-tokens: ${RATE_LIMIT_USER_REFILL_TOKENS:10}
+      refill-period: ${RATE_LIMIT_USER_REFILL_PERIOD:PT1S}
+      expire-after-access: ${RATE_LIMIT_USER_EXPIRE_AFTER_ACCESS:PT1H}
   cooling-settler:
     interval-ms: ${COOLING_SETTLER_INTERVAL_MS:3600000}
   wallet:

@@ -33,7 +33,7 @@ public class BuzzmaUserDetails implements UserDetails {
 
   @Override
   public String getUsername() {
-    return user.getUsername();
+    return user.getMobile();
   }
 
   @Override
