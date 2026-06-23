@@ -39,11 +39,21 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
     setErrors(prev => ({ ...prev, [field]: undefined }))
   }
 
-  function validate(): boolean {
-    const e = validateCampaignForm(form)
-    setErrors(e)
-    return Object.keys(e).length === 0
+function validate(): boolean {
+  const e = validateCampaignForm(form)
+
+  if (e.totalSlots?.includes('Total assigned slots')) {
+    setToastError(e.totalSlots)
+
+    const { totalSlots, ...remainingErrors } = e
+    setErrors(remainingErrors)
+
+    return false
   }
+
+  setErrors(e)
+  return Object.keys(e).length === 0
+}
 
   function buildDto(action?: CampaignRequestDto['action']): CampaignRequestDto {
     return {
