@@ -82,6 +82,8 @@ app:
       region: ${S3_REGION:garage}
 
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p ${PID:- } --- [%15.15t] %-40.40logger{39}:%line : %m%n%wEx"
   level:
     com.coddicted.buzzma.shared.web.com.coddicted.buzzma.config.RequestLoggingFilter: DEBUG
 
