@@ -9,24 +9,36 @@ Work through each issue **one at a time** and **sequentially**. Do not start the
 ## Step 1 — Setup (do this once at the start of every run)
 
 1. Read `.claude/agent-config.json` — all settings references below come from this file.
-2. Resolve the effective `assignee` using this priority order (stop at the first that succeeds):
-   a. Check the `ISSUE_AGENT_ASSIGNEE` environment variable — if set and non-empty, use it. (Set this in `.claude/settings.local.json` under `"env"` to configure it per-developer without touching version-controlled files.)
-   b. Call `mcp__gitea__get_me` — use the `login` field of the response as the assignee.
+2. Resolve the effective `assignee` using this priority order (stop at the first that succeeds):  
+   a. Check the `ISSUE_AGENT_ASSIGNEE` environment variable — if set and non-empty, use it. (Set this in `.claude/settings.local.json` under `"env"` to configure it per-developer without touching version-controlled files.)  
+   b. Call `mcp__gitea__get_me` — use the `login` field of the response as the assignee.  
    c. Use `agent-config.json` `assignee` field if it is non-null.
    Store the resolved value as `{assignee}` for use throughout this run. If all three sources fail or return null, abort with an error.
-3. Fetch the list of authorized approvers:
+3. Resolve the numeric repo ID:
+   - `GET {gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}` — use the `id` field.
+   - Store as `{repoId}`.
+4. Fetch the list of authorized approvers:
    - Use `mcp__gitea__search_org_teams` to find the team named `{gitea.approvalTeam}` in org `{gitea.org}`. Get its numeric ID.
    - Then call the Gitea REST API to get its members:
      `GET {gitea.baseUrl}/api/v1/teams/{teamId}/members`
      (use curl via Bash, passing the Gitea token from the environment if needed)
    - Store the list of usernames as `authorizedApprovers`.
-4. Print a brief startup summary: resolved assignee, how many authorized approvers found, what batch size will be used.
+5. Print a brief startup summary: resolved assignee, repo ID, how many authorized approvers found, what batch size will be used.
 
 ---
 
 ## Step 2 — Fetch Issue Batch
 
-Fetch open issues from `{gitea.org}/{gitea.repo}` that have the label `{issueFilter.requiredLabel}`, up to `{batch.size}` issues. Use `mcp__gitea__list_issues` or `mcp__gitea__issue_read`.
+Use curl via Bash to call the cross-repo issue search endpoint, which correctly resolves org-level labels (the per-repo issues API does not):
+
+```
+GET {gitea.baseUrl}/api/v1/repos/issues/search
+  ?labels={issueFilter.requiredLabel}
+  &state={issueFilter.state}
+  &priority_repo_id={repoId}
+```
+
+`priority_repo_id` ensures results from `{gitea.org}/{gitea.repo}` are ranked first before any other repos that may share the same label. After fetching, discard any results where `repository.full_name` is not `{gitea.org}/{gitea.repo}`, then take the first `{batch.size}` from the remaining list.
 
 For each issue in the batch, run Steps 3–7 fully before moving to the next.
 
@@ -37,7 +49,6 @@ For each issue in the batch, run Steps 3–7 fully before moving to the next.
 Read the issue's current labels and comments, then route:
 
 ### Skip immediately if any of these are true:
-- Does not have `{labels.automate}` label
 - Has `{labels.inProgress}` label → may be a stale crash; requires human to clear manually
 - Has `{labels.failed}` label → requires human to investigate and clear before retrying
 - Has `{labels.prRaised}` label → already done
