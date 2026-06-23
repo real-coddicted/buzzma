@@ -21,8 +21,8 @@ import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
-import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.PasswordMatchException;
+import com.coddicted.buzzma.shared.exception.UnauthorizedException;
 import com.coddicted.buzzma.shared.security.JwtService;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
     final BuzzmaUser existingUser = this.userService.getByMobile(user.getMobile());
     if (!this.userCredentialService.verify(
         existingUser.getId(), userCredential.getPasswordHash())) {
-      throw new ForbiddenException("Invalid credentials");
+      throw new UnauthorizedException("Invalid credentials");
     }
     return existingUser;
   }

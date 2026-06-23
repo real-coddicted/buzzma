@@ -45,7 +45,6 @@ export function Auth({ onAuth }: AuthProps) {
         onLogin={onAuth}
         onGoToRegister={() => navigate('/register')}
         onGoToForgotPassword={() => navigate('/forgot-password')}
-        onCaptchaExpired={() => setCaptchaToken('')}
       />
     )
   }

@@ -31,8 +31,8 @@ export async function loginUser(form: LoginForm, captchaToken: string): Promise<
     body: JSON.stringify({ mobile: form.mobile, password: form.password, captchaToken }),
   })
   if (!res.ok) {
-    if (res.status === 403) return { success: false, message: 'Captcha verification failed. Please verify again.', captchaFailed: true }
-    const message = res.status === 401 ? 'Invalid mobile number or password' : 'Something went wrong. Please try again.'
+    const data = await res.json().catch(() => null)
+    const message = data?.message ?? 'Something went wrong. Please try again.'
     return { success: false, message }
   }
   const data: SignInResponse = await res.json()
@@ -84,9 +84,8 @@ export async function registerUser(form: RegisterForm, captchaToken: string): Pr
   })
 
   if (!res.ok) {
-    if (res.status === 409) return { success: false, message: 'An account with this mobile number already exists.' }
-    const body = await res.json().catch(() => null)
-    const message = body?.message || 'Registration failed. Please try again.'
+    const data = await res.json().catch(() => null)
+    const message = data?.message ?? 'Registration failed. Please try again.'
     return { success: false, message }
   }
 

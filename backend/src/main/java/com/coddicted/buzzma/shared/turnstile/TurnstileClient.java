@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.shared.turnstile;
 
-import com.coddicted.buzzma.shared.exception.ForbiddenException;
+import com.coddicted.buzzma.shared.exception.CaptchaException;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientException;
 public class TurnstileClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TurnstileClient.class);
+  private static final String ERROR_MESSAGE = "An error occurred. Please try refreshing the page.";
 
   private final TurnstileProperties properties;
   private final RestClient restClient;
@@ -36,7 +37,7 @@ public class TurnstileClient {
 
     if (!StringUtils.hasText(token)) {
       LOGGER.warn("Captcha verification failed: missing token");
-      throw new ForbiddenException("Captcha verification failed");
+      throw new CaptchaException(ERROR_MESSAGE);
     }
 
     final MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -52,16 +53,16 @@ public class TurnstileClient {
               .body(form)
               .retrieve()
               .body(Map.class);
-    } catch (RestClientException e) {
-      LOGGER.warn("Turnstile siteverify call failed: {}", e.getMessage());
-      throw new ForbiddenException("Captcha verification failed");
+    } catch (final RestClientException e) {
+      LOGGER.warn("Turnstile site verify call failed: {}", e.getMessage());
+      throw new CaptchaException(ERROR_MESSAGE);
     }
 
     if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
       LOGGER.warn(
           "Captcha verification rejected: {}",
           response == null ? "null response" : response.get("error-codes"));
-      throw new ForbiddenException("Captcha verification failed");
+      throw new CaptchaException(ERROR_MESSAGE);
     }
 
     LOGGER.debug("Captcha verification succeeded");

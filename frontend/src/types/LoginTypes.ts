@@ -6,5 +6,4 @@ export interface LoginForm {
 export interface LoginResponse {
   success: boolean
   message: string
-  captchaFailed?: boolean
 }

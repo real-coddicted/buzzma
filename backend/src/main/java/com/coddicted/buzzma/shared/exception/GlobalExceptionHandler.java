@@ -45,6 +45,22 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
   }
 
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "UNAUTHORIZED");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+  }
+
+  @ExceptionHandler(CaptchaException.class)
+  public ResponseEntity<Map<String, Object>> handleCaptcha(CaptchaException ex) {
+    Map<String, Object> body = new HashMap<>();
+    body.put("error", "CAPTCHA_VERIFICATION_FAILED");
+    body.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
+  }
+
   @ExceptionHandler(ForbiddenException.class)
   public ResponseEntity<Map<String, Object>> handleForbidden(ForbiddenException ex) {
     Map<String, Object> body = new HashMap<>();

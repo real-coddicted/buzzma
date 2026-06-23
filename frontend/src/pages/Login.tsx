@@ -11,7 +11,6 @@ interface LoginProps {
   onLogin: () => void
   onGoToRegister: () => void
   onGoToForgotPassword: () => void
-  onCaptchaExpired: () => void
 }
 
 const inputBase =
@@ -22,7 +21,7 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
-export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassword, onCaptchaExpired }: LoginProps) {
+export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
   const [form, setForm] = useState<LoginForm>({
     mobile: '',
     password: '',
@@ -56,8 +55,6 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
       const res = await loginUser(form, captchaToken)
       if (res.success) {
         onLogin()
-      } else if (res.captchaFailed) {
-        onCaptchaExpired()
       } else {
         setToastError(res.message)
       }
