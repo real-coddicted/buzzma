@@ -39,31 +39,45 @@ export function DealFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3 justify-between">
-      <SearchInput value={search} onChange={onSearchChange} placeholder="Search deals…" />
+  <SearchInput
+    value={search}
+    onChange={onSearchChange}
+    placeholder="Search deals…"
+  />
 
-      <div className="flex items-center gap-4 ml-auto">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">
-            Type
-          </span>
-          <StatusFilterPills options={typeOptions} value={typeFilter} onChange={onTypeChange} />
-        </div>
+  <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col md:flex-row md:items-center gap-2">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">
+        Type
+      </span>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">
-            Platform
-          </span>
-          <select
-            value={platformFilter}
-            onChange={e => onPlatformChange(e.target.value as DealPlatformFilter)}
-            className="text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-2.5 py-1.5 outline-none cursor-pointer hover:border-neon-blue/40 transition-colors"
-          >
-            {platformOptions.map(p => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
-        </div>
+      <div className="overflow-x-auto">
+        <StatusFilterPills
+          options={typeOptions}
+          value={typeFilter}
+          onChange={onTypeChange}
+        />
       </div>
     </div>
+
+    <div className="flex flex-col md:flex-row md:items-center gap-2">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">
+        Platform
+      </span>
+
+      <select
+        value={platformFilter}
+        onChange={e => onPlatformChange(e.target.value as DealPlatformFilter)}
+        className="text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary px-2.5 py-1.5 outline-none cursor-pointer hover:border-neon-blue/40 transition-colors"
+      >
+        {platformOptions.map(p => (
+          <option key={p.value} value={p.value}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
   )
 }
