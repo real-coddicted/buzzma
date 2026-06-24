@@ -1,7 +1,20 @@
+import { useState } from 'react'
 import { UserList } from '../components/ui/users/UserList'
-import { mockUsers } from '../data/userMockData'
+import { UserSettingsPage } from './UserSettingsPage'
+import type { UserSummaryDto } from '../api/userApi'
 
 export function Users() {
+  const [selectedUser, setSelectedUser] = useState<UserSummaryDto | null>(null)
+
+  if (selectedUser) {
+    return (
+      <UserSettingsPage
+        user={selectedUser}
+        onBack={() => setSelectedUser(null)}
+      />
+    )
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <div>
@@ -9,11 +22,11 @@ export function Users() {
           Users
         </h1>
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          {mockUsers.length} users
+          Search for a user by mobile number.
         </p>
       </div>
 
-      <UserList users={mockUsers} />
+      <UserList onUserClick={setSelectedUser} />
     </div>
   )
 }

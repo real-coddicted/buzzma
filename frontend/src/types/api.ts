@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["get"];
         put: operations["update"];
         post?: never;
         delete: operations["delete"];
@@ -107,7 +107,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get"];
+        get?: never;
         put?: never;
         post: operations["create"];
         delete?: never;
@@ -642,6 +642,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["updateCampaign"];
+        trace?: never;
+    };
+    "/api/v1/users/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["searchByMobile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/users/me": {
@@ -1585,10 +1601,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1704,6 +1720,28 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSettingsDto"];
+                };
+            };
+        };
+    };
     update: {
         parameters: {
             query?: never;
@@ -1843,26 +1881,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
-                };
             };
         };
     };
@@ -2880,6 +2898,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CampaignResponseDto"];
+                };
+            };
+        };
+    };
+    searchByMobile: {
+        parameters: {
+            query: {
+                mobile: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSummaryDto"];
                 };
             };
         };

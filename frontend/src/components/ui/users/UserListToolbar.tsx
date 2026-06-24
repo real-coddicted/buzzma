@@ -1,35 +1,34 @@
+import { Button } from '../Button'
 import { SearchInput } from '../SearchInput'
-import { StatusFilterPills } from '../StatusFilterPills'
-import { USER_FILTER_OPTIONS } from './userConstants'
-import type { UserStatus } from '../../../types'
 
 interface UserListToolbarProps {
   search: string
   onSearchChange: (value: string) => void
-  statusFilter: UserStatus | 'all'
-  onStatusFilterChange: (value: UserStatus | 'all') => void
+  onSubmit: () => void
   searchPlaceholder?: string
 }
 
 export function UserListToolbar({
   search,
   onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
-  searchPlaceholder = 'Search names…',
+  onSubmit,
+  searchPlaceholder = 'Search by mobile number…',
 }: UserListToolbarProps) {
   return (
-    <div className="p-4 flex flex-col gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
-      <SearchInput
-        value={search}
-        onChange={onSearchChange}
-        placeholder={searchPlaceholder}
-      />
-      <StatusFilterPills
-        options={USER_FILTER_OPTIONS}
-        value={statusFilter}
-        onChange={onStatusFilterChange}
-      />
+    <div className="p-4 border-b border-surface-light-border dark:border-surface-dark-border">
+      <form
+        className="flex gap-2"
+        onSubmit={e => { e.preventDefault(); onSubmit() }}
+      >
+        <SearchInput
+          value={search}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+        />
+        <Button type="submit" variant="pink" size="sm" disabled={search.trim() === ''}>
+          Search
+        </Button>
+      </form>
     </div>
   )
 }

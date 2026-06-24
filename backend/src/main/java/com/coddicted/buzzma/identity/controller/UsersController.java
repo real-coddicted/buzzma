@@ -5,10 +5,12 @@ import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
+import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,6 +29,12 @@ public class UsersController {
   @GetMapping("/me")
   public UserSummaryDto me(@CurrentUserId final UUID requesterId) {
     final BuzzmaUser user = this.userService.getById(requesterId);
+    return this.userMapper.toUserSummaryDto(user);
+  }
+
+  @GetMapping("/search")
+  public UserSummaryDto searchByMobile(@RequestParam @NotBlank final String mobile) {
+    final BuzzmaUser user = this.userService.getByMobile(mobile);
     return this.userMapper.toUserSummaryDto(user);
   }
 }

@@ -1,78 +1,71 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Card } from '../Card'
-import { PaginationToolbar } from '../PaginationToolbar'
+import { Toast } from '../Toast'
 import { UserListToolbar } from './UserListToolbar'
 import { UserListItem } from './UserListItem'
-import type { User, UserStatus } from '../../../types'
+import { searchUserByMobile, type UserSummaryDto } from '../../../api/userApi'
 
 interface UserListProps {
-  users: User[]
-  pageSize?: number
-  searchPlaceholder?: string
+  onUserClick?: (user: UserSummaryDto) => void
 }
 
-export function UserList({
-  users,
-  pageSize = 10,
-  searchPlaceholder = 'Search names…',
-}: UserListProps) {
-  const [search, setSearch]             = useState('')
-  const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all')
-  const [currentPage, setCurrentPage]   = useState(1)
+type SearchState =
+  | { kind: 'idle' }
+  | { kind: 'loading' }
+  | { kind: 'result'; user: UserSummaryDto }
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return users.filter(u => {
-      const matchesSearch = !q || u.name.toLowerCase().includes(q)
-      const matchesStatus = statusFilter === 'all' || u.status === statusFilter
-      return matchesSearch && matchesStatus
-    })
-  }, [users, search, statusFilter])
+export function UserList({ onUserClick }: UserListProps) {
+  const [search, setSearch] = useState('')
+  const [state, setState]   = useState<SearchState>({ kind: 'idle' })
+  const [error, setError]   = useState<string | null>(null)
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-  // Derive the in-range page so a shrinking dataset (e.g. search filter) never
-  // shows an empty slice for a frame before an effect can clamp state.
-  const safePage = Math.min(currentPage, totalPages)
-
-  const visible = useMemo(() => {
-    const start = (safePage - 1) * pageSize
-    return filtered.slice(start, start + pageSize)
-  }, [filtered, safePage, pageSize])
-
-  const isFiltering = search.trim() !== '' || statusFilter !== 'all'
+  async function handleSubmit() {
+    const mobile = search.trim()
+    if (!mobile) return
+    setState({ kind: 'loading' })
+    try {
+      const user = await searchUserByMobile(mobile)
+      setState({ kind: 'result', user })
+    } catch (err) {
+      setState({ kind: 'idle' })
+      setError((err as Error).message)
+    }
+  }
 
   return (
+    <>
     <Card padded={false}>
       <UserListToolbar
         search={search}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        searchPlaceholder={searchPlaceholder}
+        onSearchChange={value => { setSearch(value); setState({ kind: 'idle' }) }}
+        onSubmit={handleSubmit}
       />
 
-      <div className="max-h-[420px] overflow-y-auto">
-        {visible.length === 0 ? (
-          <div className="flex justify-center py-20 text-sm text-ink-light-muted dark:text-ink-dark-muted">
-            {isFiltering ? 'No users match your filters.' : 'No users yet.'}
-          </div>
-        ) : (
-          <ul className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-            {visible.map((user, i) => (
-              <UserListItem
-                key={`${(safePage - 1) * pageSize + i}-${user.name}`}
-                user={user}
-              />
-            ))}
+      <div className="min-h-[80px]">
+        {state.kind === 'idle' && (
+          <p className="flex justify-center py-10 text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            Enter a mobile number to search.
+          </p>
+        )}
+
+        {state.kind === 'loading' && (
+          <p className="flex justify-center py-10 text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            Searching…
+          </p>
+        )}
+
+        {state.kind === 'result' && (
+          <ul>
+            <UserListItem
+              user={state.user}
+              onClick={onUserClick && state.user.id ? () => onUserClick(state.user) : undefined}
+            />
           </ul>
         )}
       </div>
-
-      <PaginationToolbar
-        currentPage={safePage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
     </Card>
+
+      {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
+    </>
   )
 }

@@ -9,6 +9,7 @@ import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,14 @@ public class UserSettingsController {
   @GetMapping
   public UserSettingsDto get(@CurrentUserId final UUID requesterId) {
     final UserSettings userSettings = this.userSettingsService.getByUserId(requesterId);
+    return this.userSettingsMapper.toUserSettingsDto(userSettings);
+  }
+
+  @GetMapping("/{userId}")
+  @PreAuthorize("hasAnyRole('ADMIN')")
+  public UserSettingsDto get(
+      @PathVariable final UUID userId, @CurrentUserId final UUID requesterId) {
+    final UserSettings userSettings = this.userSettingsService.getByUserId(userId);
     return this.userSettingsMapper.toUserSettingsDto(userSettings);
   }
 
