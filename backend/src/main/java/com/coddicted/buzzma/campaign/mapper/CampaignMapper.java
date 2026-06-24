@@ -82,14 +82,6 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.type", target = "type")
   @Mapping(source = "campaign.totalSlots", target = "totalSlots")
   @Mapping(source = "slotsClaimed", target = "slotsClaimed")
-  @Mapping(
-      target = "budgetPaise",
-      expression =
-          "java(summary.getCampaign().getCampaignPricePaise() != null"
-              + " && summary.getCampaign().getTotalSlots() != null"
-              + " ? summary.getCampaign().getCampaignPricePaise()"
-              + ".multiply(java.math.BigInteger.valueOf(summary.getCampaign().getTotalSlots()))"
-              + " : null)")
   CampaignSummaryResponseDto toSummary(CampaignSummary summary);
 
   List<CampaignSummaryResponseDto> toSummaries(List<CampaignSummary> summaries);

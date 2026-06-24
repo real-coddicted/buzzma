@@ -194,7 +194,7 @@ export function Dashboard() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-t border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
-                {['Campaign', 'Status', 'Budget', 'Spent', 'Impressions', 'CTR', 'Conversions'].map(h => (
+                {['Campaign', 'Status', 'Spent', 'Impressions', 'CTR', 'Conversions'].map(h => (
                   <th
                     key={h}
                     className="text-left px-5 py-2.5 font-semibold text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wider text-[10px]"
@@ -217,20 +217,7 @@ export function Dashboard() {
                     <StatusBadge status={c.status} />
                   </td>
                   <td className="px-5 py-3.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ₹{c.budget.toLocaleString()}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <div>
-                      <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">
-                        ₹{c.spent.toLocaleString()}
-                      </span>
-                      <div className="mt-1 h-1 rounded-full bg-surface-light-hover dark:bg-surface-dark-hover overflow-hidden w-20">
-                        <div
-                          className="h-full rounded-full bg-neon-blue"
-                          style={{ width: `${Math.round((c.spent / c.budget) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
+                    ₹{c.spent.toLocaleString()}
                   </td>
                   <td className="px-5 py-3.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
                     {c.impressions >= 1000000

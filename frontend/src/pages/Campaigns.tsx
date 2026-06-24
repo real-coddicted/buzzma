@@ -123,7 +123,6 @@ export function Campaigns() {
     loadCampaigns()
   }
 
-  const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0)
   const totalSpent  = campaigns.reduce((s, c) => s + c.spent, 0)
   const totalConv   = campaigns.reduce((s, c) => s + c.conversions, 0)
   const activeCnt   = campaigns.filter(c => c.status === 'active').length
@@ -157,7 +156,6 @@ export function Campaigns() {
       </div>
 
       <CampaignSummaryCards
-        totalBudget={totalBudget}
         totalSpent={totalSpent}
         totalConversions={totalConv}
         activeCount={activeCnt}

@@ -112,7 +112,6 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
     slotsClaimed:         dto.slotsClaimed ?? 0,
     allowedAgencies:      null,
     openToAll:            true,
-    budget:               Math.round((dto.budgetPaise ?? 0) / 100),
     spent:                0,
     impressions:          0,
     clicks:               0,

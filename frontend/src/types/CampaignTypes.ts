@@ -59,7 +59,6 @@ export interface Campaign {
   slotsClaimed: number
   allowedAgencies: string[] | null
   openToAll: boolean
-  budget: number
   spent: number
   impressions: number
   clicks: number

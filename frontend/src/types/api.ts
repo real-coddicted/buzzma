@@ -1643,7 +1643,6 @@ export interface components {
             totalSlots?: number;
             /** Format: int32 */
             slotsClaimed?: number;
-            budgetPaise?: number;
         };
         CampaignStepDto: {
             type?: string;

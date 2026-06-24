@@ -31,11 +31,10 @@ const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
   draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
 }
 
-type SortKey = keyof Pick<Campaign, 'title' | 'budget' | 'totalSlots'>
+type SortKey = keyof Pick<Campaign, 'title' | 'totalSlots'>
 
 const cols: { key: SortKey; label: string }[] = [
   { key: 'title',      label: 'Campaign' },
-  { key: 'budget',     label: 'Budget' },
   { key: 'totalSlots', label: 'Slots' },
 ]
 
@@ -165,7 +164,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-5 py-12 text-center">
+                <td colSpan={7} className="px-5 py-12 text-center">
                   <div className="flex justify-center">
                     <Loading size={28} />
                   </div>
@@ -173,7 +172,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={7} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No campaigns match your filter.
                 </td>
               </tr>
@@ -188,9 +187,6 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                       <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{c.title}</span>
                       <div className="text-[10px] text-ink-light-secondary dark:text-ink-dark-secondary mt-0.5 font-mono">{c.code}</div>
                     </div>
-                  </td>
-                  <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                    ₹{c.budget.toLocaleString()}
                   </td>
                   <td className="px-5 py-2.5">
                     <div className="space-y-1">
