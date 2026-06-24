@@ -67,7 +67,7 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
     } else if (!form.openToAll && form.assignees && form.assignees.length > 0) {
       const assignedSlots = form.assignees.reduce((sum, item) => sum + (item.slotsAvailable || 0), 0)
       if (assignedSlots > ts) {
-        e.totalSlots = `Total assigned slots (${assignedSlots}) cannot exceed campaign total slots (${ts})`
+        e.assignedSlots = `Total assigned slots (${assignedSlots}) cannot exceed campaign total slots (${ts})`
       }
     }
   }

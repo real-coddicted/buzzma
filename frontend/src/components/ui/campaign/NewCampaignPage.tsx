@@ -36,24 +36,18 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
 
   function set(field: keyof typeof EMPTY_FORM, value: unknown) {
     setForm(prev => ({ ...prev, [field]: value }))
-    setErrors(prev => ({ ...prev, [field]: undefined }))
+    setErrors(prev => ({
+      ...prev,
+      [field]: undefined,
+      ...(field === 'totalSlots' || field === 'assignees' ? { assignedSlots: undefined } : {}),
+    }))
   }
 
-function validate(): boolean {
-  const e = validateCampaignForm(form)
-
-  if (e.totalSlots?.includes('Total assigned slots')) {
-    setToastError(e.totalSlots)
-
-    const { totalSlots, ...remainingErrors } = e
-    setErrors(remainingErrors)
-
-    return false
+  function validate(): boolean {
+    const e = validateCampaignForm(form)
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
-
-  setErrors(e)
-  return Object.keys(e).length === 0
-}
 
   function buildDto(action?: CampaignRequestDto['action']): CampaignRequestDto {
     return {
@@ -170,6 +164,15 @@ function validate(): boolean {
             className="w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border text-xs text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted px-3 py-2 outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all resize-none"
           />
         </section>
+
+        {errors.assignedSlots && (
+          <div className="flex items-center gap-2 mt-4 px-4 py-3 rounded-xl border border-neon-red/40 bg-neon-red/10 text-neon-red text-sm font-medium">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            {errors.assignedSlots}
+          </div>
+        )}
 
         {/* Footer actions */}
         {!readOnly && (
