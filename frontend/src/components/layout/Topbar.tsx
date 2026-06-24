@@ -66,7 +66,7 @@ export function Topbar({ theme, onToggleTheme, activePage, canGoBack, onNavigate
       </div>
 
       <div className="flex items-center gap-1">
-        <div className="hidden sm:block mr-1">
+        <div className="mr-1 relative top-[3px]">
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
 
