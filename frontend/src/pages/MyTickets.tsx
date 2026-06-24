@@ -27,7 +27,7 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
   const [raisedError, setRaisedError]         = useState<string | null>(null)
   const [assignedError, setAssignedError]     = useState<string | null>(null)
   const [tab, setTab]       = useState<TicketTab>('raised')
-  const [filter, setFilter] = useState<TicketStatus | 'all'>('Open')
+  const [filter, setFilter] = useState<TicketStatus | 'all'>('InProgress')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Ticket | null>(null)
 
