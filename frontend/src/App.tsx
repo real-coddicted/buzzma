@@ -20,6 +20,7 @@ import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
+import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
 import type { NavPage, Notification } from './types'
 import type { components } from './types/api'
 
@@ -62,6 +63,13 @@ export default function App() {
     if (!isAuthenticated) return
     fetchUserSettings().then(setUserSettings).catch(console.error)
   }, [isAuthenticated])
+
+  useEffect(() => {
+    if (!userSettings) return
+    if (isTabDisabled(activePage, userSettings)) {
+      navigate('/' + getFirstEnabledPage(userSettings), { replace: true })
+    }
+  }, [userSettings, activePage, navigate])
 
   useEffect(() => {
     if (!isAuthenticated) return
