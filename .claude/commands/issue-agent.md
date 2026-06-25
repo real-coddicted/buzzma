@@ -147,10 +147,10 @@ _Reply to these questions, then comment `/reanalyse` to trigger re-analysis._
 ### 7a. Set state
 Add label `{labels.inProgress}`.
 
-### 7b. Create branch from latest main
+### 7b. Create branch from latest develop
 ```bash
-git fetch origin main
-git checkout -b {branchPrefix}{issueNumber}/{2-3-word-hyphenated-summary} origin/main
+git fetch origin develop
+git checkout -b {branchPrefix}{issueNumber}/{2-3-word-hyphenated-summary} origin/develop
 ```
 The 2–3 word summary should capture the essence of the fix in kebab-case (e.g. `campaign-full-scroll`, `fix-login-redirect`). Derive it from the issue title.
 
@@ -186,7 +186,7 @@ git push -u origin {branch}
 
 Use `mcp__gitea__pull_request_write` with `method: "create"`:
 - `title`: `Issue#{N} - {issue title}`
-- `base`: `main`
+- `base`: `develop`
 - `head`: `{branch}`
 - `assignees`: [`{assignee}`]
 - `body`:
@@ -220,7 +220,7 @@ Set label `{labels.prRaised}`, remove `{labels.inProgress}`.
 **If any check failed — draft PR:**
 
 Use `mcp__gitea__pull_request_write` with `method: "create"` and `draft: true`:
-- Same title, base, head, assignees as above
+- Same title (`Issue#{N} - {issue title}`), `base`: `develop`, `head`: `{branch}`, `assignees`: [`{assignee}`]
 - Append this section to the body:
 ```
 ## ⚠️ Draft — Checks Failed
@@ -258,7 +258,7 @@ After all issues in the batch are processed, print a Markdown table:
 ## Hard Rules
 
 - Every comment posted on Gitea **must** begin with `<!-- ai-automation type="..." -->` on line 1. Valid types: `plan`, `clarification`, `pr-link`, `failure`, `warning`.
-- Never commit directly to `main`.
+- Never commit directly to `main` or `develop`.
 - Never add features, refactors, or changes outside the scope of the plan.
 - If a Gitea API call fails, post a `type="warning"` comment on the affected issue, skip it, and continue with the next issue in the batch.
-- If the agent is already on a non-main branch from a previous run, always return to main before creating a new branch for a different issue.
+- If the agent is already on a non-develop branch from a previous run, always return to develop before creating a new branch for a different issue.
