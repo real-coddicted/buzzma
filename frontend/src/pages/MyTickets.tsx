@@ -93,9 +93,6 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">{title}</h1>
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            {loading ? 'Loading…' : `${activeTickets.length} ticket${activeTickets.length !== 1 ? 's' : ''} total`}
-          </p>
         </div>
         <RaiseTicketButton size="sm" />
       </div>
