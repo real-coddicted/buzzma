@@ -15,11 +15,9 @@ import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
-import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -168,35 +166,24 @@ public class CampaignProcessor {
                 .isDeleted(false)
                 .build());
 
-    final List<CampaignAssignment> assignments =
-        this.connectionService
-            .getConnectionsByFromUserIdAndStatus(
-                campaign.getOwnerId(), ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
-            .stream()
-            .map(
-                view ->
-                    CampaignAssignment.builder()
-                        .campaignId(campaign.getId())
-                        .assignorId(requesterId)
-                        .assigneeId(view.getConnection().getToUserId())
-                        .slotLimit(campaign.getTotalSlots())
-                        .campaignSlot(slot)
-                        .adjustedCampaignPricePaise(getAdjustedCampaignPricePaise(campaign))
-                        .commissionOfferedPaise(campaign.getCommissionToAllPaise())
-                        .createdBy(requesterId)
-                        .updatedBy(requesterId)
-                        .isDeleted(false)
-                        .build())
-            .toList();
-    return this.campaignAssignmentService.create(assignments);
-  }
-
-  private static BigInteger getAdjustedCampaignPricePaise(final Campaign campaign) {
-    BigInteger adjustedPrice = campaign.getCampaignPricePaise();
-    if (campaign.getCommissionToAllPaise() != null) {
-      adjustedPrice = adjustedPrice.add(campaign.getCommissionToAllPaise());
+    final List<CampaignAssignmentRequestDto> draft = campaign.getAssignmentsDraft();
+    final List<CampaignAssignment> assignments = new ArrayList<>();
+    for (final CampaignAssignmentRequestDto entry : draft) {
+      assignments.add(
+          CampaignAssignment.builder()
+              .campaignId(campaign.getId())
+              .assignorId(entry.getAssignorId())
+              .assigneeId(entry.getAssigneeId())
+              .slotLimit(campaign.getTotalSlots())
+              .adjustedCampaignPricePaise(entry.getAdjustedCampaignPricePaise())
+              .commissionOfferedPaise(entry.getCommissionOfferedPaise())
+              .campaignSlot(slot)
+              .createdBy(requesterId)
+              .updatedBy(requesterId)
+              .isDeleted(false)
+              .build());
     }
-    return adjustedPrice;
+    return this.campaignAssignmentService.create(assignments);
   }
 
   private List<CampaignAssignment> createSlotsAndAssignmentsFromDraft(

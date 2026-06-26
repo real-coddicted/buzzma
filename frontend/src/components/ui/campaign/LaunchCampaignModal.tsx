@@ -61,6 +61,7 @@ export function LaunchCampaignModal({
           <LinkedEntitiesTable
             entities={entities}
             onChange={setEntities}
+            readOnly
           />
         </div>
 

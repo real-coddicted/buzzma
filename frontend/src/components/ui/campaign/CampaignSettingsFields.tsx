@@ -1,14 +1,12 @@
 import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
-import { RupeeInput } from '../RupeeInput'
 
 interface FormSlice {
   totalSlots: string
   returnWindowDays: string
   openToAll: boolean
   assignees: LinkedEntity[]
-  commissionToAllRupees: string
 }
 
 interface Props {
@@ -76,25 +74,12 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
         </span>
       </div>
 
-      {form.openToAll && (
-        <div>
-          <label className={labelClass}>Commission Offered</label>
-          <RupeeInput
-            value={form.commissionToAllRupees}
-            onChange={v => set('commissionToAllRupees', v)}
-            className={inputClass}
-            disabled={readOnly}
-          />
-        </div>
-      )}
-
-      {!form.openToAll && (
-        <LinkedEntitiesTable
-          entities={form.assignees}
-          onChange={v => set('assignees', v)}
-          readOnly={readOnly}
-        />
-      )}
+      <LinkedEntitiesTable
+        entities={form.assignees}
+        onChange={v => set('assignees', v)}
+        openToAll={form.openToAll}
+        readOnly={readOnly}
+      />
     </section>
   )
 }
