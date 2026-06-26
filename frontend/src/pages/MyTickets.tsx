@@ -102,7 +102,6 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
 
       <TicketTabs
         value={tab}
-        counts={{ raised: raisedTickets.length, assigned: assignedTickets.length }}
         onChange={setTab}
       />
 
