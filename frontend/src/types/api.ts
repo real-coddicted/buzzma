@@ -1010,6 +1010,7 @@ export interface components {
             ticketsTabEnabled?: boolean;
             feedbackTabEnabled?: boolean;
             settingsTabEnabled?: boolean;
+            usersTabEnabled?: boolean;
         };
         TicketRequestDto: {
             /** Format: uuid */

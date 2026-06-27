@@ -10,7 +10,8 @@
     "claimReviewEnabled": false,
     "ticketsTabEnabled": true,
     "feedbackTabEnabled": true,
-    "settingsTabEnabled": true
+    "settingsTabEnabled": true,
+    "usersTabEnabled": false
   },
   "isDeleted": false
 }

@@ -17,4 +17,5 @@ public class Settings {
   boolean ticketsTabEnabled;
   boolean feedbackTabEnabled;
   boolean settingsTabEnabled;
+  boolean usersTabEnabled;
 }

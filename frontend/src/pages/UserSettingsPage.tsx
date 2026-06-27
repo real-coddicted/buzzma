@@ -17,6 +17,7 @@ const SETTINGS: { key: keyof UserSettingsDto; label: string }[] = [
   { key: 'ticketsTabEnabled',     label: 'Tickets'     },
   { key: 'feedbackTabEnabled',    label: 'Feedback'    },
   { key: 'settingsTabEnabled',    label: 'Settings'    },
+  { key: 'usersTabEnabled',       label: 'Users'       },
 ]
 
 interface UserSettingsPageProps {

@@ -17,4 +17,5 @@ public class UserSettingsDto {
   boolean ticketsTabEnabled;
   boolean feedbackTabEnabled;
   boolean settingsTabEnabled;
+  boolean usersTabEnabled;
 }

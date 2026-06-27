@@ -21,6 +21,7 @@ public interface UserSettingsMapper {
   @Mapping(source = "settings.ticketsTabEnabled", target = "ticketsTabEnabled")
   @Mapping(source = "settings.feedbackTabEnabled", target = "feedbackTabEnabled")
   @Mapping(source = "settings.settingsTabEnabled", target = "settingsTabEnabled")
+  @Mapping(source = "settings.usersTabEnabled", target = "usersTabEnabled")
   UserSettingsDto toUserSettingsDto(UserSettings userSettings);
 
   @Mapping(source = "dashboardTabEnabled", target = "dashboardTabEnabled")
@@ -32,6 +33,7 @@ public interface UserSettingsMapper {
   @Mapping(source = "ticketsTabEnabled", target = "ticketsTabEnabled")
   @Mapping(source = "feedbackTabEnabled", target = "feedbackTabEnabled")
   @Mapping(source = "settingsTabEnabled", target = "settingsTabEnabled")
+  @Mapping(source = "usersTabEnabled", target = "usersTabEnabled")
   Settings toSettings(UserSettingsDto dto);
 
   @Mapping(target = "id", ignore = true)

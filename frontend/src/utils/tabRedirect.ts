@@ -13,6 +13,7 @@ export const TAB_FLAGS: Partial<Record<NavPage, keyof UserSettingsDto>> = {
   'my-tickets':   'ticketsTabEnabled',
   tickets:        'ticketsTabEnabled',
   feedback:       'feedbackTabEnabled',
+  users:          'usersTabEnabled',
 }
 
 const FALLBACK_ORDER: NavPage[] = [

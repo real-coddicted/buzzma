@@ -10,7 +10,8 @@
     "claimReviewEnabled": false,
     "ticketsTabEnabled": true,
     "feedbackTabEnabled": true,
-    "settingsTabEnabled": true
+    "settingsTabEnabled": true,
+    "usersTabEnabled": true
   },
   "isDeleted": false,
   "createdAt": "2024-01-01T00:00:00Z",

@@ -14,6 +14,7 @@ const allEnabled: UserSettingsDto = {
   ticketsTabEnabled:     true,
   feedbackTabEnabled:    true,
   settingsTabEnabled:    true,
+  usersTabEnabled:       true,
 }
 
 describe('isTabDisabled', () => {
@@ -30,10 +31,17 @@ describe('isTabDisabled', () => {
     expect(isTabDisabled('dashboard', settings)).toBe(false)
   })
 
-  it('returns false for pages with no flag (users, profile, etc.)', () => {
-    expect(isTabDisabled('users', allEnabled)).toBe(false)
+  it('returns false for pages with no flag (profile, notifications, etc.)', () => {
     expect(isTabDisabled('profile', allEnabled)).toBe(false)
     expect(isTabDisabled('notifications', allEnabled)).toBe(false)
+  })
+
+  it('returns false for users when usersTabEnabled is true', () => {
+    expect(isTabDisabled('users', { ...allEnabled, usersTabEnabled: true })).toBe(false)
+  })
+
+  it('returns true for users when usersTabEnabled is false', () => {
+    expect(isTabDisabled('users', { ...allEnabled, usersTabEnabled: false })).toBe(true)
   })
 })
 

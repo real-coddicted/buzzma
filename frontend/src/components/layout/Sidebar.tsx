@@ -158,12 +158,14 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
               onClick={() => onNavigate('claim-review')}
             />
           )}
-          <NavItem
-            icon={<IconProfile />}
-            label="Users"
-            active={activePage === 'users'}
-            onClick={() => onNavigate('users')}
-          />
+          {show(userSettings?.usersTabEnabled) && (
+            <NavItem
+              icon={<IconProfile />}
+              label="Users"
+              active={activePage === 'users'}
+              onClick={() => onNavigate('users')}
+            />
+          )}
         </div>
 
         <div className="flex-1" />

@@ -63,6 +63,7 @@ class UserSettingsServiceImplTest {
     assertTrue(settings.isTicketsTabEnabled());
     assertTrue(settings.isFeedbackTabEnabled());
     assertTrue(settings.isSettingsTabEnabled());
+    assertTrue(settings.isUsersTabEnabled());
   }
 
   @Test
@@ -78,6 +79,7 @@ class UserSettingsServiceImplTest {
     assertTrue(settings.isTicketsTabEnabled());
     assertTrue(settings.isFeedbackTabEnabled());
     assertTrue(settings.isSettingsTabEnabled());
+    assertFalse(settings.isUsersTabEnabled());
   }
 
   @Test
@@ -93,6 +95,7 @@ class UserSettingsServiceImplTest {
     assertTrue(settings.isTicketsTabEnabled());
     assertTrue(settings.isFeedbackTabEnabled());
     assertTrue(settings.isSettingsTabEnabled());
+    assertFalse(settings.isUsersTabEnabled());
   }
 
   @Test

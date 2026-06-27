@@ -17,6 +17,7 @@ public final class SettingsUtils {
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
+        .usersTabEnabled(true)
         .build();
   }
 
@@ -28,6 +29,7 @@ public final class SettingsUtils {
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
+        .usersTabEnabled(false)
         .build();
   }
 
@@ -40,6 +42,7 @@ public final class SettingsUtils {
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
+        .usersTabEnabled(false)
         .build();
   }
 
@@ -52,6 +55,7 @@ public final class SettingsUtils {
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
+        .usersTabEnabled(false)
         .build();
   }
 
@@ -61,6 +65,7 @@ public final class SettingsUtils {
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
+        .usersTabEnabled(false)
         .build();
   }
 }
