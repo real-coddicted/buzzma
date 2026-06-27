@@ -1,7 +1,6 @@
-import { useNavigate } from 'react-router-dom'
 import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
-import { IconBell, IconChevronRight, IconChevronLeft, IconMenu } from '../ui/icons'
+import { IconBell, IconChevronRight, IconMenu } from '../ui/icons'
 import type { Theme, NavPage, Notification } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
@@ -24,15 +23,13 @@ interface TopbarProps {
   theme: Theme
   onToggleTheme: () => void
   activePage: NavPage
-  canGoBack: boolean
   onNavigate: (page: NavPage) => void
   notifications: Notification[]
   onMenuClick: () => void
 }
 
 
-export function Topbar({ theme, onToggleTheme, activePage, canGoBack, onNavigate, notifications, onMenuClick }: TopbarProps) {
-  const navigate = useNavigate()
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications, onMenuClick }: TopbarProps) {
   const unreadCount = notifications.filter(n => n.unread).length
   const { title, subtitle } = pageTitles[activePage]
 
@@ -47,15 +44,6 @@ export function Topbar({ theme, onToggleTheme, activePage, canGoBack, onNavigate
       </button>
 
       <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted flex-1 min-w-0">
-        {canGoBack && (
-          <button
-            onClick={() => navigate(-1)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg border border-neon-yellow text-neon-yellow hover:bg-neon-yellow/10 transition-colors flex-shrink-0"
-            aria-label="Go back"
-          >
-            <IconChevronLeft size={14} />
-          </button>
-        )}
         <span className="hidden sm:inline">{APP_NAME}</span>
         <IconChevronRight size={12} className="hidden sm:inline" />
         <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">{title}</span>

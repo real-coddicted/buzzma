@@ -104,7 +104,6 @@ export default function App() {
       theme={theme}
       onToggleTheme={toggleTheme}
       activePage={activePage}
-      canGoBack={location.key !== 'default'}
       onNavigate={handleNavigate}
       notifications={notifications}
       userSettings={userSettings}

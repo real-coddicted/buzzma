@@ -12,7 +12,6 @@ interface AppLayoutProps {
   theme: Theme
   onToggleTheme: () => void
   activePage: NavPage
-  canGoBack: boolean
   onNavigate: (page: NavPage) => void
   notifications: Notification[]
   userSettings: UserSettingsDto | null
@@ -23,7 +22,6 @@ export function AppLayout({
   theme,
   onToggleTheme,
   activePage,
-  canGoBack,
   onNavigate,
   notifications,
   userSettings,
@@ -51,7 +49,6 @@ export function AppLayout({
         theme={theme}
         onToggleTheme={onToggleTheme}
         activePage={activePage}
-        canGoBack={canGoBack}
         onNavigate={handleNavigate}
         notifications={notifications}
         onMenuClick={() => setIsSidebarOpen(true)}
