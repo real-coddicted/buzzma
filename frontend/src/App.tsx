@@ -33,7 +33,7 @@ export default function App() {
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
 
   const validPages = useMemo(() => new Set<string>(['campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
-  const rawPage = location.pathname.replace(/^\//, '') || 'campaigns'
+  const rawPage = location.pathname.replace(/^\//, '')
   const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'campaigns'
 
   const handleNavigate = useCallback((page: NavPage) => {
@@ -45,7 +45,7 @@ export default function App() {
     clearSession()
     setIsAuthenticated(false)
     setUserSettings(null)
-    navigate('/campaigns')
+    navigate('/')
   }, [navigate])
 
   useEffect(() => {
@@ -65,10 +65,10 @@ export default function App() {
 
   useEffect(() => {
     if (!userSettings) return
-    if (isTabDisabled(activePage, userSettings)) {
+    if (!validPages.has(rawPage) || isTabDisabled(activePage, userSettings)) {
       navigate('/' + getFirstEnabledPage(userSettings), { replace: true })
     }
-  }, [userSettings, activePage, navigate])
+  }, [userSettings, activePage, rawPage, navigate, validPages])
 
   useEffect(() => {
     if (!isAuthenticated) return
