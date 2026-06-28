@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
@@ -8,7 +9,7 @@ import { TicketToolbar } from '../components/ui/ticket/TicketToolbar'
 import { TicketTabs } from '../components/ui/ticket/TicketTabs'
 import type { TicketTab } from '../components/ui/ticket/TicketTabs'
 import { TICKET_STATUS_CONFIG } from '../constants/ticketStatus'
-import { fetchMyTickets, fetchAssignedTickets } from '../api/ticketApi'
+import { fetchMyTickets, fetchAssignedTickets, fetchTicketById } from '../api/ticketApi'
 import { RaiseTicketButton } from './RaiseTicket'
 import type { Ticket, TicketStatus } from '../types/TicketTypes'
 import { useSSE } from '../hooks/useSSE'
@@ -19,23 +20,30 @@ interface Props {
 }
 
 export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Props) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  const tab = (searchParams.get('tab') as TicketTab) ?? 'raised'
+  const ticketId = searchParams.get('id')
+  const isDetailView = searchParams.get('view') === 'detail' && !!ticketId
+
   const [raisedTickets, setRaisedTickets]     = useState<Ticket[]>([])
   const [assignedTickets, setAssignedTickets] = useState<Ticket[]>([])
   const [raisedLoading, setRaisedLoading]     = useState(true)
   const [assignedLoading, setAssignedLoading] = useState(false)
   const assignedInitialized = useRef(false)
-  const [raisedError, setRaisedError]         = useState<string | null>(null)
-  const [assignedError, setAssignedError]     = useState<string | null>(null)
-  const [tab, setTab]       = useState<TicketTab>('raised')
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<TicketStatus | 'all'>('InProgress')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<Ticket | null>(null)
+
+  const [ticket, setTicket]           = useState<Ticket | null>(null)
+  const [ticketLoading, setTicketLoading] = useState(false)
 
   const loadRaisedTickets = useCallback(() => {
     setRaisedLoading(true)
     fetchFn()
       .then(setRaisedTickets)
-      .catch(() => setRaisedError('Failed to load tickets. Please try again.'))
+      .catch(() => setError('Failed to load tickets. Please try again.'))
       .finally(() => setRaisedLoading(false))
   }, [fetchFn])
 
@@ -43,7 +51,7 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
     setAssignedLoading(true)
     fetchAssignedTickets()
       .then(setAssignedTickets)
-      .catch(() => setAssignedError('Failed to load tickets. Please try again.'))
+      .catch(() => setError('Failed to load tickets. Please try again.'))
       .finally(() => setAssignedLoading(false))
   }, [])
 
@@ -59,10 +67,37 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
   useSSE('EVENT_TYPE_REFRESH', loadRaisedTickets, 'ticket_raised')
   useSSE('EVENT_TYPE_REFRESH', loadAssignedTickets, 'ticket_assigned')
 
+  useEffect(() => {
+    if (!ticketId) {
+      setTicket(null)
+      return
+    }
+    let cancelled = false
+    setTicketLoading(true)
+    fetchTicketById(ticketId)
+      .then(t => { if (!cancelled) setTicket(t) })
+      .catch(() => { if (!cancelled) setError('Failed to load ticket.') })
+      .finally(() => { if (!cancelled) setTicketLoading(false) })
+    return () => { cancelled = true }
+  }, [ticketId])
+
+  function handleSelectTicket(t: Ticket) {
+    const params: Record<string, string> = { view: 'detail', id: t.id }
+    if (tab === 'assigned') params.tab = 'assigned'
+    setSearchParams(params)
+  }
+
+  function handleUpdate(updated: Ticket) {
+    setTicket(updated)
+    if (tab === 'raised') {
+      setRaisedTickets(prev => prev.map(t => t.id === updated.id ? updated : t))
+    } else {
+      setAssignedTickets(prev => prev.map(t => t.id === updated.id ? updated : t))
+    }
+  }
+
   const activeTickets = tab === 'raised' ? raisedTickets : assignedTickets
-  const loading = tab === 'raised' ? raisedLoading : assignedLoading
-  const error   = tab === 'raised' ? raisedError   : assignedError
-  const setError = tab === 'raised' ? setRaisedError : setAssignedError
+  const loading       = tab === 'raised' ? raisedLoading : assignedLoading
 
   const filtered = activeTickets.filter(t => {
     const matchesFilter = filter === 'all' || t.status === filter
@@ -75,17 +110,24 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
     return matchesFilter && matchesSearch
   })
 
-  function handleUpdate(updated: Ticket) {
-    if (tab === 'raised') {
-      setRaisedTickets(prev => prev.map(t => t.id === updated.id ? updated : t))
-    } else {
-      setAssignedTickets(prev => prev.map(t => t.id === updated.id ? updated : t))
-    }
-    setSelected(updated)
+  if (isDetailView && ticketLoading) {
+    return (
+      <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+        <Loading size={32} />
+      </div>
+    )
   }
 
-  if (selected) {
-    return <TicketDetail ticket={selected} onBack={() => setSelected(null)} onUpdate={handleUpdate} showActions role={tab === 'raised' ? 'reporter' : 'assignee'} />
+  if (ticket) {
+    return (
+      <TicketDetail
+        ticket={ticket}
+        onBack={() => navigate(-1)}
+        onUpdate={handleUpdate}
+        showActions
+        role={tab === 'raised' ? 'reporter' : 'assignee'}
+      />
+    )
   }
 
   return (
@@ -99,7 +141,7 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
 
       <TicketTabs
         value={tab}
-        onChange={setTab}
+        onChange={t => setSearchParams(t === 'raised' ? {} : { tab: t })}
       />
 
       <Card padded={false}>
@@ -115,8 +157,8 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
           </p>
         ) : (
           <div className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-            {filtered.map(ticket => (
-              <TicketListItem key={ticket.id} ticket={ticket} onClick={setSelected} />
+            {filtered.map(t => (
+              <TicketListItem key={t.id} ticket={t} onClick={handleSelectTicket} />
             ))}
           </div>
         )}
