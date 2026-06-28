@@ -1,4 +1,4 @@
-import { IconProfile, IconCurrency, IconSettings } from './icons'
+import { IconProfile } from './icons'
 import type { NavPage } from '../../types'
 
 interface AccountSubmenuProps {
@@ -42,21 +42,6 @@ export function AccountSubmenu({
           <span>Profile</span>
         </button>
 
-        <button
-          onClick={() => {}}
-          className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
-        >
-          <IconCurrency />
-          <span>Billing</span>
-        </button>
-
-        <button
-          onClick={() => {}}
-          className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
-        >
-          <IconSettings />
-          <span>Settings</span>
-        </button>
       </div>
     </div>
   )

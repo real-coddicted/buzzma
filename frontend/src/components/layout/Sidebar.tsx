@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconProfile, IconX } from '../ui/icons'
+import { IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconSettings, IconChart, IconLogout, IconProfile, IconX, IconTicket } from '../ui/icons'
 import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
@@ -110,14 +110,6 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
 
         <SectionLabel label="Main" />
         <div className="flex flex-col gap-1">
-          {show(userSettings?.dashboardTabEnabled) && (
-            <NavItem
-              icon={<IconDashboard />}
-              label="Dashboard"
-              active={activePage === 'dashboard'}
-              onClick={() => onNavigate('dashboard')}
-            />
-          )}
           {show(userSettings?.campaignsTabEnabled) && (
             <NavItem
               icon={<IconCampaign />}
@@ -172,7 +164,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
 
         {show(userSettings?.ticketsTabEnabled) && (
           <NavItem
-            icon={<IconList />}
+            icon={<IconTicket />}
             label="My Tickets"
             active={activePage === 'my-tickets'}
             onClick={() => onNavigate('my-tickets')}

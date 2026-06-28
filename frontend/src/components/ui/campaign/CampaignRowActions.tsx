@@ -1,5 +1,5 @@
 import { Badge } from '../Badge'
-import { IconPause, IconCopy, IconEdit, IconX, IconEye } from '../icons'
+import { IconCopy, IconEdit, IconEye } from '../icons'
 import type { Campaign } from '../../../types'
 
 interface Props {
@@ -23,27 +23,13 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Prop
           </button>
         )}
         {c.status === 'active' && (
-          <>
-            <button
-              title="View"
-              onClick={onView}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-            >
-              <IconEye size={13} />
-            </button>
-            <button
-              title="Pause"
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-yellow hover:bg-neon-yellow/10 transition-colors"
-            >
-              <IconPause size={13} />
-            </button>
-            <button
-              title="Close"
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
-            >
-              <IconX size={13} />
-            </button>
-          </>
+          <button
+            title="View"
+            onClick={onView}
+            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
+          >
+            <IconEye size={13} />
+          </button>
         )}
       </div>
       <button
