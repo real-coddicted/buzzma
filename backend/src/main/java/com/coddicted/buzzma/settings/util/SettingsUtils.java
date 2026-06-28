@@ -37,6 +37,7 @@ public final class SettingsUtils {
     return Settings.builder()
         .dashboardTabEnabled(true)
         .campaignsTabEnabled(true)
+        .assignmentsTabEnabled(true)
         .connectionsTabEnabled(true)
         .claimReviewEnabled(true)
         .ticketsTabEnabled(true)
