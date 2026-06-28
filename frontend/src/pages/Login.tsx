@@ -3,11 +3,14 @@ import { APP_NAME } from '../constants/app'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
+import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 import { loginUser } from '../api/authApi'
 import type { LoginForm } from '../types/LoginTypes'
 
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+
 interface LoginProps {
-  captchaToken: string
+  initialCaptchaToken?: string
   onLogin: () => void
   onGoToRegister: () => void
   onGoToForgotPassword: () => void
@@ -21,7 +24,8 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
-export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
+export function Login({ initialCaptchaToken, onLogin, onGoToRegister, onGoToForgotPassword }: LoginProps) {
+  const [captchaToken, setCaptchaToken] = useState(initialCaptchaToken ?? '')
   const [form, setForm] = useState<LoginForm>({
     mobile: '',
     password: '',
@@ -56,9 +60,11 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
       if (res.success) {
         onLogin()
       } else {
+        setCaptchaToken('')
         setToastError(res.message)
       }
     } catch {
+      setCaptchaToken('')
       setToastError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
@@ -154,7 +160,11 @@ export function Login({ captchaToken, onLogin, onGoToRegister, onGoToForgotPassw
               )}
             </div>
 
-            <Button type="submit" variant="primary" size="lg" loading={submitting} className="w-full mt-2">
+            {!captchaToken && (
+              <TurnstileWidget siteKey={SITE_KEY} onVerify={setCaptchaToken} appearance='interaction-only' />
+            )}
+
+            <Button type="submit" variant="primary" size="lg" loading={submitting} disabled={!captchaToken} className="w-full mt-2">
               Sign In
             </Button>
 

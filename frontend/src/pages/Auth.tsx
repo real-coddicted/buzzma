@@ -41,7 +41,7 @@ export function Auth({ onAuth }: AuthProps) {
   if (view === 'login') {
     return (
       <Login
-        captchaToken={captchaToken}
+        initialCaptchaToken={captchaToken}
         onLogin={onAuth}
         onGoToRegister={() => navigate('/register')}
         onGoToForgotPassword={() => navigate('/forgot-password')}

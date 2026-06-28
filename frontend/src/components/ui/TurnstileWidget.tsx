@@ -5,9 +5,10 @@ interface Props {
   onVerify: (token: string) => void
   onError?: () => void
   theme?: 'light' | 'dark' | 'auto'
+  appearance?: 'always' | 'execute' | 'interaction-only'
 }
 
-export function TurnstileWidget({ siteKey, onVerify, onError, theme = 'dark' }: Props) {
+export function TurnstileWidget({ siteKey, onVerify, onError, theme = 'dark', appearance = 'always' }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const onVerifyRef = useRef(onVerify)
@@ -28,6 +29,7 @@ export function TurnstileWidget({ siteKey, onVerify, onError, theme = 'dark' }: 
       widgetIdRef.current = window.turnstile.render(container, {
         sitekey: siteKey,
         theme,
+        appearance,
         callback: (token: string) => {
           if (active) onVerifyRef.current(token)
         },
@@ -60,7 +62,7 @@ export function TurnstileWidget({ siteKey, onVerify, onError, theme = 'dark' }: 
         widgetIdRef.current = null
       }
     }
-  }, [siteKey, theme])
+  }, [siteKey, theme, appearance])
 
   return <div ref={containerRef} />
 }
