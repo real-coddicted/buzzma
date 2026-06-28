@@ -5,6 +5,7 @@ import { IconPlus } from '../components/ui/icons'
 import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
 import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
+import { Loading } from '../components/ui/Loading'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
 import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
@@ -42,20 +43,25 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
   }
 }
 
+interface CampaignDetail {
+  form: CampaignForm
+  status: NonNullable<CampaignResponseDto['status']>
+  code: string | null
+}
+
 export function Campaigns() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const view = searchParams.get('view')
-  const showNewCampaign = view === 'new' || view === 'edit' || view === 'view'
+  const campaignId = searchParams.get('id')
+  const showDetail = view === 'new' || view === 'edit' || view === 'view'
   const isViewMode = view === 'view'
 
-  const [editingForm, setEditingForm] = useState<CampaignForm | null>(null)
-  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null)
-  const [editingCampaignStatus, setEditingCampaignStatus] = useState<NonNullable<CampaignResponseDto['status']> | null>(null)
-  const [campaignCode, setCampaignCode] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [detail, setDetail] = useState<CampaignDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   const loadCampaigns = useCallback(() => {
     setLoading(true)
@@ -69,6 +75,27 @@ export function Campaigns() {
 
   useSSE('EVENT_TYPE_REFRESH', loadCampaigns, 'campaigns')
 
+  useEffect(() => {
+    if (!campaignId || (view !== 'edit' && view !== 'view')) {
+      setDetail(null)
+      return
+    }
+    let cancelled = false
+    setDetailLoading(true)
+    fetchCampaignById(campaignId)
+      .then(dto => {
+        if (cancelled) return
+        setDetail({
+          form: responseToForm(dto),
+          status: dto.status ?? 'CAMPAIGN_STATUS_DRAFT',
+          code: dto.code ?? null,
+        })
+      })
+      .catch(err => { if (!cancelled) setErrorMsg((err as Error).message || 'Failed to load campaign.') })
+      .finally(() => { if (!cancelled) setDetailLoading(false) })
+    return () => { cancelled = true }
+  }, [campaignId, view])
+
   async function handleCopyCampaign(id: string) {
     try {
       await copyCampaign(id)
@@ -78,35 +105,15 @@ export function Campaigns() {
     }
   }
 
-  async function handleViewCampaign(id: string) {
-    try {
-      const dto = await fetchCampaignById(id)
-      setEditingForm(responseToForm(dto))
-      setCampaignCode(dto.code ?? null)
-      setSearchParams({ view: 'view', id })
-    } catch (err) {
-      setErrorMsg((err as Error).message || 'Failed to load campaign.')
-    }
+  function handleViewCampaign(id: string) {
+    setSearchParams({ view: 'view', id })
   }
 
-  async function handleEditCampaign(id: string) {
-    try {
-      const dto = await fetchCampaignById(id)
-      setEditingCampaignId(id)
-      setEditingCampaignStatus(dto.status ?? 'CAMPAIGN_STATUS_DRAFT')
-      setEditingForm(responseToForm(dto))
-      setCampaignCode(dto.code ?? null)
-      setSearchParams({ view: 'edit', id })
-    } catch (err) {
-      setErrorMsg((err as Error).message || 'Failed to load campaign.')
-    }
+  function handleEditCampaign(id: string) {
+    setSearchParams({ view: 'edit', id })
   }
 
   function handleBack() {
-    setEditingForm(null)
-    setEditingCampaignId(null)
-    setEditingCampaignStatus(null)
-    setCampaignCode(null)
     navigate(-1)
   }
 
@@ -117,8 +124,8 @@ export function Campaigns() {
   }
 
   async function handleUpdateCampaign(dto: CampaignRequestDto): Promise<void> {
-    if (!editingCampaignId || !editingCampaignStatus) return
-    await updateCampaign(editingCampaignId, dto, editingCampaignStatus)
+    if (!campaignId || !detail?.status) return
+    await updateCampaign(campaignId, dto, detail.status)
     handleBack()
     loadCampaigns()
   }
@@ -127,14 +134,21 @@ export function Campaigns() {
   const totalConv   = campaigns.reduce((s, c) => s + c.conversions, 0)
   const activeCnt   = campaigns.filter(c => c.status === 'active').length
 
-  if (showNewCampaign) {
+  if (showDetail) {
+    if (detailLoading) {
+      return (
+        <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+          <Loading size={32} />
+        </div>
+      )
+    }
     return (
       <NewCampaignPage
         onBack={handleBack}
-        onSubmit={editingCampaignId ? handleUpdateCampaign : handleCreateCampaign}
-        initialForm={editingForm ?? undefined}
+        onSubmit={campaignId ? handleUpdateCampaign : handleCreateCampaign}
+        initialForm={detail?.form}
         readOnly={isViewMode}
-        campaignCode={campaignCode ?? undefined}
+        campaignCode={detail?.code ?? undefined}
       />
     )
   }

@@ -149,6 +149,14 @@ export async function fetchAssignedTickets(): Promise<Ticket[]> {
   return tickets.map(ticket => mapTicket(ticket, categories))
 }
 
+export async function fetchTicketById(ticketId: string): Promise<Ticket> {
+  const [res, categories] = await Promise.all([
+    fetchWithAuth(`${API_BASE}/tickets/${ticketId}`),
+    fetchTicketCategories(),
+  ])
+  return mapTicket((await res.json()) as TicketResponseDto, categories)
+}
+
 export async function fetchAllTickets(): Promise<Ticket[]> {
   return fetchMyTickets()
 }
