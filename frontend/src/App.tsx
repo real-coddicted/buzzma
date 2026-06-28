@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
-import { Dashboard } from './pages/Dashboard'
 import { Campaigns } from './pages/Campaigns'
 import { Connections } from './pages/Connections'
 import { Assignments } from './pages/Assignments'
@@ -33,9 +32,9 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
 
-  const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
-  const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
-  const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'dashboard'
+  const validPages = useMemo(() => new Set<string>(['campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
+  const rawPage = location.pathname.replace(/^\//, '') || 'campaigns'
+  const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'campaigns'
 
   const handleNavigate = useCallback((page: NavPage) => {
     navigate('/' + page)
@@ -46,7 +45,7 @@ export default function App() {
     clearSession()
     setIsAuthenticated(false)
     setUserSettings(null)
-    navigate('/dashboard')
+    navigate('/campaigns')
   }, [navigate])
 
   useEffect(() => {
@@ -108,7 +107,6 @@ export default function App() {
       notifications={notifications}
       userSettings={userSettings}
     >
-      {activePage === 'dashboard'     && <Dashboard />}
       {activePage === 'campaigns'     && <Campaigns />}
       {activePage === 'connections'    && <Connections />}
       {activePage === 'assignments'  && <Assignments />}
