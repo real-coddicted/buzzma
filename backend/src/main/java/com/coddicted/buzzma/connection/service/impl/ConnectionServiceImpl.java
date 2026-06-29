@@ -7,6 +7,10 @@ import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserStatus;
+import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -23,9 +27,16 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionServiceImpl.class);
 
   private final ConnectionRepository connectionRepository;
+  private final UserSettingsService userSettingsService;
+  private final UserService userService;
 
-  public ConnectionServiceImpl(final ConnectionRepository connectionRepository) {
+  public ConnectionServiceImpl(
+      final ConnectionRepository connectionRepository,
+      final UserSettingsService userSettingsService,
+      final UserService userService) {
     this.connectionRepository = connectionRepository;
+    this.userSettingsService = userSettingsService;
+    this.userService = userService;
   }
 
   @Override
@@ -80,6 +91,16 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     this.connectionRepository.save(
         connection.toBuilder().status(target).updatedBy(requesterId).build());
     LOGGER.debug("Connection {} transitioned to {} by {}", connection.getId(), target, requesterId);
+    if (action == Action.ACTION_ACCEPT) {
+      this.userSettingsService.setToDefault(toUserId, requesterId);
+    } else {
+      final BuzzmaUser toUser = this.userService.getById(toUserId);
+      this.userService.update(
+          toUser.toBuilder()
+              .status(UserStatus.USER_STATUS_SUSPENDED)
+              .updatedBy(requesterId)
+              .build());
+    }
     return target == ConnectionStatus.CONNECTION_STATUS_ACCEPTED;
   }
 

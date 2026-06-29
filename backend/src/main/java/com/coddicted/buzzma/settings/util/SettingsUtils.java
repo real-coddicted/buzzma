@@ -68,4 +68,12 @@ public final class SettingsUtils {
         .usersTabEnabled(false)
         .build();
   }
+
+  public static Settings getPendingConnectionSettings() {
+    return Settings.builder()
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
+        .build();
+  }
 }

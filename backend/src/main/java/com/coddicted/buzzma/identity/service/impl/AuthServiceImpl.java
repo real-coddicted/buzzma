@@ -20,6 +20,7 @@ import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
+import com.coddicted.buzzma.settings.util.SettingsUtils;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.exception.UnauthorizedException;
@@ -127,9 +128,10 @@ public class AuthServiceImpl implements AuthService {
               .status(ConnectionStatus.CONNECTION_STATUS_REQUESTED)
               .build());
 
-      // build and save userSettings with default settings based on user role
+      // build and save userSettings with minimal pending-connection settings
       final UserSettings userSettings =
-          this.userSettingsService.getDefaultSettingsByUserRole(user.getRole()).toBuilder()
+          UserSettings.builder()
+              .settings(SettingsUtils.getPendingConnectionSettings())
               .userId(savedUser.getId())
               .build();
 
@@ -149,6 +151,9 @@ public class AuthServiceImpl implements AuthService {
     if (!this.userCredentialService.verify(
         existingUser.getId(), userCredential.getPasswordHash())) {
       throw new UnauthorizedException("Invalid credentials");
+    }
+    if (existingUser.getStatus() != UserStatus.USER_STATUS_ACTIVE) {
+      throw new UnauthorizedException("Account is not active");
     }
     return existingUser;
   }

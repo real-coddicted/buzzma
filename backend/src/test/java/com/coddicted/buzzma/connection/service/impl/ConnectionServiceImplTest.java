@@ -11,6 +11,10 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserStatus;
+import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Optional;
@@ -26,11 +30,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ConnectionServiceImplTest {
 
   @Mock private ConnectionRepository mockConnectionRepository;
+  @Mock private UserSettingsService mockUserSettingsService;
+  @Mock private UserService mockUserService;
   private ConnectionServiceImpl connectionService;
 
   @BeforeEach
   void setUp() {
-    this.connectionService = new ConnectionServiceImpl(this.mockConnectionRepository);
+    this.connectionService =
+        new ConnectionServiceImpl(
+            this.mockConnectionRepository, this.mockUserSettingsService, this.mockUserService);
   }
 
   @Test
@@ -118,24 +126,32 @@ class ConnectionServiceImplTest {
     final Connection saved = captor.getValue();
     assertEquals(ConnectionStatus.CONNECTION_STATUS_ACCEPTED, saved.getStatus());
     assertEquals(FROM_USER_ID, saved.getUpdatedBy());
+    verify(this.mockUserSettingsService).setToDefault(TO_USER_ID, FROM_USER_ID);
   }
 
   @Test
   void testActionConnectionRequestWhenReject() {
+    final BuzzmaUser toUser =
+        BuzzmaUser.builder().id(TO_USER_ID).status(UserStatus.USER_STATUS_ACTIVE).build();
     doReturn(Optional.of(CONNECTION_REQUESTED))
         .when(this.mockConnectionRepository)
         .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
+    doReturn(toUser).when(this.mockUserService).getById(TO_USER_ID);
 
     final boolean result =
         this.connectionService.actionConnectionRequest(
             FROM_USER_ID, TO_USER_ID, Action.ACTION_REJECT, FROM_USER_ID);
 
     assertFalse(result);
-    final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
-    verify(this.mockConnectionRepository).save(captor.capture());
-    final Connection saved = captor.getValue();
+    final ArgumentCaptor<Connection> connectionCaptor = ArgumentCaptor.forClass(Connection.class);
+    verify(this.mockConnectionRepository).save(connectionCaptor.capture());
+    final Connection saved = connectionCaptor.getValue();
     assertEquals(ConnectionStatus.CONNECTION_STATUS_REJECTED, saved.getStatus());
     assertEquals(FROM_USER_ID, saved.getUpdatedBy());
+    final ArgumentCaptor<BuzzmaUser> userCaptor = ArgumentCaptor.forClass(BuzzmaUser.class);
+    verify(this.mockUserService).update(userCaptor.capture());
+    assertEquals(UserStatus.USER_STATUS_SUSPENDED, userCaptor.getValue().getStatus());
+    assertEquals(FROM_USER_ID, userCaptor.getValue().getUpdatedBy());
   }
 
   @Test
