@@ -93,13 +93,6 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     LOGGER.debug("Connection {} transitioned to {} by {}", connection.getId(), target, requesterId);
     if (action == Action.ACTION_ACCEPT) {
       this.userSettingsService.setToDefault(toUserId, requesterId);
-    } else {
-      final BuzzmaUser toUser = this.userService.getById(toUserId);
-      this.userService.update(
-          toUser.toBuilder()
-              .status(UserStatus.USER_STATUS_SUSPENDED)
-              .updatedBy(requesterId)
-              .build());
     }
     return target == ConnectionStatus.CONNECTION_STATUS_ACCEPTED;
   }
