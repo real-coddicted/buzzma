@@ -7,8 +7,6 @@ import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.connection.service.ConnectionService;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
