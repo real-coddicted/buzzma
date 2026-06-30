@@ -66,6 +66,10 @@ app:
     max-balance-paise: ${WALLET_MAX_BALANCE_PAISE:100000000}
   score:
     base-url: ${SCORE_BASE_URL:http://localhost:8082}
+    retry:
+      max-attempts: ${SCORE_RETRY_MAX_ATTEMPTS:3}
+      initial-delay-ms: ${SCORE_RETRY_INITIAL_DELAY_MS:500}
+      multiplier: ${SCORE_RETRY_MULTIPLIER:2.0}
   extraction:
     scheduler:
       fixed-delay-ms: ${EXTRACTION_SCHEDULER_DELAY_MS:30000}
