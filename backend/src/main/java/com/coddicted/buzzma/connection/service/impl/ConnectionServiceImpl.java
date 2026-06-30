@@ -7,7 +7,6 @@ import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.connection.service.ConnectionService;
-import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -26,15 +25,12 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
 
   private final ConnectionRepository connectionRepository;
   private final UserSettingsService userSettingsService;
-  private final UserService userService;
 
   public ConnectionServiceImpl(
       final ConnectionRepository connectionRepository,
-      final UserSettingsService userSettingsService,
-      final UserService userService) {
+      final UserSettingsService userSettingsService) {
     this.connectionRepository = connectionRepository;
     this.userSettingsService = userSettingsService;
-    this.userService = userService;
   }
 
   @Override

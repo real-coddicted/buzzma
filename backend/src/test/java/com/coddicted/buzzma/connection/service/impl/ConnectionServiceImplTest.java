@@ -11,7 +11,6 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
-import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -29,14 +28,12 @@ class ConnectionServiceImplTest {
 
   @Mock private ConnectionRepository mockConnectionRepository;
   @Mock private UserSettingsService mockUserSettingsService;
-  @Mock private UserService mockUserService;
   private ConnectionServiceImpl connectionService;
 
   @BeforeEach
   void setUp() {
     this.connectionService =
-        new ConnectionServiceImpl(
-            this.mockConnectionRepository, this.mockUserSettingsService, this.mockUserService);
+        new ConnectionServiceImpl(this.mockConnectionRepository, this.mockUserSettingsService);
   }
 
   @Test
