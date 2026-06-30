@@ -1,33 +1,46 @@
-import { useEffect, useCallback, useState, useMemo } from 'react'
+import { useEffect, useCallback, useState, useMemo, lazy, Suspense } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
-import { Dashboard } from './pages/Dashboard'
-import { Campaigns } from './pages/Campaigns'
-import { Connections } from './pages/Connections'
-import { Assignments } from './pages/Assignments'
-import { Deals } from './pages/Deals'
-import { Feedback } from './pages/Feedback'
-import { Profile } from './pages/Profile'
-import { RaiseTicket } from './pages/RaiseTicket'
-import { MyTickets } from './pages/MyTickets'
-import { Notifications } from './pages/Notifications'
-import { ClaimReview } from './pages/ClaimReview'
-import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
+import { Loading } from './components/ui/Loading'
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })))
+const Campaigns = lazy(() => import('./pages/Campaigns').then(m => ({ default: m.Campaigns })))
+const Connections = lazy(() => import('./pages/Connections').then(m => ({ default: m.Connections })))
+const Assignments = lazy(() => import('./pages/Assignments').then(m => ({ default: m.Assignments })))
+const Deals = lazy(() => import('./pages/Deals').then(m => ({ default: m.Deals })))
+const Feedback = lazy(() => import('./pages/Feedback').then(m => ({ default: m.Feedback })))
+const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })))
+const RaiseTicket = lazy(() => import('./pages/RaiseTicket').then(m => ({ default: m.RaiseTicket })))
+const MyTickets = lazy(() => import('./pages/MyTickets').then(m => ({ default: m.MyTickets })))
+const Notifications = lazy(() => import('./pages/Notifications').then(m => ({ default: m.Notifications })))
+const ClaimReview = lazy(() => import('./pages/ClaimReview').then(m => ({ default: m.ClaimReview })))
+const Users = lazy(() => import('./pages/Users').then(m => ({ default: m.Users })))
 import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllRead as apiMarkAllRead } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
 import { clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
+import { usePwaUpdate, InstallPwaBanner, usePwaInstall, useOfflineStatus, OfflinePage, UpdateNotification } from './features/pwa'
 import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
 import type { NavPage, Notification } from './types'
 import type { components } from './types/api'
 
 type UserSettingsDto = components['schemas']['UserSettingsDto']
 
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[300px] w-full">
+    <Loading size={32} />
+  </div>
+)
+
 export default function App() {
   const { theme, toggleTheme } = useTheme()
+  usePwaUpdate()
+  const { showInstallBanner, installPwa, dismissPrompt, resetDismissal } = usePwaInstall()
+  const isOffline = useOfflineStatus()
+  const [isOfflineDismissed, setIsOfflineDismissed] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
@@ -95,39 +108,60 @@ export default function App() {
     pinNotification(id).catch(console.error)
   }
 
+  if (isOffline && !isOfflineDismissed) {
+    return <OfflinePage onDismiss={() => setIsOfflineDismissed(true)} />
+  }
+
   if (!isAuthenticated) {
-    return <Auth onAuth={() => setIsAuthenticated(true)} />
+    return (
+      <Auth
+        onAuth={() => {
+          resetDismissal()
+          setIsAuthenticated(true)
+        }}
+      />
+    )
   }
 
   return (
-    <AppLayout
-      theme={theme}
-      onToggleTheme={toggleTheme}
-      activePage={activePage}
-      onNavigate={handleNavigate}
-      notifications={notifications}
-      userSettings={userSettings}
-    >
-      {activePage === 'dashboard'     && <Dashboard />}
-      {activePage === 'campaigns'     && <Campaigns />}
-      {activePage === 'connections'    && <Connections />}
-      {activePage === 'assignments'  && <Assignments />}
-      {activePage === 'deals'          && <Deals />}
-      {activePage === 'feedback'      && <Feedback />}
-      {activePage === 'profile'       && <Profile />}
-      {activePage === 'raise-ticket'  && <RaiseTicket />}
-      {activePage === 'my-tickets'      && <MyTickets />}
-      {activePage === 'notifications' && (
-        <Notifications
-          notifications={notifications}
-          onMarkAllRead={markAllRead}
-          onToggleRead={toggleRead}
-          onTogglePin={togglePin}
-        />
-      )}
-      {activePage === 'claim-review' && <ClaimReview />}
-      {activePage === 'users'         && <Users />}
-      {activePage === 'tickets' && <MyTickets title="Tickets" fetchFn={fetchAllTickets} />}
-    </AppLayout>
+    <>
+      <AppLayout
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        activePage={activePage}
+        onNavigate={handleNavigate}
+        notifications={notifications}
+        userSettings={userSettings}
+      >
+        <Suspense fallback={<PageLoader />}>
+          {activePage === 'dashboard'     && <Dashboard />}
+          {activePage === 'campaigns'     && <Campaigns />}
+          {activePage === 'connections'    && <Connections />}
+          {activePage === 'assignments'  && <Assignments />}
+          {activePage === 'deals'          && <Deals />}
+          {activePage === 'feedback'      && <Feedback />}
+          {activePage === 'profile'       && <Profile />}
+          {activePage === 'raise-ticket'  && <RaiseTicket />}
+          {activePage === 'my-tickets'      && <MyTickets />}
+          {activePage === 'notifications' && (
+            <Notifications
+              notifications={notifications}
+              onMarkAllRead={markAllRead}
+              onToggleRead={toggleRead}
+              onTogglePin={togglePin}
+            />
+          )}
+          {activePage === 'claim-review' && <ClaimReview />}
+          {activePage === 'users'         && <Users />}
+          {activePage === 'tickets' && <MyTickets title="Tickets" fetchFn={fetchAllTickets} />}
+        </Suspense>
+      </AppLayout>
+      <InstallPwaBanner
+        showInstallBanner={showInstallBanner}
+        installPwa={installPwa}
+        dismissPrompt={dismissPrompt}
+      />
+      <UpdateNotification />
+    </>
   )
 }
