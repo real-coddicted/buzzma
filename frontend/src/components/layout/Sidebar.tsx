@@ -100,12 +100,12 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
       >
         <button
           onClick={onClose}
-          className="md:hidden absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
+          className="md:hidden absolute top-[calc(0.75rem+var(--safe-top))] right-3 w-8 h-8 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover"
           aria-label="Close menu"
         >
           <IconX size={18} />
         </button>
-      <div className="flex-1 overflow-y-auto px-3 pt-5 pb-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto px-3 pt-[calc(1.25rem+var(--safe-top))] pb-4 flex flex-col">
         <Logo />
 
         <SectionLabel label="Main" />
@@ -212,7 +212,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
         </button>
       </div>
 
-      <div className="px-4 py-3 border-t border-surface-light-border dark:border-surface-dark-border">
+      <div className="px-4 pt-3 pb-[calc(0.75rem+var(--safe-bottom))] border-t border-surface-light-border dark:border-surface-dark-border">
         <div className="flex items-center gap-3">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
