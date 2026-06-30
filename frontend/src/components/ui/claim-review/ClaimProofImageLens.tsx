@@ -1,7 +1,12 @@
-import { type MouseEvent } from 'react'
-
-// Lens covers 35% of the image — magnified pane shows 1/0.35 ≈ 2.86× zoom.
-export const LENS_FRACTION = 0.35
+import { useState, useRef, type SyntheticEvent, type MouseEvent } from 'react'
+import {
+  LENS_FRACTION,
+  FULL_BOUNDS,
+  clamp,
+  computeImageBounds,
+  computeLensAndPos,
+  type ImageBounds,
+} from './imageLensUtils'
 
 interface ClaimProofImageLensProps {
   imageUrl: string
@@ -16,25 +21,40 @@ export function ClaimProofImageLens({
   imageUrl,
   imageAlt,
   hovering,
-  pos,
   onHoverChange,
   onPosChange,
 }: ClaimProofImageLensProps) {
-  function handleMove(e: MouseEvent<HTMLDivElement>) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100)
-    const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 0, 100)
-    onPosChange({ x, y })
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [imgBounds, setImgBounds] = useState<ImageBounds>(FULL_BOUNDS)
+  const [lensCenter, setLensCenter] = useState({ x: 50, y: 50 })
+
+  function handleImageLoad(e: SyntheticEvent<HTMLImageElement>) {
+    const container = containerRef.current
+    if (!container) return
+    const bounds = computeImageBounds(e, container)
+    if (bounds) setImgBounds(bounds)
   }
 
-  const lensPct = LENS_FRACTION * 100
-  const lensX = clamp(pos.x - lensPct / 2, 0, 100 - lensPct)
-  const lensY = clamp(pos.y - lensPct / 2, 0, 100 - lensPct)
+  function handleMove(e: MouseEvent<HTMLDivElement>) {
+    const { lensCenter: lc, pos } = computeLensAndPos(e, imgBounds)
+    setLensCenter(lc)
+    onPosChange(pos)
+  }
+
+  const il = imgBounds.left * 100
+  const it = imgBounds.top * 100
+  const iw = imgBounds.width * 100
+  const ih = imgBounds.height * 100
+  const lensW = LENS_FRACTION * iw
+  const lensH = LENS_FRACTION * ih
+  const lensX = clamp(lensCenter.x - lensW / 2, il, il + iw - lensW)
+  const lensY = clamp(lensCenter.y - lensH / 2, it, it + ih - lensH)
 
   return (
     <div className="p-4 md:flex-1 md:min-w-0 md:max-w-[50%]">
       <div
-        className="relative w-full aspect-square rounded-xl overflow-hidden bg-surface-light-hover dark:bg-surface-dark-hover cursor-crosshair select-none"
+        ref={containerRef}
+        className="relative w-full aspect-square rounded-xl overflow-hidden bg-surface-light-hover dark:bg-surface-dark-hover cursor-crosshair select-none px-[5%]"
         onMouseEnter={() => onHoverChange(true)}
         onMouseLeave={() => onHoverChange(false)}
         onMouseMove={handleMove}
@@ -44,6 +64,7 @@ export function ClaimProofImageLens({
           alt={imageAlt ?? ''}
           className="w-full h-full object-contain pointer-events-none"
           draggable={false}
+          onLoad={handleImageLoad}
         />
         {hovering && (
           <div
@@ -51,16 +72,12 @@ export function ClaimProofImageLens({
             style={{
               left: `${lensX}%`,
               top: `${lensY}%`,
-              width: `${lensPct}%`,
-              height: `${lensPct}%`,
+              width: `${lensW}%`,
+              height: `${lensH}%`,
             }}
           />
         )}
       </div>
     </div>
   )
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n))
 }
