@@ -9,20 +9,68 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
 }
 
+export function checkIsIOS(): boolean {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  const isIPhone = /iPhone|iPod/.test(ua)
+  const isIPad = /iPad/.test(ua) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)
+  return isIPhone || isIPad
+}
+
+export function checkIsSafari(): boolean {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  const vendor = window.navigator.vendor
+  const isApple = /Apple/.test(vendor)
+  const isCriOS = /CriOS/.test(ua)
+  const isFxiOS = /FxiOS/.test(ua)
+  const isEdgiOS = /EdgiOS/.test(ua)
+  const isOPiOS = /OPiOS/.test(ua)
+  return isApple && !isCriOS && !isFxiOS && !isEdgiOS && !isOPiOS
+}
+
+export function checkIsMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) || checkIsIOS()
+}
+
+export function checkIsStandalone(): boolean {
+  if (typeof window === 'undefined') return false
+  const isStandaloneMedia = window.matchMedia('(display-mode: standalone)').matches
+  const isStandaloneNav = (window.navigator as any).standalone === true
+  return isStandaloneMedia || isStandaloneNav
+}
+
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isDismissed, setIsDismissed] = useState<boolean>(() => {
     return localStorage.getItem('buzzma-pwa-install-dismissed') === 'true'
   })
-  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return (
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true
-      )
+  const [isStandalone, setIsStandalone] = useState<boolean>(checkIsStandalone)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(display-mode: standalone)')
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsStandalone(e.matches || (window.navigator as any).standalone === true)
     }
-    return false
-  })
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange)
+    } else {
+      mediaQuery.addListener(handleChange)
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleChange)
+      } else {
+        mediaQuery.removeListener(handleChange)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -31,9 +79,8 @@ export function usePwaInstall() {
     }
 
     const handleAppInstalled = () => {
-      setIsInstalled(true)
+      setIsStandalone(true)
       setDeferredPrompt(null)
-      console.log('PWA installed successfully')
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -46,15 +93,18 @@ export function usePwaInstall() {
   }, [])
 
   const installPwa = async () => {
+    if (checkIsIOS()) {
+      return
+    }
+
     if (!deferredPrompt) return
 
     try {
       await deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      console.log(`User response to install prompt: ${outcome}`)
 
       if (outcome === 'accepted') {
-        setIsInstalled(true)
+        setIsStandalone(true)
       }
     } catch (err) {
       console.error('Error during PWA installation:', err)
@@ -73,9 +123,20 @@ export function usePwaInstall() {
     setIsDismissed(false)
   }
 
-  const showInstallBanner = !!deferredPrompt && !isDismissed && !isInstalled
+  const isIOS = checkIsIOS()
+  const isSafari = checkIsSafari()
+  const isMobile = checkIsMobile()
+
+  const canInstall = isIOS
+    ? (isSafari && !isStandalone)
+    : (isMobile && !!deferredPrompt && !isStandalone)
+
+  const showInstallBanner = canInstall && !isDismissed
 
   return {
+    isIOS,
+    isStandalone,
+    canInstall,
     showInstallBanner,
     installPwa,
     dismissPrompt,
