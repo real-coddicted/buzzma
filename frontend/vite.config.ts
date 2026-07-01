@@ -8,10 +8,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: 'auto',
+
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         cleanupOutdatedCaches: true,
+
         runtimeCaching: [
+          // Google Fonts
           {
             urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
@@ -19,38 +22,43 @@ export default defineConfig({
               cacheName: 'google-fonts',
               expiration: {
                 maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
           },
+
+          // Cloudflare Turnstile
           {
             urlPattern: /^https:\/\/challenges\.cloudflare\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'cloudflare-turnstile'
-            }
+              cacheName: 'cloudflare-turnstile',
+            },
           },
+
+          // Cache only relatively static reference API data.
+          // Do NOT cache frequently changing business endpoints.
           {
-            // Cache API GET requests (excluding SSE /api/events)
-            urlPattern: /^\/api\/(?!events).*$/i,
+            urlPattern: /^\/api\/(platforms|categories|campaign-types|countries|states|currencies)(\/.*)?$/i,
             handler: 'NetworkFirst',
             method: 'GET',
             options: {
-              cacheName: 'api-get-cache',
+              cacheName: 'reference-api-cache',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
               networkTimeoutSeconds: 5,
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
+
       manifest: {
-        name: 'Buzzma Dashboard',
+        name: 'Buzzma',
         short_name: 'Buzzma',
         description: 'Buzzma Campaign and Ticket Dashboard',
         theme_color: '#0f172a',
@@ -59,32 +67,36 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
+
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'pwa-512x512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+            purpose: 'any maskable',
+          },
+        ],
       },
+
       devOptions: {
         enabled: true,
       },
     }),
   ],
+
   server: {
     host: '0.0.0.0',
+
     allowedHosts: ['.trycloudflare.com'],
 
     proxy: {
@@ -92,6 +104,7 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
+
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
