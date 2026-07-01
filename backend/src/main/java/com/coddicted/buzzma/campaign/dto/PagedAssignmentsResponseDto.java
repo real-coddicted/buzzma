@@ -9,7 +9,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class PagedAssignmentsResponseDto {
-  List<AssignmentResponseDto> items;
+  List<AssignmentSummaryResponseDto> items;
   long total;
   int page;
   int totalPages;

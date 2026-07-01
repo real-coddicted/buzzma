@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service;
 
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import java.util.List;
@@ -14,6 +15,9 @@ public interface CampaignAssignmentService {
       UUID assigneeId, CampaignAssignmentStatus campaignAssignmentStatus);
 
   Page<CampaignAssignment> listAssignmentsByAssignee(
+      UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
+
+  Page<AssignmentSummaryView> listAssignmentSummaries(
       UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
 
   List<CampaignAssignment> create(List<CampaignAssignment> assignees);

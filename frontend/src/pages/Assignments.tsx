@@ -1,24 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
+import { Loading } from '../components/ui/Loading'
+import { Toast } from '../components/ui/Toast'
 import { AssignmentTabs, type AssignmentTab } from '../components/ui/assignment/AssignmentTabs'
 import { UnpublishedAssignments } from '../components/ui/assignment/UnpublishedAssignments'
 import { PublishedAssignments } from '../components/ui/assignment/PublishedAssignments'
 import { AssignmentDetail } from '../components/ui/assignment/AssignmentDetail'
-import type { AssignmentItem } from '../types/AssignmentTypes'
+import type { AssignmentItem, AssignmentSummary } from '../types/AssignmentTypes'
+import { getAssignmentById } from '../api/assignmentApi'
 
 export function Assignments() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const activeTab: AssignmentTab = (searchParams.get('tab') as AssignmentTab) ?? 'unpublished'
-  const [selected, setSelected] = useState<{ item: AssignmentItem; published: boolean } | null>(null)
+  const assignmentId = searchParams.get('id')
+  const isDetailView = searchParams.get('view') === 'detail' && !!assignmentId
 
-  if (searchParams.get('view') === 'detail' && selected) {
+  const [assignment, setAssignment] = useState<AssignmentItem | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!assignmentId) {
+      setAssignment(null)
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    getAssignmentById(assignmentId)
+      .then(a => { if (!cancelled) setAssignment(a) })
+      .catch(() => {
+        if (!cancelled) {
+          setError('Failed to load assignment.')
+          setSearchParams({ tab: activeTab })
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [assignmentId, activeTab, setSearchParams])
+
+  function handleSelect(item: AssignmentSummary) {
+    setSearchParams({ tab: activeTab, view: 'detail', id: item.id })
+  }
+
+  if (isDetailView && loading) {
+    return (
+      <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+        <Loading size={32} />
+      </div>
+    )
+  }
+
+  if (assignment) {
     return (
       <AssignmentDetail
-        item={selected.item}
+        item={assignment}
         onBack={() => navigate(-1)}
-        readOnly={selected.published}
+        readOnly={activeTab === 'published'}
       />
     )
   }
@@ -34,16 +73,18 @@ export function Assignments() {
         </p>
       </div>
 
-      <AssignmentTabs value={activeTab} onChange={tab => setSearchParams(tab === 'unpublished' ? {} : { tab })} />
+      <AssignmentTabs value={activeTab} onChange={tab => setSearchParams({ tab })} />
 
       <Card padded={false}>
         {activeTab === 'unpublished' && (
-          <UnpublishedAssignments onSelect={item => { setSelected({ item, published: false }); setSearchParams({ view: 'detail' }) }} />
+          <UnpublishedAssignments onSelect={handleSelect} />
         )}
         {activeTab === 'published' && (
-          <PublishedAssignments onSelect={item => { setSelected({ item, published: true }); setSearchParams({ tab: 'published', view: 'detail' }) }} />
+          <PublishedAssignments onSelect={handleSelect} />
         )}
       </Card>
+
+      {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )
 }

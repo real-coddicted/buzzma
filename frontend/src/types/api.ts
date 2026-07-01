@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get"];
+        get: operations["get_1"];
         put: operations["update"];
         post?: never;
         delete: operations["delete"];
@@ -107,7 +107,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["get"];
         put?: never;
         post: operations["create"];
         delete?: never;
@@ -900,6 +900,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAssignmentById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assignments/commissionCharged/{campaignId}": {
         parameters: {
             query?: never;
@@ -1602,10 +1618,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1667,6 +1683,29 @@ export interface components {
             /** Format: int32 */
             stepOrder?: number;
         };
+        AssignmentSummaryResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            productName?: string;
+            productImageUrl?: string;
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** @enum {string} */
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            originalPricePaise?: number;
+            offeredPricePaise?: number;
+            /** Format: int32 */
+            slotLimit?: number;
+        };
+        PagedAssignmentsResponseDto: {
+            items?: components["schemas"]["AssignmentSummaryResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         AssignmentResponseDto: {
             /** Format: uuid */
             id?: string;
@@ -1692,15 +1731,6 @@ export interface components {
             termsAndConditions?: string;
             sellerName?: string;
         };
-        PagedAssignmentsResponseDto: {
-            items?: components["schemas"]["AssignmentResponseDto"][];
-            /** Format: int64 */
-            total?: number;
-            /** Format: int32 */
-            page?: number;
-            /** Format: int32 */
-            totalPages?: number;
-        };
         CommissionResponseDto: {
             /** Format: uuid */
             campaignId?: string;
@@ -1721,7 +1751,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get: {
+    get_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1882,6 +1912,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSettingsDto"];
+                };
             };
         };
     };
@@ -3266,6 +3316,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PagedAssignmentsResponseDto"];
+                };
+            };
+        };
+    };
+    getAssignmentById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssignmentResponseDto"];
                 };
             };
         };

@@ -1,10 +1,10 @@
-import type { AssignmentItem } from '../../../types/AssignmentTypes'
+import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from '../deal/ProductThumbnail'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface AssignmentListItemProps {
-  item: AssignmentItem
+  item: AssignmentSummary
   onClick?: () => void
 }
 

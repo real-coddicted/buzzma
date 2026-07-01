@@ -1,11 +1,13 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
 import com.coddicted.buzzma.campaign.service.AssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -13,6 +15,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.HashSet;
@@ -37,16 +40,34 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
   private final CampaignAssignmentService campaignAssignmentService;
   private final CommissionService commissionService;
   private final DealService dealService;
+  private final AssignmentMapper assignmentMapper;
 
   public AssignmentServiceImpl(
       final CampaignService campaignService,
       final CampaignAssignmentService campaignAssignmentService,
       final CommissionService commissionService,
-      final DealService dealService) {
+      final DealService dealService,
+      final AssignmentMapper assignmentMapper) {
     this.campaignService = campaignService;
     this.campaignAssignmentService = campaignAssignmentService;
     this.commissionService = commissionService;
     this.dealService = dealService;
+    this.assignmentMapper = assignmentMapper;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Assignment getAssignmentById(final UUID id, final UUID requesterId) {
+    final CampaignAssignment ca = this.campaignAssignmentService.getById(id);
+    if (!requesterId.equals(ca.getAssigneeId())) {
+      throw new ForbiddenException("Assignment does not belong to the requesting user.");
+    }
+    final Campaign campaign = this.campaignService.getById(ca.getCampaignId());
+    return Assignment.builder()
+        .campaign(campaign)
+        .campaignAssignment(ca)
+        .campaignSlot(ca.getCampaignSlot())
+        .build();
   }
 
   @Override
@@ -66,24 +87,11 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
 
   @Override
   @Transactional(readOnly = true)
-  public Page<Assignment> getAssignments(
+  public Page<AssignmentSummaryResponseDto> getAssignmentSummaries(
       final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
-    final Page<CampaignAssignment> page =
-        this.campaignAssignmentService.listAssignmentsByAssignee(assigneeId, status, pageable);
-    final Set<UUID> campaignIdSet =
-        page.getContent().stream()
-            .map(CampaignAssignment::getCampaignId)
-            .collect(Collectors.toSet());
-    final Map<UUID, Campaign> campaignById =
-        this.campaignService.findCampaignsById(campaignIdSet).stream()
-            .collect(Collectors.toMap(Campaign::getId, c -> c));
-    return page.map(
-        ca ->
-            Assignment.builder()
-                .campaign(campaignById.get(ca.getCampaignId()))
-                .campaignAssignment(ca)
-                .campaignSlot(ca.getCampaignSlot())
-                .build());
+    return this.campaignAssignmentService
+        .listAssignmentSummaries(assigneeId, status, pageable)
+        .map(this.assignmentMapper::toSummaryResponse);
   }
 
   @Override

@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import type { AssignmentItem } from '../../../types/AssignmentTypes'
+import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { fetchPublishedAssignments } from '../../../api/assignmentApi'
 import { AssignmentListView } from './AssignmentListView'
 import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 
 interface PublishedAssignmentsProps {
-  onSelect: (item: AssignmentItem) => void
+  onSelect: (item: AssignmentSummary) => void
 }
 
 export function PublishedAssignments({ onSelect }: PublishedAssignmentsProps) {
-  const [items, setItems]     = useState<AssignmentItem[]>([])
+  const [items, setItems]     = useState<AssignmentSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
 
