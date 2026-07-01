@@ -2,20 +2,23 @@ import type { Platform, CampaignType } from './CampaignTypes'
 
 export type { Platform, CampaignType }
 
-export interface AssignmentItem {
+export interface AssignmentSummary {
   id: string
-  campaignId: string
   productName: string
   productImageUrl: string
-  productUrl: string
   platform: Platform
   platformLabel: string
   dealType: CampaignType
   dealTypeLabel: string
   originalPricePaise: number
   offeredPricePaise: number
-  commissionOfferedPaise: number
   slotsOffered: number
+}
+
+export interface AssignmentItem extends AssignmentSummary {
+  campaignId: string
+  productUrl: string
+  commissionOfferedPaise: number
   sellerName?: string
   termsAndConditions?: string
 }

@@ -157,8 +157,8 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
           </p>
         ) : (
           <div className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-            {filtered.map(t => (
-              <TicketListItem key={t.id} ticket={t} onClick={handleSelectTicket} />
+            {filtered.map(ticket => (
+              <TicketListItem key={ticket.id} ticket={ticket} onClick={handleSelectTicket} />
             ))}
           </div>
         )}

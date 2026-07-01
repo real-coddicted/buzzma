@@ -1,9 +1,9 @@
-import type { AssignmentItem } from '../../../types/AssignmentTypes'
+import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { AssignmentListItem } from './AssignmentListItem'
 
 interface AssignmentListViewProps {
-  items: AssignmentItem[]
-  onSelect?: (item: AssignmentItem) => void
+  items: AssignmentSummary[]
+  onSelect?: (item: AssignmentSummary) => void
 }
 
 export function AssignmentListView({ items, onSelect }: AssignmentListViewProps) {

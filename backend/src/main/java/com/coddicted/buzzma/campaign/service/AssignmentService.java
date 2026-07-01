@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service;
 
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.model.Assignment;
 import java.math.BigInteger;
@@ -10,9 +11,11 @@ import org.springframework.data.domain.Pageable;
 
 public interface AssignmentService {
 
+  Assignment getAssignmentById(UUID id, UUID requesterId);
+
   Set<Assignment> getAssignments(final UUID assigneeId, final CampaignAssignmentStatus status);
 
-  Page<Assignment> getAssignments(
+  Page<AssignmentSummaryResponseDto> getAssignmentSummaries(
       UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
 
   boolean publishAssignment(

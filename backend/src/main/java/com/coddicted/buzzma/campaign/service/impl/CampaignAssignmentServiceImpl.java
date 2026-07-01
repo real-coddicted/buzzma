@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
@@ -42,6 +43,13 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
       final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
     return this.campaignAssignmentRepository.findByAssigneeIdAndStatusAndIsDeletedFalse(
         assigneeId, status, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<AssignmentSummaryView> listAssignmentSummaries(
+      final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
+    return this.campaignAssignmentRepository.findAssignmentSummaries(assigneeId, status, pageable);
   }
 
   @Override

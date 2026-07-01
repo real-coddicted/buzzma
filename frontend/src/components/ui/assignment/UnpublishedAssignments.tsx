@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import type { AssignmentItem } from '../../../types/AssignmentTypes'
+import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { fetchUnpublishedAssignments } from '../../../api/assignmentApi'
 import { AssignmentFilterBar } from './AssignmentFilterBar'
 import type { AssignmentTypeFilter } from './AssignmentFilterBar'
@@ -8,11 +8,11 @@ import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 
 interface UnpublishedAssignmentsProps {
-  onSelect: (item: AssignmentItem) => void
+  onSelect: (item: AssignmentSummary) => void
 }
 
 export function UnpublishedAssignments({ onSelect }: UnpublishedAssignmentsProps) {
-  const [items, setItems]           = useState<AssignmentItem[]>([])
+  const [items, setItems]           = useState<AssignmentSummary[]>([])
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState<string | null>(null)
   const [search, setSearch]         = useState('')

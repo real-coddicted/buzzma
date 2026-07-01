@@ -1,12 +1,30 @@
 import type { components } from '../types/api'
-import type { AssignmentItem } from '../types/AssignmentTypes'
+import type { AssignmentItem, AssignmentSummary } from '../types/AssignmentTypes'
 import { fetchWithAuth } from './client'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 
 const API_BASE = '/api/v1'
 
 type AssignmentResponseDto = components['schemas']['AssignmentResponseDto']
+type AssignmentSummaryResponseDto = components['schemas']['AssignmentSummaryResponseDto']
 type PublishAssignmentRequestDto = components['schemas']['PublishAssignmentRequestDto']
+
+function mapSummary(dto: AssignmentSummaryResponseDto): AssignmentSummary {
+  const platform = dto.platform ?? 'PLATFORM_AMAZON'
+  const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as AssignmentSummary['dealType']
+  return {
+    id: dto.id ?? '',
+    productName: dto.productName ?? '',
+    productImageUrl: dto.productImageUrl ?? '',
+    platform,
+    platformLabel: PLATFORM_LABELS[platform] ?? platform,
+    dealType,
+    dealTypeLabel: CAMPAIGN_TYPE_LABELS[dealType] ?? dealType,
+    originalPricePaise: dto.originalPricePaise ?? 0,
+    offeredPricePaise: dto.offeredPricePaise ?? 0,
+    slotsOffered: dto.slotLimit ?? 0,
+  }
+}
 
 function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   const platform = dto.platform ?? 'PLATFORM_AMAZON'
@@ -30,20 +48,25 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   }
 }
 
-export async function fetchUnpublishedAssignments(): Promise<AssignmentItem[]> {
+export async function fetchUnpublishedAssignments(): Promise<AssignmentSummary[]> {
   const res = await fetchWithAuth(
     `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_LOCKED`,
   )
   const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
-  return (data.items ?? []).map(mapAssignment)
+  return (data.items ?? []).map(mapSummary)
 }
 
-export async function fetchPublishedAssignments(): Promise<AssignmentItem[]> {
+export async function fetchPublishedAssignments(): Promise<AssignmentSummary[]> {
   const res = await fetchWithAuth(
     `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED`,
   )
   const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
-  return (data.items ?? []).map(mapAssignment)
+  return (data.items ?? []).map(mapSummary)
+}
+
+export async function getAssignmentById(id: string): Promise<AssignmentItem> {
+  const res = await fetchWithAuth(`${API_BASE}/assignments/${id}`)
+  return mapAssignment((await res.json()) as AssignmentResponseDto)
 }
 
 export async function fetchCommissionCharged(campaignId: string): Promise<number> {

@@ -1,9 +1,11 @@
 package com.coddicted.buzzma.campaign.mapper;
 
 import com.coddicted.buzzma.campaign.dto.AssignmentResponseDto;
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
 import com.coddicted.buzzma.campaign.model.Assignment;
+import java.math.BigInteger;
 import java.net.URL;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -38,7 +40,19 @@ public interface AssignmentMapper {
   @Mapping(source = "campaign.sellerName", target = "sellerName")
   AssignmentResponseDto toResponse(Assignment assignment);
 
-  List<AssignmentResponseDto> toResponse(List<Assignment> assignments);
+  default AssignmentSummaryResponseDto toSummaryResponse(final AssignmentSummaryView view) {
+    return AssignmentSummaryResponseDto.builder()
+        .id(view.id())
+        .productName(view.productName())
+        .productImageUrl(view.productImageUrl() != null ? view.productImageUrl().toString() : null)
+        .platform(view.platform())
+        .dealType(view.dealType())
+        .originalPricePaise(view.originalPricePaise())
+        .offeredPricePaise(
+            view.offeredPricePaise() != null ? view.offeredPricePaise() : BigInteger.ZERO)
+        .slotLimit(view.slotLimit())
+        .build();
+  }
 
   @Named("urlToString")
   default String urlToString(final URL url) {

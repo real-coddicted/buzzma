@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.persistence;
 
+import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import java.util.List;
@@ -25,6 +26,32 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
 
   Page<CampaignAssignment> findByAssigneeIdAndStatusAndIsDeletedFalse(
       UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT new com.coddicted.buzzma.campaign.dto.AssignmentSummaryView(
+            ca.id, p.name, p.imageUrl, c.platform, c.type,
+            p.pricePaise, ca.adjustedCampaignPricePaise, ca.slotLimit
+          )
+          FROM CampaignAssignment ca, Campaign c
+          JOIN c.product p
+          WHERE ca.campaignId = c.id
+            AND ca.isDeleted = false AND c.isDeleted = false
+            AND ca.assigneeId = :assigneeId AND ca.status = :status
+          """,
+      countQuery =
+          """
+          SELECT COUNT(ca)
+          FROM CampaignAssignment ca, Campaign c
+          WHERE ca.campaignId = c.id
+            AND ca.isDeleted = false AND c.isDeleted = false
+            AND ca.assigneeId = :assigneeId AND ca.status = :status
+          """)
+  Page<AssignmentSummaryView> findAssignmentSummaries(
+      @Param("assigneeId") UUID assigneeId,
+      @Param("status") CampaignAssignmentStatus status,
+      Pageable pageable);
 
   @Query(
       value =
