@@ -132,7 +132,7 @@ class ClaimServiceImplTest {
                     CONTENT_TYPE,
                     EXTRACTED_DETAILS,
                     null));
-    assertEquals("This order number has already been claimed on PLATFORM_AMAZON", ex.getMessage());
+    assertEquals("Claim with this Order ID has already been placed", ex.getMessage());
   }
 
   @Test

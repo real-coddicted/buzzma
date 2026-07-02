@@ -85,8 +85,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           "Order {} on platform {} has already been claimed",
           claim.getEcommerceOrderId(),
           claim.getPlatform());
-      throw new BusinessRuleViolationException(
-          "Claim with this Order ID has already been placed");
+      throw new BusinessRuleViolationException("Claim with this Order ID has already been placed");
     }
 
     final Deal deal = this.dealService.getById(claim.getDealId());
