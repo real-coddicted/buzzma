@@ -99,7 +99,7 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
     title:                dto.title ?? '',
     status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
     platform:             (dto.platform ?? 'PLATFORM_AMAZON') as Platform,
-    productBrandName:     '',
+    productBrandName:     dto.productBrandName ?? '',
     productName:          dto.productName ?? '',
     productImageUrl:      dto.productImageUrl ?? '',
     productUrl:           '',

@@ -3,8 +3,9 @@ import { Card } from '../Card'
 import { StatusBadge } from '../Badge'
 import { IconSearch, IconFilter } from '../icons'
 import { CampaignRowActions } from './CampaignRowActions'
-import type { Campaign, CampaignStatus, Platform } from '../../../types'
-import { PLATFORM_LABELS } from '../../../constants/campaigns'
+import type { Campaign, CampaignStatus, CampaignType, Platform } from '../../../types'
+import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS } from '../../../constants/campaigns'
+import { DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Loading } from '../Loading'
 
@@ -33,15 +34,19 @@ const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
 
 type SortKey = keyof Pick<Campaign, 'title' | 'totalSlots'>
 
-const cols: { key: SortKey; label: string }[] = [
-  { key: 'title',      label: 'Campaign' },
-  { key: 'totalSlots', label: 'Slots' },
-]
-
 function PlatformBadge({ platform }: { platform: Platform }) {
   return (
     <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', platformColors[platform]].join(' ')}>
       {PLATFORM_LABELS[platform]}
+    </span>
+  )
+}
+
+function DealTypeBadge({ campaignType }: { campaignType: CampaignType | null }) {
+  if (!campaignType) return <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>
+  return (
+    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', DEAL_TYPE_COLORS[campaignType]].join(' ')}>
+      {CAMPAIGN_TYPE_LABELS[campaignType]}
     </span>
   )
 }
@@ -143,28 +148,30 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
           <thead>
             <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
               <th className="px-5 py-3 w-14" />
-              {cols.map(col => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted select-none cursor-pointer hover:text-ink-light-primary dark:hover:text-ink-dark-primary"
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {col.label}
-                    <SortIndicator col={col.key} />
-                  </span>
-                </th>
-              ))}
-              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start/End Date</th>
-              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Status</th>
+              <th
+                onClick={() => handleSort('title')}
+                className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted select-none cursor-pointer hover:text-ink-light-primary dark:hover:text-ink-dark-primary"
+              >
+                <span className="inline-flex items-center gap-1">Campaign <SortIndicator col="title" /></span>
+              </th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Brand</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Platform</th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Type</th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start/End Date</th>
+              <th
+                onClick={() => handleSort('totalSlots')}
+                className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted select-none cursor-pointer hover:text-ink-light-primary dark:hover:text-ink-dark-primary"
+              >
+                <span className="inline-flex items-center gap-1">Slots <SortIndicator col="totalSlots" /></span>
+              </th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Status</th>
               <th className="px-5 py-3 text-right font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-5 py-12 text-center">
+                <td colSpan={9} className="px-5 py-12 text-center">
                   <div className="flex justify-center">
                     <Loading size={28} />
                   </div>
@@ -172,13 +179,13 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={9} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No campaigns match your filter.
                 </td>
               </tr>
             ) : (
               filtered.map(c => (
-                <tr key={c.id} className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group">
+                <tr key={c.id} className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors">
                   <td className="px-5 py-2.5 w-14">
                     <ProductThumbnail src={c.productImageUrl} alt={c.productName} />
                   </td>
@@ -188,6 +195,14 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                       <div className="text-[10px] text-ink-light-secondary dark:text-ink-dark-secondary mt-0.5 font-mono">{c.code}</div>
                     </div>
                   </td>
+                  <td className="px-5 py-2.5 text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
+                    {c.productBrandName || '—'}
+                  </td>
+                  <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
+                  <td className="px-5 py-2.5"><DealTypeBadge campaignType={c.campaignType} /></td>
+                  <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
+                    {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
+                  </td>
                   <td className="px-5 py-2.5">
                     <div className="space-y-1">
                       <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
@@ -196,11 +211,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                       <SlotsBar claimed={c.slotsClaimed} total={c.totalSlots ?? 0} />
                     </div>
                   </td>
-                  <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
-                    {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
-                  </td>
                   <td className="px-5 py-2.5"><StatusBadge status={c.status} /></td>
-                  <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
                   <td className="px-5 py-2.5">
                     <CampaignRowActions campaign={c} onEdit={() => onEdit(c.id)} onCopy={() => onCopy(c.id)} onView={() => onView(c.id)} />
                   </td>
