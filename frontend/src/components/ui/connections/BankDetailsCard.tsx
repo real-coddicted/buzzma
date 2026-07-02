@@ -1,18 +1,6 @@
 import { Loading } from '../Loading'
+import { LabeledField } from '../LabeledField'
 import type { UserBankingDto } from '../../../types/ProfileTypes'
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
-        {label}
-      </span>
-      <span className="text-sm text-ink-light-primary dark:text-ink-dark-primary">
-        {value || '—'}
-      </span>
-    </div>
-  )
-}
 
 interface BankDetailsCardProps {
   banking: UserBankingDto | null
@@ -31,13 +19,13 @@ export function BankDetailsCard({ banking, loading }: BankDetailsCardProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          <Field label="Bank Name"      value={banking?.bankName ?? ''} />
+          <LabeledField label="Bank Name"      value={banking?.bankName ?? ''} />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="Account Number" value={banking?.bankAccountNumber ?? ''} />
+          <LabeledField label="Account Number" value={banking?.bankAccountNumber ?? ''} />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="IFSC Code"      value={banking?.bankIfscCode ?? ''} />
+          <LabeledField label="IFSC Code"      value={banking?.bankIfscCode ?? ''} />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="Account Holder" value={banking?.bankAccountHolderName ?? ''} />
+          <LabeledField label="Account Holder" value={banking?.bankAccountHolderName ?? ''} />
         </div>
       )}
     </div>
