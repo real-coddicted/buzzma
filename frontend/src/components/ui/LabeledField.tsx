@@ -6,7 +6,7 @@ interface LabeledFieldProps {
 
 export function LabeledField({ label, value, mono = false }: LabeledFieldProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <span className="text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
         {label}
       </span>
