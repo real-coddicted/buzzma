@@ -1,8 +1,9 @@
 import type { components } from '../types/api'
 import { fetchWithAuth, setCurrentUser } from './client'
-import type { UserBankingDto, UserActivityDto } from '../types/ProfileTypes'
+import type { UserActivityDto } from '../types/ProfileTypes'
 
-export type UserSummaryDto = components['schemas']['UserSummaryDto']
+export type UserSummaryDto      = components['schemas']['UserSummaryDto']
+export type UserBankingDetailDto = components['schemas']['UserBankingDetailDto']
 
 export async function fetchCurrentUser(): Promise<UserSummaryDto> {
   const res = await fetchWithAuth('/api/v1/users/me')
@@ -21,9 +22,9 @@ export async function fetchUserById(userId: string): Promise<UserSummaryDto> {
   return res.json() as Promise<UserSummaryDto>
 }
 
-export async function fetchUserBanking(userId: string): Promise<UserBankingDto> {
+export async function fetchUserBanking(userId: string): Promise<UserBankingDetailDto> {
   const res = await fetchWithAuth(`/api/v1/users/${userId}/banking`)
-  return res.json() as Promise<UserBankingDto>
+  return res.json() as Promise<UserBankingDetailDto>
 }
 
 export async function fetchUserActivity(userId: string): Promise<UserActivityDto> {

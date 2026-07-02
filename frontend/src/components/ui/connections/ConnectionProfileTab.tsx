@@ -4,7 +4,8 @@ import { Loading } from '../Loading'
 import { BankDetailsCard } from './BankDetailsCard'
 import { fetchUserById, fetchUserBanking } from '../../../api/userApi'
 import type { UserSummaryDto } from '../../../api/userApi'
-import type { UserBankingDto, UserDetails } from '../../../types/ProfileTypes'
+import type { UserBankingDetailDto } from '../../../api/userApi'
+import type { UserDetails } from '../../../types/ProfileTypes'
 import { roleToType } from '../../../utils/userRole'
 
 interface ConnectionProfileTabProps {
@@ -15,7 +16,7 @@ interface ConnectionProfileTabProps {
 
 export function ConnectionProfileTab({ toUserId, name, onError }: ConnectionProfileTabProps) {
   const [profile, setProfile]           = useState<UserSummaryDto | null>(null)
-  const [banking, setBanking]           = useState<UserBankingDto | null>(null)
+  const [banking, setBanking]           = useState<UserBankingDetailDto | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [bankingLoading, setBankingLoading] = useState(true)
 

@@ -1,9 +1,9 @@
 import { Loading } from '../Loading'
 import { LabeledField } from '../LabeledField'
-import type { UserBankingDto } from '../../../types/ProfileTypes'
+import type { UserBankingDetailDto } from '../../../api/userApi'
 
 interface BankDetailsCardProps {
-  banking: UserBankingDto | null
+  banking: UserBankingDetailDto | null
   loading: boolean
 }
 
