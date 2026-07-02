@@ -7,3 +7,15 @@ export interface UserDetails {
   mobile: string
   email?: string
 }
+
+export interface UserBankingDto {
+  bankAccountNumber?: string
+  bankIfscCode?: string
+  bankName?: string
+  bankAccountHolderName?: string
+}
+
+export interface UserActivityDto {
+  orderCount: number
+  connectionCount: number
+}

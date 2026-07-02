@@ -25,6 +25,8 @@ interface ConnectionsGridProps {
   onAccept: (connection: Connection) => void
   onReject: (connection: Connection) => void
   onDelete: (connection: Connection) => void
+  /** Called when a connected row is clicked to view its details. */
+  onRowClick?: (connection: Connection) => void
 }
 
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
@@ -58,6 +60,7 @@ export function ConnectionsGrid({
   onAccept,
   onReject,
   onDelete,
+  onRowClick,
 }: ConnectionsGridProps) {
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -162,10 +165,15 @@ export function ConnectionsGrid({
               sorted.map(c => {
                 const s = statusConfig[c.status]
                 const busy = actioningId === c.id
+                const clickable = c.status === 'connected' && !!onRowClick
                 return (
                   <tr
                     key={c.id}
-                    className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group"
+                    onClick={clickable ? () => onRowClick(c) : undefined}
+                    className={[
+                      'hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group',
+                      clickable ? 'cursor-pointer' : '',
+                    ].join(' ')}
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -198,7 +206,7 @@ export function ConnectionsGrid({
                             <button
                               title="Accept"
                               disabled={busy}
-                              onClick={() => onAccept(c)}
+                              onClick={e => { e.stopPropagation(); onAccept(c) }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-green border border-neon-green/30 bg-neon-green/5 hover:bg-neon-green/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <IconCheck size={11} />
@@ -207,7 +215,7 @@ export function ConnectionsGrid({
                             <button
                               title="Reject"
                               disabled={busy}
-                              onClick={() => onReject(c)}
+                              onClick={e => { e.stopPropagation(); onReject(c) }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-red border border-neon-red/30 bg-neon-red/5 hover:bg-neon-red/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <IconX size={11} />
@@ -219,7 +227,7 @@ export function ConnectionsGrid({
                           <button
                             title="Delete"
                             disabled={busy}
-                            onClick={() => onDelete(c)}
+                            onClick={e => { e.stopPropagation(); onDelete(c) }}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-red border border-neon-red/30 bg-neon-red/5 hover:bg-neon-red/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             <IconTrash size={11} />
