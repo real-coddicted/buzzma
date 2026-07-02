@@ -1,6 +1,7 @@
 import type { components } from '../types/api'
 
 const TOKEN_KEY = 'buzzma-access-token'
+const REFRESH_TOKEN_KEY = 'buzzma-refresh-token'
 const USER_KEY = 'buzzma-current-user'
 
 export type CurrentUser = components['schemas']['UserSummary']
@@ -15,6 +16,18 @@ export function setAccessToken(token: string): void {
 
 export function clearAccessToken(): void {
   localStorage.removeItem(TOKEN_KEY)
+}
+
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_KEY)
+}
+
+export function setRefreshToken(token: string): void {
+  localStorage.setItem(REFRESH_TOKEN_KEY, token)
+}
+
+export function clearRefreshToken(): void {
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
 export function getCurrentUser(): CurrentUser | null {
@@ -39,14 +52,59 @@ export function clearCurrentUser(): void {
 
 export function clearSession(): void {
   clearAccessToken()
+  clearRefreshToken()
   clearCurrentUser()
+}
+
+function forceLogout(): void {
+  clearSession()
+  window.dispatchEvent(new CustomEvent('auth:logout'))
 }
 
 export function throwIfUnauthorized(res: Response): void {
   if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new CustomEvent('auth:logout'))
+    forceLogout()
     throw new Error('Session expired. Please sign in again.')
+  }
+}
+
+async function tryRefreshTokens(): Promise<boolean> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) return false
+  try {
+    const res = await fetch('/api/v1/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    })
+    if (!res.ok) return false
+    const data = await res.json() as { accessToken?: string; refreshToken?: string }
+    if (!data.accessToken || !data.refreshToken) return false
+    setAccessToken(data.accessToken)
+    setRefreshToken(data.refreshToken)
+    scheduleProactiveRefresh()
+    return true
+  } catch {
+    return false
+  }
+}
+
+let proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null
+
+export function scheduleProactiveRefresh(): void {
+  if (proactiveRefreshTimer !== null) clearTimeout(proactiveRefreshTimer)
+  // Refresh at 14 min — 1 min before the 15-min access token expires
+  proactiveRefreshTimer = setTimeout(async () => {
+    proactiveRefreshTimer = null
+    const refreshed = await tryRefreshTokens()
+    if (!refreshed) forceLogout()
+  }, 14 * 60 * 1000)
+}
+
+export function cancelProactiveRefresh(): void {
+  if (proactiveRefreshTimer !== null) {
+    clearTimeout(proactiveRefreshTimer)
+    proactiveRefreshTimer = null
   }
 }
 
@@ -81,7 +139,15 @@ export async function fetchWithAuth(
     clearTimeout(timer)
   }
 
-  throwIfUnauthorized(res)
+  if (res.status === 401) {
+    const refreshed = await tryRefreshTokens()
+    if (!refreshed) {
+      forceLogout()
+      throw new Error('Session expired. Please sign in again.')
+    }
+    // Retry the original request with the new access token
+    return fetchWithAuth(url, init, timeoutMs)
+  }
 
   if (!res.ok) {
     // Try to extract a message from the response body first

@@ -18,7 +18,7 @@ import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllR
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
-import { clearSession, getAccessToken } from './api/client'
+import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
 import type { NavPage, Notification } from './types'
@@ -43,6 +43,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   const handleLogout = useCallback(() => {
+    cancelProactiveRefresh()
     clearSession()
     setIsAuthenticated(false)
     setUserSettings(null)
