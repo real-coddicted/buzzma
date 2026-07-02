@@ -80,9 +80,11 @@ export function DetailsCard({ details }: DetailsCardProps) {
         <h3 className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">
           Account Details
         </h3>
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/10 text-neon-blue capitalize">
-          {type}
-        </span>
+        {type && (
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/10 text-neon-blue capitalize">
+            {type}
+          </span>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -93,7 +95,7 @@ export function DetailsCard({ details }: DetailsCardProps) {
           </>
         )}
         <Field
-          label={nameLabels[type] ?? 'Name'}
+          label={type ? (nameLabels[type] ?? 'Name') : 'Name'}
           value={name}
         />
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />

@@ -11,5 +11,5 @@ const roleTypeMap: Record<Role, UserDetails['type']> = {
 }
 
 export function roleToType(role: Role | null | undefined): UserDetails['type'] {
-  return role ? roleTypeMap[role] : 'invalid'
+  return role ? roleTypeMap[role] : undefined
 }
