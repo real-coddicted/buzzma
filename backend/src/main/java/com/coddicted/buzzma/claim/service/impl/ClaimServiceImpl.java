@@ -79,11 +79,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Map<String, ScoredValue> extractedDetails,
       final Double overallScore) {
 
-    if (this.claimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(
-        claim.getOwnerId(), claim.getDealId())) {
+    if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+        claim.getEcommerceOrderId(), claim.getPlatform())) {
       LOGGER.warn(
-          "Owner {} already has a claim for deal {}", claim.getOwnerId(), claim.getDealId());
-      throw new BusinessRuleViolationException("You have already claimed this deal");
+          "Order {} on platform {} has already been claimed",
+          claim.getEcommerceOrderId(),
+          claim.getPlatform());
+      throw new BusinessRuleViolationException(
+          "This order number has already been claimed on " + claim.getPlatform());
     }
 
     final Deal deal = this.dealService.getById(claim.getDealId());
