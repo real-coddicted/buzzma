@@ -19,11 +19,11 @@ export function BankDetailsCard({ banking, loading }: BankDetailsCardProps) {
         </div>
       ) : (
         <div className="space-y-3">
-          <LabeledField label="Bank Name"      value={banking?.bankName ?? ''} />
+          <LabeledField label="Bank Name"      value={banking?.bankName ?? ''} copyable />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <LabeledField label="Account Number" value={banking?.bankAccountNumber ?? ''} />
+          <LabeledField label="Account Number" value={banking?.bankAccountNumber ?? ''} copyable />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <LabeledField label="IFSC Code"      value={banking?.bankIfscCode ?? ''} />
+          <LabeledField label="IFSC Code"      value={banking?.bankIfscCode ?? ''} copyable />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
           <LabeledField label="Account Holder" value={banking?.bankAccountHolderName ?? ''} />
         </div>
