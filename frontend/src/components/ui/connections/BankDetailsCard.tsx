@@ -29,20 +29,16 @@ export function BankDetailsCard({ banking, loading }: BankDetailsCardProps) {
         <div className="flex justify-center py-6">
           <Loading size={24} />
         </div>
-      ) : banking ? (
-        <div className="space-y-4">
-          <Field label="Bank Name"      value={banking.bankName ?? ''} />
-          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="Account Number" value={banking.bankAccountNumber ?? ''} />
-          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="IFSC Code"      value={banking.bankIfscCode ?? ''} />
-          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-          <Field label="Account Holder" value={banking.bankAccountHolderName ?? ''} />
-        </div>
       ) : (
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">
-          Bank details not available.
-        </p>
+        <div className="space-y-4">
+          <Field label="Bank Name"      value={banking?.bankName ?? ''} />
+          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+          <Field label="Account Number" value={banking?.bankAccountNumber ?? ''} />
+          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+          <Field label="IFSC Code"      value={banking?.bankIfscCode ?? ''} />
+          <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+          <Field label="Account Holder" value={banking?.bankAccountHolderName ?? ''} />
+        </div>
       )}
     </div>
   )

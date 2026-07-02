@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { IconChevronRight } from '../icons'
 import { ConnectionDetailsTabs } from './ConnectionDetailsTabs'
 import { ConnectionProfileTab } from './ConnectionProfileTab'
 import { ConnectionActivityTab } from './ConnectionActivityTab'
+import { Toast } from '../Toast'
 import type { ConnectionDetailsTab } from './ConnectionDetailsTabs'
 import type { Connection } from '../../../types/ConnectionTypes'
 
@@ -12,7 +13,10 @@ interface ConnectionDetailsProps {
 }
 
 export function ConnectionDetails({ connection, onBack }: ConnectionDetailsProps) {
-  const [tab, setTab] = useState<ConnectionDetailsTab>('profile')
+  const [tab, setTab]       = useState<ConnectionDetailsTab>('profile')
+  const [error, setError]   = useState<string | null>(null)
+
+  const handleError = useCallback((message: string) => setError(message), [])
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -29,10 +33,14 @@ export function ConnectionDetails({ connection, onBack }: ConnectionDetailsProps
       <ConnectionDetailsTabs value={tab} onChange={setTab} />
 
       {tab === 'profile' && (
-        <ConnectionProfileTab toUserId={connection.toUserId} name={connection.name} />
+        <ConnectionProfileTab toUserId={connection.toUserId} name={connection.name} onError={handleError} />
       )}
       {tab === 'activity' && (
-        <ConnectionActivityTab toUserId={connection.toUserId} />
+        <ConnectionActivityTab toUserId={connection.toUserId} onError={handleError} />
+      )}
+
+      {error && (
+        <Toast message={error} type="error" onDismiss={() => setError(null)} />
       )}
     </div>
   )

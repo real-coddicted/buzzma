@@ -6,9 +6,10 @@ import type { UserActivityDto } from '../../../types/ProfileTypes'
 
 interface ConnectionActivityTabProps {
   toUserId: string
+  onError: (message: string) => void
 }
 
-export function ConnectionActivityTab({ toUserId }: ConnectionActivityTabProps) {
+export function ConnectionActivityTab({ toUserId, onError }: ConnectionActivityTabProps) {
   const [activity, setActivity] = useState<UserActivityDto | null>(null)
   const [loading, setLoading]   = useState(true)
 
@@ -17,10 +18,15 @@ export function ConnectionActivityTab({ toUserId }: ConnectionActivityTabProps) 
     setLoading(true)
     fetchUserActivity(toUserId)
       .then(d => { if (!cancelled) setActivity(d) })
-      .catch(() => { if (!cancelled) setActivity(null) })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setActivity(null)
+          onError(err instanceof Error ? err.message : 'Failed to load activity.')
+        }
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [toUserId])
+  }, [toUserId, onError])
 
   return (
     <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5 max-w-md">
@@ -31,15 +37,11 @@ export function ConnectionActivityTab({ toUserId }: ConnectionActivityTabProps) 
         <div className="flex justify-center py-6">
           <Loading size={24} />
         </div>
-      ) : activity ? (
-        <div>
-          <StatRow label="Number of Orders"  value={activity.orderCount} />
-          <StatRow label="Total Connections" value={activity.connectionCount} />
-        </div>
       ) : (
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">
-          Activity data not available.
-        </p>
+        <div>
+          <StatRow label="Number of Orders"  value={activity?.orderCount ?? '—'} />
+          <StatRow label="Total Connections" value={activity?.connectionCount ?? '—'} />
+        </div>
       )}
     </div>
   )

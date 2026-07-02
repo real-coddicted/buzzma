@@ -100,12 +100,8 @@ export function DetailsCard({ details }: DetailsCardProps) {
         />
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
         <Field label="Mobile" value={mobile} />
-        {email && (
-          <>
-            <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-            <Field label="Email" value={email} />
-          </>
-        )}
+        <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+        <Field label="Email" value={email ?? ''} />
       </div>
     </div>
   )
