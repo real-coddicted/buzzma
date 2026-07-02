@@ -86,14 +86,12 @@ export function ConnectionProfileTab({ toUserId, name }: ConnectionProfileTabPro
     return () => { cancelled = true }
   }, [toUserId])
 
-  const userDetails: UserDetails | null = profile
-    ? {
-        type:   profile.role ? roleTypeMap[profile.role] : 'buyer',
-        name:   profile.name ?? name,
-        mobile: profile.mobile ?? '',
-        email:  profile.email ?? undefined,
-      }
-    : null
+  const userDetails: UserDetails = {
+    type:   profile?.role ? roleTypeMap[profile.role] : 'buyer',
+    name:   profile?.name ?? name,
+    mobile: profile?.mobile ?? '',
+    email:  profile?.email ?? undefined,
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -101,14 +99,8 @@ export function ConnectionProfileTab({ toUserId, name }: ConnectionProfileTabPro
         <div className="flex justify-center py-10">
           <Loading size={24} />
         </div>
-      ) : userDetails ? (
-        <DetailsCard details={userDetails} />
       ) : (
-        <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5">
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">
-            Personal details not available.
-          </p>
-        </div>
+        <DetailsCard details={userDetails} />
       )}
       <BankDetailsCard banking={banking} loading={bankingLoading} />
     </div>
