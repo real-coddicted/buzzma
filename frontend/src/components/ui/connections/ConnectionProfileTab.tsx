@@ -4,14 +4,7 @@ import { Loading } from '../Loading'
 import { fetchUserById, fetchUserBanking } from '../../../api/userApi'
 import type { UserSummaryDto } from '../../../api/userApi'
 import type { UserBankingDto, UserDetails } from '../../../types/ProfileTypes'
-
-const roleTypeMap: Record<NonNullable<UserSummaryDto['role']>, UserDetails['type']> = {
-  ROLE_BRAND:    'brand',
-  ROLE_AGENCY:   'agency',
-  ROLE_MEDIATOR: 'mediator',
-  ROLE_BUYER:    'buyer',
-  ROLE_ADMIN:    'admin',
-}
+import { roleToType } from '../../../utils/userRole'
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -87,7 +80,7 @@ export function ConnectionProfileTab({ toUserId, name }: ConnectionProfileTabPro
   }, [toUserId])
 
   const userDetails: UserDetails = {
-    type:   profile?.role ? roleTypeMap[profile.role] : 'buyer',
+    type:   roleToType(profile?.role),
     name:   profile?.name ?? name,
     mobile: profile?.mobile ?? '',
     email:  profile?.email ?? undefined,

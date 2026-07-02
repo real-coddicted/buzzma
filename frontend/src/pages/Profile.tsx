@@ -5,18 +5,11 @@ import { getCurrentUser } from '../api/client'
 import type { CurrentUser } from '../api/client'
 import { fetchCurrentUser } from '../api/userApi'
 import type { UserDetails } from '../types/ProfileTypes'
-
-const roleTypeMap: Record<NonNullable<CurrentUser['role']>, UserDetails['type']> = {
-  ROLE_BRAND:    'brand',
-  ROLE_AGENCY:   'agency',
-  ROLE_MEDIATOR: 'mediator',
-  ROLE_BUYER:    'buyer',
-  ROLE_ADMIN:    'admin',
-}
+import { roleToType } from '../utils/userRole'
 
 function toUserDetails(user: CurrentUser): UserDetails {
   return {
-    type: user.role ? roleTypeMap[user.role] : 'buyer',
+    type: roleToType(user.role),
     name: user.name ?? '',
     mobile: user.mobile ?? '',
     email: user.email,
