@@ -18,7 +18,7 @@ export function BankDetailsCard({ banking, loading }: BankDetailsCardProps) {
           <Loading size={24} />
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <LabeledField label="Bank Name"      value={banking?.bankName ?? ''} />
           <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
           <LabeledField label="Account Number" value={banking?.bankAccountNumber ?? ''} />

@@ -66,7 +66,7 @@ export function DetailsCard({ details }: DetailsCardProps) {
         )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {code && (
           <>
             <CopyableCode code={code} />
