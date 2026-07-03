@@ -10,6 +10,7 @@ import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,8 +33,9 @@ public class DealController {
     this.dealMapper = dealMapper;
   }
 
-  @GetMapping("/unclaimed")
-  public PagedDealsResponseDto getUnclaimedDeals(
+  @GetMapping("/active")
+  @PreAuthorize("hasAnyRole('BUYER')")
+  public PagedDealsResponseDto getActiveDeals(
       @CurrentUserId final UUID requesterId,
       @RequestParam(defaultValue = "0") final int page,
       @RequestParam(defaultValue = "20") final int size) {
@@ -42,7 +44,7 @@ public class DealController {
             requesterId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
 
     final Page<Deal> dealsPage =
-        this.dealService.getUnclaimedDeals(connection.getFromUserId(), requesterId, page, size);
+        this.dealService.getActiveDeals(connection.getFromUserId(), requesterId, page, size);
     return PagedDealsResponseDto.builder()
         .items(this.dealMapper.toDealResponse(dealsPage.getContent()))
         .total(dealsPage.getTotalElements())

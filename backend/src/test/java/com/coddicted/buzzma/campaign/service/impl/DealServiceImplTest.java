@@ -64,12 +64,12 @@ class DealServiceImplTest {
   }
 
   @Test
-  void testGetUnclaimedDeals() {
+  void testGetActiveDeals() {
     final Page<Deal> dealPage = new PageImpl<>(List.of(DEAL_1));
-    when(this.mockDealRepository.findUnclaimedDeals(OWNER_ID, REQUESTER_ID, PageRequest.of(0, 10)))
+    when(this.mockDealRepository.findActiveDeals(OWNER_ID, PageRequest.of(0, 10)))
         .thenReturn(dealPage);
 
-    final Page<Deal> result = this.dealService.getUnclaimedDeals(OWNER_ID, REQUESTER_ID, 0, 10);
+    final Page<Deal> result = this.dealService.getActiveDeals(OWNER_ID, REQUESTER_ID, 0, 10);
 
     assertEquals(dealPage, result);
   }

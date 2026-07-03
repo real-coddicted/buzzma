@@ -804,14 +804,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/deals/unclaimed": {
+    "/api/v1/deals/active": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getUnclaimedDeals"];
+        get: operations["getActiveDeals"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3187,7 +3187,7 @@ export interface operations {
             };
         };
     };
-    getUnclaimedDeals: {
+    getActiveDeals: {
         parameters: {
             query?: {
                 page?: number;
