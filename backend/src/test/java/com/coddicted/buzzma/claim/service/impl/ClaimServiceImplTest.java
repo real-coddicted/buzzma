@@ -75,7 +75,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaim() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -116,7 +117,8 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenAlreadyClaimed() {
-    when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
         .thenReturn(true);
 
     final BusinessRuleViolationException ex =
@@ -130,7 +132,7 @@ class ClaimServiceImplTest {
                     CONTENT_TYPE,
                     EXTRACTED_DETAILS,
                     null));
-    assertEquals("You have already claimed this deal", ex.getMessage());
+    assertEquals("Claim with this Order ID has already been placed", ex.getMessage());
   }
 
   @Test

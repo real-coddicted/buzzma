@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.persistence;
 
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +20,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
   Optional<Claim> findByIdAndOwnerIdAndIsDeletedFalse(UUID id, UUID ownerId);
 
-  boolean existsByOwnerIdAndDealIdAndIsDeletedFalse(UUID ownerId, UUID dealId);
+  boolean existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+      String ecommerceOrderId, Platform platform);
 
   Page<Claim> findByCampaignIdInAndIsDeletedFalse(Collection<UUID> campaignIds, Pageable pageable);
 }
