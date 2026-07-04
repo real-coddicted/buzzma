@@ -12,9 +12,10 @@ import type { ClaimReviewItem, ReviewStatus } from '../../../types'
 interface ClaimReviewGridProps {
   claims: ClaimReviewItem[]
   onViewDetails: (claim: ClaimReviewItem) => void
+  onApprove: (claim: ClaimReviewItem) => void
 }
 
-export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [reviewFilter, setReviewFilter] = useState<ReviewStatus | 'all'>('all')
 
@@ -35,7 +36,10 @@ export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps)
       onViewDetails(row)
       return
     }
-    console.log(action, row.orderId)
+    if (action === 'approve') {
+      onApprove(row)
+      return
+    }
   }
 
   return (
@@ -57,7 +61,7 @@ export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps)
                   key={col}
                   className={[
                     'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                    col === 'Actions' ? 'text-right' : col === 'Claim Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
+                    col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
                   ].join(' ')}
                 >
                   {col}

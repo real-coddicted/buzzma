@@ -94,6 +94,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: Math.round((dto.matchScore ?? 0) * 100),
+    isUnderReview: backendStatus === 'UNDER_REVIEW',
   }
 }
 

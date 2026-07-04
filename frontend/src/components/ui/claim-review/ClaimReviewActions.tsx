@@ -1,4 +1,4 @@
-import { IconEdit, IconCheck, IconX } from '../icons'
+import { IconEye, IconCheck } from '../icons'
 import type { ClaimReviewItem } from '../../../types'
 
 interface ActionButtonProps {
@@ -6,14 +6,20 @@ interface ActionButtonProps {
   colorClass: string
   onClick: () => void
   icon: React.ReactNode
+  disabled?: boolean
 }
 
-function ActionButton({ title, colorClass, onClick, icon }: ActionButtonProps) {
+function ActionButton({ title, colorClass, onClick, icon, disabled }: ActionButtonProps) {
   return (
     <button
       title={title}
       onClick={onClick}
-      className={['p-1.5 rounded-lg border transition-colors', colorClass].join(' ')}
+      disabled={disabled}
+      className={[
+        'p-1.5 rounded-lg border transition-colors',
+        disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : '',
+        colorClass,
+      ].join(' ')}
     >
       {icon}
     </button>
@@ -27,24 +33,19 @@ interface ClaimReviewActionsProps {
 
 export function ClaimReviewActions({ row, onAction }: ClaimReviewActionsProps) {
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-center gap-1">
       <ActionButton
         title="View Details"
         colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-purple hover:border-neon-purple/30 hover:bg-neon-purple/10"
         onClick={() => onAction('details', row)}
-        icon={<IconEdit size={13} />}
+        icon={<IconEye size={13} />}
       />
       <ActionButton
         title="Approve"
         colorClass="text-neon-green border-neon-green/30 bg-neon-green/10 hover:bg-neon-green/20"
         onClick={() => onAction('approve', row)}
         icon={<IconCheck size={13} />}
-      />
-      <ActionButton
-        title="Reject"
-        colorClass="text-neon-red border-neon-red/30 bg-neon-red/10 hover:bg-neon-red/20"
-        onClick={() => onAction('reject', row)}
-        icon={<IconX size={13} />}
+        disabled={!row.isUnderReview}
       />
     </div>
   )
