@@ -5,7 +5,7 @@ import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionJobStatus;
 import com.coddicted.buzzma.extraction.persistence.ExtractionJobRepository;
 import com.coddicted.buzzma.extraction.service.ExtractionJobService;
-import com.coddicted.buzzma.shared.gemini.GeminiException;
+import com.coddicted.buzzma.scoring.service.ScoringService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,12 +19,15 @@ public class ExtractionJobServiceImpl implements ExtractionJobService {
 
   private final ExtractionJobRepository jobRepository;
   private final ClaimScreenshotService claimScreenshotService;
+  private final ScoringService scoringService;
 
   public ExtractionJobServiceImpl(
       final ExtractionJobRepository jobRepository,
-      final ClaimScreenshotService claimScreenshotService) {
+      final ClaimScreenshotService claimScreenshotService,
+      final ScoringService scoringService) {
     this.jobRepository = jobRepository;
     this.claimScreenshotService = claimScreenshotService;
+    this.scoringService = scoringService;
   }
 
   @Override
@@ -48,10 +51,14 @@ public class ExtractionJobServiceImpl implements ExtractionJobService {
               .errorMessage(null)
               .build();
       LOGGER.debug("processJob: completed job {}", current.getId());
-    } catch (final GeminiException e) {
+
+      // create the job for next step of scoring
+      this.scoringService.submitJob(current.getClaimScreenshotId(), current.getCreatedBy());
+
+    } catch (final RuntimeException e) {
       final boolean exhausted = current.getAttemptCount() >= MAX_ATTEMPTS;
       LOGGER.warn(
-          "processJob: Gemini failed for job {} (attempt {}/{}): {}",
+          "processJob: extraction failed for job {} (attempt {}/{}): {}",
           current.getId(),
           current.getAttemptCount(),
           MAX_ATTEMPTS,

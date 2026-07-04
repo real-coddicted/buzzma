@@ -71,6 +71,11 @@ app:
       fixed-delay-ms: ${EXTRACTION_SCHEDULER_DELAY_MS:30000}
       batch-size: ${EXTRACTION_SCHEDULER_BATCH_SIZE:5}
       thread-pool-size: ${EXTRACTION_SCHEDULER_THREAD_POOL_SIZE:5}
+  scoring:
+    scheduler:
+      fixed-delay-ms: ${SCORING_SCHEDULER_DELAY_MS:30000}
+      batch-size: ${SCORING_SCHEDULER_BATCH_SIZE:5}
+      thread-pool-size: ${SCORING_SCHEDULER_THREAD_POOL_SIZE:5}
   storage:
     type: ${STORAGE_TYPE:garage}
     base-dir: ${STORAGE_BASE_DIR:./storage}
