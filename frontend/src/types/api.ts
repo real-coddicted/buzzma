@@ -635,13 +635,45 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getById_3"];
+        get: operations["getById_4"];
         put?: never;
         post?: never;
         delete: operations["delete_4"];
         options?: never;
         head?: never;
         patch: operations["updateCampaign"];
+        trace?: never;
+    };
+    "/api/v1/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/banking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getBankingDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/users/search": {
@@ -683,7 +715,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getById"];
+        get: operations["getById_1"];
         put?: never;
         post?: never;
         delete: operations["delete_1"];
@@ -779,7 +811,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getById_1"];
+        get: operations["getById_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -843,7 +875,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getById_2"];
+        get: operations["getById_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1521,6 +1553,14 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             updatedBy?: string;
+        };
+        UserBankingDetailDto: {
+            bankAccountNumber?: string;
+            bankIfscCode?: string;
+            bankName?: string;
+            bankAccountHolderName?: string;
+            upiId?: string;
+            upiMobileNumber?: string;
         };
         TicketCategoryResponseDto: {
             /** Format: uuid */
@@ -2885,7 +2925,7 @@ export interface operations {
             };
         };
     };
-    getById_3: {
+    getById_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2953,6 +2993,50 @@ export interface operations {
             };
         };
     };
+    getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSummaryDto"];
+                };
+            };
+        };
+    };
+    getBankingDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserBankingDetailDto"];
+                };
+            };
+        };
+    };
     searchByMobile: {
         parameters: {
             query: {
@@ -2995,7 +3079,7 @@ export interface operations {
             };
         };
     };
-    getById: {
+    getById_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -3143,7 +3227,7 @@ export interface operations {
             };
         };
     };
-    getById_1: {
+    getById_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -3230,7 +3314,7 @@ export interface operations {
             };
         };
     };
-    getById_2: {
+    getById_3: {
         parameters: {
             query?: never;
             header?: never;

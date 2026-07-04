@@ -124,4 +124,11 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
         .findByToUserIdAndStatusAndIsDeletedFalse(toUserId, status)
         .orElseThrow(() -> new NotFoundException("Connection not found for " + toUserId));
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isParentOf(final UUID parentId, final UUID childId) {
+    return this.connectionRepository.existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+        parentId, childId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+  }
 }

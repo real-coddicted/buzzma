@@ -199,4 +199,34 @@ class ConnectionServiceImplTest {
             () -> this.connectionService.delete(CONNECTION_ID, FROM_USER_ID));
     assertEquals("Connection not found: " + CONNECTION_ID, ex.getMessage());
   }
+
+  @Test
+  void testIsParentOfWhenParentToChildReturnsTrue() {
+    doReturn(true)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            FROM_USER_ID, TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertTrue(this.connectionService.isParentOf(FROM_USER_ID, TO_USER_ID));
+  }
+
+  @Test
+  void testIsParentOfWhenChildToParentReturnsFalse() {
+    doReturn(false)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            TO_USER_ID, FROM_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertFalse(this.connectionService.isParentOf(TO_USER_ID, FROM_USER_ID));
+  }
+
+  @Test
+  void testIsParentOfWhenNotConnected() {
+    doReturn(false)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            FROM_USER_ID, TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertFalse(this.connectionService.isParentOf(FROM_USER_ID, TO_USER_ID));
+  }
 }

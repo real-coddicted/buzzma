@@ -18,9 +18,11 @@ public class WithBuzzmaUserSecurityContextFactory
 
   @Override
   public SecurityContext createSecurityContext(final WithBuzzmaUser annotation) {
+    final UUID id =
+        annotation.id().isBlank() ? UUID.randomUUID() : UUID.fromString(annotation.id());
     final BuzzmaUser user =
         BuzzmaUser.builder()
-            .id(UUID.randomUUID())
+            .id(id)
             .role(annotation.role())
             .name("Test User")
             .mobile("9999999999")

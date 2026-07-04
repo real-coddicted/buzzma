@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.identity.entity;
 
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
+import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -14,7 +15,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "user_banking_details")
@@ -24,7 +27,7 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class UserBankingDetail {
+public class UserBankingDetail implements Auditable {
 
   @Id
   @GeneratedValue
@@ -32,17 +35,16 @@ public class UserBankingDetail {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id;
 
-  @Column(name = "account_number")
-  private String accountNumber;
+  @Column(name = "user_id", nullable = false)
+  private UUID userId;
 
-  @Column(name = "ifsc_code")
-  private String bankIfscCode;
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "bank_details", columnDefinition = "jsonb")
+  private BankDetails bankDetails;
 
-  @Column(name = "bank_name")
-  private String bankName;
-
-  @Column(name = "account_holder_name")
-  private String accountHolderName;
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "upi_details", columnDefinition = "jsonb")
+  private UpiDetails upiDetails;
 
   // Audit fields
   @Column(name = "created_by")

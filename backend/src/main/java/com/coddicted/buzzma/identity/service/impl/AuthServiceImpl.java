@@ -3,6 +3,7 @@ package com.coddicted.buzzma.identity.service.impl;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BankDetails;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
@@ -218,10 +219,12 @@ public class AuthServiceImpl implements AuthService {
   private boolean validateUserBankingDetails(
       final BuzzmaUser user, final UserBankingDetail userBankingDetail) {
     if (user.getRole() == UserRole.ROLE_BUYER) {
-      return StringUtils.hasText(userBankingDetail.getBankName())
-          && StringUtils.hasText(userBankingDetail.getAccountNumber())
-          && StringUtils.hasText(userBankingDetail.getBankIfscCode())
-          && StringUtils.hasText(userBankingDetail.getAccountHolderName());
+      final BankDetails bankDetails = userBankingDetail.getBankDetails();
+      return bankDetails != null
+          && StringUtils.hasText(bankDetails.getBankName())
+          && StringUtils.hasText(bankDetails.getAccountNumber())
+          && StringUtils.hasText(bankDetails.getBankIfscCode())
+          && StringUtils.hasText(bankDetails.getAccountHolderName());
     }
     return true;
   }

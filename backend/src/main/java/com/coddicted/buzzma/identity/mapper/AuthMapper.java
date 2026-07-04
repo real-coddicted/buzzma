@@ -4,14 +4,17 @@ import com.coddicted.buzzma.identity.dto.auth.SecurityQuestionWrapper;
 import com.coddicted.buzzma.identity.dto.auth.UserRegistrationRequestDto;
 import com.coddicted.buzzma.identity.dto.auth.UserSignInRequestDto;
 import com.coddicted.buzzma.identity.dto.auth.UserSummary;
+import com.coddicted.buzzma.identity.entity.BankDetails;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserCredential;
 import java.util.List;
 import java.util.UUID;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
@@ -66,15 +69,28 @@ public interface AuthMapper {
   @Mapping(target = "isDeleted", ignore = true)
   UserCredential toCredential(UserRegistrationRequestDto request);
 
-  @Mapping(source = "bankAccountNumber", target = "accountNumber")
-  @Mapping(source = "bankAccountHolderName", target = "accountHolderName")
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "userId", ignore = true)
+  @Mapping(target = "bankDetails", ignore = true)
+  @Mapping(target = "upiDetails", ignore = true)
   @Mapping(target = "createdBy", ignore = true)
   @Mapping(target = "updatedBy", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   UserBankingDetail toBankingDetail(UserRegistrationRequestDto request);
+
+  @AfterMapping
+  default void mapBankDetails(
+      final UserRegistrationRequestDto request, @MappingTarget final UserBankingDetail target) {
+    target.setBankDetails(
+        BankDetails.builder()
+            .accountNumber(request.getBankAccountNumber())
+            .bankIfscCode(request.getBankIfscCode())
+            .bankName(request.getBankName())
+            .accountHolderName(request.getBankAccountHolderName())
+            .build());
+  }
 
   @Mapping(source = "answer", target = "answerHash")
   @Mapping(target = "id", ignore = true)
