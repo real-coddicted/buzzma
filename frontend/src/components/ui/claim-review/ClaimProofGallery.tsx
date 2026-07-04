@@ -21,9 +21,17 @@ export interface ClaimProofItem {
   id: string
   imageUrl: string
   imageAlt?: string
+  type?: string
   score?: number
   fields: ExtractedField[]
   verificationStatus?: ScreenshotVerificationStatus
+}
+
+const SCREENSHOT_TYPE_LABELS: Record<string, string> = {
+  SCREENSHOT_TYPE_ORDER: 'Order',
+  SCREENSHOT_TYPE_RATING: 'Rating',
+  SCREENSHOT_TYPE_REVIEW: 'Review',
+  SCREENSHOT_TYPE_RETURN: 'Return',
 }
 
 interface ClaimProofGalleryProps {
@@ -116,7 +124,9 @@ export function ClaimProofGallery({
             <div className="p-5 flex flex-col gap-4 h-full">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-                  Extracted Data
+                  {selected.type && SCREENSHOT_TYPE_LABELS[selected.type]
+                    ? `${SCREENSHOT_TYPE_LABELS[selected.type]} (Extracted Data)`
+                    : 'Extracted Data'}
                 </h3>
                 <div className="relative group flex-shrink-0">
                   <IconInfo size={14} className="text-ink-light-muted dark:text-ink-dark-muted cursor-help" />

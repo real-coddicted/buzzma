@@ -1,4 +1,4 @@
-import { IconCopy, IconEdit, IconCheck, IconX } from '../icons'
+import { IconEdit, IconCheck, IconX } from '../icons'
 import type { ClaimReviewItem } from '../../../types'
 
 interface ActionButtonProps {
@@ -27,13 +27,7 @@ interface ClaimReviewActionsProps {
 
 export function ClaimReviewActions({ row, onAction }: ClaimReviewActionsProps) {
   return (
-    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-      <ActionButton
-        title="View Proof"
-        colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-blue hover:border-neon-blue/30 hover:bg-neon-blue/10"
-        onClick={() => onAction('view-proof', row)}
-        icon={<IconCopy size={13} />}
-      />
+    <div className="flex items-center justify-end gap-1">
       <ActionButton
         title="View Details"
         colorClass="text-ink-light-muted dark:text-ink-dark-muted border-surface-light-border dark:border-surface-dark-border hover:text-neon-purple hover:border-neon-purple/30 hover:bg-neon-purple/10"

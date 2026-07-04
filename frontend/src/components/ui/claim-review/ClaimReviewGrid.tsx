@@ -76,7 +76,8 @@ export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps)
               filtered.map(row => (
                 <tr
                   key={row.id}
-                  className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group"
+                  onClick={() => handleAction('details', row)}
+                  className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group cursor-pointer"
                 >
                   <td className="px-5 py-4">
                     <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
@@ -133,7 +134,7 @@ export function ClaimReviewGrid({ claims, onViewDetails }: ClaimReviewGridProps)
                       </span>
                     </div>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
                     <ClaimReviewActions row={row} onAction={handleAction} />
                   </td>
                 </tr>
