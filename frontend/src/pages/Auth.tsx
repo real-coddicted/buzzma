@@ -52,7 +52,7 @@ export function Auth({ onAuth }: AuthProps) {
   if (view === 'register') {
     return (
       <Register
-        captchaToken={captchaToken}
+        initialCaptchaToken={captchaToken}
         onRegister={() => { setCaptchaToken(''); navigate('/login') }}
         onGoToLogin={() => navigate('/login')}
       />
