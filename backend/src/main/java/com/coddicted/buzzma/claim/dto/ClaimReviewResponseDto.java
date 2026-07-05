@@ -21,6 +21,8 @@ public class ClaimReviewResponseDto {
   UUID dealOwnerId;
   String dealOwnerName;
 
+  String buyerName;
+
   UUID claimId;
   String claimStatus;
   String ecommerceOrderId;

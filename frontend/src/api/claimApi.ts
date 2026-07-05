@@ -54,6 +54,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     orderId: dto.ecommerceOrderId ?? '',
     orderDate: dto.orderDate != null ? String(dto.orderDate) : '',
     mediatorName: '',
+    buyerName: '',
     claimStatus: toClaimStatus(status),
     reviewStatus: toReviewStatus(status),
     approvalMethod: 'manual',
@@ -87,6 +88,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     orderId: dto.ecommerceOrderId ?? '',
     orderDate: dto.createdAt ? dto.createdAt.slice(0, 10) : '',
     mediatorName: dto.dealOwnerName ?? '',
+    buyerName: dto.buyerName ?? '',
     claimStatus: toClaimStatus(backendStatus),
     reviewStatus: reviewStatusFromClaimReviewStatus(
       dto.claimReviewStatus ?? 'CLAIM_REVIEW_STATUS_PENDING'

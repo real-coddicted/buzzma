@@ -1644,6 +1644,7 @@ export interface components {
             /** Format: uuid */
             dealOwnerId?: string;
             dealOwnerName?: string;
+            buyerName?: string;
             /** Format: uuid */
             claimId?: string;
             claimStatus?: string;

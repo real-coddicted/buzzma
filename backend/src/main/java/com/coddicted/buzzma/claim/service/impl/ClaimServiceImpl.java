@@ -13,6 +13,7 @@ import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
+import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
@@ -25,6 +26,7 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -250,9 +252,16 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<Claim> listClaimByCampaignIds(
-      final List<UUID> campaignIdList, final Pageable pageable) {
-    return this.claimRepository.findByCampaignIdInAndIsDeletedFalse(campaignIdList, pageable);
+  public Page<ClaimReviewModel> findClaimsToReviewForMediator(
+      final UUID mediatorId, final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForMediator(mediatorId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
+      final Collection<UUID> campaignIds, final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForCampaigns(campaignIds, pageable);
   }
 
   @Override

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.model;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.claim.entity.Claim;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,4 +17,7 @@ import lombok.Setter;
 public class ClaimReviewModel {
   private Claim claim;
   private Campaign campaign;
+  private UUID dealOwnerId;
+  private String dealOwnerName;
+  private String buyerName;
 }

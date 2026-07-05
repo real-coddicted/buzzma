@@ -5,9 +5,11 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
+import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -44,7 +46,10 @@ public interface ClaimService {
 
   List<ClaimScreenshot> listScreenshots(UUID claimId);
 
-  Page<Claim> listClaimByCampaignIds(List<UUID> campaignIdList, Pageable pageable);
+  Page<ClaimReviewModel> findClaimsToReviewForMediator(UUID mediatorId, Pageable pageable);
+
+  Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
+      Collection<UUID> campaignIds, Pageable pageable);
 
   ClaimWithDeal reviewScreenshot(
       UUID screenshotId,

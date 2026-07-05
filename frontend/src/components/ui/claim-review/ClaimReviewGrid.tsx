@@ -5,6 +5,7 @@ import { ClaimReviewActions } from './ClaimReviewActions'
 import { CLAIM_REVIEW_COLUMNS } from './claimReviewConstants'
 import { ReviewStatusCell } from './ReviewStatusCell'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
+import { getCurrentUser } from '../../../api/client'
 import type { ClaimReviewItem, ReviewStatus } from '../../../types'
 
 // --- main grid ---
@@ -18,6 +19,10 @@ interface ClaimReviewGridProps {
 export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [reviewFilter, setReviewFilter] = useState<ReviewStatus | 'all'>('all')
+  const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
+  const columns = isMediator
+    ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator Name' ? 'Buyer Name' : col)
+    : CLAIM_REVIEW_COLUMNS
 
   const filtered = useMemo(() => {
     return claims.filter(row => {
@@ -56,7 +61,7 @@ export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimRevie
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
-              {CLAIM_REVIEW_COLUMNS.map(col => (
+              {columns.map(col => (
                 <th
                   key={col}
                   className={[
@@ -72,7 +77,7 @@ export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimRevie
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={CLAIM_REVIEW_COLUMNS.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={columns.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No orders match your filter.
                 </td>
               </tr>
@@ -97,7 +102,7 @@ export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimRevie
                     </div>
                   </td>
                   <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
-                    {row.mediatorName}
+                    {isMediator ? row.buyerName : row.mediatorName}
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex justify-center">
