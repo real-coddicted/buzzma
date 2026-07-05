@@ -14,6 +14,7 @@ export interface ExtractedField {
   label: string
   value: string
   matched: boolean
+  indeterminate?: boolean
   score?: number | null
 }
 

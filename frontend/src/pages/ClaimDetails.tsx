@@ -87,12 +87,16 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           type: s.type,
           score: s.score,
           verificationStatus: s.verificationStatus,
-          fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => ({
-            label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-            value: sv.extractedValue ?? '',
-            matched: sv.score != null ? sv.score >= 0.5 : true,
-            score: sv.score,
-          })),
+          fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => {
+            const hasValue = sv.extractedValue != null
+            return {
+              label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+              value: sv.extractedValue ?? '',
+              matched: hasValue && sv.score != null ? sv.score >= 0.5 : false,
+              indeterminate: hasValue && sv.score == null,
+              score: sv.score,
+            }
+          }),
         })))
       })
       .catch(err => { if (!cancelled) setError((err as Error).message || 'Failed to load screenshots.') })

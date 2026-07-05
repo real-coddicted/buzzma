@@ -197,13 +197,62 @@ class ClaimScreenshotServiceImplTest {
         0.95);
 
     final ClaimScreenshot scored = score(extracted);
-    assertEquals(0.95, scored.getScore());
+    // Combined score averages orderDate/amount (both 1.0) with the API's platform/productName/
+    // sellerName scores (all 1.0), rather than using the API's overallScore (0.95) verbatim.
+    assertEquals(1.0, scored.getScore());
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
     assertEquals(1.0, details.get("orderDate").getScore());
     assertEquals(1.0, details.get("amount").getScore());
     assertEquals(1.0, details.get(BuzzmahConstants.PLATFORM).getScore());
     assertEquals(1.0, details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
     assertNull(details.get("orderId").getScore());
+  }
+
+  @Test
+  void testProcessOrderScreenshot_mismatchedOrderDateAndAmountLowerOverallScore() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID))
+        .thenReturn(
+            Campaign.builder()
+                .id(CAMPAIGN_ID)
+                .platform(Platform.PLATFORM_AMAZON)
+                .startDate(20260101)
+                .endDate(20260301)
+                .sellerName("Acme Sellers")
+                .product(
+                    Product.builder()
+                        .name("Test Product")
+                        .pricePaise(BigInteger.valueOf(100000))
+                        .build())
+                .build());
+    when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
+        .thenReturn(
+            "{\"platform\":\"PLATFORM_AMAZON\",\"orderId\":\"403-1234567-8901234\","
+                + "\"orderDate\":\"2026-06-15\",\"productName\":\"Test Product\","
+                + "\"sellerName\":\"Acme Sellers\",\"amount\":500,\"orderedBy\":\"John Doe\"}");
+
+    final ClaimScreenshot extracted = extract(SCREENSHOT_TYPE_ORDER);
+
+    // orderDate (2026-06-15) falls outside the campaign window and amount (500) is below the
+    // product price (1000), so both local scores are 0.0, even though the Score API rates
+    // platform/productName/sellerName perfectly and reports a high overallScore.
+    mockScoreApi(
+        "orderData",
+        Map.of(
+            BuzzmahConstants.PLATFORM,
+            1.0,
+            BuzzmahConstants.PRODUCT_NAME,
+            1.0,
+            BuzzmahConstants.SELLER_NAME,
+            1.0),
+        0.95);
+
+    final ClaimScreenshot scored = score(extracted);
+    final Map<String, ScoredValue> details = scored.getExtractedDetails();
+    assertEquals(0.0, details.get("orderDate").getScore());
+    assertEquals(0.0, details.get("amount").getScore());
+    // Combined score (average of 0.0, 0.0, 1.0, 1.0, 1.0) is pulled down to 0.6, unlike the
+    // API's inflated overallScore of 0.95 which ignored the mismatched orderDate/amount.
+    assertEquals(0.6, scored.getScore());
   }
 
   @Test

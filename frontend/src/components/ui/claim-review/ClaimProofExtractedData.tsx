@@ -1,4 +1,4 @@
-import { IconCheck, IconX } from '../icons'
+import { IconCheck, IconX, IconInfo } from '../icons'
 import { ScoreBadge } from '../../utils/ScoreBadge'
 import type { ExtractedField } from './ClaimProofGallery'
 
@@ -21,6 +21,13 @@ export function ClaimProofExtractedData({ fields }: ClaimProofExtractedDataProps
                 title="Matched"
               >
                 <IconCheck size={12} />
+              </span>
+            ) : field.indeterminate ? (
+              <span
+                className="flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-400/10 text-amber-400"
+                title="Could not determine match"
+              >
+                <IconInfo size={12} />
               </span>
             ) : (
               <span
