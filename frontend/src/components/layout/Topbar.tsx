@@ -34,7 +34,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
   const { title, subtitle } = pageTitles[activePage]
 
   return (
-    <header className="fixed top-0 left-0 md:left-60 right-0 h-16 z-20 flex items-center gap-2 sm:gap-4 px-3 sm:px-6 bg-surface-light-base/80 dark:bg-surface-dark-base/80 backdrop-blur-sm border-b border-surface-light-border dark:border-surface-dark-border">
+    <header className="fixed top-0 left-0 md:left-60 right-0 h-[calc(4rem+var(--safe-top))] pt-[var(--safe-top)] z-20 flex items-center gap-2 sm:gap-4 px-3 sm:px-6 bg-surface-light-base/80 dark:bg-surface-dark-base/80 backdrop-blur-sm border-b border-surface-light-border dark:border-surface-dark-border">
       <button
         onClick={onMenuClick}
         className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors flex-shrink-0"

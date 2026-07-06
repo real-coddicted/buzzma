@@ -13,6 +13,11 @@
     --neon-cyan:   8 145 178;
     --neon-blue:   59 130 246;
     --neon-purple: 124 58 237;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
   }
 
   .dark {
@@ -25,6 +30,24 @@
     --neon-cyan:   139 233 253;
     --neon-blue:   87 199 255;
     --neon-purple: 189 147 249;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  .safe-pt {
+    padding-top: var(--safe-top);
+  }
+  .safe-pb {
+    padding-bottom: var(--safe-bottom);
+  }
+  .safe-pl {
+    padding-left: var(--safe-left);
+  }
+  .safe-pr {
+    padding-right: var(--safe-right);
   }
 
   * {
