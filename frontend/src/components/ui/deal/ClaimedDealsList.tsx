@@ -6,6 +6,7 @@ import { SearchInput } from '../SearchInput'
 import { StatusFilterPills } from '../StatusFilterPills'
 import type { FilterOption } from '../StatusFilterPills'
 import { ClaimedDealListItem } from './ClaimedDealListItem'
+import { Loading } from '../Loading'
 
 interface ClaimedDealsListProps {
   deals: Deal[]
@@ -44,8 +45,8 @@ export function ClaimedDealsList({ deals, loading, onSelect }: ClaimedDealsListP
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16 text-ink-light-muted dark:text-ink-dark-muted text-sm">
-          Loading…
+        <div className="flex justify-center py-16 text-ink-light-muted dark:text-ink-dark-muted">
+          <Loading size={32} />
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex justify-center py-16 text-ink-light-muted dark:text-ink-dark-muted text-sm">

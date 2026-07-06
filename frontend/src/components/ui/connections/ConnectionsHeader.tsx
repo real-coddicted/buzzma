@@ -35,9 +35,6 @@ export function ConnectionsHeader({
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
             Connections
           </h1>
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            {total} total · {connectedCount} connected
-          </p>
         </div>
         <button
           onClick={onAddConnection}

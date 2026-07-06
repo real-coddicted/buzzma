@@ -119,11 +119,6 @@ export function Deals() {
         <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
           Deals
         </h1>
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          {activeTab === 'explore'
-            ? explorePage ? `${explorePage.total} deals` : '…'
-            : claimedLoading ? '…' : `${claimedDeals.length} claimed deal${claimedDeals.length !== 1 ? 's' : ''}`}
-        </p>
       </div>
 
       <DealTabs value={activeTab} counts={counts} onChange={tab => setSearchParams(tab === 'explore' ? {} : { tab })} />

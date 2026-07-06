@@ -160,9 +160,6 @@ export function Campaigns() {
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
             Campaigns
           </h1>
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            {campaigns.length} total campaigns · {activeCnt} active
-          </p>
         </div>
         <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
           New Campaign

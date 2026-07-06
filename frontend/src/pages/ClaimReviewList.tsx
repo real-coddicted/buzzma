@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
 import { fetchClaimsToReview, submitClaimReview } from '../api/claimApi'
-import type { ClaimReviewItem, ReviewStatus } from '../types'
+import type { ClaimReviewItem } from '../types'
 
 interface ClaimReviewListProps {
   onViewDetails: (claim: ClaimReviewItem) => void
@@ -23,9 +23,6 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
     return () => { cancelled = true }
   }, [])
 
-  const pendingCount = claims.filter(r => r.reviewStatus === ('pending' as ReviewStatus)).length
-  const inReviewCount = claims.filter(r => r.reviewStatus === ('in-review' as ReviewStatus)).length
-
   function handleApprove(row: ClaimReviewItem) {
     submitClaimReview(row.id, 'APPROVED')
       .then(updated => {
@@ -40,15 +37,8 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
         <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
           Claim Review
         </h1>
-        {loading ? (
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">Loading…</p>
-        ) : (
-          <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-            {claims.length} total orders · {pendingCount} pending · {inReviewCount} in review
-          </p>
-        )}
       </div>
-      <ClaimReviewGrid claims={claims} onViewDetails={onViewDetails} onApprove={handleApprove} />
+      <ClaimReviewGrid claims={claims} loading={loading} onViewDetails={onViewDetails} onApprove={handleApprove} />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )

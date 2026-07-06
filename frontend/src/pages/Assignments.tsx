@@ -68,9 +68,6 @@ export function Assignments() {
         <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
           Assignments
         </h1>
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          {activeTab === 'unpublished' ? 'Unpublished assignments' : 'Published assignments'}
-        </p>
       </div>
 
       <AssignmentTabs value={activeTab} onChange={tab => setSearchParams({ tab })} />

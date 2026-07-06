@@ -5,6 +5,7 @@ import { ClaimReviewActions } from './ClaimReviewActions'
 import { CLAIM_REVIEW_COLUMNS } from './claimReviewConstants'
 import { ReviewStatusCell } from './ReviewStatusCell'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
+import { Loading } from '../Loading'
 import { getCurrentUser } from '../../../api/client'
 import type { ClaimReviewItem, ReviewStatus } from '../../../types'
 
@@ -12,11 +13,12 @@ import type { ClaimReviewItem, ReviewStatus } from '../../../types'
 
 interface ClaimReviewGridProps {
   claims: ClaimReviewItem[]
+  loading?: boolean
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem) => void
 }
 
-export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, onViewDetails, onApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [reviewFilter, setReviewFilter] = useState<ReviewStatus | 'all'>('all')
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
@@ -75,7 +77,15 @@ export function ClaimReviewGrid({ claims, onViewDetails, onApprove }: ClaimRevie
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={columns.length} className="px-5 py-10 text-center">
+                  <div className="flex justify-center text-ink-light-muted dark:text-ink-dark-muted">
+                    <Loading size={32} />
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No orders match your filter.
