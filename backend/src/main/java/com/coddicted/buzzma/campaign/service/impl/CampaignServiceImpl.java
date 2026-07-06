@@ -119,6 +119,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
             .code(this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
             .title(src.getTitle() + " (Copy)")
             .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
+            .assignmentsDraft(null)
             .createdAt(null)
             .updatedAt(null)
             .createdBy(requesterId)
@@ -126,13 +127,6 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
             .build();
     final Campaign saved = this.campaignRepository.save(copy);
     // Todo: Copy Product
-    final List<UUID> srcAssignmentIds =
-        this.campaignAssignmentRepository.findByCampaignId(campaignId).stream()
-            .map(CampaignAssignment::getId)
-            .toList();
-    if (!srcAssignmentIds.isEmpty()) {
-      this.campaignAssignmentService.copy(srcAssignmentIds, saved.getId(), requesterId);
-    }
     this.campaignEventPublisher.publishCampaignCreatedEvent(saved.getId(), requesterId);
     return saved;
   }

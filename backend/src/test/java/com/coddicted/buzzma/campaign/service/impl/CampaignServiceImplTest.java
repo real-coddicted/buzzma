@@ -225,8 +225,6 @@ class CampaignServiceImplTest {
   @Test
   void testCopySuccess() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
-    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
-        .thenReturn(List.of(ASSIGNMENT_1));
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
         .thenReturn(GENERATED_CODE);
     final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
@@ -243,15 +241,13 @@ class CampaignServiceImplTest {
     assertEquals(REQUESTER_ID, savedCopy.getUpdatedBy());
     assertNull(savedCopy.getCreatedAt());
     assertNull(savedCopy.getUpdatedAt());
-    verify(this.mockCampaignAssignmentService)
-        .copy(List.of(ASSIGNMENT_ID_1), SAVED_CAMPAIGN_ID, REQUESTER_ID);
+    assertNull(savedCopy.getAssignmentsDraft());
+    verifyNoInteractions(this.mockCampaignAssignmentService);
   }
 
   @Test
   void testCopyWhenNoAssignments() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
-    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
-        .thenReturn(List.of());
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
         .thenReturn(GENERATED_CODE);
     final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);

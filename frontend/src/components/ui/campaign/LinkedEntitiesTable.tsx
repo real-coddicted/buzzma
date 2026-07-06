@@ -1,33 +1,23 @@
-import { useState, useEffect } from 'react'
 import type { LinkedEntity } from '../../../types'
-import { fetchConnections } from '../../../api/connectionApi'
+import type { ConnectionOption } from '../../../hooks/useConnections'
 import { RupeeInput } from '../RupeeInput'
 
 interface Props {
   entities: LinkedEntity[]
+  connections?: ConnectionOption[]
   onChange: (entities: LinkedEntity[]) => void
   openToAll?: boolean
   readOnly?: boolean
 }
 
-export function LinkedEntitiesTable({ entities, onChange, openToAll, readOnly }: Props) {
-  const [allConnections, setAllConnections] = useState<{ id: string; name: string }[]>([])
-
-  useEffect(() => {
-    if (!readOnly) {
-      fetchConnections('connected').then(connections => {
-        setAllConnections(connections.map(c => ({ id: c.toUserId, name: c.name })))
-      }).catch(() => {})
-    }
-  }, [readOnly])
-
+export function LinkedEntitiesTable({ entities, connections = [], onChange, openToAll, readOnly }: Props) {
   const entityMap = new Map(entities.map(e => [e.id, e]))
-  const rows = readOnly ? entities.map(e => ({ id: e.id, name: e.name })) : allConnections
+  const rows = readOnly ? entities.map(e => ({ id: e.id, name: e.name })) : connections
 
   const totalSlots = entities.reduce((sum, e) => sum + e.slotsAvailable, 0)
   const totalCommission = entities.reduce((sum, e) => sum + e.slotsAvailable * e.commissionOffered, 0)
 
-  function handleToggle(conn: { id: string; name: string }) {
+  function handleToggle(conn: ConnectionOption) {
     if (entityMap.has(conn.id)) {
       onChange(entities.filter(e => e.id !== conn.id))
     } else {
@@ -36,56 +26,30 @@ export function LinkedEntitiesTable({ entities, onChange, openToAll, readOnly }:
   }
 
   function handleSlotsChange(id: string, value: string) {
-    const slots = parseInt(value) || 0
-    if (entityMap.has(id)) {
-      onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: slots } : e))
-    } else {
-      const conn = allConnections.find(c => c.id === id)
-      if (conn) {
-        onChange([...entities, { id, name: conn.name, slotsAvailable: slots, commissionOffered: 0 }])
-      }
-    }
+    onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: parseInt(value) || 0 } : e))
   }
 
   function handleCommissionChange(id: string, value: string) {
-    const commission = parseFloat(value) || 0
-    if (entityMap.has(id)) {
-      onChange(entities.map(e => e.id === id ? { ...e, commissionOffered: commission } : e))
-    } else {
-      const conn = allConnections.find(c => c.id === id)
-      if (conn) {
-        onChange([...entities, { id, name: conn.name, slotsAvailable: 0, commissionOffered: commission }])
-      }
-    }
+    onChange(entities.map(e => e.id === id ? { ...e, commissionOffered: parseFloat(value) || 0 } : e))
   }
 
   function copySlotsToAll() {
-    const firstEntity = entityMap.get(rows[0]?.id ?? '')
-    const slots = firstEntity?.slotsAvailable ?? 0
-    const updatedMap = new Map(entities.map(e => [e.id, e]))
-    onChange(allConnections.map(c => ({
-      ...updatedMap.get(c.id) ?? { id: c.id, name: c.name, commissionOffered: 0 },
-      slotsAvailable: slots,
-    })))
+    const slots = entityMap.get(rows[0]?.id ?? '')?.slotsAvailable ?? 0
+    onChange(entities.map(e => ({ ...e, slotsAvailable: slots })))
   }
 
   function copyCommissionToAll() {
-    const firstEntity = entityMap.get(rows[0]?.id ?? '')
-    const commission = firstEntity?.commissionOffered ?? 0
-    const updatedMap = new Map(entities.map(e => [e.id, e]))
-    onChange(allConnections.map(c => ({
-      ...updatedMap.get(c.id) ?? { id: c.id, name: c.name, slotsAvailable: 0 },
-      commissionOffered: commission,
-    })))
+    const commission = entityMap.get(rows[0]?.id ?? '')?.commissionOffered ?? 0
+    onChange(entities.map(e => ({ ...e, commissionOffered: commission })))
   }
 
-  const allSelected = allConnections.length > 0 && allConnections.every(c => entityMap.has(c.id))
+  const allSelected = connections.length > 0 && connections.every(c => entityMap.has(c.id))
 
   function handleSelectAll() {
     if (allSelected) {
       onChange([])
     } else {
-      onChange(allConnections.map(c => entityMap.get(c.id) ?? { id: c.id, name: c.name, slotsAvailable: 0, commissionOffered: 0 }))
+      onChange(connections.map(c => entityMap.get(c.id) ?? { id: c.id, name: c.name, slotsAvailable: 0, commissionOffered: 0 }))
     }
   }
 
@@ -128,7 +92,6 @@ export function LinkedEntitiesTable({ entities, onChange, openToAll, readOnly }:
                 const entity = entityMap.get(conn.id)
                 const selected = !!openToAll || entityMap.has(conn.id)
                 const slotsDisabled = readOnly || !!openToAll
-                const commissionDisabled = readOnly
                 const isFirst = idx === 0
 
                 return (
@@ -176,10 +139,10 @@ export function LinkedEntitiesTable({ entities, onChange, openToAll, readOnly }:
                           onChange={v => handleCommissionChange(conn.id, v)}
                           symbolOffset="left-2"
                           inputPadding="pl-5"
-                          disabled={commissionDisabled}
+                          disabled={readOnly}
                           className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg pr-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all disabled:opacity-40"
                         />
-                        {isFirst && !readOnly && (
+                        {isFirst && !readOnly && selected && (
                           <button
                             type="button"
                             onClick={copyCommissionToAll}
@@ -204,7 +167,7 @@ export function LinkedEntitiesTable({ entities, onChange, openToAll, readOnly }:
           <div>
             <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wider font-semibold">Selected</p>
             <p className="text-sm font-bold text-ink-light-primary dark:text-ink-dark-primary mt-0.5">
-              {openToAll ? allConnections.length : entities.length}
+              {openToAll ? connections.length : entities.length}
             </p>
           </div>
           <div>

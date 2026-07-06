@@ -85,7 +85,7 @@ public class CampaignProcessor {
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
-      return publish(savedCampaign, requesterId);
+      return publish(savedCampaign, requesterId, request.getAssignees());
     }
     return this.campaignMapper.toResponse(savedCampaign);
   }
@@ -105,13 +105,20 @@ public class CampaignProcessor {
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
-      return publish(savedCampaign, requesterId);
+      return publish(savedCampaign, requesterId, request.getAssignees());
     }
     return this.campaignMapper.toResponse(savedCampaign);
   }
 
-  private CampaignResponseDto publish(final Campaign campaign, final UUID requesterId) {
-    final List<CampaignAssignment> assignments = createSlotsAndAssignments(campaign, requesterId);
+  private CampaignResponseDto publish(
+      final Campaign campaign,
+      final UUID requesterId,
+      final List<CampaignAssignmentRequestDto> assignees) {
+    if (assignees == null) {
+      throw new BusinessRuleViolationException("assignees cannot be null");
+    }
+    final List<CampaignAssignment> assignments =
+        createSlotsAndAssignments(campaign, requesterId, assignees);
     final Campaign publishedCampaign =
         this.service.action(campaign.getId(), CampaignAction.CAMPAIGN_ACTION_PUBLISH, requesterId);
     return buildResponse(publishedCampaign, assignments);
@@ -124,9 +131,7 @@ public class CampaignProcessor {
 
   private CampaignResponseDto enrichAssigneeNames(
       final Campaign campaign, final CampaignResponseDto response) {
-    if (campaign.isOpenToAll()
-        || response.getAssignments() == null
-        || response.getAssignments().isEmpty()) {
+    if (response.getAssignments() == null || response.getAssignments().isEmpty()) {
       return response;
     }
     final Map<UUID, String> nameById =
@@ -146,15 +151,19 @@ public class CampaignProcessor {
   }
 
   private List<CampaignAssignment> createSlotsAndAssignments(
-      final Campaign campaign, final UUID requesterId) {
+      final Campaign campaign,
+      final UUID requesterId,
+      final List<CampaignAssignmentRequestDto> assignees) {
     if (campaign.isOpenToAll()) {
-      return createSlotsAndAssignmentsForOpenToAll(campaign, requesterId);
+      return createSlotsAndAssignmentsForOpenToAll(campaign, requesterId, assignees);
     }
-    return createSlotsAndAssignmentsFromDraft(campaign, requesterId);
+    return createSlotsAndAssignmentsFromRequest(campaign, requesterId, assignees);
   }
 
   private List<CampaignAssignment> createSlotsAndAssignmentsForOpenToAll(
-      final Campaign campaign, final UUID requesterId) {
+      final Campaign campaign,
+      final UUID requesterId,
+      final List<CampaignAssignmentRequestDto> assignees) {
     final CampaignSlot slot =
         this.campaignSlotService.create(
             CampaignSlot.builder()
@@ -166,9 +175,8 @@ public class CampaignProcessor {
                 .isDeleted(false)
                 .build());
 
-    final List<CampaignAssignmentRequestDto> draft = campaign.getAssignmentsDraft();
     final List<CampaignAssignment> assignments = new ArrayList<>();
-    for (final CampaignAssignmentRequestDto entry : draft) {
+    for (final CampaignAssignmentRequestDto entry : assignees) {
       assignments.add(
           CampaignAssignment.builder()
               .campaignId(campaign.getId())
@@ -186,12 +194,19 @@ public class CampaignProcessor {
     return this.campaignAssignmentService.create(assignments);
   }
 
-  private List<CampaignAssignment> createSlotsAndAssignmentsFromDraft(
-      final Campaign campaign, final UUID requesterId) {
-    final List<CampaignAssignmentRequestDto> draft = campaign.getAssignmentsDraft();
-
+  private List<CampaignAssignment> createSlotsAndAssignmentsFromRequest(
+      final Campaign campaign,
+      final UUID requesterId,
+      final List<CampaignAssignmentRequestDto> allAssignees) {
+    final List<CampaignAssignmentRequestDto> assignees =
+        allAssignees.stream().filter(e -> e.getSlotOffered() != 0L).toList();
+    if (assignees.isEmpty()) {
+      throw new BusinessRuleViolationException(
+          "No slots assigned to any assignee. Please check assignments and ensure slots are"
+              + " assigned.");
+    }
     final List<CampaignSlot> slots =
-        draft.stream()
+        assignees.stream()
             .map(
                 entry ->
                     CampaignSlot.builder()
@@ -206,8 +221,8 @@ public class CampaignProcessor {
     final List<CampaignSlot> savedSlots = this.campaignSlotService.create(slots);
 
     final List<CampaignAssignment> assignments = new ArrayList<>();
-    for (int i = 0; i < draft.size(); i++) {
-      final CampaignAssignmentRequestDto entry = draft.get(i);
+    for (int i = 0; i < assignees.size(); i++) {
+      final CampaignAssignmentRequestDto entry = assignees.get(i);
       assignments.add(
           CampaignAssignment.builder()
               .campaignId(campaign.getId())
@@ -227,7 +242,7 @@ public class CampaignProcessor {
 
   private void validateCampaignSlots(final CampaignRequestDto request) {
     if (!request.isOpenToAll() && request.getAssignees() != null) {
-      long totalAssignedSlots =
+      final long totalAssignedSlots =
           request.getAssignees().stream()
               .mapToLong(
                   assignee -> assignee.getSlotOffered() != null ? assignee.getSlotOffered() : 0L)

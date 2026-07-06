@@ -64,7 +64,9 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
       returnWindowDays: form.returnWindowDays !== '' ? parseInt(form.returnWindowDays, 10) : null,
       campaignType: form.campaignType !== '' ? form.campaignType : null,
       totalSlots: form.totalSlots !== '' ? parseInt(form.totalSlots, 10) : null,
-      assignees: form.openToAll ? (form.assignees.length > 0 ? form.assignees.map(a => ({ ...a, slotsAvailable: 0 })) : null) : (form.assignees.length > 0 ? form.assignees : null),
+      assignees: form.openToAll
+        ? form.assignees.map(a => ({ ...a, slotsAvailable: 0 }))
+        : (form.assignees.length > 0 ? form.assignees : null),
       openToAll: form.openToAll,
       termsAndConditions: form.termsAndConditions.trim() || null,
       startDate: form.startDate || null,

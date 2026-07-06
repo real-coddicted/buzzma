@@ -1,6 +1,7 @@
 import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
+import { useConnections } from '../../../hooks/useConnections'
 
 interface FormSlice {
   totalSlots: string
@@ -17,6 +18,16 @@ interface Props {
 }
 
 export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
+  const { connections, loading } = useConnections(!readOnly)
+
+  function handleOpenToAllToggle() {
+    const next = !form.openToAll
+    set('openToAll', next)
+    set('assignees', next
+      ? connections.map(c => ({ id: c.id, name: c.name, slotsAvailable: 0, commissionOffered: 0 }))
+      : []
+    )
+  }
 
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
@@ -24,26 +35,26 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Total Slots</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} 
-          type="number" 
-          placeholder="e.g. 100" 
-          value={form.totalSlots} 
-          onChange={e => set('totalSlots', e.target.value)} 
-          disabled={readOnly} 
-          onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')}
+          type="number"
+          placeholder="e.g. 100"
+          value={form.totalSlots}
+          onChange={e => set('totalSlots', e.target.value)}
+          disabled={readOnly}
+          onWheel={e => e.currentTarget.blur()}
           />
           {errors.totalSlots && <p className={errorClass}>{errors.totalSlots}</p>}
         </div>
         <div>
           <label className={labelClass}>Return Window (days)</label>
-          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')} 
-          type="number" 
-          min="0" 
-          placeholder="e.g. 30" 
-          value={form.returnWindowDays} 
-          onChange={e => set('returnWindowDays', e.target.value)} 
-          disabled={readOnly} 
-          onWheel={e => e.currentTarget.blur()}  //prevent number input scroll changes
+          <input className={[inputClass, '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'].join(' ')}
+          type="number"
+          min="0"
+          placeholder="e.g. 30"
+          value={form.returnWindowDays}
+          onChange={e => set('returnWindowDays', e.target.value)}
+          disabled={readOnly}
+          onWheel={e => e.currentTarget.blur()}
           />
           {errors.returnWindowDays && <p className={errorClass}>{errors.returnWindowDays}</p>}
         </div>
@@ -54,10 +65,11 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
           type="button"
           role="switch"
           aria-checked={form.openToAll}
-          onClick={() => !readOnly && set('openToAll', !form.openToAll)}
+          disabled={!readOnly && loading}
+          onClick={handleOpenToAllToggle}
           className={[
             'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none',
-            readOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus:ring-2 focus:ring-neon-blue/40',
+            readOnly || loading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus:ring-2 focus:ring-neon-blue/40',
             form.openToAll ? 'bg-neon-blue' : 'bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border',
           ].join(' ')}
         >
@@ -76,7 +88,8 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
 
       <LinkedEntitiesTable
         entities={form.assignees}
-        onChange={v => set('assignees', v)}
+        connections={connections}
+        onChange={assignees => set('assignees', assignees)}
         openToAll={form.openToAll}
         readOnly={readOnly}
       />
