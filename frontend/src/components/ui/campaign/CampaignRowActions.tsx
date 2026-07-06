@@ -12,7 +12,7 @@ interface Props {
 export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1">
         {c.status === 'draft' && (
           <button
             title="Edit"

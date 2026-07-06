@@ -1,27 +1,22 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
-import com.coddicted.buzzma.campaign.model.Assignment;
-import com.coddicted.buzzma.campaign.service.AssignmentService;
+import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
-import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
-import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,68 +27,40 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
   private static final Logger LOGGER = LoggerFactory.getLogger(ClaimReviewServiceImpl.class);
 
   private final ClaimService claimService;
-  private final AssignmentService assignmentService;
   private final CampaignService campaignService;
-  private final UserService userService;
 
   public ClaimReviewServiceImpl(
-      final ClaimService claimService,
-      final AssignmentService assignmentService,
-      final CampaignService campaignService,
-      final UserService userService) {
+      final ClaimService claimService, final CampaignService campaignService) {
     this.claimService = claimService;
-    this.assignmentService = assignmentService;
     this.campaignService = campaignService;
-    this.userService = userService;
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<ClaimReviewModel> getClaimReviews(
       final BuzzmaUser requester, final Pageable pageable) {
-    final Map<UUID, Campaign> campaignById =
-        getApplicableCampaignIds(requester.getId(), requester.getRole());
-    return fetchClaims(campaignById, requester.getRole(), pageable);
-  }
+    // updatedAt-descending ordering is a business rule enforced in the repository queries
+    // themselves, so any client-supplied sort is stripped here to avoid a conflicting ORDER BY.
+    final Pageable unsortedPageable =
+        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
-  private Map<UUID, Campaign> getApplicableCampaignIds(
-      final UUID requesterId, final UserRole role) {
-    final Set<Assignment> assignments =
-        this.assignmentService.getAssignments(
-            requesterId, CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED);
-
-    final Map<UUID, Campaign> campaignById =
-        new HashMap<>(
-            assignments.stream()
-                .collect(
-                    Collectors.toMap(
-                        a -> a.getCampaign().getId(), Assignment::getCampaign, (a, b) -> a)));
-
-    if (role == UserRole.ROLE_AGENCY || role == UserRole.ROLE_BRAND) {
-      this.campaignService
-          .getByOwnerId(requesterId)
-          .forEach(s -> campaignById.putIfAbsent(s.getCampaign().getId(), s.getCampaign()));
+    if (requester.getRole() == UserRole.ROLE_MEDIATOR) {
+      return this.claimService.findClaimsToReviewForMediator(requester.getId(), unsortedPageable);
     }
 
-    return campaignById;
-  }
-
-  private Page<ClaimReviewModel> fetchClaims(
-      final Map<UUID, Campaign> campaignById, final UserRole userRole, final Pageable pageable) {
-    final List<UUID> campaignIds = List.copyOf(campaignById.keySet());
-
+    final List<UUID> campaignIds = List.copyOf(getApplicableCampaignIds(requester.getId()));
     if (campaignIds.isEmpty()) {
-      LOGGER.info("No applicable campaigns found for role {}", userRole);
-      return Page.empty(pageable);
+      LOGGER.info("No applicable campaigns found for role {}", requester.getRole());
+      return Page.empty(unsortedPageable);
     }
 
-    final Page<Claim> claims = this.claimService.listClaimByCampaignIds(campaignIds, pageable);
+    return this.claimService.findClaimsToReviewForCampaigns(campaignIds, unsortedPageable);
+  }
 
-    return claims.map(
-        claim ->
-            ClaimReviewModel.builder()
-                .claim(claim)
-                .campaign(campaignById.get(claim.getCampaignId()))
-                .build());
+  private Set<UUID> getApplicableCampaignIds(final UUID requesterId) {
+    return this.campaignService.getByOwnerId(requesterId).stream()
+        .map(CampaignSummary::getCampaign)
+        .map(Campaign::getId)
+        .collect(Collectors.toSet());
   }
 }

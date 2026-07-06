@@ -25,6 +25,7 @@ import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
@@ -36,6 +37,7 @@ import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceImplTest {
@@ -75,7 +80,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaim() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -116,7 +122,8 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenAlreadyClaimed() {
-    when(this.mockClaimRepository.existsByOwnerIdAndDealIdAndIsDeletedFalse(OWNER_ID, DEAL_ID))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
         .thenReturn(true);
 
     final BusinessRuleViolationException ex =
@@ -130,7 +137,7 @@ class ClaimServiceImplTest {
                     CONTENT_TYPE,
                     EXTRACTED_DETAILS,
                     null));
-    assertEquals("You have already claimed this deal", ex.getMessage());
+    assertEquals("Claim with this Order ID has already been placed", ex.getMessage());
   }
 
   @Test
@@ -421,6 +428,35 @@ class ClaimServiceImplTest {
     final List<ClaimScreenshot> result = this.claimService.listScreenshots(CLAIM_ID);
 
     assertEquals(List.of(SCREENSHOT_1), result);
+  }
+
+  @Test
+  void testFindClaimsToReviewForMediator() {
+    final Pageable pageable = Pageable.ofSize(10);
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    when(this.mockClaimRepository.findClaimsToReviewForMediator(OWNER_ID, pageable))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimService.findClaimsToReviewForMediator(OWNER_ID, pageable);
+
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void testFindClaimsToReviewForCampaigns() {
+    final List<UUID> campaignIds = List.of(DEAL_ID);
+    final Pageable pageable = Pageable.ofSize(10);
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    when(this.mockClaimRepository.findClaimsToReviewForCampaigns(campaignIds, pageable))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimService.findClaimsToReviewForCampaigns(campaignIds, pageable);
+
+    assertEquals(expected, result);
   }
 
   private Map<com.coddicted.buzzma.campaign.entity.CampaignType, List<CampaignTypeStep>>

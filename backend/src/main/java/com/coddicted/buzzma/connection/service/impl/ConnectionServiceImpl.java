@@ -7,6 +7,7 @@ import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -23,9 +24,13 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionServiceImpl.class);
 
   private final ConnectionRepository connectionRepository;
+  private final UserSettingsService userSettingsService;
 
-  public ConnectionServiceImpl(final ConnectionRepository connectionRepository) {
+  public ConnectionServiceImpl(
+      final ConnectionRepository connectionRepository,
+      final UserSettingsService userSettingsService) {
     this.connectionRepository = connectionRepository;
+    this.userSettingsService = userSettingsService;
   }
 
   @Override
@@ -80,6 +85,9 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     this.connectionRepository.save(
         connection.toBuilder().status(target).updatedBy(requesterId).build());
     LOGGER.debug("Connection {} transitioned to {} by {}", connection.getId(), target, requesterId);
+    if (action == Action.ACTION_ACCEPT) {
+      this.userSettingsService.setToDefault(toUserId, requesterId);
+    }
     return target == ConnectionStatus.CONNECTION_STATUS_ACCEPTED;
   }
 
@@ -115,5 +123,12 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     return this.connectionRepository
         .findByToUserIdAndStatusAndIsDeletedFalse(toUserId, status)
         .orElseThrow(() -> new NotFoundException("Connection not found for " + toUserId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isParentOf(final UUID parentId, final UUID childId) {
+    return this.connectionRepository.existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+        parentId, childId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
   }
 }

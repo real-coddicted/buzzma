@@ -1,31 +1,10 @@
 import { useState } from 'react'
 import { IconCopy, IconCopyCheck } from './icons'
+import { LabeledField } from './LabeledField'
 import type { UserDetails } from '../../types/ProfileTypes'
 
 interface DetailsCardProps {
   details: UserDetails
-}
-
-interface FieldProps {
-  label: string
-  value: string
-  mono?: boolean
-}
-
-function Field({ label, value, mono = false }: FieldProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
-        {label}
-      </span>
-      <span className={[
-        'text-sm text-ink-light-primary dark:text-ink-dark-primary',
-        mono ? 'font-mono tracking-widest' : '',
-      ].join(' ')}>
-        {value}
-      </span>
-    </div>
-  )
 }
 
 function CopyableCode({ code }: { code: string }) {
@@ -80,30 +59,28 @@ export function DetailsCard({ details }: DetailsCardProps) {
         <h3 className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">
           Account Details
         </h3>
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/10 text-neon-blue capitalize">
-          {type}
-        </span>
+        {type && (
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full border border-neon-blue/30 bg-neon-blue/10 text-neon-blue capitalize">
+            {type}
+          </span>
+        )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {code && (
           <>
             <CopyableCode code={code} />
             <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
           </>
         )}
-        <Field
-          label={nameLabels[type] ?? 'Name'}
+        <LabeledField
+          label={type ? (nameLabels[type] ?? 'Name') : 'Name'}
           value={name}
         />
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-        <Field label="Mobile" value={mobile} />
-        {email && (
-          <>
-            <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-            <Field label="Email" value={email} />
-          </>
-        )}
+        <LabeledField label="Mobile" value={mobile} />
+        <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
+        <LabeledField label="Email" value={email ?? ''} />
       </div>
     </div>
   )

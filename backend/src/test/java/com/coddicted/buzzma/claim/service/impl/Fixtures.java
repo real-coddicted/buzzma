@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.Map;
 import java.util.UUID;
@@ -12,6 +13,8 @@ import java.util.UUID;
 final class Fixtures {
 
   static final CampaignType CAMPAIGN_TYPE = CampaignType.CAMPAIGN_TYPE_REVIEW;
+  static final String ECOMMERCE_ORDER_ID = "403-1234567-8901234";
+  static final Platform PLATFORM = Platform.PLATFORM_AMAZON;
 
   static final UUID CLAIM_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
   static final UUID OWNER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");

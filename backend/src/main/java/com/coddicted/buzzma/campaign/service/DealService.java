@@ -10,5 +10,5 @@ public interface DealService {
 
   Deal create(Deal deal);
 
-  Page<Deal> getUnclaimedDeals(UUID ownerId, UUID requesterId, int page, int size);
+  Page<Deal> getActiveDeals(UUID ownerId, UUID requesterId, int page, int size);
 }

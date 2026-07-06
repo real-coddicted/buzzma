@@ -11,6 +11,7 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
+import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Optional;
@@ -26,11 +27,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ConnectionServiceImplTest {
 
   @Mock private ConnectionRepository mockConnectionRepository;
+  @Mock private UserSettingsService mockUserSettingsService;
   private ConnectionServiceImpl connectionService;
 
   @BeforeEach
   void setUp() {
-    this.connectionService = new ConnectionServiceImpl(this.mockConnectionRepository);
+    this.connectionService =
+        new ConnectionServiceImpl(this.mockConnectionRepository, this.mockUserSettingsService);
   }
 
   @Test
@@ -118,6 +121,7 @@ class ConnectionServiceImplTest {
     final Connection saved = captor.getValue();
     assertEquals(ConnectionStatus.CONNECTION_STATUS_ACCEPTED, saved.getStatus());
     assertEquals(FROM_USER_ID, saved.getUpdatedBy());
+    verify(this.mockUserSettingsService).setToDefault(TO_USER_ID, FROM_USER_ID);
   }
 
   @Test
@@ -194,5 +198,35 @@ class ConnectionServiceImplTest {
             NotFoundException.class,
             () -> this.connectionService.delete(CONNECTION_ID, FROM_USER_ID));
     assertEquals("Connection not found: " + CONNECTION_ID, ex.getMessage());
+  }
+
+  @Test
+  void testIsParentOfWhenParentToChildReturnsTrue() {
+    doReturn(true)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            FROM_USER_ID, TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertTrue(this.connectionService.isParentOf(FROM_USER_ID, TO_USER_ID));
+  }
+
+  @Test
+  void testIsParentOfWhenChildToParentReturnsFalse() {
+    doReturn(false)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            TO_USER_ID, FROM_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertFalse(this.connectionService.isParentOf(TO_USER_ID, FROM_USER_ID));
+  }
+
+  @Test
+  void testIsParentOfWhenNotConnected() {
+    doReturn(false)
+        .when(this.mockConnectionRepository)
+        .existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+            FROM_USER_ID, TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertFalse(this.connectionService.isParentOf(FROM_USER_ID, TO_USER_ID));
   }
 }

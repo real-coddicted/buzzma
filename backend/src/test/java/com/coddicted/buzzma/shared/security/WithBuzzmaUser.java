@@ -12,4 +12,6 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = WithBuzzmaUserSecurityContextFactory.class)
 public @interface WithBuzzmaUser {
   UserRole role();
+
+  String id() default "";
 }

@@ -89,7 +89,7 @@ export async function fetchExploreDeals(page: number): Promise<ExploreDealsPage>
     page: String(page - 1),
     size: String(EXPLORE_PAGE_SIZE),
   })
-  const res = await fetchWithAuth(`${API_BASE}/deals/unclaimed?${params.toString()}`)
+  const res = await fetchWithAuth(`${API_BASE}/deals/active?${params.toString()}`)
   const data = (await res.json()) as PagedDealsResponseDto
   const items = (data.items ?? []).map(dealResponseToDeal)
   const total = data.total ?? items.length

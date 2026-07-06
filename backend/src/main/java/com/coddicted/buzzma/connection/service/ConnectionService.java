@@ -21,4 +21,7 @@ public interface ConnectionService {
   void delete(UUID id, UUID requesterId);
 
   Connection getConnectionByToUserIdAndStatus(final UUID toUserId, final ConnectionStatus status);
+
+  /** True if {@code parentId} invited {@code childId} and the connection is accepted. */
+  boolean isParentOf(UUID parentId, UUID childId);
 }

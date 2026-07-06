@@ -6,8 +6,8 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { value: 'details', label: 'Details' },
   { value: 'proof',   label: 'Proof'   },
+  { value: 'details', label: 'Details' },
 ]
 
 interface ClaimDetailsTabsProps {

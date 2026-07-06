@@ -3,6 +3,7 @@ package com.coddicted.buzzma.identity.service.impl;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BankDetails;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
@@ -20,6 +21,7 @@ import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
+import com.coddicted.buzzma.settings.util.SettingsUtils;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.exception.UnauthorizedException;
@@ -127,9 +129,10 @@ public class AuthServiceImpl implements AuthService {
               .status(ConnectionStatus.CONNECTION_STATUS_REQUESTED)
               .build());
 
-      // build and save userSettings with default settings based on user role
+      // build and save userSettings with minimal pending-connection settings
       final UserSettings userSettings =
-          this.userSettingsService.getDefaultSettingsByUserRole(user.getRole()).toBuilder()
+          UserSettings.builder()
+              .settings(SettingsUtils.getPendingConnectionSettings())
               .userId(savedUser.getId())
               .build();
 
@@ -149,6 +152,9 @@ public class AuthServiceImpl implements AuthService {
     if (!this.userCredentialService.verify(
         existingUser.getId(), userCredential.getPasswordHash())) {
       throw new UnauthorizedException("Invalid credentials");
+    }
+    if (existingUser.getStatus() != UserStatus.USER_STATUS_ACTIVE) {
+      throw new UnauthorizedException("Account is not active");
     }
     return existingUser;
   }
@@ -213,10 +219,12 @@ public class AuthServiceImpl implements AuthService {
   private boolean validateUserBankingDetails(
       final BuzzmaUser user, final UserBankingDetail userBankingDetail) {
     if (user.getRole() == UserRole.ROLE_BUYER) {
-      return StringUtils.hasText(userBankingDetail.getBankName())
-          && StringUtils.hasText(userBankingDetail.getAccountNumber())
-          && StringUtils.hasText(userBankingDetail.getBankIfscCode())
-          && StringUtils.hasText(userBankingDetail.getAccountHolderName());
+      final BankDetails bankDetails = userBankingDetail.getBankDetails();
+      return bankDetails != null
+          && StringUtils.hasText(bankDetails.getBankName())
+          && StringUtils.hasText(bankDetails.getAccountNumber())
+          && StringUtils.hasText(bankDetails.getBankIfscCode())
+          && StringUtils.hasText(bankDetails.getAccountHolderName());
     }
     return true;
   }

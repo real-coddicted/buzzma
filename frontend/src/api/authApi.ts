@@ -3,7 +3,7 @@ import type { SecurityQuestion } from '../types/ForgotPasswordTypes'
 import type { RegisterForm, RegisterResponse } from '../types/RegisterTypes'
 import type { LoginForm, LoginResponse } from '../types/LoginTypes'
 import type { components } from '../types/api'
-import { clearCurrentUser, fetchWithAuth, setAccessToken, setCurrentUser } from './client'
+import { clearCurrentUser, fetchWithAuth, scheduleProactiveRefresh, setAccessToken, setCurrentUser, setRefreshToken } from './client'
 
 type SignInResponse = components['schemas']['UserSignInResponseDto']
 type UserRegistrationRequestDto = components['schemas']['UserRegistrationRequestDto']
@@ -38,6 +38,10 @@ export async function loginUser(form: LoginForm, captchaToken: string): Promise<
   const data: SignInResponse = await res.json()
   if (data.tokens?.accessToken) {
     setAccessToken(data.tokens.accessToken)
+    if (data.tokens.refreshToken) {
+      setRefreshToken(data.tokens.refreshToken)
+      scheduleProactiveRefresh()
+    }
     if (data.userSummary) {
       setCurrentUser(data.userSummary)
     } else {

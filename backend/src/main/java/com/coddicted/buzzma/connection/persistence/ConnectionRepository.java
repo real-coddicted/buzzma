@@ -51,4 +51,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   Optional<Connection> findByToUserIdAndStatusAndIsDeletedFalse(
       UUID toUserId, ConnectionStatus status);
+
+  boolean existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
+      UUID fromUserId, UUID toUserId, ConnectionStatus status);
 }

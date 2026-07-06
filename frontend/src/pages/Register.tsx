@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { APP_NAME } from '../constants/app'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
+import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 import { fetchSecurityQuestions, registerUser } from '../api/authApi'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+
 interface RegisterProps {
-  captchaToken: string
+  initialCaptchaToken?: string
   onRegister: () => void
   onGoToLogin: () => void
 }
@@ -20,9 +23,8 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-green focus:ring-1 focus:ring-neon-green/30'
 
-export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProps) {
-  const [questions, setQuestions] = useState<string[]>([])
-  const [form, setForm] = useState<RegisterForm>({
+function buildInitialForm(qs: string[]): RegisterForm {
+  return {
     registerAs: 'brand',
     mobile: '',
     password: '',
@@ -31,11 +33,17 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
     agencyName: '',
     mediatorName: '',
     buyerName: '',
-    securityQuestion1: '',
+    securityQuestion1: qs[0] ?? '',
     securityAnswer1: '',
-    securityQuestion2: '',
+    securityQuestion2: qs[1] ?? '',
     securityAnswer2: '',
-  })
+  }
+}
+
+export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: RegisterProps) {
+  const [captchaToken, setCaptchaToken] = useState(initialCaptchaToken ?? '')
+  const [questions, setQuestions] = useState<string[]>([])
+  const [form, setForm] = useState<RegisterForm>(buildInitialForm([]))
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [showToast, setShowToast] = useState(false)
@@ -84,18 +92,25 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
     return Object.keys(next).length === 0
   }
 
+  const dismissToastError = useCallback(() => setToastError(null), [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
     setSubmitting(true)
+    setToastError(null)
     try {
       const res = await registerUser(form, captchaToken)
       if (res.success) {
+        setForm(buildInitialForm(questions))
+        setErrors({})
         setShowToast(true)
       } else {
+        setCaptchaToken('')
         setToastError(res.message)
       }
     } catch {
+      setCaptchaToken('')
       setToastError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
@@ -106,13 +121,14 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
     <>
     {showToast && (
       <Toast
-        message="Registration successful! You can now sign in."
+        message="Registration successful! Redirecting to signin page in a few seconds."
         type="success"
+        duration={3000}
         onDismiss={onRegister}
       />
     )}
     {toastError && (
-      <Toast message={toastError} type="error" onDismiss={() => setToastError(null)} />
+      <Toast message={toastError} type="error" onDismiss={dismissToastError} />
     )}
     <div className="min-h-screen bg-surface-light-base dark:bg-surface-dark-base flex items-center justify-center p-4 py-10 relative overflow-hidden">
       <AuthBackground variant="green" />
@@ -130,7 +146,12 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
           <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">Create your account</p>
         </div>
 
-        <div className="rounded-2xl border border-neon-green/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-green p-6">
+        <div className="relative rounded-2xl border border-neon-green/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-green p-6">
+          {submitting && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-sm">
+              <span className="inline-block w-8 h-8 border-2 border-neon-green border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Register As */}
             <div>
@@ -331,7 +352,11 @@ export function Register({ captchaToken, onRegister, onGoToLogin }: RegisterProp
               </div>
             </div>
 
-            <Button type="submit" variant="green" size="lg" loading={submitting} className="w-full mt-2">
+            {!captchaToken && (
+              <TurnstileWidget siteKey={SITE_KEY} onVerify={setCaptchaToken} appearance='interaction-only' />
+            )}
+
+            <Button type="submit" variant="green" size="lg" loading={submitting} disabled={!captchaToken} className="w-full mt-2">
               Create Account
             </Button>
           </form>

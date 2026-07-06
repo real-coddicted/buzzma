@@ -13,25 +13,20 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
   @Query(
       value =
           """
-          SELECT * FROM deals d
+          SELECT d.* FROM deals d, campaigns c
           WHERE d.owner_id = :ownerId
             AND d.is_deleted = false
-            AND d.id NOT IN (
-              SELECT c.deal_id FROM claims c
-              WHERE c.owner_id = :requesterId AND c.is_deleted = false
-            )
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
           """,
       countQuery =
           """
-          SELECT COUNT(*) FROM deals d
+          SELECT COUNT(d.*) FROM deals d, campaigns c
           WHERE d.owner_id = :ownerId
             AND d.is_deleted = false
-            AND d.id NOT IN (
-              SELECT c.deal_id FROM claims c
-              WHERE c.owner_id = :requesterId AND c.is_deleted = false
-            )
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
           """,
       nativeQuery = true)
-  Page<Deal> findUnclaimedDeals(
-      @Param("ownerId") UUID ownerId, @Param("requesterId") UUID requesterId, Pageable pageable);
+  Page<Deal> findActiveDeals(@Param("ownerId") UUID ownerId, Pageable pageable);
 }

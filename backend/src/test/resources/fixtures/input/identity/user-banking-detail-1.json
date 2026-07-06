@@ -1,6 +1,8 @@
 {
-  "accountNumber": "1234567890",
-  "bankName": "Test Bank",
-  "bankIfscCode": "TESTB0001234",
-  "accountHolderName": "Alice Smith"
+  "bankDetails": {
+    "accountNumber": "1234567890",
+    "bankName": "Test Bank",
+    "bankIfscCode": "TESTB0001234",
+    "accountHolderName": "Alice Smith"
+  }
 }

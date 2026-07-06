@@ -43,9 +43,9 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<Deal> getUnclaimedDeals(
+  public Page<Deal> getActiveDeals(
       final UUID ownerId, final UUID requesterId, final int page, final int size) {
-    LOGGER.info("Get unclaimed deals for user {}", requesterId);
-    return this.dealRepository.findUnclaimedDeals(ownerId, requesterId, PageRequest.of(page, size));
+    LOGGER.info("Get active deals for user {}", requesterId);
+    return this.dealRepository.findActiveDeals(ownerId, PageRequest.of(page, size));
   }
 }

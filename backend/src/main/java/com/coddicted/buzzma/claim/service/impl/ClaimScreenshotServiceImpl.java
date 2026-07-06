@@ -16,6 +16,7 @@ import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.entity.ValidationError;
 import com.coddicted.buzzma.extraction.service.ExtractionResultValidator;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
+import com.coddicted.buzzma.scoring.entity.ScoringJob;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -31,11 +32,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -144,6 +147,28 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
   }
 
+  @Override
+  @Transactional
+  public void processScoring(final ScoringJob job) {
+    final UUID claimScreenshotId = job.getClaimScreenshotId();
+    final ClaimScreenshot screenshot =
+        this.screenshotRepository
+            .findById(claimScreenshotId)
+            .orElseThrow(
+                () -> new NotFoundException("ClaimScreenshot not found: " + claimScreenshotId));
+    switch (screenshot.getType()) {
+      case SCREENSHOT_TYPE_ORDER -> scoreOrderScreenshot(job, screenshot);
+      case SCREENSHOT_TYPE_RATING -> scoreRatingScreenshot(job, screenshot);
+      case SCREENSHOT_TYPE_REVIEW -> scoreReviewScreenshot(job, screenshot);
+      case SCREENSHOT_TYPE_RETURN -> scoreReturnScreenshot(job, screenshot);
+      default ->
+          LOGGER.warn(
+              "processScoring: unsupported screenshot type {} for job {}, skipping",
+              screenshot.getType(),
+              job.getId());
+    }
+  }
+
   private ExtractedScoredResult scoreFields(
       final ExtractionResult result, final Campaign campaign) {
     final Map<String, ScoredValue> map = new HashMap<>();
@@ -172,62 +197,96 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
 
     // Score API: platform, productName, sellerName
     final String platformValue = result.getPlatform() != null ? result.getPlatform().name() : null;
-    final ScoreRequestDto request =
-        ScoreRequestDto.builder()
-            .key("orderData")
-            .payload(
-                List.of(
-                    PayloadItem.builder()
-                        .label(BuzzmahConstants.PLATFORM_NAME)
-                        .expected(
-                            campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
-                        .actual(platformValue != null ? platformValue : "")
-                        .build(),
-                    PayloadItem.builder()
-                        .label(BuzzmahConstants.PRODUCT_NAME)
-                        .expected(campaign.getProduct().getName())
-                        .actual(result.getProductName() != null ? result.getProductName() : "")
-                        .build(),
-                    PayloadItem.builder()
-                        .label(BuzzmahConstants.SELLER_NAME)
-                        .expected(campaign.getSellerName() != null ? campaign.getSellerName() : "")
-                        .actual(result.getSellerName() != null ? result.getSellerName() : "")
-                        .build()))
-            .build();
+    final ExtractedScoredResult apiScoring =
+        scoreViaApi(
+            "orderData",
+            List.of(
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.PLATFORM)
+                    .expected(campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
+                    .actual(platformValue != null ? platformValue : "")
+                    .build(),
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.PRODUCT_NAME)
+                    .expected(campaign.getProduct().getName())
+                    .actual(result.getProductName() != null ? result.getProductName() : "")
+                    .build(),
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.SELLER_NAME)
+                    .expected(campaign.getSellerName() != null ? campaign.getSellerName() : "")
+                    .actual(result.getSellerName() != null ? result.getSellerName() : "")
+                    .build()));
+    map.putAll(apiScoring.extractedResult());
 
+    return new ExtractedScoredResult(map, apiScoring.overallScore());
+  }
+
+  /**
+   * Sends a batch of labeled expected/actual values to the Score API under the given key and maps
+   * the response back into {@link ScoredValue}s keyed by label.
+   */
+  private ExtractedScoredResult scoreViaApi(final String key, final List<PayloadItem> payload) {
+    final ScoreRequestDto request = ScoreRequestDto.builder().key(key).payload(payload).build();
     final List<ScoreResponseDto> scoreResponses = this.scoreApiClient.score(List.of(request));
-    final ScoreResponseDto orderDataResponse =
+    final ScoreResponseDto response =
         scoreResponses.stream()
-            .filter(r -> "orderData".equals(r.getKey()))
+            .filter(r -> key.equals(r.getKey()))
             .findFirst()
             .orElseThrow(
                 () ->
-                    new IllegalStateException("Score API returned no result for key 'orderData'"));
+                    new IllegalStateException(
+                        "Score API returned no result for key '" + key + "'"));
 
     final Map<String, Double> labelScores =
-        orderDataResponse.getScores().stream()
+        response.getScores().stream()
             .collect(Collectors.toMap(ls -> ls.getLabel(), ls -> ls.getScore()));
 
-    map.put(
-        BuzzmahConstants.PLATFORM,
-        ScoredValue.builder()
-            .extractedValue(platformValue)
-            .score(labelScores.get(BuzzmahConstants.PLATFORM_NAME))
-            .build());
-    map.put(
-        BuzzmahConstants.PRODUCT_NAME,
-        ScoredValue.builder()
-            .extractedValue(result.getProductName())
-            .score(labelScores.get(BuzzmahConstants.PRODUCT_NAME))
-            .build());
-    map.put(
-        BuzzmahConstants.SELLER_NAME,
-        ScoredValue.builder()
-            .extractedValue(result.getSellerName())
-            .score(labelScores.get(BuzzmahConstants.SELLER_NAME))
-            .build());
+    final Map<String, ScoredValue> map = new HashMap<>();
+    for (final PayloadItem item : payload) {
+      map.put(
+          item.getLabel(),
+          ScoredValue.builder()
+              .extractedValue(item.getActual())
+              .score(labelScores.get(item.getLabel()))
+              .build());
+    }
+    return new ExtractedScoredResult(map, response.getOverallScore());
+  }
 
-    return new ExtractedScoredResult(map, orderDataResponse.getOverallScore());
+  /**
+   * Scores the platform/productName/accountName triple shared by RATING, REVIEW and RETURN
+   * screenshots against the campaign's platform/product and the claim's account name, plus any
+   * type-specific extra labels (e.g. reviewUrl for REVIEW) batched into the same Score API call.
+   */
+  private ExtractedScoredResult scorePlatformProductAndAccountName(
+      final String key,
+      final String platform,
+      final String productName,
+      final String accountName,
+      final Campaign campaign,
+      final Claim claim,
+      final List<PayloadItem> extraItems) {
+    final List<PayloadItem> payload = new ArrayList<>();
+    payload.add(
+        PayloadItem.builder()
+            .label(BuzzmahConstants.PLATFORM)
+            .expected(campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
+            .actual(platform != null ? platform : "")
+            .build());
+    payload.add(
+        PayloadItem.builder()
+            .label(BuzzmahConstants.PRODUCT_NAME)
+            .expected(campaign.getProduct().getName())
+            .actual(productName != null ? productName : "")
+            .build());
+    payload.add(
+        PayloadItem.builder()
+            .label(BuzzmahConstants.ACCOUNT_NAME)
+            .expected(claim.getAccountName() != null ? claim.getAccountName() : "")
+            .actual(accountName != null ? accountName : "")
+            .build());
+    payload.addAll(extraItems);
+    return scoreViaApi(key, payload);
   }
 
   private double scoreOrderDate(final String orderDate, final Campaign campaign) {
@@ -261,6 +320,18 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     return amountPaise.compareTo(campaign.getProduct().getPricePaise()) >= 0 ? 1.0 : 0.0;
   }
 
+  private BigDecimal parseAmount(final String amount) {
+    if (amount == null) {
+      return null;
+    }
+    try {
+      return new BigDecimal(amount);
+    } catch (final NumberFormatException e) {
+      LOGGER.warn("parseAmount: could not parse amount '{}': {}", amount, e.getMessage());
+      return null;
+    }
+  }
+
   private void processOrderScreenshot(final ExtractionJob job, final ClaimScreenshot screenshot) {
     final String storageKey = screenshot.getStorageKey();
     LOGGER.info(
@@ -280,12 +351,37 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getProductName(),
         screenshot.getId());
 
-    Claim claim = this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
-    Campaign campaign = this.campaignService.getById(claim.getCampaignId());
-    final ExtractedScoredResult scoring = scoreFields(extracted, campaign);
+    final String platformValue =
+        extracted.getPlatform() != null ? extracted.getPlatform().name() : null;
 
-    screenshot.setExtractedDetails(scoring.extractedResult);
-    screenshot.setScore(scoring.overallScore);
+    final Map<String, ScoredValue> details = new HashMap<>();
+    details.put(
+        BuzzmahConstants.PLATFORM,
+        ScoredValue.builder().extractedValue(platformValue).score(null).build());
+    details.put(
+        "orderId",
+        ScoredValue.builder().extractedValue(extracted.getOrderId()).score(null).build());
+    details.put(
+        "orderDate",
+        ScoredValue.builder().extractedValue(extracted.getOrderDate()).score(null).build());
+    details.put(
+        BuzzmahConstants.PRODUCT_NAME,
+        ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
+    details.put(
+        BuzzmahConstants.SELLER_NAME,
+        ScoredValue.builder().extractedValue(extracted.getSellerName()).score(null).build());
+    details.put(
+        "amount",
+        ScoredValue.builder()
+            .extractedValue(
+                extracted.getAmount() != null ? extracted.getAmount().toPlainString() : null)
+            .score(null)
+            .build());
+    details.put(
+        "orderedBy",
+        ScoredValue.builder().extractedValue(extracted.getOrderedBy()).score(null).build());
+
+    screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
 
     LOGGER.info(
@@ -322,12 +418,17 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getAccountName(),
         screenshot.getId());
 
+    final String platformValue =
+        extracted.getPlatform() != null ? extracted.getPlatform().name() : null;
     final Map<String, ScoredValue> details = new HashMap<>();
     details.put(
-        "productName",
+        BuzzmahConstants.PLATFORM,
+        ScoredValue.builder().extractedValue(platformValue).score(null).build());
+    details.put(
+        BuzzmahConstants.PRODUCT_NAME,
         ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
     details.put(
-        "accountName",
+        BuzzmahConstants.ACCOUNT_NAME,
         ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
     details.put(
         "rating",
@@ -368,25 +469,34 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     }
 
     LOGGER.info(
-        "processReviewScreenshot: extracted productName={} accountName={} reviewDate={} for screenshot {}",
+        "processReviewScreenshot: extracted productName={} accountName={} reviewDate={} reviewUrl={} for screenshot {}",
         extracted.getProductName(),
         extracted.getAccountName(),
         extracted.getReviewDate(),
+        extracted.getReviewUrl(),
         screenshot.getId());
 
+    final String platformValue =
+        extracted.getPlatform() != null ? extracted.getPlatform().name() : null;
     final Map<String, ScoredValue> details = new HashMap<>();
     details.put(
-        "productName",
+        BuzzmahConstants.PLATFORM,
+        ScoredValue.builder().extractedValue(platformValue).score(null).build());
+    details.put(
+        BuzzmahConstants.PRODUCT_NAME,
         ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
     details.put(
         "reviewText",
         ScoredValue.builder().extractedValue(extracted.getReviewText()).score(null).build());
     details.put(
-        "accountName",
+        BuzzmahConstants.ACCOUNT_NAME,
         ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
     details.put(
         "reviewDate",
         ScoredValue.builder().extractedValue(extracted.getReviewDate()).score(null).build());
+    details.put(
+        BuzzmahConstants.REVIEW_URL,
+        ScoredValue.builder().extractedValue(extracted.getReviewUrl()).score(null).build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
@@ -425,12 +535,17 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         extracted.getReturnWindowClosedDate(),
         screenshot.getId());
 
+    final String platformValue =
+        extracted.getPlatform() != null ? extracted.getPlatform().name() : null;
     final Map<String, ScoredValue> details = new HashMap<>();
     details.put(
-        "productName",
+        BuzzmahConstants.PLATFORM,
+        ScoredValue.builder().extractedValue(platformValue).score(null).build());
+    details.put(
+        BuzzmahConstants.PRODUCT_NAME,
         ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
     details.put(
-        "accountName",
+        BuzzmahConstants.ACCOUNT_NAME,
         ScoredValue.builder().extractedValue(extracted.getAccountName()).score(null).build());
     details.put(
         "returnWindowClosedText",
@@ -450,6 +565,153 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
 
     LOGGER.info(
         "processReturnScreenshot: saved extracted details for screenshot {}", screenshot.getId());
+  }
+
+  private void scoreOrderScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
+    LOGGER.info(
+        "scoreOrderScreenshot: scoring job {}, screenshot {}", job.getId(), screenshot.getId());
+
+    final Claim claim =
+        this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
+
+    final String orderDate = details.get("orderDate").getExtractedValue();
+    details.put(
+        "orderDate",
+        ScoredValue.builder()
+            .extractedValue(orderDate)
+            .score(scoreOrderDate(orderDate, campaign))
+            .build());
+
+    final String amountValue = details.get("amount").getExtractedValue();
+    details.put(
+        "amount",
+        ScoredValue.builder()
+            .extractedValue(amountValue)
+            .score(scoreAmount(parseAmount(amountValue), campaign))
+            .build());
+
+    final String platformValue = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
+    final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
+    final String sellerName = details.get(BuzzmahConstants.SELLER_NAME).getExtractedValue();
+    final ExtractedScoredResult apiScoring =
+        scoreViaApi(
+            "orderData",
+            List.of(
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.PLATFORM)
+                    .expected(campaign.getPlatform() != null ? campaign.getPlatform().name() : "")
+                    .actual(platformValue != null ? platformValue : "")
+                    .build(),
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.PRODUCT_NAME)
+                    .expected(campaign.getProduct().getName())
+                    .actual(productName != null ? productName : "")
+                    .build(),
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.SELLER_NAME)
+                    .expected(campaign.getSellerName() != null ? campaign.getSellerName() : "")
+                    .actual(sellerName != null ? sellerName : "")
+                    .build()));
+    details.putAll(apiScoring.extractedResult());
+
+    screenshot.setExtractedDetails(details);
+    screenshot.setScore(apiScoring.overallScore());
+    this.screenshotRepository.save(screenshot);
+
+    LOGGER.info("scoreOrderScreenshot: saved score for screenshot {}", screenshot.getId());
+  }
+
+  private void scoreRatingScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
+    LOGGER.info(
+        "scoreRatingScreenshot: scoring job {}, screenshot {}", job.getId(), screenshot.getId());
+
+    final Claim claim =
+        this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
+
+    final String platform = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
+    final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
+    final String accountName = details.get(BuzzmahConstants.ACCOUNT_NAME).getExtractedValue();
+    final ExtractedScoredResult scoring =
+        scorePlatformProductAndAccountName(
+            "ratingData", platform, productName, accountName, campaign, claim, List.of());
+    details.putAll(scoring.extractedResult());
+
+    final String rating = details.get("rating").getExtractedValue();
+    // TODO Need to revisit as rating is compared against hard-coded value
+    details.put(
+        "rating",
+        ScoredValue.builder()
+            .extractedValue(rating)
+            .score(StringUtils.isNumeric(rating) && Integer.parseInt(rating) >= 4 ? 1.0 : 0.0)
+            .build());
+
+    screenshot.setExtractedDetails(details);
+    screenshot.setScore(scoring.overallScore());
+    this.screenshotRepository.save(screenshot);
+
+    LOGGER.info("scoreRatingScreenshot: saved score for screenshot {}", screenshot.getId());
+  }
+
+  private void scoreReviewScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
+    LOGGER.info(
+        "scoreReviewScreenshot: scoring job {}, screenshot {}", job.getId(), screenshot.getId());
+
+    final Claim claim =
+        this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
+
+    final String platform = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
+    final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
+    final String accountName = details.get(BuzzmahConstants.ACCOUNT_NAME).getExtractedValue();
+    final String reviewUrl = details.get(BuzzmahConstants.REVIEW_URL).getExtractedValue();
+    final List<PayloadItem> extraItems =
+        reviewUrl != null
+            ? List.of(
+                PayloadItem.builder()
+                    .label(BuzzmahConstants.REVIEW_URL)
+                    .expected(claim.getReviewUrl() != null ? claim.getReviewUrl() : "")
+                    .actual(reviewUrl)
+                    .build())
+            : List.of();
+    final ExtractedScoredResult scoring =
+        scorePlatformProductAndAccountName(
+            "reviewData", platform, productName, accountName, campaign, claim, extraItems);
+    details.putAll(scoring.extractedResult());
+
+    screenshot.setExtractedDetails(details);
+    screenshot.setScore(scoring.overallScore());
+    this.screenshotRepository.save(screenshot);
+
+    LOGGER.info("scoreReviewScreenshot: saved score for screenshot {}", screenshot.getId());
+  }
+
+  private void scoreReturnScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
+    LOGGER.info(
+        "scoreReturnScreenshot: scoring job {}, screenshot {}", job.getId(), screenshot.getId());
+
+    final Claim claim =
+        this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
+
+    final String platform = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
+    final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
+    final String accountName = details.get(BuzzmahConstants.ACCOUNT_NAME).getExtractedValue();
+    final ExtractedScoredResult scoring =
+        scorePlatformProductAndAccountName(
+            "returnData", platform, productName, accountName, campaign, claim, List.of());
+    details.putAll(scoring.extractedResult());
+
+    screenshot.setExtractedDetails(details);
+    screenshot.setScore(scoring.overallScore());
+    this.screenshotRepository.save(screenshot);
+
+    LOGGER.info("scoreReturnScreenshot: saved score for screenshot {}", screenshot.getId());
   }
 
   private ExtractionResult callGemini(final byte[] imageBytes, final String mimeType) {

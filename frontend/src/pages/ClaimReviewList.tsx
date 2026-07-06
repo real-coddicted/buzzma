@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
-import { fetchClaimsToReview } from '../api/claimApi'
+import { fetchClaimsToReview, submitClaimReview } from '../api/claimApi'
 import type { ClaimReviewItem, ReviewStatus } from '../types'
 
 interface ClaimReviewListProps {
@@ -26,6 +26,14 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
   const pendingCount = claims.filter(r => r.reviewStatus === ('pending' as ReviewStatus)).length
   const inReviewCount = claims.filter(r => r.reviewStatus === ('in-review' as ReviewStatus)).length
 
+  function handleApprove(row: ClaimReviewItem) {
+    submitClaimReview(row.id, 'APPROVED')
+      .then(updated => {
+        setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
+      })
+      .catch(err => setError((err as Error).message))
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <div>
@@ -40,7 +48,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
           </p>
         )}
       </div>
-      <ClaimReviewGrid claims={claims} onViewDetails={onViewDetails} />
+      <ClaimReviewGrid claims={claims} onViewDetails={onViewDetails} onApprove={handleApprove} />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )

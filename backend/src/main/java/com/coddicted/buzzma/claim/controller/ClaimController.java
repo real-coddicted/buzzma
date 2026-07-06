@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -218,6 +219,7 @@ public class ClaimController {
   }
 
   @GetMapping("/review")
+  @PreAuthorize("hasAnyRole('AGENCY', 'MEDIATOR')")
   public Page<ClaimReviewResponseDto> listClaimsToReview(
       @CurrentUser BuzzmaUser requester, final Pageable pageable) {
     return this.claimReviewProcessor.listClaimReviews(requester, pageable);

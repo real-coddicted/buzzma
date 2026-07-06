@@ -19,7 +19,7 @@ interface ClaimDetailsProps {
 }
 
 export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
-  const [tab, setTab] = useState<ClaimDetailsTab>('details')
+  const [tab, setTab] = useState<ClaimDetailsTab>('proof')
   const [deal, setDeal] = useState<Deal | null>(null)
   const [dealLoading, setDealLoading] = useState(true)
   const [claimDetail, setClaimDetail] = useState<ClaimReviewItem | null>(null)
@@ -84,6 +84,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           id: s.id || `screenshot-${i}`,
           imageUrl: url,
           imageAlt: `Screenshot ${i + 1}`,
+          type: s.type,
           score: s.score,
           verificationStatus: s.verificationStatus,
           fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => ({

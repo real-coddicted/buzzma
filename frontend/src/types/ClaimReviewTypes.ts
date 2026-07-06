@@ -27,6 +27,7 @@ export interface ClaimReviewItem {
   orderId: string
   orderDate: string
   mediatorName: string
+  buyerName: string
   claimStatus: ClaimStatus
   reviewStatus: ReviewStatus
   approvalMethod: ApprovalMethod

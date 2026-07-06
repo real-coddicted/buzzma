@@ -37,6 +37,7 @@ public final class SettingsUtils {
     return Settings.builder()
         .dashboardTabEnabled(true)
         .campaignsTabEnabled(true)
+        .assignmentsTabEnabled(true)
         .connectionsTabEnabled(true)
         .claimReviewEnabled(true)
         .ticketsTabEnabled(true)
@@ -66,6 +67,14 @@ public final class SettingsUtils {
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
         .usersTabEnabled(false)
+        .build();
+  }
+
+  public static Settings getPendingConnectionSettings() {
+    return Settings.builder()
+        .ticketsTabEnabled(true)
+        .feedbackTabEnabled(true)
+        .settingsTabEnabled(true)
         .build();
   }
 }

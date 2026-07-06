@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ConnectionsHeader } from '../components/ui/connections/ConnectionsHeader'
 import { ConnectionsGrid } from '../components/ui/connections/ConnectionsGrid'
+import { ConnectionDetails } from '../components/ui/connections/ConnectionDetails'
 import type { ConnectionStatus, ConnectionFilterOption } from '../components/ui/connections/ConnectionsGrid'
 import type { Connection } from '../types/ConnectionTypes'
 import {
@@ -40,6 +42,10 @@ const confirmCopy: Record<ConfirmKind, { title: string; verb: string; confirmLab
 }
 
 export function Connections() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const view = searchParams.get('view')
+  const detailId = searchParams.get('id')
+
   const [connections, setConnections] = useState<Connection[]>([])
   const [summary, setSummary]         = useState<ConnectionSummary>({ total: 0, connectedCount: 0, pendingCount: 0 })
   const [loading, setLoading]         = useState(true)
@@ -134,6 +140,10 @@ export function Connections() {
     setConfirm(null)
   }
 
+  function handleViewConnection(connection: Connection) {
+    setSearchParams({ view: 'detail', id: connection.id })
+  }
+
   const filtered = useMemo(() => {
     return connections.filter(c => {
       const matchesSearch =
@@ -142,6 +152,23 @@ export function Connections() {
       return matchesSearch
     })
   }, [connections, search])
+
+  if (view === 'detail' && detailId) {
+    const selected = connections.find(c => c.id === detailId)
+    if (selected) {
+      return (
+        <>
+          {toast && (
+            <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />
+          )}
+          <ConnectionDetails
+            connection={selected}
+            onBack={() => setSearchParams({})}
+          />
+        </>
+      )
+    }
+  }
 
   return (
     <>
@@ -187,6 +214,7 @@ export function Connections() {
         onAccept={handleAccept}
         onReject={handleReject}
         onDelete={handleDelete}
+        onRowClick={handleViewConnection}
       />
     </div>
     </>
