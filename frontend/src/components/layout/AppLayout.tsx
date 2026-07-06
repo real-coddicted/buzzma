@@ -53,7 +53,7 @@ export function AppLayout({
         notifications={notifications}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
-      <main className="md:ml-60 pt-[calc(4rem+var(--safe-top))] pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)] min-h-screen">
+      <main className="md:ml-60 pt-16 min-h-screen">
         <div className="p-4 sm:p-6 animate-fade-in">{children}</div>
       </main>
     </div>
