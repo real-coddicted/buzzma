@@ -47,7 +47,7 @@ export default function App() {
     clearSession()
     setIsAuthenticated(false)
     setUserSettings(null)
-    navigate('/dashboard')
+    navigate('/login')
   }, [navigate])
 
   useEffect(() => {
