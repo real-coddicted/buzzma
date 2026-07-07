@@ -14,5 +14,5 @@ export const campaignStatusMap: Record<RawCampaignStatus, CampaignStatus> = {
   CAMPAIGN_STATUS_ASSIGNED:  'active',
   CAMPAIGN_STATUS_PAUSED:    'paused',
   CAMPAIGN_STATUS_COMPLETED: 'completed',
-  CAMPAIGN_STATUS_CLOSED:    'completed',
+  CAMPAIGN_STATUS_CLOSED:    'closed',
 }

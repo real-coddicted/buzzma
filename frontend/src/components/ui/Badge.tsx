@@ -37,6 +37,7 @@ const statusMap: Record<CampaignStatus, { label: string; variant: StatCardAccent
   active:    { label: 'Active',    variant: 'green'   },
   paused:    { label: 'Paused',    variant: 'yellow'  },
   completed: { label: 'Completed', variant: 'cyan'    },
+  closed:    { label: 'Closed',    variant: 'red'     },
   draft:     { label: 'Draft',     variant: 'neutral' },
 }
 

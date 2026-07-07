@@ -32,7 +32,7 @@ const statusMap: Record<NonNullable<CampaignSummaryDto['status']>, CampaignStatu
   CAMPAIGN_STATUS_ASSIGNED:  'active',
   CAMPAIGN_STATUS_PAUSED:    'paused',
   CAMPAIGN_STATUS_COMPLETED: 'completed',
-  CAMPAIGN_STATUS_CLOSED:    'completed',
+  CAMPAIGN_STATUS_CLOSED:    'closed',
 }
 
 export function yyyymmddToIso(n: number | undefined): string {
@@ -200,6 +200,14 @@ export async function pauseCampaign(campaignId: string): Promise<CampaignRespons
 export async function resumeCampaign(campaignId: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(
     `${API_BASE}/campaigns/${campaignId}/action/CAMPAIGN_ACTION_RESUME`,
+    { method: 'POST' },
+  )
+  return res.json() as Promise<CampaignResponseDto>
+}
+
+export async function closeCampaign(campaignId: string): Promise<CampaignResponseDto> {
+  const res = await fetchWithAuth(
+    `${API_BASE}/campaigns/${campaignId}/action/CAMPAIGN_ACTION_CLOSE`,
     { method: 'POST' },
   )
   return res.json() as Promise<CampaignResponseDto>

@@ -1,4 +1,4 @@
-export type CampaignStatus = 'active' | 'paused' | 'completed' | 'draft'
+export type CampaignStatus = 'active' | 'paused' | 'completed' | 'closed' | 'draft'
 
 export type TrendDirection = 'up' | 'down' | 'neutral'
 

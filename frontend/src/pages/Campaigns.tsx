@@ -7,7 +7,7 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
@@ -64,6 +64,7 @@ export function Campaigns() {
   const [detail, setDetail] = useState<CampaignDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [confirmPauseId, setConfirmPauseId] = useState<string | null>(null)
+  const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null)
   const [actioningId, setActioningId] = useState<string | null>(null)
 
   const loadCampaigns = useCallback(() => {
@@ -110,6 +111,24 @@ export function Campaigns() {
 
   function handleViewCampaign(id: string) {
     setSearchParams({ view: 'view', id })
+  }
+
+  function handleRequestClose(id: string) {
+    setConfirmCloseId(id)
+  }
+
+  async function handleConfirmClose() {
+    if (!confirmCloseId) return
+    setActioningId(confirmCloseId)
+    try {
+      await closeCampaign(confirmCloseId)
+      loadCampaigns()
+      setConfirmCloseId(null)
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to close campaign.')
+    } finally {
+      setActioningId(null)
+    }
   }
 
   function handleEditCampaign(id: string) {
@@ -210,6 +229,7 @@ export function Campaigns() {
         onView={handleViewCampaign}
         onPause={handleRequestPause}
         onResume={handleResumeCampaign}
+        onClose={handleRequestClose}
       />
 
       {confirmPauseId && (
@@ -221,6 +241,18 @@ export function Campaigns() {
           busy={actioningId === confirmPauseId}
           onConfirm={handleConfirmPause}
           onCancel={() => setConfirmPauseId(null)}
+        />
+      )}
+
+      {confirmCloseId && (
+        <ConfirmModal
+          title="Close campaign?"
+          message="Are you sure you want to close this campaign? This can't be undone."
+          confirmLabel="Close Campaign"
+          tone="red"
+          busy={actioningId === confirmCloseId}
+          onConfirm={handleConfirmClose}
+          onCancel={() => setConfirmCloseId(null)}
         />
       )}
 

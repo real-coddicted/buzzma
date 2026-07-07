@@ -21,6 +21,7 @@ const statusFilters: { value: CampaignStatus | 'all'; label: string }[] = [
   { value: 'active',    label: 'Active' },
   { value: 'paused',    label: 'Paused' },
   { value: 'completed', label: 'Completed' },
+  { value: 'closed',    label: 'Closed' },
   { value: 'draft',     label: 'Draft' },
 ]
 
@@ -29,6 +30,7 @@ const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
   active:    'bg-neon-green/10  text-neon-green  border-neon-green/30',
   paused:    'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30',
   completed: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/30',
+  closed:    'bg-neon-red/10    text-neon-red    border-neon-red/30',
   draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
 }
 
@@ -74,9 +76,10 @@ interface Props {
   onView: (id: string) => void
   onPause: (id: string) => void
   onResume: (id: string) => void
+  onClose: (id: string) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView, onPause, onResume }: Props) {
+export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -167,7 +170,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                 <span className="inline-flex items-center gap-1">Slots <SortIndicator col="totalSlots" /></span>
               </th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Status</th>
-              <th className="px-5 py-3 text-right font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Actions</th>
+              <th className="px-5 py-3 text-center font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
@@ -222,6 +225,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                       onView={() => onView(c.id)}
                       onPause={() => onPause(c.id)}
                       onResume={() => onResume(c.id)}
+                      onClose={() => onClose(c.id)}
                     />
                   </td>
                 </tr>

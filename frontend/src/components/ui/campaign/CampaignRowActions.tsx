@@ -1,4 +1,3 @@
-import { Badge } from '../Badge'
 import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye } from '../icons'
 import type { Campaign } from '../../../types'
 
@@ -9,9 +8,10 @@ interface Props {
   onView: () => void
   onPause: () => void
   onResume: () => void
+  onClose: () => void
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">
@@ -42,6 +42,7 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
             </button>
             <button
               title="Close"
+              onClick={onClose}
               className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
             >
               <IconX size={13} />
@@ -64,7 +65,23 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
             >
               <IconPlay size={13} />
             </button>
+            <button
+              title="Close"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
+            >
+              <IconX size={13} />
+            </button>
           </>
+        )}
+        {c.status === 'closed' && (
+          <button
+            title="View"
+            onClick={onView}
+            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
+          >
+            <IconEye size={13} />
+          </button>
         )}
       </div>
       <button
@@ -74,9 +91,6 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
       >
         <IconCopy size={13} />
       </button>
-      <Badge variant="neutral">
-        {c.totalSlots ? Math.round((c.slotsClaimed / c.totalSlots) * 100) : 0}%
-      </Badge>
     </div>
   )
 }
