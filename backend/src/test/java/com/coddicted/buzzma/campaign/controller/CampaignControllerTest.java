@@ -146,4 +146,36 @@ class CampaignControllerTest {
                 .content(VALID_BODY))
         .andExpect(status().isUnauthorized());
   }
+
+  // --- Negative slot validation ---
+
+  private static final String NEGATIVE_TOTAL_SLOTS_BODY =
+      FileUtils.loadResourceAsString(
+          "/fixtures/input/campaign/campaign-request-negative-total-slots.json");
+
+  private static final String NEGATIVE_SLOT_OFFERED_BODY =
+      FileUtils.loadResourceAsString(
+          "/fixtures/input/campaign/campaign-request-negative-slot-offered.json");
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testCreateWithNegativeTotalSlotsReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/campaigns")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(NEGATIVE_TOTAL_SLOTS_BODY))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testCreateWithNegativeSlotOfferedReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/campaigns")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(NEGATIVE_SLOT_OFFERED_BODY))
+        .andExpect(status().isBadRequest());
+  }
 }

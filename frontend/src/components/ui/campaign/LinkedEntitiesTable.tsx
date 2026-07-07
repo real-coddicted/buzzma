@@ -26,7 +26,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
   }
 
   function handleSlotsChange(id: string, value: string) {
-    onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: parseInt(value) || 0 } : e))
+    onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: Math.max(0, parseInt(value) || 0) } : e))
   }
 
   function handleCommissionChange(id: string, value: string) {
@@ -114,6 +114,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
                       <div className="flex items-center gap-1.5">
                         <input
                           type="number"
+                          min="0"
                           value={entity?.slotsAvailable || ''}
                           onChange={e => handleSlotsChange(conn.id, e.target.value)}
                           disabled={slotsDisabled}

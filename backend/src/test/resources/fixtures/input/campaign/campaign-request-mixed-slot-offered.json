@@ -1,0 +1,28 @@
+{
+  "title": "Test Campaign",
+  "ownerId": "44444444-4444-4444-4444-444444444444",
+  "platform": "PLATFORM_AMAZON",
+  "productName": "Test Product",
+  "productImageUrl": "http://example.com/img.jpg",
+  "productUrl": "http://example.com/product",
+  "productBrandName": "Test Brand",
+  "originalPricePaise": 10000,
+  "campaignType": "CAMPAIGN_TYPE_REVIEW",
+  "campaignStatus": "CAMPAIGN_STATUS_DRAFT",
+  "campaignPricePaise": 8000,
+  "totalSlots": 10,
+  "openToAll": false,
+  "action": "CAMPAIGN_ACTION_PUBLISH",
+  "assignees": [
+    {
+      "assignorId": "55555555-5555-5555-5555-555555555555",
+      "assigneeId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "slotOffered": -3
+    },
+    {
+      "assignorId": "55555555-5555-5555-5555-555555555555",
+      "assigneeId": "88888888-8888-8888-8888-888888888888",
+      "slotOffered": 5
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigInteger;
 import java.util.UUID;
 import lombok.Builder;
@@ -12,15 +13,15 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class CampaignAssignmentRequestDto {
 
-  @NotBlank UUID campaignId;
+  UUID campaignId;
 
-  @NotBlank UUID assignorId;
+  @NotNull UUID assignorId;
 
-  @NotBlank UUID assigneeId;
+  @NotNull UUID assigneeId;
 
   @Builder.Default BigInteger adjustedCampaignPricePaise = BigInteger.ZERO;
 
   @Builder.Default BigInteger commissionOfferedPaise = BigInteger.ZERO;
 
-  @Builder.Default Long slotOffered = 0L;
+  @PositiveOrZero @Builder.Default Long slotOffered = 0L;
 }

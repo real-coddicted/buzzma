@@ -5,8 +5,10 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
@@ -45,11 +47,11 @@ public class CampaignRequestDto {
 
   @NotNull BigInteger campaignPricePaise;
 
-  @NotNull Integer totalSlots;
+  @NotNull @Positive Integer totalSlots;
 
   @Nullable Integer returnWindowDays;
 
-  List<CampaignAssignmentRequestDto> assignees;
+  @Valid List<CampaignAssignmentRequestDto> assignees;
 
   boolean openToAll;
 

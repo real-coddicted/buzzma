@@ -199,7 +199,9 @@ public class CampaignProcessor {
       final UUID requesterId,
       final List<CampaignAssignmentRequestDto> allAssignees) {
     final List<CampaignAssignmentRequestDto> assignees =
-        allAssignees.stream().filter(e -> e.getSlotOffered() != 0L).toList();
+        allAssignees.stream()
+            .filter(e -> e.getSlotOffered() != null && e.getSlotOffered() > 0L)
+            .toList();
     if (assignees.isEmpty()) {
       throw new BusinessRuleViolationException(
           "No slots assigned to any assignee. Please check assignments and ensure slots are"

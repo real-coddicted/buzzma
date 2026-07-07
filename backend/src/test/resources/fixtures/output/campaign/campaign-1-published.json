@@ -1,0 +1,15 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "title": "Test Campaign 1",
+  "ownerId": "44444444-4444-4444-4444-444444444444",
+  "totalSlots": 10,
+  "platform": "PLATFORM_AMAZON",
+  "type": "CAMPAIGN_TYPE_REVIEW",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "openToAll": false,
+  "deleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "44444444-4444-4444-4444-444444444444",
+  "updatedBy": "44444444-4444-4444-4444-444444444444"
+}
