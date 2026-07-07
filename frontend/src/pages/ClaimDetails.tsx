@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconChevronRight } from '../components/ui/icons'
 import { ClaimDetailsTabs, type ClaimDetailsTab } from '../components/ui/claim-review/ClaimDetailsTabs'
+import { useBreadcrumb } from '../contexts/BreadcrumbContext'
 import { ClaimInfo } from '../components/ui/claim-review/ClaimInfo'
 import { ClaimProofGallery, type ClaimProofItem } from '../components/ui/claim-review/ClaimProofGallery'
 import { ClaimProofActions } from '../components/ui/claim-review/ClaimProofActions'
@@ -19,6 +19,12 @@ interface ClaimDetailsProps {
 }
 
 export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
+  const { setDetail, clearDetail } = useBreadcrumb()
+  useEffect(() => {
+    setDetail(claim.orderId, onBack)
+    return clearDetail
+  }, [claim.orderId, onBack, setDetail, clearDetail])
+
   const [tab, setTab] = useState<ClaimDetailsTab>('proof')
   const [deal, setDeal] = useState<Deal | null>(null)
   const [dealLoading, setDealLoading] = useState(true)
@@ -111,16 +117,6 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted">
-        <button onClick={onBack} className="hover:text-neon-blue transition-colors">
-          Claim Review
-        </button>
-        <IconChevronRight size={12} />
-        <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">
-          {claim.orderId}
-        </span>
-      </div>
-
       <ClaimDetailsTabs value={tab} onChange={setTab} />
 
       {tab === 'details' && (

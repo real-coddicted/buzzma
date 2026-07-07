@@ -4,7 +4,7 @@ import type { components } from '../../../types/api'
 import type { StepperStep } from '../Stepper'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
-import { IconChevronRight } from '../icons'
+import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { StepperHeader } from '../StepperHeader'
 import { DealInfo } from './DealInfo'
 import { ClaimDeal } from './ClaimDeal'
@@ -32,6 +32,12 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
     })
   }, [deal.dealType])
 
+  const { setDetail, clearDetail } = useBreadcrumb()
+  useEffect(() => {
+    setDetail(deal.productName, onBack)
+    return clearDetail
+  }, [deal.productName, onBack, setDetail, clearDetail])
+
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, effectiveClaim?.screenshots ?? [])
   const viewedStepRejected = stepStatuses[viewedStep] === 'rejected'
   const claimRejected = effectiveClaim?.status === 'REJECTED'
@@ -41,16 +47,6 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted">
-        <button onClick={onBack} className="hover:text-neon-blue transition-colors">
-          Deals
-        </button>
-        <IconChevronRight size={12} />
-        <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">
-          {deal.productName}
-        </span>
-      </div>
-
       <StepperHeader
         label="Claim Progress"
         steps={steps}

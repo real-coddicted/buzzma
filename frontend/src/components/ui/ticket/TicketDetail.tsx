@@ -1,8 +1,9 @@
+import { useEffect } from 'react'
 import { TicketInfo } from './TicketInfo'
 import { TicketActivity } from './TicketActivity'
 import { TicketComments } from './TicketComments'
 import { TicketActions } from './TicketActions'
-import { BackButton } from '../BackButton'
+import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import type { Ticket } from '../../../types/TicketTypes'
 
 interface Props {
@@ -14,15 +15,17 @@ interface Props {
 }
 
 export function TicketDetail({ ticket, onBack, onUpdate, showActions = false, role = 'assignee' }: Props) {
+  const { setDetail, clearDetail } = useBreadcrumb()
+  useEffect(() => {
+    setDetail(`#${ticket.id}`, onBack)
+    return clearDetail
+  }, [ticket.id, onBack, setDetail, clearDetail])
+
   return (
     <div className="max-w-7xl mx-auto space-y-4">
-      {/* Back + header */}
-      <div className="flex items-center gap-3">
-        <BackButton onClick={onBack} />
-        <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
-          Ticket <span className="font-mono text-ink-light-muted dark:text-ink-dark-muted text-base">#{ticket.id}</span>
-        </h1>
-      </div>
+      <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
+        Ticket <span className="font-mono text-ink-light-muted dark:text-ink-dark-muted text-base">#{ticket.id}</span>
+      </h1>
 
       {showActions && <TicketActions ticket={ticket} role={role} onUpdate={onUpdate} />}
 

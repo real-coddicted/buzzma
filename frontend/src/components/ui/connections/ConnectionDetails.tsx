@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
-import { IconChevronRight } from '../icons'
+import { useState, useCallback, useEffect } from 'react'
 import { ConnectionDetailsTabs } from './ConnectionDetailsTabs'
+import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { ConnectionProfileTab } from './ConnectionProfileTab'
 import { ConnectionActivityTab } from './ConnectionActivityTab'
 import { Toast } from '../Toast'
@@ -18,18 +18,14 @@ export function ConnectionDetails({ connection, onBack }: ConnectionDetailsProps
 
   const handleError = useCallback((message: string) => setError(message), [])
 
+  const { setDetail, clearDetail } = useBreadcrumb()
+  useEffect(() => {
+    setDetail(connection.name, onBack)
+    return clearDetail
+  }, [connection.name, onBack, setDetail, clearDetail])
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted">
-        <button onClick={onBack} className="hover:text-neon-blue transition-colors">
-          Connections
-        </button>
-        <IconChevronRight size={12} />
-        <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">
-          {connection.name}
-        </span>
-      </div>
-
       <ConnectionDetailsTabs value={tab} onChange={setTab} />
 
       {tab === 'profile' && (

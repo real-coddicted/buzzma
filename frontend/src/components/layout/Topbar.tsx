@@ -1,6 +1,7 @@
 import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconChevronRight, IconMenu } from '../ui/icons'
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext'
 import type { Theme, NavPage, Notification } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
@@ -32,6 +33,7 @@ interface TopbarProps {
 export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications, onMenuClick }: TopbarProps) {
   const unreadCount = notifications.filter(n => n.unread).length
   const { title, subtitle } = pageTitles[activePage]
+  const { detailTitle, onDetailBack } = useBreadcrumb()
 
   return (
     <header className="fixed top-0 left-0 md:left-60 right-0 h-16 z-20 flex items-center gap-2 sm:gap-4 px-3 sm:px-6 bg-surface-light-base/80 dark:bg-surface-dark-base/80 backdrop-blur-sm border-b border-surface-light-border dark:border-surface-dark-border">
@@ -46,7 +48,22 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
       <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted flex-1 min-w-0">
         <span className="hidden sm:inline">{APP_NAME}</span>
         <IconChevronRight size={12} className="hidden sm:inline" />
-        <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">{title}</span>
+        {detailTitle ? (
+          <>
+            <button
+              onClick={onDetailBack ?? undefined}
+              className="hidden sm:inline hover:text-neon-blue transition-colors whitespace-nowrap"
+            >
+              {title}
+            </button>
+            <IconChevronRight size={12} className="hidden sm:inline" />
+            <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">
+              {detailTitle.length > 15 ? detailTitle.slice(0, 15) + '…' : detailTitle}
+            </span>
+          </>
+        ) : (
+          <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium truncate">{title}</span>
+        )}
       </div>
 
       <div className="hidden md:block absolute left-[40%] -translate-x-1/2 text-center pointer-events-none">

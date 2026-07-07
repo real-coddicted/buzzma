@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Button } from '../Button'
 import { Toast } from '../Toast'
-import { IconChevronRight, IconCheck, IconPlay, IconCopy, IconCopyCheck } from '../icons'
+import { IconCheck, IconPlay, IconCopy, IconCopyCheck } from '../icons'
+import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import type { CampaignRequestDto } from '../../../types'
 import { rupeesToPaise } from '../../../utils/currency'
 import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
@@ -20,6 +21,12 @@ interface Props {
 export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campaignCode }: Props) {
   const isEdit = !!initialForm && !readOnly
   const [form, setForm] = useState<CampaignForm>(initialForm ?? EMPTY_FORM)
+  const detailLabel = readOnly ? 'View Campaign' : isEdit ? 'Edit Campaign' : 'New Campaign'
+  const { setDetail, clearDetail } = useBreadcrumb()
+  useEffect(() => {
+    setDetail(detailLabel, onBack)
+    return clearDetail
+  }, [detailLabel, onBack, setDetail, clearDetail])
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [loading, setLoading] = useState(false)
   const [launching, setLaunching] = useState(false)
@@ -104,17 +111,6 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted">
-        <button onClick={onBack} className="hover:text-neon-blue transition-colors">
-          Campaigns
-        </button>
-        <IconChevronRight size={12} />
-        <span className="text-ink-light-primary dark:text-ink-dark-primary font-medium">
-          {readOnly ? 'View Campaign' : isEdit ? 'Edit Campaign' : 'New Campaign'}
-        </span>
-      </div>
-
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
