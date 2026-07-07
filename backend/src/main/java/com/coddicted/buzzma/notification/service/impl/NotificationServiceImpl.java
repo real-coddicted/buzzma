@@ -9,6 +9,9 @@ import com.coddicted.buzzma.notification.service.NotificationService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +50,22 @@ public class NotificationServiceImpl extends BaseCrudService implements Notifica
   @Override
   public List<Notification> listByUserId(final UUID userId) {
     return this.notificationRepository.findAllByUserIdAndIsDeletedFalse(userId);
+  }
+
+  @Override
+  public Page<Notification> listByUserId(
+      final UUID userId, final NotificationStatus status, final int page, final int size) {
+    final PageRequest pageRequest =
+        PageRequest.of(
+            page, size, Sort.by(Sort.Order.desc("isPinned"), Sort.Order.desc("createdAt")));
+    return this.notificationRepository.findAllByUserIdAndStatusAndIsDeletedFalse(
+        userId, status, pageRequest);
+  }
+
+  @Override
+  public long countUnread(final UUID userId) {
+    return this.notificationRepository.countByUserIdAndStatusAndIsDeletedFalse(
+        userId, NotificationStatus.NOTIFICATION_STATUS_UNREAD);
   }
 
   @Override

@@ -1,16 +1,20 @@
 package com.coddicted.buzzma.notification.controller;
 
-import com.coddicted.buzzma.notification.dto.NotificationResponseDto;
+import com.coddicted.buzzma.notification.dto.PagedNotificationsResponseDto;
+import com.coddicted.buzzma.notification.entity.Notification;
+import com.coddicted.buzzma.notification.entity.NotificationStatus;
 import com.coddicted.buzzma.notification.mapper.NotificationMapper;
 import com.coddicted.buzzma.notification.service.NotificationService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,8 +32,24 @@ public class NotificationController {
   }
 
   @GetMapping
-  public List<NotificationResponseDto> list(@CurrentUserId final UUID requesterId) {
-    return this.notificationMapper.toResponses(this.notificationService.listByUserId(requesterId));
+  public PagedNotificationsResponseDto list(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam final NotificationStatus status,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "10") final int size) {
+    final Page<Notification> notificationsPage =
+        this.notificationService.listByUserId(requesterId, status, page, size);
+    return PagedNotificationsResponseDto.builder()
+        .items(this.notificationMapper.toResponses(notificationsPage.getContent()))
+        .total(notificationsPage.getTotalElements())
+        .page(page)
+        .totalPages(notificationsPage.getTotalPages())
+        .build();
+  }
+
+  @GetMapping("/unread-count")
+  public Map<String, Long> unreadCount(@CurrentUserId final UUID requesterId) {
+    return Map.of("unread", this.notificationService.countUnread(requesterId));
   }
 
   @PutMapping("/{id}/read")
