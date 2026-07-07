@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/users/{id}/banking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getBankingDetail"];
+        put: operations["upsertBankingDetail"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user-settings/{userId}": {
         parameters: {
             query?: never;
@@ -660,22 +676,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{id}/banking": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getBankingDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/users/search": {
         parameters: {
             query?: never;
@@ -796,6 +796,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["list_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["unreadCount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1048,6 +1064,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        UserBankingDetailDto: {
+            bankAccountNumber?: string;
+            bankIfscCode?: string;
+            bankName?: string;
+            bankAccountHolderName?: string;
+            upiId?: string;
+            upiMobileNumber?: string;
+        };
         UserSettingsDto: {
             dashboardTabEnabled?: boolean;
             campaignsTabEnabled?: boolean;
@@ -1554,14 +1578,6 @@ export interface components {
             updatedAt?: string;
             updatedBy?: string;
         };
-        UserBankingDetailDto: {
-            bankAccountNumber?: string;
-            bankIfscCode?: string;
-            bankName?: string;
-            bankAccountHolderName?: string;
-            upiId?: string;
-            upiMobileNumber?: string;
-        };
         TicketCategoryResponseDto: {
             /** Format: uuid */
             id?: string;
@@ -1606,6 +1622,15 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             pinned?: boolean;
+        };
+        PagedNotificationsResponseDto: {
+            items?: components["schemas"]["NotificationResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         PagedDealsResponseDto: {
             items?: components["schemas"]["DealResponseDto"][];
@@ -1794,6 +1819,54 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getBankingDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserBankingDetailDto"];
+                };
+            };
+        };
+    };
+    upsertBankingDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserBankingDetailDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserBankingDetailDto"];
+                };
+            };
+        };
+    };
     get_1: {
         parameters: {
             query?: never;
@@ -3018,28 +3091,6 @@ export interface operations {
             };
         };
     };
-    getBankingDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UserBankingDetailDto"];
-                };
-            };
-        };
-    };
     searchByMobile: {
         parameters: {
             query: {
@@ -3212,6 +3263,30 @@ export interface operations {
     };
     list_2: {
         parameters: {
+            query: {
+                status: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedNotificationsResponseDto"];
+                };
+            };
+        };
+    };
+    unreadCount: {
+        parameters: {
             query?: never;
             header?: never;
             path?: never;
@@ -3225,7 +3300,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["NotificationResponseDto"][];
+                    "*/*": {
+                        [key: string]: number;
+                    };
                 };
             };
         };

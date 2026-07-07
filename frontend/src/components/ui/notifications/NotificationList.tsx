@@ -1,22 +1,30 @@
 import type { Notification } from '../../../types/NotificationTypes'
 import { Card } from '../Card'
 import { IconBell } from '../icons'
+import { PaginationToolbar } from '../PaginationToolbar'
 import { NotificationItem } from './NotificationItem'
 import type { NotificationTab } from './NotificationTabs'
 
 interface NotificationListProps {
   notifications: Notification[]
   activeTab: NotificationTab
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
   onToggleRead: (id: string) => void
   onTogglePin: (id: string) => void
 }
 
-export function NotificationList({ notifications, activeTab, onToggleRead, onTogglePin }: NotificationListProps) {
-  const filtered = notifications
-    .filter(n => activeTab === 'unread' ? n.unread : !n.unread)
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned))
-
-  if (filtered.length === 0) {
+export function NotificationList({
+  notifications,
+  activeTab,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onToggleRead,
+  onTogglePin,
+}: NotificationListProps) {
+  if (notifications.length === 0) {
     return (
       <Card>
         <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
@@ -36,8 +44,8 @@ export function NotificationList({ notifications, activeTab, onToggleRead, onTog
 
   return (
     <Card padded={false}>
-      <div className="flex flex-col divide-y divide-surface-light-border dark:divide-surface-dark-border max-h-[32rem] overflow-y-auto">
-        {filtered.map(n => (
+      <div className="flex flex-col divide-y divide-surface-light-border dark:divide-surface-dark-border">
+        {notifications.map(n => (
           <NotificationItem
             key={n.id}
             notification={n}
@@ -46,6 +54,11 @@ export function NotificationList({ notifications, activeTab, onToggleRead, onTog
           />
         ))}
       </div>
+      <PaginationToolbar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
     </Card>
   )
 }

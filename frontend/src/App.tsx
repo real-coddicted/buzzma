@@ -14,14 +14,14 @@ import { Notifications } from './pages/Notifications'
 import { ClaimReview } from './pages/ClaimReview'
 import { Users } from './pages/Users'
 import { Auth } from './pages/Auth'
-import { fetchNotifications, markAsRead, markAsUnread, pinNotification, markAllRead as apiMarkAllRead } from './api/notificationApi'
+import { fetchUnreadNotificationCount } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
 import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
 import { useTheme } from './hooks/useTheme'
 import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
-import type { NavPage, Notification } from './types'
+import type { NavPage } from './types'
 import type { components } from './types/api'
 
 type UserSettingsDto = components['schemas']['UserSettingsDto']
@@ -40,7 +40,7 @@ export default function App() {
   const handleNavigate = useCallback((page: NavPage) => {
     navigate('/' + page)
   }, [navigate])
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
 
   const handleLogout = useCallback(() => {
     cancelProactiveRefresh()
@@ -74,27 +74,8 @@ export default function App() {
 
   useEffect(() => {
     if (!isAuthenticated) return
-    fetchNotifications().then(setNotifications).catch(console.error)
+    fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
   }, [isAuthenticated])
-
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
-    apiMarkAllRead().catch(console.error)
-  }
-
-  const toggleRead = (id: string) => {
-    setNotifications(prev => prev.map(n => {
-      if (n.id !== id) return n
-      const next = { ...n, unread: !n.unread }
-      ;(next.unread ? markAsUnread : markAsRead)(id).catch(console.error)
-      return next
-    }))
-  }
-
-  const togglePin = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n))
-    pinNotification(id).catch(console.error)
-  }
 
   if (!isAuthenticated) {
     return <Auth onAuth={() => setIsAuthenticated(true)} />
@@ -106,7 +87,7 @@ export default function App() {
       onToggleTheme={toggleTheme}
       activePage={activePage}
       onNavigate={handleNavigate}
-      notifications={notifications}
+      unreadNotificationCount={unreadNotificationCount}
       userSettings={userSettings}
     >
       {activePage === 'dashboard'     && <Dashboard />}
@@ -119,12 +100,7 @@ export default function App() {
       {activePage === 'raise-ticket'  && <RaiseTicket />}
       {activePage === 'my-tickets'      && <MyTickets />}
       {activePage === 'notifications' && (
-        <Notifications
-          notifications={notifications}
-          onMarkAllRead={markAllRead}
-          onToggleRead={toggleRead}
-          onTogglePin={togglePin}
-        />
+        <Notifications onUnreadCountChange={setUnreadNotificationCount} />
       )}
       {activePage === 'claim-review' && <ClaimReview />}
       {activePage === 'users'         && <Users />}

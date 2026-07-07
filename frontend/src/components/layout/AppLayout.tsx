@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext'
-import type { Theme, NavPage, Notification } from '../../types'
+import type { Theme, NavPage } from '../../types'
 import type { components } from '../../types/api'
 
 type UserSettingsDto = components['schemas']['UserSettingsDto']
@@ -14,7 +14,7 @@ interface AppLayoutProps {
   onToggleTheme: () => void
   activePage: NavPage
   onNavigate: (page: NavPage) => void
-  notifications: Notification[]
+  unreadNotificationCount: number
   userSettings: UserSettingsDto | null
 }
 
@@ -24,7 +24,7 @@ export function AppLayout({
   onToggleTheme,
   activePage,
   onNavigate,
-  notifications,
+  unreadNotificationCount,
   userSettings,
 }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -52,7 +52,7 @@ export function AppLayout({
           onToggleTheme={onToggleTheme}
           activePage={activePage}
           onNavigate={handleNavigate}
-          notifications={notifications}
+          unreadNotificationCount={unreadNotificationCount}
           onMenuClick={() => setIsSidebarOpen(true)}
         />
         <main className="md:ml-60 pt-16 min-h-screen">

@@ -1,24 +1,89 @@
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { IconBell } from '../components/ui/icons'
 import { NotificationTabs } from '../components/ui/notifications/NotificationTabs'
 import { NotificationList } from '../components/ui/notifications/NotificationList'
 import type { NotificationTab } from '../components/ui/notifications/NotificationTabs'
 import type { Notification } from '../types/NotificationTypes'
+import { Toast } from '../components/ui/Toast'
+import {
+  fetchNotificationsPage,
+  fetchUnreadNotificationCount,
+  markAsRead,
+  markAsUnread,
+  pinNotification,
+  markAllRead as apiMarkAllRead,
+} from '../api/notificationApi'
 
 interface NotificationsProps {
-  notifications: Notification[]
-  onMarkAllRead: () => void
-  onToggleRead: (id: string) => void
-  onTogglePin: (id: string) => void
+  onUnreadCountChange: (count: number) => void
 }
 
-export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTogglePin }: NotificationsProps) {
+export function Notifications({ onUnreadCountChange }: NotificationsProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab: NotificationTab = (searchParams.get('tab') as NotificationTab) ?? 'unread'
 
-  const counts: Record<NotificationTab, number> = {
-    unread: notifications.filter(n => n.unread).length,
-    read:   notifications.filter(n => !n.unread).length,
+  const [currentPage, setCurrentPage] = useState(1)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [toastError, setToastError] = useState<string | null>(null)
+
+  function reportError(err: unknown, fallback: string) {
+    setToastError(err instanceof Error ? err.message : fallback)
+  }
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab])
+
+  function refreshUnreadCount() {
+    fetchUnreadNotificationCount()
+      .then(count => { setUnreadCount(count); onUnreadCountChange(count) })
+      .catch((err: unknown) => reportError(err, 'Failed to load unread count.'))
+  }
+
+  useEffect(() => {
+    refreshUnreadCount()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    fetchNotificationsPage(activeTab, currentPage)
+      .then(data => {
+        if (cancelled) return
+        setNotifications(data.items)
+        setTotalPages(data.totalPages)
+      })
+      .catch((err: unknown) => { if (!cancelled) reportError(err, 'Failed to load notifications.') })
+    return () => { cancelled = true }
+  }, [activeTab, currentPage])
+
+  function refetchCurrentPage() {
+    return fetchNotificationsPage(activeTab, currentPage)
+      .then(data => { setNotifications(data.items); setTotalPages(data.totalPages) })
+  }
+
+  function markAllRead() {
+    apiMarkAllRead()
+      .then(() => { refreshUnreadCount(); return refetchCurrentPage() })
+      .catch((err: unknown) => reportError(err, 'Failed to mark all as read.'))
+  }
+
+  function toggleRead(id: string) {
+    const notification = notifications.find(n => n.id === id)
+    if (!notification) return
+    const action = notification.unread ? markAsRead : markAsUnread
+    action(id)
+      .then(() => { refreshUnreadCount(); return refetchCurrentPage() })
+      .catch((err: unknown) => reportError(err, 'Failed to update notification.'))
+  }
+
+  function togglePin(id: string) {
+    pinNotification(id)
+      .then(() => refetchCurrentPage())
+      .catch((err: unknown) => reportError(err, 'Failed to update notification.'))
   }
 
   return (
@@ -30,21 +95,32 @@ export function Notifications({ notifications, onMarkAllRead, onToggleRead, onTo
         <div>
           <h1 className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary">All Notifications</h1>
           <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-            {counts.unread === 0
+            {unreadCount === 0
               ? "You're all caught up"
-              : `${counts.unread} unread notification${counts.unread === 1 ? '' : 's'}`}
+              : `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`}
           </p>
         </div>
       </div>
 
-      <NotificationTabs value={activeTab} counts={counts} onChange={tab => setSearchParams(tab === 'unread' ? {} : { tab })} onMarkAllRead={onMarkAllRead} />
+      <NotificationTabs value={activeTab} unreadCount={unreadCount} onChange={tab => setSearchParams(tab === 'unread' ? {} : { tab })} onMarkAllRead={markAllRead} />
 
       <NotificationList
         notifications={notifications}
         activeTab={activeTab}
-        onToggleRead={onToggleRead}
-        onTogglePin={onTogglePin}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        onToggleRead={toggleRead}
+        onTogglePin={togglePin}
       />
+
+      {toastError && (
+        <Toast
+          message={toastError}
+          type="error"
+          onDismiss={() => setToastError(null)}
+        />
+      )}
     </div>
   )
 }

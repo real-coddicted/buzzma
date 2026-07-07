@@ -2,7 +2,7 @@ import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconChevronRight, IconMenu } from '../ui/icons'
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext'
-import type { Theme, NavPage, Notification } from '../../types'
+import type { Theme, NavPage } from '../../types'
 
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back' },
@@ -25,13 +25,12 @@ interface TopbarProps {
   onToggleTheme: () => void
   activePage: NavPage
   onNavigate: (page: NavPage) => void
-  notifications: Notification[]
+  unreadNotificationCount: number
   onMenuClick: () => void
 }
 
 
-export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notifications, onMenuClick }: TopbarProps) {
-  const unreadCount = notifications.filter(n => n.unread).length
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNotificationCount, onMenuClick }: TopbarProps) {
   const { title, subtitle } = pageTitles[activePage]
   const { detailTitle, onDetailBack } = useBreadcrumb()
 
@@ -81,7 +80,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, notificat
             className="relative w-9 h-9 flex items-center justify-center rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
           >
             <IconBell size={18} />
-            {unreadCount > 0 && (
+            {unreadNotificationCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-neon-red shadow-neon-red" />
             )}
           </button>

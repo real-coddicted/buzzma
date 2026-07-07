@@ -4,7 +4,7 @@ export type NotificationTab = 'unread' | 'read'
 
 interface NotificationTabsProps {
   value: NotificationTab
-  counts: Record<NotificationTab, number>
+  unreadCount: number
   onChange: (tab: NotificationTab) => void
   onMarkAllRead: () => void
 }
@@ -14,7 +14,7 @@ const tabs: { value: NotificationTab; label: string }[] = [
   { value: 'read',   label: 'Read'   },
 ]
 
-export function NotificationTabs({ value, counts, onChange, onMarkAllRead }: NotificationTabsProps) {
+export function NotificationTabs({ value, unreadCount, onChange, onMarkAllRead }: NotificationTabsProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex gap-1 p-1 rounded-lg bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border">
@@ -30,19 +30,11 @@ export function NotificationTabs({ value, counts, onChange, onMarkAllRead }: Not
             ].join(' ')}
           >
             {t.label}
-            <span className={[
-              'text-[10px] px-1.5 py-0.5 rounded-full font-semibold',
-              value === t.value
-                ? 'bg-neon-blue/15 text-neon-blue'
-                : 'bg-surface-light-border dark:bg-surface-dark-border text-ink-light-muted dark:text-ink-dark-muted',
-            ].join(' ')}>
-              {counts[t.value]}
-            </span>
           </button>
         ))}
       </div>
 
-      {counts.unread > 0 && (
+      {unreadCount > 0 && (
         <button
           onClick={onMarkAllRead}
           title="Mark all as read"
