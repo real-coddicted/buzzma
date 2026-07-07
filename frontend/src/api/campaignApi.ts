@@ -188,3 +188,19 @@ export async function publishCampaign(campaignId: string): Promise<CampaignRespo
   )
   return res.json() as Promise<CampaignResponseDto>
 }
+
+export async function pauseCampaign(campaignId: string): Promise<CampaignResponseDto> {
+  const res = await fetchWithAuth(
+    `${API_BASE}/campaigns/${campaignId}/action/CAMPAIGN_ACTION_PAUSE`,
+    { method: 'POST' },
+  )
+  return res.json() as Promise<CampaignResponseDto>
+}
+
+export async function resumeCampaign(campaignId: string): Promise<CampaignResponseDto> {
+  const res = await fetchWithAuth(
+    `${API_BASE}/campaigns/${campaignId}/action/CAMPAIGN_ACTION_RESUME`,
+    { method: 'POST' },
+  )
+  return res.json() as Promise<CampaignResponseDto>
+}

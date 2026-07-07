@@ -72,9 +72,11 @@ interface Props {
   onEdit: (id: string) => void
   onCopy: (id: string) => void
   onView: (id: string) => void
+  onPause: (id: string) => void
+  onResume: (id: string) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView }: Props) {
+export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView, onPause, onResume }: Props) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -213,7 +215,14 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                   </td>
                   <td className="px-5 py-2.5"><StatusBadge status={c.status} /></td>
                   <td className="px-5 py-2.5">
-                    <CampaignRowActions campaign={c} onEdit={() => onEdit(c.id)} onCopy={() => onCopy(c.id)} onView={() => onView(c.id)} />
+                    <CampaignRowActions
+                      campaign={c}
+                      onEdit={() => onEdit(c.id)}
+                      onCopy={() => onCopy(c.id)}
+                      onView={() => onView(c.id)}
+                      onPause={() => onPause(c.id)}
+                      onResume={() => onResume(c.id)}
+                    />
                   </td>
                 </tr>
               ))

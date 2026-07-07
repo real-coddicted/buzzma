@@ -7,8 +7,8 @@ import type { Theme, NavPage, Notification } from '../../types'
 const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   dashboard:   { title: 'Dashboard',   subtitle: 'Welcome back' },
   campaigns:   { title: 'Campaigns',   subtitle: 'Manage and monitor your campaigns' },
-  connections:  { title: 'Connections',  subtitle: 'Manage your brand and agency connections' },
-  assignments:  { title: 'Assignments',  subtitle: 'View and manage your assignments' },
+  connections:  { title: 'My Network',  subtitle: 'Manage your network' },
+  assignments:  { title: 'Assigned Campaigns',  subtitle: 'View and manage your assigned campaigns' },
   deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
   feedback:        { title: 'Feedback',         subtitle: `Share your thoughts on ${APP_NAME}` },
   profile:         { title: 'Profile',          subtitle: 'Your profile details' },

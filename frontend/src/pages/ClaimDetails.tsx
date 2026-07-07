@@ -11,6 +11,8 @@ import { fetchCampaignById } from '../api/campaignApi'
 import { fetchClaimById, fetchScreenshotUrl, reviewScreenshot, submitClaimReview } from '../api/claimApi'
 import { campaignToDeal } from '../api/dealApi'
 import { getCurrentUser } from '../api/client'
+import { PLATFORM_LABELS } from '../constants/campaigns'
+import type { Platform } from '../types'
 import type { ClaimReviewItem, Deal } from '../types'
 
 interface ClaimDetailsProps {
@@ -94,10 +96,12 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           score: s.score,
           verificationStatus: s.verificationStatus,
           fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => {
+            const raw = sv.extractedValue ?? ''
+            const value = key === 'platform' ? (PLATFORM_LABELS[raw as Platform] ?? raw) : raw
             const hasValue = sv.extractedValue != null
             return {
               label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-              value: sv.extractedValue ?? '',
+              value,
               matched: hasValue && sv.score != null ? sv.score >= 0.5 : false,
               indeterminate: hasValue && sv.score == null,
               score: sv.score,

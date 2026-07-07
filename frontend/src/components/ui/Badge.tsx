@@ -4,6 +4,7 @@ import type { CampaignStatus, StatCardAccent } from '../../types'
 interface BadgeProps {
   children: ReactNode
   variant: StatCardAccent | 'neutral'
+  textClass?: string
 }
 
 const variantClasses: Record<StatCardAccent | 'neutral', string> = {
@@ -18,11 +19,12 @@ const variantClasses: Record<StatCardAccent | 'neutral', string> = {
   neutral:'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
 }
 
-export function Badge({ children, variant }: BadgeProps) {
+export function Badge({ children, variant, textClass = 'text-xs font-medium' }: BadgeProps) {
   return (
     <span
       className={[
-        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border',
+        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full border',
+        textClass,
         variantClasses[variant],
       ].join(' ')}
     >
@@ -31,22 +33,22 @@ export function Badge({ children, variant }: BadgeProps) {
   )
 }
 
-const statusMap: Record<CampaignStatus, { label: string; variant: StatCardAccent | 'neutral'; dot: string }> = {
-  active:    { label: 'Active',    variant: 'green',   dot: 'bg-neon-green' },
-  paused:    { label: 'Paused',    variant: 'yellow',  dot: 'bg-neon-yellow' },
-  completed: { label: 'Completed', variant: 'cyan',    dot: 'bg-neon-cyan' },
-  draft:     { label: 'Draft',     variant: 'neutral', dot: 'bg-ink-light-muted dark:bg-ink-dark-muted' },
+const statusMap: Record<CampaignStatus, { label: string; variant: StatCardAccent | 'neutral' }> = {
+  active:    { label: 'Active',    variant: 'green'   },
+  paused:    { label: 'Paused',    variant: 'yellow'  },
+  completed: { label: 'Completed', variant: 'cyan'    },
+  draft:     { label: 'Draft',     variant: 'neutral' },
 }
 
 interface StatusBadgeProps {
   status: CampaignStatus
+  textClass?: string
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
-  const { label, variant, dot } = statusMap[status]
+export function StatusBadge({ status, textClass }: StatusBadgeProps) {
+  const { label, variant } = statusMap[status]
   return (
-    <Badge variant={variant}>
-      <span className={['w-1.5 h-1.5 rounded-full inline-block', dot, status === 'active' ? 'animate-pulse-slow' : ''].join(' ')} />
+    <Badge variant={variant} textClass={textClass}>
       {label}
     </Badge>
   )

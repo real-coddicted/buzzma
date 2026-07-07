@@ -2,14 +2,16 @@ import type { components } from '../types/api'
 import type { AssignmentItem, AssignmentSummary } from '../types/AssignmentTypes'
 import { fetchWithAuth } from './client'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
+import { campaignStatusMap, type RawCampaignStatus } from '../utils/campaignStatus'
 
 const API_BASE = '/api/v1'
 
 type AssignmentResponseDto = components['schemas']['AssignmentResponseDto']
 type AssignmentSummaryResponseDto = components['schemas']['AssignmentSummaryResponseDto']
 type PublishAssignmentRequestDto = components['schemas']['PublishAssignmentRequestDto']
+type AssignmentSummaryWithStatus = AssignmentSummaryResponseDto & { campaignStatus?: RawCampaignStatus }
 
-function mapSummary(dto: AssignmentSummaryResponseDto): AssignmentSummary {
+function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
   const platform = dto.platform ?? 'PLATFORM_AMAZON'
   const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as AssignmentSummary['dealType']
   return {
@@ -20,6 +22,7 @@ function mapSummary(dto: AssignmentSummaryResponseDto): AssignmentSummary {
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
     dealType,
     dealTypeLabel: CAMPAIGN_TYPE_LABELS[dealType] ?? dealType,
+    campaignStatus: campaignStatusMap[dto.campaignStatus ?? 'CAMPAIGN_STATUS_DRAFT'],
     originalPricePaise: dto.originalPricePaise ?? 0,
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     slotsOffered: dto.slotLimit ?? 0,
@@ -39,6 +42,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
     dealType,
     dealTypeLabel: CAMPAIGN_TYPE_LABELS[dealType] ?? dealType,
+    campaignStatus: campaignStatusMap[dto.campaignStatus ?? 'CAMPAIGN_STATUS_DRAFT'],
     originalPricePaise: dto.originalPricePaise ?? 0,
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     commissionOfferedPaise: dto.commissionOfferedPaise ?? 0,

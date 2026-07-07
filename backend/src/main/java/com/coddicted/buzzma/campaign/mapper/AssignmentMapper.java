@@ -31,6 +31,7 @@ public interface AssignmentMapper {
       qualifiedByName = "urlToString")
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "campaign.type", target = "dealType")
+  @Mapping(source = "campaign.status", target = "campaignStatus")
   @Mapping(source = "campaign.product.pricePaise", target = "originalPricePaise")
   @Mapping(source = "campaignAssignment.adjustedCampaignPricePaise", target = "offeredPricePaise")
   @Mapping(source = "campaignAssignment.commissionOfferedPaise", target = "commissionOfferedPaise")
@@ -47,6 +48,7 @@ public interface AssignmentMapper {
         .productImageUrl(view.productImageUrl() != null ? view.productImageUrl().toString() : null)
         .platform(view.platform())
         .dealType(view.dealType())
+        .campaignStatus(view.campaignStatus())
         .originalPricePaise(view.originalPricePaise())
         .offeredPricePaise(
             view.offeredPricePaise() != null ? view.offeredPricePaise() : BigInteger.ZERO)

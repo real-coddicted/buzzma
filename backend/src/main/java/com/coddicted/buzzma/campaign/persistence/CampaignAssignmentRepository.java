@@ -32,13 +32,15 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
           """
           SELECT new com.coddicted.buzzma.campaign.dto.AssignmentSummaryView(
             ca.id, p.name, p.imageUrl, c.platform, c.type,
-            p.pricePaise, ca.adjustedCampaignPricePaise, ca.slotLimit
+            p.pricePaise, ca.adjustedCampaignPricePaise, ca.slotLimit, c.status
           )
           FROM CampaignAssignment ca, Campaign c
           JOIN c.product p
           WHERE ca.campaignId = c.id
             AND ca.isDeleted = false AND c.isDeleted = false
             AND ca.assigneeId = :assigneeId AND ca.status = :status
+            AND (:status <> com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED
+                 OR c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
           """,
       countQuery =
           """
@@ -47,6 +49,8 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
           WHERE ca.campaignId = c.id
             AND ca.isDeleted = false AND c.isDeleted = false
             AND ca.assigneeId = :assigneeId AND ca.status = :status
+            AND (:status <> com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED
+                 OR c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
           """)
   Page<AssignmentSummaryView> findAssignmentSummaries(
       @Param("assigneeId") UUID assigneeId,

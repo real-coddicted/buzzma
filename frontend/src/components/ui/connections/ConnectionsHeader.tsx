@@ -33,7 +33,7 @@ export function ConnectionsHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
-            Connections
+            My Network
           </h1>
         </div>
         <button

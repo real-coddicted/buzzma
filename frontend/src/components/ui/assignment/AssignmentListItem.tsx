@@ -2,6 +2,7 @@ import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from '../deal/ProductThumbnail'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { StatusBadge } from '../Badge'
 
 interface AssignmentListItemProps {
   item: AssignmentSummary
@@ -44,6 +45,7 @@ export function AssignmentListItem({ item, onClick }: AssignmentListItemProps) {
           ].join(' ')}>
             {item.dealTypeLabel}
           </span>
+          <StatusBadge status={item.campaignStatus} textClass="text-[10px] font-semibold" />
         </div>
       </div>
 

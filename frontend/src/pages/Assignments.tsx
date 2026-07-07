@@ -66,7 +66,7 @@ export function Assignments() {
     <div className="max-w-7xl mx-auto space-y-5">
       <div>
         <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
-          Assignments
+          Assigned Campaigns
         </h1>
       </div>
 

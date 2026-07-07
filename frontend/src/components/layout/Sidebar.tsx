@@ -126,18 +126,10 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
               onClick={() => onNavigate('campaigns')}
             />
           )}
-          {show(userSettings?.connectionsTabEnabled) && (
-            <NavItem
-              icon={<IconUsers />}
-              label="Connections"
-              active={activePage === 'connections'}
-              onClick={() => onNavigate('connections')}
-            />
-          )}
           {show(userSettings?.assignmentsTabEnabled) && (
             <NavItem
               icon={<IconList />}
-              label="Assignments"
+              label="Assigned Campaigns"
               active={activePage === 'assignments'}
               onClick={() => onNavigate('assignments')}
             />
@@ -156,6 +148,14 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
               label="Claim Review"
               active={activePage === 'claim-review'}
               onClick={() => onNavigate('claim-review')}
+            />
+          )}
+          {show(userSettings?.connectionsTabEnabled) && (
+            <NavItem
+              icon={<IconUsers />}
+              label="My Network"
+              active={activePage === 'connections'}
+              onClick={() => onNavigate('connections')}
             />
           )}
           {show(userSettings?.usersTabEnabled) && (

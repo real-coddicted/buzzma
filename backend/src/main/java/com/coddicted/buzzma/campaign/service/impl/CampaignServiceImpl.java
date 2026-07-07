@@ -164,14 +164,16 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
 
   private Campaign transitionTo(
       final UUID campaignId, final CampaignStatus target, final UUID requesterId) {
+
     final Campaign campaign = getById(campaignId);
+    if (!campaign.getOwnerId().equals(requesterId)) {
+      throw new ForbiddenException(
+          "Only the campaign owner can perform this action on the campaign");
+    }
     final boolean isPublish =
         campaign.getStatus() == CampaignStatus.CAMPAIGN_STATUS_DRAFT
             && target == CampaignStatus.CAMPAIGN_STATUS_ACTIVE;
     if (isPublish) {
-      if (!campaign.getOwnerId().equals(requesterId)) {
-        throw new ForbiddenException("Only the campaign owner can publish this campaign");
-      }
       final List<CampaignAssignment> assignments =
           this.campaignAssignmentRepository.findByCampaignId(campaignId);
       if (assignments.isEmpty()) {

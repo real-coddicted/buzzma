@@ -7,10 +7,11 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
+import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { useSSE } from '../hooks/useSSE'
 
 
@@ -62,6 +63,8 @@ export function Campaigns() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [detail, setDetail] = useState<CampaignDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [confirmPauseId, setConfirmPauseId] = useState<string | null>(null)
+  const [actioningId, setActioningId] = useState<string | null>(null)
 
   const loadCampaigns = useCallback(() => {
     setLoading(true)
@@ -111,6 +114,33 @@ export function Campaigns() {
 
   function handleEditCampaign(id: string) {
     setSearchParams({ view: 'edit', id })
+  }
+
+  function handleRequestPause(id: string) {
+    setConfirmPauseId(id)
+  }
+
+  async function handleConfirmPause() {
+    if (!confirmPauseId) return
+    setActioningId(confirmPauseId)
+    try {
+      await pauseCampaign(confirmPauseId)
+      loadCampaigns()
+      setConfirmPauseId(null)
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to pause campaign.')
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  async function handleResumeCampaign(id: string) {
+    try {
+      await resumeCampaign(id)
+      loadCampaigns()
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to resume campaign.')
+    }
   }
 
   function handleBack() {
@@ -178,7 +208,21 @@ export function Campaigns() {
         onEdit={handleEditCampaign}
         onCopy={handleCopyCampaign}
         onView={handleViewCampaign}
+        onPause={handleRequestPause}
+        onResume={handleResumeCampaign}
       />
+
+      {confirmPauseId && (
+        <ConfirmModal
+          title="Pause campaign?"
+          message="Are you sure you want to pause this campaign? Claims will stop being accepted until it is resumed."
+          confirmLabel="Pause Campaign"
+          tone="red"
+          busy={actioningId === confirmPauseId}
+          onConfirm={handleConfirmPause}
+          onCancel={() => setConfirmPauseId(null)}
+        />
+      )}
 
       {errorMsg && (
         <Toast message={errorMsg} type="error" onDismiss={() => setErrorMsg(null)} />

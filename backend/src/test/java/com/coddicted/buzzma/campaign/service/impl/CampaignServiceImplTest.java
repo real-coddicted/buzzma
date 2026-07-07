@@ -152,7 +152,8 @@ class CampaignServiceImplTest {
             ForbiddenException.class,
             () ->
                 this.campaignService.action(CAMPAIGN_ID_1, CAMPAIGN_ACTION_PUBLISH, NON_OWNER_ID));
-    assertEquals("Only the campaign owner can publish this campaign", ex.getMessage());
+    assertEquals(
+        "Only the campaign owner can perform this action on the campaign", ex.getMessage());
   }
 
   @Test
@@ -180,6 +181,19 @@ class CampaignServiceImplTest {
   }
 
   @Test
+  void testActionPauseWhenNotOwner() {
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
+
+    final ForbiddenException ex =
+        assertThrows(
+            ForbiddenException.class,
+            () -> this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_PAUSE, NON_OWNER_ID));
+    assertEquals(
+        "Only the campaign owner can perform this action on the campaign", ex.getMessage());
+    verifyNoInteractions(this.mockStateMachine);
+  }
+
+  @Test
   void testActionResume() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_3)).thenReturn(Optional.of(CAMPAIGN_3));
     when(this.mockCampaignRepository.save(CAMPAIGN_3)).thenReturn(CAMPAIGN_3);
@@ -188,6 +202,19 @@ class CampaignServiceImplTest {
 
     verify(this.mockStateMachine).transition(CAMPAIGN_3, CAMPAIGN_STATUS_ACTIVE);
     verify(this.mockCampaignRepository).save(CAMPAIGN_3);
+  }
+
+  @Test
+  void testActionResumeWhenNotOwner() {
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_3)).thenReturn(Optional.of(CAMPAIGN_3));
+
+    final ForbiddenException ex =
+        assertThrows(
+            ForbiddenException.class,
+            () -> this.campaignService.action(CAMPAIGN_ID_3, CAMPAIGN_ACTION_RESUME, NON_OWNER_ID));
+    assertEquals(
+        "Only the campaign owner can perform this action on the campaign", ex.getMessage());
+    verifyNoInteractions(this.mockStateMachine);
   }
 
   @Test

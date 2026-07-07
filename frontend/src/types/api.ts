@@ -1762,6 +1762,8 @@ export interface components {
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            /** @enum {string} */
+            campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
             offeredPricePaise?: number;
             commissionOfferedPaise?: number;

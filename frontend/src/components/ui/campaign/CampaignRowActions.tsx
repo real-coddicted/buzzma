@@ -1,5 +1,5 @@
 import { Badge } from '../Badge'
-import { IconPause, IconCopy, IconEdit, IconX, IconEye } from '../icons'
+import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye } from '../icons'
 import type { Campaign } from '../../../types'
 
 interface Props {
@@ -7,9 +7,11 @@ interface Props {
   onEdit: () => void
   onCopy: () => void
   onView: () => void
+  onPause: () => void
+  onResume: () => void
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">
@@ -33,6 +35,7 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Prop
             </button>
             <button
               title="Pause"
+              onClick={onPause}
               className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-yellow hover:bg-neon-yellow/10 transition-colors"
             >
               <IconPause size={13} />
@@ -42,6 +45,24 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView }: Prop
               className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
             >
               <IconX size={13} />
+            </button>
+          </>
+        )}
+        {c.status === 'paused' && (
+          <>
+            <button
+              title="View"
+              onClick={onView}
+              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
+            >
+              <IconEye size={13} />
+            </button>
+            <button
+              title="Resume"
+              onClick={onResume}
+              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-green hover:bg-neon-green/10 transition-colors"
+            >
+              <IconPlay size={13} />
             </button>
           </>
         )}
