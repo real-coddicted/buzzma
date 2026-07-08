@@ -1,8 +1,6 @@
 package com.coddicted.buzzma.support.entity;
 
 public enum TicketStatus {
-  // created but not assigned
-  TICKET_STATUS_OPEN,
   // ticket assigned and support team is working on it
   TICKET_STATUS_IN_PROGRESS,
   // need additional info from the user

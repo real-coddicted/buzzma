@@ -22,8 +22,7 @@ function mapStatus(status?: TicketResponseDto['status']): TicketStatus {
     case 'TICKET_STATUS_WAITING_FOR_USER_ACTION': return 'WaitingForUser'
     case 'TICKET_STATUS_RESOLVED':              return 'Resolved'
     case 'TICKET_STATUS_CLOSED':                return 'Closed'
-    case 'TICKET_STATUS_OPEN':
-    default:                                    return 'Open'
+    default:                                    return 'InProgress'
   }
 }
 
@@ -60,6 +59,7 @@ function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket
 
   return {
     id: dto.id ?? '',
+    code: dto.code ?? '',
     raisedBy: dto.raisedBy,
     raisedByName: dto.raisedByName,
     assigneeId: dto.assigneeId,

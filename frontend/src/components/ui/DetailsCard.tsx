@@ -1,46 +1,9 @@
-import { useState } from 'react'
-import { IconCopy, IconCopyCheck } from './icons'
 import { LabeledField } from './LabeledField'
+import { CopyableCode } from './CopyableCode'
 import type { UserDetails } from '../../types/ProfileTypes'
 
 interface DetailsCardProps {
   details: UserDetails
-}
-
-function CopyableCode({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false)
-
-  function handleCopy() {
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
-        Code
-      </span>
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-mono tracking-widest text-ink-light-primary dark:text-ink-dark-primary">
-          {code}
-        </span>
-        <button
-          onClick={handleCopy}
-          title={copied ? 'Copied!' : 'Copy code'}
-          className={[
-            'flex items-center justify-center w-6 h-6 rounded-md border transition-colors',
-            copied
-              ? 'border-neon-green/40 bg-neon-green/10 text-neon-green'
-              : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-muted dark:text-ink-dark-muted hover:border-neon-blue/40 hover:text-neon-blue',
-          ].join(' ')}
-        >
-          {copied ? <IconCopyCheck size={12} /> : <IconCopy size={12} />}
-        </button>
-      </div>
-    </div>
-  )
 }
 
 const nameLabels: Record<string, string> = {
@@ -69,7 +32,12 @@ export function DetailsCard({ details }: DetailsCardProps) {
       <div className="space-y-3">
         {code && (
           <>
-            <CopyableCode code={code} />
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
+                Code
+              </span>
+              <CopyableCode code={code} />
+            </div>
             <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
           </>
         )}

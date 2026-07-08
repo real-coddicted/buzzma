@@ -106,7 +106,7 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
       || t.description.toLowerCase().includes(q)
       || t.categoryDisplayName.toLowerCase().includes(q)
       || t.subCategoryDisplayName.toLowerCase().includes(q)
-      || String(t.id).includes(q)
+      || t.code.toLowerCase().includes(q)
     return matchesFilter && matchesSearch
   })
 
@@ -158,7 +158,12 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
         ) : (
           <div className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {filtered.map(ticket => (
-              <TicketListItem key={ticket.id} ticket={ticket} onClick={handleSelectTicket} />
+              <TicketListItem
+                key={ticket.id}
+                ticket={ticket}
+                onClick={handleSelectTicket}
+                role={tab === 'raised' ? 'reporter' : 'assignee'}
+              />
             ))}
           </div>
         )}

@@ -1,11 +1,6 @@
 import { TicketStatusBadge } from './TicketStatusBadge'
 import type { Ticket } from '../../../types/TicketTypes'
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
+import { formatDateTime } from '../../../utils/time'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -69,14 +64,14 @@ export function TicketInfo({ ticket }: Props) {
 
         <Row label="Raised on">
           <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
-            {formatDate(ticket.createdAt)}
+            {formatDateTime(ticket.createdAt)}
           </span>
         </Row>
 
         {ticket.updatedAt !== ticket.createdAt && (
           <Row label="Last updated">
             <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
-              {formatDate(ticket.updatedAt)}
+              {formatDateTime(ticket.updatedAt)}
             </span>
           </Row>
         )}

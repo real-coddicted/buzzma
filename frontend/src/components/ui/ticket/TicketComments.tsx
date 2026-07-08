@@ -3,7 +3,7 @@ import { Button } from '../Button'
 import { fetchTicketComments, postTicketComment } from '../../../api/ticketApi'
 import type { Ticket, TicketComment } from '../../../types/TicketTypes'
 
-const canComment = (status: Ticket['status']) => status === 'Open' || status === 'InProgress' || status === 'WaitingForUser'
+const canComment = (status: Ticket['status']) => status === 'InProgress' || status === 'WaitingForUser'
 
 const USER_COLORS = [
   { card: 'bg-neon-blue/5 border-neon-blue/20',   name: 'text-neon-blue'   },

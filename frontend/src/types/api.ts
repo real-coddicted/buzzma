@@ -1097,6 +1097,7 @@ export interface components {
         TicketResponseDto: {
             /** Format: uuid */
             id?: string;
+            code?: string;
             /** Format: uuid */
             raisedBy?: string;
             raisedByName?: string;
@@ -1109,7 +1110,7 @@ export interface components {
             orderId?: string;
             dealId?: string;
             /** @enum {string} */
-            status?: "TICKET_STATUS_OPEN" | "TICKET_STATUS_IN_PROGRESS" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_RESOLVED" | "TICKET_STATUS_CLOSED";
+            status?: "TICKET_STATUS_IN_PROGRESS" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_RESOLVED" | "TICKET_STATUS_CLOSED";
             /** Format: uuid */
             assigneeId?: string;
             assigneeName?: string;
@@ -1385,7 +1386,7 @@ export interface components {
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
-            campaignId: string;
+            campaignId?: string;
             /** Format: uuid */
             assignorId: string;
             /** Format: uuid */
@@ -1758,6 +1759,8 @@ export interface components {
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            /** @enum {string} */
+            campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
             offeredPricePaise?: number;
             /** Format: int32 */
@@ -3264,7 +3267,7 @@ export interface operations {
     list_2: {
         parameters: {
             query: {
-                status: string;
+                status: "NOTIFICATION_STATUS_READ" | "NOTIFICATION_STATUS_UNREAD";
                 page?: number;
                 size?: number;
             };

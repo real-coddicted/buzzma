@@ -126,12 +126,8 @@ class TicketServiceImplTest {
 
   @Test
   void assign_transitionsStatusAndPersists() {
-    final Ticket openTicket =
-        ASSIGNED_TICKET.toBuilder()
-            .assigneeId(null)
-            .status(TicketStatus.TICKET_STATUS_OPEN)
-            .build();
-    when(this.mockTicketRepository.findById(TICKET_ID)).thenReturn(Optional.of(openTicket));
+    final Ticket unassignedTicket = ASSIGNED_TICKET.toBuilder().assigneeId(null).build();
+    when(this.mockTicketRepository.findById(TICKET_ID)).thenReturn(Optional.of(unassignedTicket));
     final ArgumentCaptor<Ticket> captor = forClass(Ticket.class);
     when(this.mockTicketRepository.save(captor.capture())).thenReturn(ASSIGNED_TICKET);
 

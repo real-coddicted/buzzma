@@ -1,7 +1,8 @@
-export type TicketStatus = 'Open' | 'InProgress' | 'WaitingForUser' | 'Resolved' | 'Closed'
+export type TicketStatus = 'InProgress' | 'WaitingForUser' | 'Resolved' | 'Closed'
 
 export interface Ticket {
   id: string
+  code: string
   raisedBy?: string
   raisedByName?: string
   assigneeId?: string

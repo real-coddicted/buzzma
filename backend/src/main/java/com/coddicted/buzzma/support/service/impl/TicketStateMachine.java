@@ -15,10 +15,6 @@ public class TicketStateMachine {
       new EnumMap<>(TicketStatus.class);
 
   static {
-    Map<TicketAction, TicketStatus> fromOpen = new EnumMap<>(TicketAction.class);
-    fromOpen.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
-    TRANSITIONS.put(TicketStatus.TICKET_STATUS_OPEN, fromOpen);
-
     Map<TicketAction, TicketStatus> fromInProgress = new EnumMap<>(TicketAction.class);
     fromInProgress.put(TicketAction.TICKET_ACTION_CLOSE, TicketStatus.TICKET_STATUS_CLOSED);
     fromInProgress.put(

@@ -1,4 +1,5 @@
 import { TicketStatusBadge } from './TicketStatusBadge'
+import { CopyableCode } from '../CopyableCode'
 import type { Ticket } from '../../../types/TicketTypes'
 
 function formatDate(iso: string) {
@@ -8,12 +9,23 @@ function formatDate(iso: string) {
 interface TicketListItemProps {
   ticket: Ticket
   onClick: (ticket: Ticket) => void
+  role?: 'reporter' | 'assignee'
 }
 
-export function TicketListItem({ ticket, onClick }: TicketListItemProps) {
+export function TicketListItem({ ticket, onClick, role = 'assignee' }: TicketListItemProps) {
+  const byName = role === 'reporter'
+    ? (ticket.assigneeName ?? (ticket.assigneeId ? ticket.assigneeId.slice(0, 8) + '…' : undefined))
+    : (ticket.raisedByName ?? (ticket.raisedBy ? ticket.raisedBy.slice(0, 8) + '…' : undefined))
+
   return (
     <div>
-      <button className="w-full text-left group px-4 py-3 hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors" onClick={() => onClick(ticket)}>
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full text-left group px-4 py-3 hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors cursor-pointer"
+        onClick={() => onClick(ticket)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(ticket) }}
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
@@ -23,6 +35,9 @@ export function TicketListItem({ ticket, onClick }: TicketListItemProps) {
               <span className="text-ink-light-muted dark:text-ink-dark-muted text-xs">›</span>
               <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
                 {ticket.subCategoryDisplayName}
+              </span>
+              <span onClick={e => e.stopPropagation()}>
+                <CopyableCode code={ticket.code} />
               </span>
               {ticket.orderId && (
                 <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
@@ -35,19 +50,16 @@ export function TicketListItem({ ticket, onClick }: TicketListItemProps) {
             </p>
             <div className="flex items-center gap-3 pt-0.5">
               <span className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
-                {formatDate(ticket.createdAt)}
+                Created {formatDate(ticket.createdAt)}
               </span>
               {ticket.updatedAt !== ticket.createdAt && (
                 <span className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
                   · Updated {formatDate(ticket.updatedAt)}
                 </span>
               )}
-              <span className="text-[11px] font-mono text-ink-light-muted dark:text-ink-dark-muted">
-                #{ticket.id}
-              </span>
-              {(ticket.raisedByName || ticket.raisedBy) && (
+              {byName && (
                 <span className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
-                  · By {ticket.raisedByName ?? ticket.raisedBy!.slice(0, 8) + '…'}
+                  · By {byName}
                 </span>
               )}
             </div>
@@ -59,7 +71,7 @@ export function TicketListItem({ ticket, onClick }: TicketListItemProps) {
             </svg>
           </div>
         </div>
-      </button>
+      </div>
     </div>
   )
 }

@@ -13,6 +13,7 @@ import lombok.extern.jackson.Jacksonized;
 public class TicketResponseDto {
 
   UUID id;
+  String code;
   UUID raisedBy;
   String raisedByName;
   UUID categoryId;
