@@ -25,12 +25,20 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
     }
   }
 
-  function handleSlotsChange(id: string, value: string) {
-    onChange(entities.map(e => e.id === id ? { ...e, slotsAvailable: Math.max(0, parseInt(value) || 0) } : e))
+  function upsert(conn: { id: string; name: string }, patch: Partial<LinkedEntity>) {
+    if (entityMap.has(conn.id)) {
+      onChange(entities.map(e => e.id === conn.id ? { ...e, ...patch } : e))
+    } else {
+      onChange([...entities, { id: conn.id, name: conn.name, slotsAvailable: 0, commissionOffered: 0, ...patch }])
+    }
   }
 
-  function handleCommissionChange(id: string, value: string) {
-    onChange(entities.map(e => e.id === id ? { ...e, commissionOffered: parseFloat(value) || 0 } : e))
+  function handleSlotsChange(conn: { id: string; name: string }, value: string) {
+    upsert(conn, { slotsAvailable: Math.max(0, parseInt(value) || 0) })
+  }
+
+  function handleCommissionChange(conn: { id: string; name: string }, value: string) {
+    upsert(conn, { commissionOffered: parseFloat(value) || 0 })
   }
 
   function copySlotsToAll() {
@@ -40,7 +48,10 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
 
   function copyCommissionToAll() {
     const commission = entityMap.get(rows[0]?.id ?? '')?.commissionOffered ?? 0
-    onChange(entities.map(e => ({ ...e, commissionOffered: commission })))
+    onChange(rows.map(r => ({
+      ...(entityMap.get(r.id) ?? { id: r.id, name: r.name, slotsAvailable: 0, commissionOffered: 0 }),
+      commissionOffered: commission,
+    })))
   }
 
   const allSelected = connections.length > 0 && connections.every(c => entityMap.has(c.id))
@@ -116,7 +127,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
                           type="number"
                           min="0"
                           value={entity?.slotsAvailable || ''}
-                          onChange={e => handleSlotsChange(conn.id, e.target.value)}
+                          onChange={e => handleSlotsChange(conn, e.target.value)}
                           disabled={slotsDisabled}
                           onWheel={e => e.currentTarget.blur()}
                           className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg px-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-40"
@@ -137,7 +148,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
                       <div className="flex items-center gap-1.5">
                         <RupeeInput
                           value={entity?.commissionOffered || ''}
-                          onChange={v => handleCommissionChange(conn.id, v)}
+                          onChange={v => handleCommissionChange(conn, v)}
                           symbolOffset="left-2"
                           inputPadding="pl-5"
                           disabled={readOnly}
