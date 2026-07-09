@@ -39,6 +39,7 @@ public interface AssignmentMapper {
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")
   @Mapping(source = "campaign.termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "campaign.sellerName", target = "sellerName")
+  @Mapping(source = "campaign.affiliateLinkAllowed", target = "affiliateLinkAllowed")
   AssignmentResponseDto toResponse(Assignment assignment);
 
   default AssignmentSummaryResponseDto toSummaryResponse(final AssignmentSummaryView view) {

@@ -34,6 +34,10 @@ final class Fixtures {
   static final Campaign CAMPAIGN_3 =
       FileUtils.loadResourceAsObject("/fixtures/input/campaign/campaign-3.json", Campaign.class);
 
+  static final Campaign CAMPAIGN_AFFILIATE_ALLOWED =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/campaign/campaign-affiliate-allowed.json", Campaign.class);
+
   static final Campaign EXPECTED_CAMPAIGN_1 =
       FileUtils.loadResourceAsObject("/fixtures/output/campaign/campaign-1.json", Campaign.class);
 
@@ -58,6 +62,7 @@ final class Fixtures {
   static final UUID ASSIGNEE_ID = UUID.fromString("88888888-8888-8888-8888-888888888888");
   static final BigInteger COMMISSION_PAISE = BigInteger.valueOf(5000);
   static final BigInteger DEAL_PRICE_PAISE = BigInteger.valueOf(49900);
+  static final String AFFILIATE_URL = "https://example.com/affiliate";
 
   static final UUID DEAL_ID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 

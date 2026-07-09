@@ -76,12 +76,14 @@ public class AssignmentController {
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @Valid @RequestBody final PublishAssignmentRequestDto request) {
+
     return this.assignmentService.publishAssignment(
         request.getCampaignId(),
         id,
         request.getCommissionChargedPaise(),
         request.getDealPricePaise(),
-        requesterId);
+        requesterId,
+        request.getAffiliateUrl());
   }
 
   @GetMapping("/commissionCharged/{campaignId}")

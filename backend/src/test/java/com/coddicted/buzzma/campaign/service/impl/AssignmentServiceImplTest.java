@@ -5,6 +5,7 @@ import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
@@ -17,6 +18,7 @@ import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import java.util.List;
 import java.util.Set;
@@ -109,12 +111,17 @@ class AssignmentServiceImplTest {
 
   @Test
   void testPublishAssignment() {
-    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_AFFILIATE_ALLOWED);
     when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
 
     final boolean result =
         this.assignmentService.publishAssignment(
-            CAMPAIGN_ID_1, ASSIGNMENT_ID_1, COMMISSION_PAISE, DEAL_PRICE_PAISE, REQUESTER_ID);
+            CAMPAIGN_ID_1,
+            ASSIGNMENT_ID_1,
+            COMMISSION_PAISE,
+            DEAL_PRICE_PAISE,
+            REQUESTER_ID,
+            AFFILIATE_URL);
 
     assertTrue(result);
 
@@ -129,10 +136,48 @@ class AssignmentServiceImplTest {
     final ArgumentCaptor<Deal> dealCaptor = ArgumentCaptor.forClass(Deal.class);
     verify(this.mockDealService).create(dealCaptor.capture());
     final Deal savedDeal = dealCaptor.getValue();
-    assertEquals(CAMPAIGN_1, savedDeal.getCampaign());
+    assertEquals(CAMPAIGN_AFFILIATE_ALLOWED, savedDeal.getCampaign());
     assertEquals(DEAL_PRICE_PAISE, savedDeal.getDealPricePaise());
     assertEquals(REQUESTER_ID, savedDeal.getOwnerId());
     assertEquals(REQUESTER_ID, savedDeal.getCreatedBy());
     assertEquals(REQUESTER_ID, savedDeal.getUpdatedBy());
+    assertEquals(AFFILIATE_URL, savedDeal.getAffiliateUrl());
+  }
+
+  @Test
+  void testPublishAssignmentThrowsWhenAffiliateUrlNotAllowedOnCampaign() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+
+    assertThrows(
+        BusinessRuleViolationException.class,
+        () ->
+            this.assignmentService.publishAssignment(
+                CAMPAIGN_ID_1,
+                ASSIGNMENT_ID_1,
+                COMMISSION_PAISE,
+                DEAL_PRICE_PAISE,
+                REQUESTER_ID,
+                AFFILIATE_URL));
+
+    verifyNoInteractions(
+        this.mockCampaignAssignmentService, this.mockCommissionService, this.mockDealService);
+  }
+
+  @Test
+  void testPublishAssignmentAllowsNoAffiliateUrlWhenNotAllowedOnCampaign() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
+
+    final boolean result =
+        this.assignmentService.publishAssignment(
+            CAMPAIGN_ID_1, ASSIGNMENT_ID_1, COMMISSION_PAISE, DEAL_PRICE_PAISE, REQUESTER_ID, null);
+
+    assertTrue(result);
+
+    final ArgumentCaptor<Deal> dealCaptor = ArgumentCaptor.forClass(Deal.class);
+    verify(this.mockDealService).create(dealCaptor.capture());
+    final Deal savedDeal = dealCaptor.getValue();
+    assertEquals(CAMPAIGN_1, savedDeal.getCampaign());
+    assertNull(savedDeal.getAffiliateUrl());
   }
 }

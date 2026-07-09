@@ -23,5 +23,6 @@ public interface AssignmentService {
       final UUID campaignAssignmentId,
       final BigInteger commissionChargedPaise,
       final BigInteger dealPricePaise,
-      final UUID chargedById);
+      final UUID chargedById,
+      final String affiliateUrl);
 }

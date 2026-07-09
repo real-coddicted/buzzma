@@ -54,6 +54,9 @@ public class Deal implements Auditable {
   @Column(name = "code", length = 16, unique = true)
   private String code;
 
+  @Column(name = "affiliate_url")
+  private String affiliateUrl;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;
