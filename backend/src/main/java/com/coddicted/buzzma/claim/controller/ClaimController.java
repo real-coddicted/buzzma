@@ -67,7 +67,7 @@ public class ClaimController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  // TODO add preauth for buyer role only
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid final ClaimRequestDto request) {
 
@@ -87,7 +87,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/rating")
-  // TODO add preauth for buyer role only
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto submitRating(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -106,7 +106,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/review")
-  // TODO add preauth for buyer role only
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto submitReview(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -127,7 +127,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/return")
-  // TODO add preauth for buyer role only
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto submitReturn(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -146,7 +146,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/update")
-  // TODO add preauth for buyer role only
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto updateScreenshot(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -168,6 +168,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/submitReview")
+  @PreAuthorize("hasAnyRole('AGENCY','MEDIATOR')")
   public ClaimResponseDto submitClaimReview(
       @CurrentUser final BuzzmaUser requester,
       @PathVariable final UUID id,
@@ -186,7 +187,9 @@ public class ClaimController {
   }
 
   @PostMapping("/screenshots/review")
-  // TODO Preauth for Agency role only
+  @PreAuthorize(
+      "hasAnyRole('AGENCY','MEDIATOR')") // Mediators can also review the screenshots, "can be
+  // removed"
   public ClaimResponseDto reviewScreenshot(
       @CurrentUserId final UUID reviewerId,
       @Valid @RequestBody final ScreenshotReviewRequestDto request) {
@@ -204,6 +207,7 @@ public class ClaimController {
   }
 
   @GetMapping
+  @PreAuthorize("hasRole('BUYER')")
   public List<ClaimResponseDto> list(@CurrentUserId final UUID requesterId) {
     return this.claimService.listByOwner(requesterId).stream()
         .map(
@@ -226,6 +230,7 @@ public class ClaimController {
   }
 
   @GetMapping("/{id}")
+  @PreAuthorize("hasRole('BUYER')")
   public ClaimResponseDto getById(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
     final Claim claim = this.claimService.getById(id, requesterId);

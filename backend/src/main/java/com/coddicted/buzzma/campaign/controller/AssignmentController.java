@@ -47,6 +47,7 @@ public class AssignmentController {
   }
 
   @GetMapping
+  @PreAuthorize("hasAnyRole('AGENCY', 'MEDIATOR')")
   public PagedAssignmentsResponseDto getAssignments(
       @CurrentUserId final UUID requesterId,
       @RequestParam final CampaignAssignmentStatus status,
@@ -72,6 +73,7 @@ public class AssignmentController {
   }
 
   @PostMapping("/{id}/publish")
+  @PreAuthorize("hasRole('MEDIATOR')")
   public boolean publishAssignment(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -85,6 +87,7 @@ public class AssignmentController {
   }
 
   @GetMapping("/commissionCharged/{campaignId}")
+  @PreAuthorize("hasRole('MEDIATOR')")
   public CommissionResponseDto getCommissionCharged(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID campaignId) {
     final Commission commission =
