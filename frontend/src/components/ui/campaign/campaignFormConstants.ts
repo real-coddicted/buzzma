@@ -17,6 +17,7 @@ export const EMPTY_FORM = {
   endDate: '',
   totalSlots: '',
   openToAll: false,
+  affiliateLinkAllowed: false,
   assignees: [] as LinkedEntity[],
   termsAndConditions: '',
 }

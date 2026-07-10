@@ -17,12 +17,13 @@ interface FormSlice {
   originalPriceRupees: string
   campaignPriceRupees: string
   commissionToAllRupees: string
+  affiliateLinkAllowed: boolean
 }
 
 interface Props {
   form: FormSlice
   errors: Partial<Record<string, string>>
-  set: (field: keyof FormSlice, value: string) => void
+  set: (field: keyof FormSlice, value: unknown) => void
   readOnly?: boolean
 }
 
@@ -91,6 +92,19 @@ export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
             <label className={labelClass}>Product URL *</label>
             <input className={inputClass} type="url" placeholder="https://example.com/product" value={form.productUrl} onChange={e => set('productUrl', e.target.value)} disabled={readOnly} />
             {errors.productUrl && <p className={errorClass}>{errors.productUrl}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>Affiliate link allowed by mediator?</label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
+                <input type="radio" name="affiliateLinkAllowed" checked={form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', true)} disabled={readOnly} />
+                Yes
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
+                <input type="radio" name="affiliateLinkAllowed" checked={!form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', false)} disabled={readOnly} />
+                No
+              </label>
+            </div>
           </div>
           <div>
             <label className={labelClass}>Product Image URL *</label>

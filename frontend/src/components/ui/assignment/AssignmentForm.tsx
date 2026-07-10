@@ -16,6 +16,7 @@ interface AssignmentFormProps {
   slotsOffered:              number
   readOnly?:                 boolean
   commissionChargedPaise?:   number
+  affiliateLinkAllowed?:     boolean
   onPublished?: () => void
 }
 
@@ -27,9 +28,11 @@ export function AssignmentForm({
   slotsOffered,
   readOnly = false,
   commissionChargedPaise,
+  affiliateLinkAllowed = false,
   onPublished,
 }: AssignmentFormProps) {
   const [yourCommission, setYourCommission] = useState('')
+  const [affiliateUrl, setAffiliateUrl] = useState('')
   const [loading, setLoading]   = useState(false)
   const [success, setSuccess]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -44,7 +47,13 @@ export function AssignmentForm({
     setLoading(true)
     setError(null)
     try {
-      await publishAssignment(assignmentId, campaignId, yourCommissionPaise, offeredPricePaise)
+      await publishAssignment(
+        assignmentId,
+        campaignId,
+        yourCommissionPaise,
+        offeredPricePaise,
+        affiliateUrl.trim() || undefined,
+      )
       setSuccess(true)
       onPublished?.()
     } catch (err: unknown) {
@@ -121,6 +130,24 @@ export function AssignmentForm({
             hint="Commission offered + your commission"
             accent={netEarningsPaise >= 0 ? 'green' : 'red'}
           />
+
+          {!readOnly && affiliateLinkAllowed && (
+            <div>
+              <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                Affiliate URL
+              </label>
+              <input
+                type="url"
+                placeholder="https://example.com/affiliate"
+                value={affiliateUrl}
+                onChange={e => setAffiliateUrl(e.target.value)}
+                className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary px-3 py-2 outline-none focus:border-neon-blue/50 transition-colors placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
+              />
+              <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-1">
+                Optional — takes precedence over the product URL if provided
+              </p>
+            </div>
+          )}
 
           {!readOnly && (
             <button

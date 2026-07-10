@@ -75,6 +75,7 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
         ? form.assignees.map(a => ({ ...a, slotsAvailable: 0 }))
         : (form.assignees.length > 0 ? form.assignees : null),
       openToAll: form.openToAll,
+      affiliateLinkAllowed: form.affiliateLinkAllowed,
       termsAndConditions: form.termsAndConditions.trim() || null,
       startDate: form.startDate || null,
       endDate: form.endDate || null,

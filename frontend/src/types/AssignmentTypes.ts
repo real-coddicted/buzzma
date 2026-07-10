@@ -22,4 +22,5 @@ export interface AssignmentItem extends AssignmentSummary {
   commissionOfferedPaise: number
   sellerName?: string
   termsAndConditions?: string
+  affiliateLinkAllowed: boolean
 }
