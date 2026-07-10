@@ -60,6 +60,8 @@ public class CampaignResponseDto {
 
   boolean openToAll;
 
+  boolean affiliateLinkAllowed;
+
   BigInteger commissionToAllPaise;
 
   List<CampaignAssignmentResponseDto> assignments;

@@ -49,6 +49,8 @@ app:
     refresh-secret: ${JWT_REFRESH_SECRET:change-me-refresh-secret-min-32-chars!!}
     access-expiry-ms: ${JWT_ACCESS_EXPIRY_MS:900000}
     refresh-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}
+  cookie:
+    secure: ${COOKIE_SECURE:true}
   rate-limit:
     auth:
       capacity: ${RATE_LIMIT_AUTH_CAPACITY:10}

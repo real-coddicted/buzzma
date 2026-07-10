@@ -3,7 +3,7 @@ import type { SecurityQuestion } from '../types/ForgotPasswordTypes'
 import type { RegisterForm, RegisterResponse } from '../types/RegisterTypes'
 import type { LoginForm, LoginResponse } from '../types/LoginTypes'
 import type { components } from '../types/api'
-import { clearCurrentUser, fetchWithAuth, scheduleProactiveRefresh, setAccessToken, setCurrentUser, setRefreshToken } from './client'
+import { clearCurrentUser, fetchWithAuth, scheduleProactiveRefresh, setAccessToken, setCurrentUser } from './client'
 
 type SignInResponse = components['schemas']['UserSignInResponseDto']
 type UserRegistrationRequestDto = components['schemas']['UserRegistrationRequestDto']
@@ -38,10 +38,7 @@ export async function loginUser(form: LoginForm, captchaToken: string): Promise<
   const data: SignInResponse = await res.json()
   if (data.tokens?.accessToken) {
     setAccessToken(data.tokens.accessToken)
-    if (data.tokens.refreshToken) {
-      setRefreshToken(data.tokens.refreshToken)
-      scheduleProactiveRefresh()
-    }
+    scheduleProactiveRefresh()
     if (data.userSummary) {
       setCurrentUser(data.userSummary)
     } else {
@@ -101,6 +98,13 @@ export async function changePassword(currentPassword: string, newPassword: strin
   await fetchWithAuth('/api/v1/auth/password-update', {
     method: 'POST',
     body: JSON.stringify(body),
+  })
+}
+
+export async function signOut(): Promise<void> {
+  await fetch('/api/v1/auth/sign-out', {
+    method: 'POST',
+    credentials: 'include',
   })
 }
 

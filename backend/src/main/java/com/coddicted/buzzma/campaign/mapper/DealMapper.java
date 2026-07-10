@@ -20,10 +20,7 @@ public interface DealMapper {
       source = "campaign.product.imageUrl",
       target = "productImageUrl",
       qualifiedByName = "urlToString")
-  @Mapping(
-      source = "campaign.product.productLink",
-      target = "productUrl",
-      qualifiedByName = "urlToString")
+  @Mapping(target = "productUrl", expression = "java(resolveProductUrl(deal))")
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "campaign.type", target = "dealType")
   @Mapping(source = "campaign.product.pricePaise", target = "originalPricePaise")
@@ -38,5 +35,12 @@ public interface DealMapper {
   @Named("urlToString")
   default String urlToString(final URL url) {
     return url != null ? url.toString() : null;
+  }
+
+  default String resolveProductUrl(final Deal deal) {
+    if (deal.getAffiliateUrl() != null && !deal.getAffiliateUrl().isBlank()) {
+      return deal.getAffiliateUrl();
+    }
+    return urlToString(deal.getCampaign().getProduct().getProductLink());
   }
 }

@@ -83,6 +83,9 @@ public class Campaign implements Auditable {
   @Column(name = "open_to_all", nullable = false)
   private boolean openToAll;
 
+  @Column(name = "affiliate_link_allowed", nullable = false)
+  private boolean affiliateLinkAllowed;
+
   @Column(name = "commission_to_all_paise")
   private BigInteger commissionToAllPaise;
 

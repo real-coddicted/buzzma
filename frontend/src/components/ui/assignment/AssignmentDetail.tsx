@@ -56,6 +56,7 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
           slotsOffered={item.slotsOffered}
           readOnly={readOnly}
           commissionChargedPaise={commissionChargedPaise}
+          affiliateLinkAllowed={item.affiliateLinkAllowed}
           onPublished={onBack}
         />
       </div>

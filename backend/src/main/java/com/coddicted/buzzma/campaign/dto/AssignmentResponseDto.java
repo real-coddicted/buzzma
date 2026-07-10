@@ -30,4 +30,5 @@ public class AssignmentResponseDto {
   Integer returnWindowDays;
   String termsAndConditions;
   String sellerName;
+  boolean affiliateLinkAllowed;
 }

@@ -34,6 +34,7 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     endDate: yyyymmddToIso(dto.endDate),
     totalSlots: dto.totalSlots?.toString() ?? '',
     openToAll: dto.openToAll ?? false,
+    affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     assignees: assignments.map(a => ({
       id: a.assigneeId ?? '',
       name: a.assigneeName ?? '',

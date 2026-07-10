@@ -1422,6 +1422,7 @@ export interface components {
             returnWindowDays?: number;
             assignees?: components["schemas"]["CampaignAssignmentRequestDto"][];
             openToAll?: boolean;
+            affiliateLinkAllowed?: boolean;
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
@@ -1473,6 +1474,7 @@ export interface components {
             termsAndConditions?: string;
             sellerName?: string;
             openToAll?: boolean;
+            affiliateLinkAllowed?: boolean;
             commissionToAllPaise?: number;
             assignments?: components["schemas"]["CampaignAssignmentResponseDto"][];
             /** Format: date-time */
@@ -1555,6 +1557,7 @@ export interface components {
             campaignId: string;
             commissionChargedPaise: number;
             dealPricePaise: number;
+            affiliateUrl?: string;
         };
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
@@ -1801,6 +1804,7 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            affiliateLinkAllowed?: boolean;
         };
         CommissionResponseDto: {
             /** Format: uuid */

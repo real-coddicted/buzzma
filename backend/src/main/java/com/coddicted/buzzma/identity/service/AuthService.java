@@ -1,5 +1,7 @@
 package com.coddicted.buzzma.identity.service;
 
+import com.coddicted.buzzma.identity.dto.auth.SignInResult;
+import com.coddicted.buzzma.identity.dto.auth.TokensDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
 import com.coddicted.buzzma.identity.entity.SecurityQuestionWrapper;
@@ -18,13 +20,15 @@ public interface AuthService {
       String inviteCode,
       UUID requesterId);
 
-  BuzzmaUser signIn(BuzzmaUser user, UserCredential userCredential);
+  SignInResult signIn(BuzzmaUser user, UserCredential userCredential);
 
   List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile, UUID requesterId);
 
   boolean resetPassword(String mobile, String newPassword, UUID requesterId);
 
-  BuzzmaUser refresh(String refreshToken);
+  TokensDto refresh(String refreshToken);
+
+  void signOut(String refreshToken);
 
   boolean updatePassword(String currentPassword, String newPassword, UUID requesterId);
 }

@@ -49,6 +49,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
     slotsOffered: dto.slotLimit ?? 0,
     sellerName: dto.sellerName,
     termsAndConditions: dto.termsAndConditions,
+    affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
   }
 }
 
@@ -86,11 +87,13 @@ export async function publishAssignment(
   campaignId: string,
   commissionChargedPaise: number,
   dealPricePaise: number,
+  affiliateUrl?: string,
 ): Promise<boolean> {
   const body: PublishAssignmentRequestDto = {
     campaignId,
     commissionChargedPaise,
     dealPricePaise,
+    ...(affiliateUrl ? { affiliateUrl } : {}),
   }
   const res = await fetchWithAuth(`${API_BASE}/assignments/${assignmentId}/publish`, {
     method: 'POST',

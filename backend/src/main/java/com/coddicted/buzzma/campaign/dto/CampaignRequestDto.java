@@ -55,6 +55,8 @@ public class CampaignRequestDto {
 
   boolean openToAll;
 
+  boolean affiliateLinkAllowed;
+
   @Nullable BigInteger commissionToAllPaise;
 
   @Nullable String termsAndConditions;

@@ -16,3 +16,7 @@
 - Use `final` for variables that should not be reassigned after initialization.
 - Use `@Override` annotation when overriding methods from a superclass or implementing methods from an interface
 - `if` construct must use brackets `{}`s
+
+## Unit Testing
+- Avoid Mockito's `any()`, `anyList()`, and other loose argument matcher variants unless the exact value genuinely cannot be asserted (e.g. a generated ID/timestamp). Prefer matching/asserting on concrete values so tests fail loudly when behavior changes.
+- Use fixtures and input/output JSON files (see `src/test/resources/fixtures/`) for test data rather than constructing ad-hoc objects inline.

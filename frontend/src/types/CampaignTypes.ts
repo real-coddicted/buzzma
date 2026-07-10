@@ -96,6 +96,7 @@ export interface CampaignRequestDto {
   totalSlots: number | null
   assignees: LinkedEntity[] | null
   openToAll: boolean | null
+  affiliateLinkAllowed: boolean
   termsAndConditions: string | null
   startDate: string | null
   endDate: string | null

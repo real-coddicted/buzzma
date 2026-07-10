@@ -15,6 +15,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AssignmentServiceImpl extends BaseCrudService implements AssignmentService {
@@ -101,8 +103,13 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
       final UUID campaignAssignmentId,
       @NotNull final BigInteger commissionCharged,
       @NotNull final BigInteger dealPrice,
-      final UUID chargedById) {
+      final UUID chargedById,
+      final String affiliateUrl) {
     final Campaign campaign = this.campaignService.getById(campaignId);
+    if (StringUtils.hasText(affiliateUrl) && !campaign.isAffiliateLinkAllowed()) {
+      throw new BusinessRuleViolationException(
+          "Affiliate URL is not allowed for this campaign. This may be fraudulent activity.");
+    }
     final CampaignAssignment campaignAssignment =
         this.campaignAssignmentService.getById(campaignAssignmentId);
     final Commission commission =
@@ -116,7 +123,8 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     this.commissionService.create(commission, chargedById);
     // create deal entity
     final Deal deal =
-        toDeal(campaign, campaignAssignment.getCampaignSlot(), dealPrice, chargedById);
+        toDeal(
+            campaign, campaignAssignment.getCampaignSlot(), dealPrice, chargedById, affiliateUrl);
     this.dealService.create(deal);
     final CampaignAssignment updated =
         campaignAssignment.toBuilder()
@@ -148,7 +156,8 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
       final Campaign campaign,
       final CampaignSlot campaignSlot,
       final BigInteger dealPricePaise,
-      final UUID ownerId) {
+      final UUID ownerId,
+      final String affiliateUrl) {
     return Deal.builder()
         .campaign(campaign)
         .campaignSlot(campaignSlot)
@@ -156,6 +165,7 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
         .ownerId(ownerId)
         .createdBy(ownerId)
         .updatedBy(ownerId)
+        .affiliateUrl(affiliateUrl)
         .build();
   }
 }
