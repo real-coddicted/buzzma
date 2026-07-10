@@ -20,6 +20,9 @@ spring:
     locations: classpath:db/migration,classpath:db/vendor/{vendor}
     user: ${FLYWAY_MIGRATOR_USER:}
     password: ${FLYWAY_MIGRATOR_PASSWORD:}
+    placeholders:
+      appRuntimeRole: ${DB_APP_RUNTIME_ROLE:}
+      flywayMigratorRole: ${DB_FLYWAY_MIGRATOR_ROLE:}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
