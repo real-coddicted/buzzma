@@ -230,7 +230,7 @@ public class ClaimController {
   }
 
   @GetMapping("/{id}")
-  @PreAuthorize("hasAnyRole('BUYER', 'Agency', 'MEDIATOR')")
+  @PreAuthorize("hasAnyRole('BUYER', 'AGENCY', 'MEDIATOR')")
   public ClaimResponseDto getById(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
     final Claim claim = this.claimService.getById(id, requesterId);
