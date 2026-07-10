@@ -3,6 +3,8 @@ package com.coddicted.buzzma.identity.service.impl;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.dto.auth.SignInResult;
+import com.coddicted.buzzma.identity.dto.auth.TokensDto;
 import com.coddicted.buzzma.identity.entity.BankDetails;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.SecurityAnswer;
@@ -12,6 +14,7 @@ import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.identity.service.AuthService;
+import com.coddicted.buzzma.identity.service.RefreshTokenService;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserCredentialService;
@@ -25,7 +28,9 @@ import com.coddicted.buzzma.settings.util.SettingsUtils;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.exception.UnauthorizedException;
+import com.coddicted.buzzma.shared.security.JwtProperties;
 import com.coddicted.buzzma.shared.security.JwtService;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +54,8 @@ public class AuthServiceImpl implements AuthService {
           UserRole.ROLE_MEDIATOR, Set.of(UserRole.ROLE_BUYER));
 
   private final JwtService jwtService;
+  private final JwtProperties jwtProperties;
+  private final RefreshTokenService refreshTokenService;
   private final UserService userService;
   private final UserCredentialService userCredentialService;
   private final UserBankingDetailService userBankingDetailService;
@@ -59,6 +66,8 @@ public class AuthServiceImpl implements AuthService {
 
   public AuthServiceImpl(
       final JwtService jwtService,
+      final JwtProperties jwtProperties,
+      final RefreshTokenService refreshTokenService,
       final UserService userService,
       final UserCredentialService userCredentialService,
       final UserBankingDetailService userBankingDetailService,
@@ -67,6 +76,8 @@ public class AuthServiceImpl implements AuthService {
       final ConnectionService connectionService,
       final UserSettingsService userSettingsService) {
     this.jwtService = jwtService;
+    this.jwtProperties = jwtProperties;
+    this.refreshTokenService = refreshTokenService;
     this.userService = userService;
     this.userCredentialService = userCredentialService;
     this.userBankingDetailService = userBankingDetailService;
@@ -147,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public BuzzmaUser signIn(final BuzzmaUser user, final UserCredential userCredential) {
+  public SignInResult signIn(final BuzzmaUser user, final UserCredential userCredential) {
     final BuzzmaUser existingUser = this.userService.getByMobile(user.getMobile());
     if (!this.userCredentialService.verify(
         existingUser.getId(), userCredential.getPasswordHash())) {
@@ -156,13 +167,31 @@ public class AuthServiceImpl implements AuthService {
     if (existingUser.getStatus() != UserStatus.USER_STATUS_ACTIVE) {
       throw new UnauthorizedException("Account is not active");
     }
-    return existingUser;
+    final TokensDto tokens = buildTokens(existingUser.getId());
+    final Instant expiresAt = Instant.now().plusMillis(this.jwtProperties.getRefreshExpiryMs());
+    this.refreshTokenService.issue(existingUser.getId(), tokens.getRefreshToken(), expiresAt);
+    return new SignInResult(existingUser, tokens);
   }
 
   @Override
-  public BuzzmaUser refresh(final String refreshToken) {
+  public TokensDto refresh(final String refreshToken) {
     final UUID userId = this.jwtService.validateRefreshToken(refreshToken);
-    return this.userService.getById(userId);
+    final TokensDto newTokens = buildTokens(userId);
+    final Instant expiresAt = Instant.now().plusMillis(this.jwtProperties.getRefreshExpiryMs());
+    this.refreshTokenService.rotateToken(refreshToken, newTokens.getRefreshToken(), expiresAt);
+    return newTokens;
+  }
+
+  private TokensDto buildTokens(final UUID userId) {
+    return TokensDto.builder()
+        .accessToken(this.jwtService.generateAccessToken(userId))
+        .refreshToken(this.jwtService.generateRefreshToken(userId))
+        .build();
+  }
+
+  @Override
+  public void signOut(final String refreshToken) {
+    this.refreshTokenService.revoke(refreshToken);
   }
 
   @Override

@@ -1,7 +1,6 @@
 import type { components } from '../types/api'
 
 const TOKEN_KEY = 'buzzma-access-token'
-const REFRESH_TOKEN_KEY = 'buzzma-refresh-token'
 const USER_KEY = 'buzzma-current-user'
 
 export type CurrentUser = components['schemas']['UserSummary']
@@ -16,18 +15,6 @@ export function setAccessToken(token: string): void {
 
 export function clearAccessToken(): void {
   localStorage.removeItem(TOKEN_KEY)
-}
-
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY)
-}
-
-export function setRefreshToken(token: string): void {
-  localStorage.setItem(REFRESH_TOKEN_KEY, token)
-}
-
-export function clearRefreshToken(): void {
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
 export function getCurrentUser(): CurrentUser | null {
@@ -52,7 +39,6 @@ export function clearCurrentUser(): void {
 
 export function clearSession(): void {
   clearAccessToken()
-  clearRefreshToken()
   clearCurrentUser()
 }
 
@@ -68,25 +54,27 @@ export function throwIfUnauthorized(res: Response): void {
   }
 }
 
-async function tryRefreshTokens(): Promise<boolean> {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken) return false
-  try {
-    const res = await fetch('/api/v1/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    })
-    if (!res.ok) return false
-    const data = await res.json() as { accessToken?: string; refreshToken?: string }
-    if (!data.accessToken || !data.refreshToken) return false
-    setAccessToken(data.accessToken)
-    setRefreshToken(data.refreshToken)
-    scheduleProactiveRefresh()
-    return true
-  } catch {
-    return false
-  }
+let refreshingPromise: Promise<boolean> | null = null
+
+function tryRefreshTokens(): Promise<boolean> {
+  if (refreshingPromise !== null) return refreshingPromise
+  refreshingPromise = (async () => {
+    try {
+      const res = await fetch('/api/v1/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) return false
+      const data = await res.json() as { accessToken?: string }
+      if (!data.accessToken) return false
+      setAccessToken(data.accessToken)
+      scheduleProactiveRefresh()
+      return true
+    } catch {
+      return false
+    }
+  })().finally(() => { refreshingPromise = null })
+  return refreshingPromise
 }
 
 let proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null

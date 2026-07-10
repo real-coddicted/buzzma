@@ -19,6 +19,7 @@ import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
 import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
+import { signOut } from './api/authApi'
 import { useTheme } from './hooks/useTheme'
 import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
 import type { NavPage } from './types'
@@ -42,8 +43,9 @@ export default function App() {
   }, [navigate])
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     cancelProactiveRefresh()
+    try { await signOut() } catch { /* network down — still clear local state */ }
     clearSession()
     setIsAuthenticated(false)
     setUserSettings(null)
