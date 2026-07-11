@@ -11,13 +11,17 @@ import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATU
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_COMPLETED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_DRAFT;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_PAUSED;
+import static com.coddicted.buzzma.campaign.entity.CampaignType.CAMPAIGN_TYPE_REVIEW;
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
+import static com.coddicted.buzzma.shared.enums.Platform.PLATFORM_AMAZON;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
+import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
@@ -38,6 +42,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CampaignServiceImplTest {
@@ -291,5 +299,61 @@ class CampaignServiceImplTest {
 
     assertThrows(
         NotFoundException.class, () -> this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID));
+  }
+
+  @Test
+  void testSearch() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    final Page<Campaign> campaignPage = new PageImpl<>(List.of(CAMPAIGN_1), pageable, 1);
+    when(this.mockCampaignRepository.search(
+            OWNER_ID,
+            List.of("nike"),
+            List.of(PLATFORM_AMAZON),
+            List.of(CAMPAIGN_TYPE_REVIEW),
+            List.of(CAMPAIGN_STATUS_ACTIVE),
+            20240101,
+            20241231,
+            pageable))
+        .thenReturn(campaignPage);
+    when(this.mockCampaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(
+            List.of(CAMPAIGN_ID_1)))
+        .thenReturn(List.of(SLOT_1));
+
+    final Page<CampaignSummary> result =
+        this.campaignService.search(
+            OWNER_ID,
+            new CampaignSearchCriteria(
+                List.of("Nike"),
+                List.of(PLATFORM_AMAZON),
+                List.of(CAMPAIGN_TYPE_REVIEW),
+                List.of(CAMPAIGN_STATUS_ACTIVE),
+                20240101,
+                20241231),
+            pageable);
+
+    assertEquals(1, result.getTotalElements());
+    final CampaignSummary summary = result.getContent().get(0);
+    assertEquals(CAMPAIGN_1, summary.getCampaign());
+    assertEquals(SLOT_1.getTotalSlots() - SLOT_1.getSlotsAvailable(), summary.getSlotsClaimed());
+  }
+
+  @Test
+  void testSearchNormalizesEmptyFilterListsToNull() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    final Page<Campaign> campaignPage = new PageImpl<>(List.of(), pageable, 0);
+    when(this.mockCampaignRepository.search(OWNER_ID, null, null, null, null, null, null, pageable))
+        .thenReturn(campaignPage);
+    when(this.mockCampaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(List.of()))
+        .thenReturn(List.of());
+
+    final Page<CampaignSummary> result =
+        this.campaignService.search(
+            OWNER_ID,
+            new CampaignSearchCriteria(List.of(), List.of(), List.of(), List.of(), null, null),
+            pageable);
+
+    assertEquals(0, result.getTotalElements());
+    verify(this.mockCampaignRepository)
+        .search(OWNER_ID, null, null, null, null, null, null, pageable);
   }
 }

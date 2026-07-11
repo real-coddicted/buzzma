@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
@@ -26,8 +27,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class CampaignServiceImpl extends BaseCrudService implements CampaignService {
@@ -136,30 +140,49 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   public List<CampaignSummary> getByOwnerId(final UUID ownerId) {
     final List<Campaign> campaigns =
         this.campaignRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+    final Map<UUID, CampaignSlot> slotsByCampaignId = loadSlotsByCampaignId(campaigns);
+    return campaigns.stream().map(c -> toCampaignSummary(c, slotsByCampaignId)).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<CampaignSummary> search(
+      final UUID ownerId, final CampaignSearchCriteria criteria, final Pageable pageable) {
+    final Page<Campaign> campaigns =
+        this.campaignRepository.search(
+            ownerId,
+            CollectionUtils.isEmpty(criteria.brands())
+                ? null
+                : criteria.brands().stream().map(String::toLowerCase).toList(),
+            nullIfEmpty(criteria.platforms()),
+            nullIfEmpty(criteria.types()),
+            nullIfEmpty(criteria.statuses()),
+            criteria.fromDate(),
+            criteria.toDate(),
+            pageable);
+    final Map<UUID, CampaignSlot> slotsByCampaignId = loadSlotsByCampaignId(campaigns.getContent());
+    return campaigns.map(c -> toCampaignSummary(c, slotsByCampaignId));
+  }
+
+  private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {
     final List<UUID> campaignIds = campaigns.stream().map(Campaign::getId).toList();
-    final Map<UUID, CampaignSlot> slotsByCampaignId =
-        this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds).stream()
-            .collect(
-                Collectors.toMap(
-                    CampaignSlot::getCampaignId,
-                    Function.identity(),
-                    (a, b) ->
-                        a.toBuilder()
-                            .totalSlots(a.getTotalSlots() + b.getTotalSlots())
-                            .slotsAvailable(a.getSlotsAvailable() + b.getSlotsAvailable())
-                            .build()));
-    return campaigns.stream()
-        .map(
-            campaign -> {
-              final CampaignSlot slot = slotsByCampaignId.get(campaign.getId());
-              final int slotsClaimed =
-                  slot != null ? slot.getTotalSlots() - slot.getSlotsAvailable() : 0;
-              return CampaignSummary.builder()
-                  .campaign(campaign)
-                  .slotsClaimed(slotsClaimed)
-                  .build();
-            })
-        .toList();
+    return this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds).stream()
+        .collect(
+            Collectors.toMap(
+                CampaignSlot::getCampaignId,
+                Function.identity(),
+                (a, b) ->
+                    a.toBuilder()
+                        .totalSlots(a.getTotalSlots() + b.getTotalSlots())
+                        .slotsAvailable(a.getSlotsAvailable() + b.getSlotsAvailable())
+                        .build()));
+  }
+
+  private CampaignSummary toCampaignSummary(
+      final Campaign campaign, final Map<UUID, CampaignSlot> slotsByCampaignId) {
+    final CampaignSlot slot = slotsByCampaignId.get(campaign.getId());
+    final int slotsClaimed = slot != null ? slot.getTotalSlots() - slot.getSlotsAvailable() : 0;
+    return CampaignSummary.builder().campaign(campaign).slotsClaimed(slotsClaimed).build();
   }
 
   private Campaign transitionTo(
@@ -188,5 +211,9 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       this.stateMachine.transition(campaign, target);
     }
     return this.campaignRepository.save(campaign);
+  }
+
+  private static <T> List<T> nullIfEmpty(final List<T> list) {
+    return CollectionUtils.isEmpty(list) ? null : list;
   }
 }

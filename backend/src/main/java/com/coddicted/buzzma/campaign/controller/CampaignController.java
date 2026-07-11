@@ -2,11 +2,15 @@ package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
+import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
+import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
+import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -16,6 +20,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -67,6 +75,31 @@ public class CampaignController {
   @GetMapping("/{id}")
   public CampaignResponseDto getById(@PathVariable final UUID id) {
     return this.campaignProcessor.getById(id);
+  }
+
+  @PostMapping("/search")
+  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
+  public PagedCampaignsResponseDto search(
+      @CurrentUserId final UUID requesterId,
+      @RequestBody final CampaignSearchRequestDto request,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final Pageable pageable = PageRequest.of(page, size);
+    final CampaignSearchCriteria criteria =
+        new CampaignSearchCriteria(
+            request.getBrands(),
+            request.getPlatforms(),
+            request.getTypes(),
+            request.getStatuses(),
+            request.getFromDate(),
+            request.getToDate());
+    final Page<CampaignSummary> result = this.service.search(requesterId, criteria, pageable);
+    return PagedCampaignsResponseDto.builder()
+        .items(this.campaignMapper.toSummaries(result.getContent()))
+        .total(result.getTotalElements())
+        .page(page)
+        .totalPages(result.getTotalPages())
+        .build();
   }
 
   @PostMapping

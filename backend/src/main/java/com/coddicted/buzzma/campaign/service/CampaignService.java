@@ -2,10 +2,13 @@ package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CampaignService {
 
@@ -24,4 +27,6 @@ public interface CampaignService {
   Campaign copy(UUID campaignId, UUID requesterId);
 
   List<CampaignSummary> getByOwnerId(UUID ownerId);
+
+  Page<CampaignSummary> search(UUID ownerId, CampaignSearchCriteria criteria, Pageable pageable);
 }

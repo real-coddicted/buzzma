@@ -16,8 +16,8 @@ spring:
     user: ${FLYWAY_MIGRATOR_USER:}
     password: ${FLYWAY_MIGRATOR_PASSWORD:}
     placeholders:
-      appRuntimeRole: ${DB_APP_RUNTIME_ROLE:}
-      flywayMigratorRole: ${DB_FLYWAY_MIGRATOR_ROLE:}
+      appRuntimeRole: ${DB_APP_RUNTIME_ROLE:test}
+      flywayMigratorRole: ${DB_FLYWAY_MIGRATOR_ROLE:test}
   servlet:
     multipart:
       max-file-size: 10MB
