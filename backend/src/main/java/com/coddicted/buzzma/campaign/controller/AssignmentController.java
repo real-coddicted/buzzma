@@ -11,6 +11,7 @@ import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.mapper.CommissionMapper;
 import com.coddicted.buzzma.campaign.service.AssignmentService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -64,7 +65,7 @@ public class AssignmentController {
   }
 
   @GetMapping("/{id}")
-  @PreAuthorize("hasAnyRole('AGENCY', 'MEDIATOR')")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
   public AssignmentResponseDto getAssignmentById(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
     return this.assignmentMapper.toResponse(

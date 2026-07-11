@@ -17,6 +17,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
@@ -219,7 +220,7 @@ public class ClaimController {
   }
 
   @GetMapping("/review")
-  @PreAuthorize("hasAnyRole('AGENCY', 'MEDIATOR')")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
   public Page<ClaimReviewResponseDto> listClaimsToReview(
       @CurrentUser BuzzmaUser requester, final Pageable pageable) {
     return this.claimReviewProcessor.listClaimReviews(requester, pageable);

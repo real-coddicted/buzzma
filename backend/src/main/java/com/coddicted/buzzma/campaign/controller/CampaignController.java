@@ -10,6 +10,7 @@ import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -70,14 +71,14 @@ public class CampaignController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public CampaignResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final CampaignRequestDto request) {
     return this.campaignProcessor.create(requesterId, request);
   }
 
   @PatchMapping("/{id}")
-  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public CampaignResponseDto updateCampaign(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,

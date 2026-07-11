@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.settings.controller;
 
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.settings.dto.UserSettingsDto;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
@@ -43,7 +44,7 @@ public class UserSettingsController {
   }
 
   @GetMapping("/{userId}")
-  @PreAuthorize("hasAnyRole('ADMIN')")
+  @PreAuthorize(UserRole.Expr.ADMIN)
   public UserSettingsDto get(
       @PathVariable final UUID userId, @CurrentUserId final UUID requesterId) {
     final UserSettings userSettings = this.userSettingsService.getByUserId(userId);

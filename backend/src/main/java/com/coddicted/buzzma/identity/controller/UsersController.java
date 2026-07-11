@@ -4,6 +4,7 @@ import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
@@ -57,7 +58,15 @@ public class UsersController {
 
   @GetMapping("/{id}")
   @PreAuthorize(
-      "(hasAnyRole('AGENCY', 'MEDIATOR') and @parentshipGuard.isParentOf(#id)) or hasRole('ADMIN')")
+      "(("
+          + UserRole.Expr.AGENCY
+          + UserRole.Expr.OR
+          + UserRole.Expr.MEDIATOR
+          + ")"
+          + UserRole.Expr.AND
+          + "@parentshipGuard.isParentOf(#id))"
+          + UserRole.Expr.OR
+          + UserRole.Expr.ADMIN)
   public UserSummaryDto getById(@PathVariable final UUID id) {
     final BuzzmaUser user = this.userService.getById(id);
     return this.userMapper.toUserSummaryDto(user);

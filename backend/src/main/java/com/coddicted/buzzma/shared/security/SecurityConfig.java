@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.shared.security;
 
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.security.JwtAuthenticationFilter;
 import com.coddicted.buzzma.shared.ratelimit.AuthBucketCache;
 import com.coddicted.buzzma.shared.ratelimit.RateLimitFilter;
@@ -9,6 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -65,6 +70,35 @@ public class SecurityConfig {
         .addFilterAfter(
             new RateLimitFilter(authBucketCache, userBucketCache), JwtAuthenticationFilter.class);
     return http.build();
+  }
+
+  @Bean
+  public RoleHierarchy roleHierarchy() {
+    return RoleHierarchyImpl.fromHierarchy(
+        UserRole.ROLE_ADMIN.name()
+            + " > "
+            + UserRole.ROLE_BUYER.name()
+            + "\n"
+            + UserRole.ROLE_ADMIN.name()
+            + " > "
+            + UserRole.ROLE_MEDIATOR.name()
+            + "\n"
+            + UserRole.ROLE_ADMIN.name()
+            + " > "
+            + UserRole.ROLE_AGENCY.name()
+            + "\n"
+            + UserRole.ROLE_ADMIN.name()
+            + " > "
+            + UserRole.ROLE_BRAND.name());
+  }
+
+  @Bean
+  static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+      final RoleHierarchy roleHierarchy) {
+    final DefaultMethodSecurityExpressionHandler handler =
+        new DefaultMethodSecurityExpressionHandler();
+    handler.setRoleHierarchy(roleHierarchy);
+    return handler;
   }
 
   @Bean

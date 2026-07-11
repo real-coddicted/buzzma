@@ -8,7 +8,8 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.entity.Product;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -17,7 +18,8 @@ class DealMapperTest {
   private final DealMapper dealMapper = Mappers.getMapper(DealMapper.class);
 
   @Test
-  void toDealResponseUsesAffiliateUrlWhenPresent() throws MalformedURLException {
+  void toDealResponseUsesAffiliateUrlWhenPresent()
+      throws MalformedURLException, URISyntaxException {
     final Deal deal = dealWithAffiliateUrl("https://affiliate.example.com/track");
 
     final DealResponseDto response = this.dealMapper.toDealResponse(deal);
@@ -26,7 +28,8 @@ class DealMapperTest {
   }
 
   @Test
-  void toDealResponseFallsBackToProductLinkWhenAffiliateUrlBlank() throws MalformedURLException {
+  void toDealResponseFallsBackToProductLinkWhenAffiliateUrlBlank()
+      throws MalformedURLException, URISyntaxException {
     final Deal deal = dealWithAffiliateUrl("   ");
 
     final DealResponseDto response = this.dealMapper.toDealResponse(deal);
@@ -35,7 +38,8 @@ class DealMapperTest {
   }
 
   @Test
-  void toDealResponseFallsBackToProductLinkWhenAffiliateUrlNull() throws MalformedURLException {
+  void toDealResponseFallsBackToProductLinkWhenAffiliateUrlNull()
+      throws MalformedURLException, URISyntaxException {
     final Deal deal = dealWithAffiliateUrl(null);
 
     final DealResponseDto response = this.dealMapper.toDealResponse(deal);
@@ -43,11 +47,12 @@ class DealMapperTest {
     assertEquals("https://example.com/product", response.getProductUrl());
   }
 
-  private Deal dealWithAffiliateUrl(final String affiliateUrl) throws MalformedURLException {
+  private Deal dealWithAffiliateUrl(final String affiliateUrl)
+      throws MalformedURLException, URISyntaxException {
     final Product product =
         Product.builder()
             .name("Test Product")
-            .productLink(new URL("https://example.com/product"))
+            .productLink(new URI("https://example.com/product").toURL())
             .pricePaise(BigInteger.valueOf(99900))
             .build();
     final Campaign campaign = Campaign.builder().product(product).build();

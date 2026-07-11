@@ -7,6 +7,7 @@ import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -34,7 +35,7 @@ public class DealController {
   }
 
   @GetMapping("/active")
-  @PreAuthorize("hasAnyRole('BUYER')")
+  @PreAuthorize(UserRole.Expr.BUYER)
   public PagedDealsResponseDto getActiveDeals(
       @CurrentUserId final UUID requesterId,
       @RequestParam(defaultValue = "0") final int page,
