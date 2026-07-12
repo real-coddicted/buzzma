@@ -7,7 +7,8 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, searchCampaigns, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
@@ -67,6 +68,7 @@ export function Campaigns() {
   const [confirmPauseId, setConfirmPauseId] = useState<string | null>(null)
   const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null)
   const [actioningId, setActioningId] = useState<string | null>(null)
+  const [appliedFilters, setAppliedFilters] = useState<CampaignFilters>(emptyFilters)
 
   const loadCampaigns = useCallback(() => {
     setLoading(true)
@@ -77,6 +79,23 @@ export function Campaigns() {
   }, [])
 
   useEffect(() => { loadCampaigns() }, [loadCampaigns])
+
+  const handleApplyFilters = useCallback(async (filters: CampaignFilters) => {
+    setAppliedFilters(filters)
+    if (countActiveFilters(filters) === 0) {
+      loadCampaigns()
+      return
+    }
+    setLoading(true)
+    try {
+      const results = await searchCampaigns(filters)
+      setCampaigns(results)
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Search failed.')
+    } finally {
+      setLoading(false)
+    }
+  }, [loadCampaigns])
 
   useSSE('EVENT_TYPE_REFRESH', loadCampaigns, 'campaigns')
 
@@ -220,11 +239,14 @@ export function Campaigns() {
         totalSpent={totalSpent}
         totalConversions={totalConv}
         activeCount={activeCnt}
+        total={campaigns.length}
       />
 
       <CampaignTable
         campaigns={campaigns}
         loading={loading}
+        appliedFilters={appliedFilters}
+        onApplyFilters={handleApplyFilters}
         onEdit={handleEditCampaign}
         onCopy={handleCopyCampaign}
         onView={handleViewCampaign}

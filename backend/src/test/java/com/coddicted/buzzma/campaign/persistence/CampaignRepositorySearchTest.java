@@ -9,6 +9,8 @@ import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.UUID;
@@ -191,8 +193,8 @@ class CampaignRepositorySearchTest {
 
   private static URL url(final String value) {
     try {
-      return new URL(value);
-    } catch (final MalformedURLException e) {
+      return new URI(value).toURL();
+    } catch (final MalformedURLException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }

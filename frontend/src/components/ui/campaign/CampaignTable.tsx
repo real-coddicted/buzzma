@@ -3,42 +3,21 @@ import { Card } from '../Card'
 import { StatusBadge } from '../Badge'
 import { IconSearch, IconFilter } from '../icons'
 import { CampaignRowActions } from './CampaignRowActions'
+import { CampaignFilterDrawer } from './CampaignFilterDrawer'
+import { type CampaignFilters, emptyFilters, countActiveFilters } from './filters/CampaignFilterTypes'
+import { FilterChips, type FilterChip } from './filters/FilterChips'
+import { PLATFORM_COLORS, TYPE_COLORS, STATUS_COLORS } from './filters/chipColors'
 import type { Campaign, CampaignStatus, CampaignType, Platform } from '../../../types'
 import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS } from '../../../constants/campaigns'
-import { DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Loading } from '../Loading'
 
-const platformColors: Record<Platform, string> = {
-  PLATFORM_AMAZON:   'text-neon-orange border-neon-orange/25 bg-neon-orange/10',
-  PLATFORM_FLIPKART: 'text-neon-blue border-neon-blue/25 bg-neon-blue/10',
-  PLATFORM_NYKAA:    'text-neon-pink border-neon-pink/25 bg-neon-pink/10',
-  PLATFORM_MYNTRA:   'text-neon-purple border-neon-purple/25 bg-neon-purple/10',
-}
-
-const statusFilters: { value: CampaignStatus | 'all'; label: string }[] = [
-  { value: 'all',       label: 'All' },
-  { value: 'active',    label: 'Active' },
-  { value: 'paused',    label: 'Paused' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'closed',    label: 'Closed' },
-  { value: 'draft',     label: 'Draft' },
-]
-
-const filterActiveClasses: Record<CampaignStatus | 'all', string> = {
-  all:       'bg-neon-blue/10   text-neon-blue   border-neon-blue/30',
-  active:    'bg-neon-green/10  text-neon-green  border-neon-green/30',
-  paused:    'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30',
-  completed: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/30',
-  closed:    'bg-neon-red/10    text-neon-red    border-neon-red/30',
-  draft:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
-}
 
 type SortKey = keyof Pick<Campaign, 'title' | 'totalSlots'>
 
 function PlatformBadge({ platform }: { platform: Platform }) {
   return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', platformColors[platform]].join(' ')}>
+    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', PLATFORM_COLORS[platform].base].join(' ')}>
       {PLATFORM_LABELS[platform]}
     </span>
   )
@@ -47,7 +26,7 @@ function PlatformBadge({ platform }: { platform: Platform }) {
 function DealTypeBadge({ campaignType }: { campaignType: CampaignType | null }) {
   if (!campaignType) return <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>
   return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', DEAL_TYPE_COLORS[campaignType]].join(' ')}>
+    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', TYPE_COLORS[campaignType].base].join(' ')}>
       {CAMPAIGN_TYPE_LABELS[campaignType]}
     </span>
   )
@@ -68,9 +47,20 @@ function SlotsBar({ claimed, total }: { claimed: number; total: number }) {
   )
 }
 
+function fmtDate(d: string | null): string {
+  if (!d) return 'TBD'
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const parts = d.split('-')
+  if (parts.length !== 3) return d
+  const [y, m, day] = parts
+  return `${months[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`
+}
+
 interface Props {
   campaigns: Campaign[]
   loading?: boolean
+  appliedFilters: CampaignFilters
+  onApplyFilters: (f: CampaignFilters) => void
   onEdit: (id: string) => void
   onCopy: (id: string) => void
   onView: (id: string) => void
@@ -79,18 +69,25 @@ interface Props {
   onClose: (id: string) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
+export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all')
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const filtered = useMemo(() => {
     return campaigns
       .filter(c => {
-        const matchStatus = statusFilter === 'all' || c.status === statusFilter
-        const matchSearch = c.title.toLowerCase().includes(search.toLowerCase())
-        return matchStatus && matchSearch
+        if (!search) return true
+        const q = search.toLowerCase()
+        return (
+          c.title.toLowerCase().includes(q) ||
+          (c.productBrandName?.toLowerCase().includes(q) ?? false) ||
+          (c.code?.toLowerCase().includes(q) ?? false) ||
+          PLATFORM_LABELS[c.platform].toLowerCase().includes(q) ||
+          c.status.toLowerCase().includes(q) ||
+          (c.campaignType != null && CAMPAIGN_TYPE_LABELS[c.campaignType].toLowerCase().includes(q))
+        )
       })
       .sort((a, b) => {
         const av = a[sortBy] ?? 0
@@ -100,7 +97,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
         }
         return sortDir === 'asc' ? (av as number) - (bv as number) : (bv as number) - (av as number)
       })
-  }, [campaigns, search, statusFilter, sortBy, sortDir])
+  }, [campaigns, search, sortBy, sortDir])
 
   function handleSort(key: SortKey) {
     if (sortBy === key) {
@@ -116,9 +113,77 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
     return <span className="text-neon-blue">{sortDir === 'asc' ? '↑' : '↓'}</span>
   }
 
+  const activeFilterCount = countActiveFilters(appliedFilters)
+
+  const chips = useMemo<FilterChip[]>(() => {
+    const result: FilterChip[] = []
+    const f = appliedFilters
+
+    if (f.brand) {
+      result.push({
+        key: 'brand',
+        label: `Brand: ${f.brand}`,
+        onRemove: () => onApplyFilters({ ...f, brand: '' }),
+      })
+    }
+
+    for (const p of f.platforms) {
+      result.push({
+        key: `platform-${p}`,
+        label: PLATFORM_LABELS[p],
+        colorClass: PLATFORM_COLORS[p].base,
+        onRemove: () => {
+          const next = new Set(f.platforms)
+          next.delete(p)
+          onApplyFilters({ ...f, platforms: next })
+        },
+      })
+    }
+
+    for (const t of f.types) {
+      result.push({
+        key: `type-${t}`,
+        label: CAMPAIGN_TYPE_LABELS[t],
+        colorClass: TYPE_COLORS[t].base,
+        onRemove: () => {
+          const next = new Set(f.types)
+          next.delete(t)
+          onApplyFilters({ ...f, types: next })
+        },
+      })
+    }
+
+    for (const s of f.statuses) {
+      const labels: Record<CampaignStatus, string> = {
+        active: 'Active', paused: 'Paused', completed: 'Completed', closed: 'Closed', draft: 'Draft',
+      }
+      result.push({
+        key: `status-${s}`,
+        label: labels[s],
+        colorClass: STATUS_COLORS[s].base,
+        onRemove: () => {
+          const next = new Set(f.statuses)
+          next.delete(s)
+          onApplyFilters({ ...f, statuses: next })
+        },
+      })
+    }
+
+    if (f.startDate || f.endDate) {
+      const label = [f.startDate && fmtDate(f.startDate), f.endDate && fmtDate(f.endDate)].filter(Boolean).join(' – ')
+      result.push({
+        key: 'daterange',
+        label,
+        onRemove: () => onApplyFilters({ ...f, startDate: '', endDate: '' }),
+      })
+    }
+
+    return result
+  }, [appliedFilters, onApplyFilters])
+
   return (
     <Card padded={false}>
-      <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
+      <div className="p-4 flex items-center gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
         <div className="flex items-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border rounded-lg px-3 py-2 flex-1 min-w-0 max-w-xs">
           <IconSearch size={14} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
           <input
@@ -129,24 +194,26 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
             className="bg-transparent text-xs outline-none flex-1 text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted"
           />
         </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <IconFilter size={13} className="text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0" />
-          {statusFilters.map(f => (
-            <button
-              key={f.value}
-              onClick={() => setStatusFilter(f.value)}
-              className={[
-                'px-3 py-1 rounded-full text-xs font-medium border transition-all',
-                statusFilter === f.value
-                  ? filterActiveClasses[f.value]
-                  : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
-              ].join(' ')}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className={[
+            'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-colors',
+            activeFilterCount > 0
+              ? 'bg-neon-blue/10 border-neon-blue/30 text-neon-blue'
+              : 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover',
+          ].join(' ')}
+        >
+          <IconFilter size={13} />
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-neon-blue text-black text-[9px] font-bold">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      <FilterChips chips={chips} onClearAll={() => onApplyFilters(emptyFilters())} />
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -162,7 +229,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Brand</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Platform</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Type</th>
-              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start/End Date</th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start / End</th>
               <th
                 onClick={() => handleSort('totalSlots')}
                 className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted select-none cursor-pointer hover:text-ink-light-primary dark:hover:text-ink-dark-primary"
@@ -185,7 +252,7 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
-                  No campaigns match your filter.
+                  No campaigns match your filters.
                 </td>
               </tr>
             ) : (
@@ -206,7 +273,8 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
                   <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
                   <td className="px-5 py-2.5"><DealTypeBadge campaignType={c.campaignType} /></td>
                   <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
-                    {c.startDate || 'TBD'} – {c.endDate || 'TBD'}
+                    <div>{fmtDate(c.startDate)}</div>
+                    <div className="text-ink-light-muted dark:text-ink-dark-muted">{fmtDate(c.endDate)}</div>
                   </td>
                   <td className="px-5 py-2.5">
                     <div className="space-y-1">
@@ -251,6 +319,13 @@ export function CampaignTable({ campaigns, loading = false, onEdit, onCopy, onVi
           </button>
         </div>
       </div>
+
+      <CampaignFilterDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        filters={appliedFilters}
+        onApply={onApplyFilters}
+      />
     </Card>
   )
 }

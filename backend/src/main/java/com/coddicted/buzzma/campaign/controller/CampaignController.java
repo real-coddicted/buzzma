@@ -78,7 +78,7 @@ public class CampaignController {
   }
 
   @PostMapping("/search")
-  @PreAuthorize("hasAnyRole('AGENCY', 'BRAND')")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public PagedCampaignsResponseDto search(
       @CurrentUserId final UUID requesterId,
       @RequestBody final CampaignSearchRequestDto request,

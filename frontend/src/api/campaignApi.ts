@@ -1,5 +1,7 @@
 import type { components } from '../types/api'
 import type { Campaign, CampaignRequestDto, CampaignStatus, CampaignType, Platform } from '../types'
+import { CAMPAIGN_STATUS_CONFIG } from '../types'
+import type { CampaignFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import { fetchWithAuth, getCurrentUser } from './client'
 import { rupeesToPaise } from '../utils/currency'
 
@@ -99,7 +101,58 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
     code:                 dto.code ?? '',
     title:                dto.title ?? '',
     status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
-    platform:             (dto.platform ?? 'PLATFORM_AMAZON') as Platform,
+    platform:             (dto.platform ?? '') as Platform,
+    productBrandName:     dto.productBrandName ?? '',
+    productName:          dto.productName ?? '',
+    productImageUrl:      dto.productImageUrl ?? '',
+    productUrl:           '',
+    originalPricePaise:   0,
+    campaignPricePaise:   0,
+    commissionOfferedPaise: 0,
+    returnWindowDays:     null,
+    campaignType:         (dto.type ?? null) as CampaignType | null,
+    totalSlots:           dto.totalSlots ?? null,
+    slotsClaimed:         dto.slotsClaimed ?? 0,
+    allowedAgencies:      null,
+    openToAll:            true,
+    spent:                0,
+    impressions:          0,
+    clicks:               0,
+    conversions:          0,
+    ctr:                  0,
+    startDate:            yyyymmddToIso(dto.startDate),
+    endDate:              yyyymmddToIso(dto.endDate),
+  }))
+}
+
+export async function searchCampaigns(filters: CampaignFilters, page = 0, size = 20): Promise<Campaign[]> {
+  const brands = filters.brand
+    ? filters.brand.split(',').map(s => s.trim()).filter(Boolean)
+    : null
+  const platforms = filters.platforms.size > 0 ? [...filters.platforms] : null
+  const types = filters.types.size > 0 ? [...filters.types] : null
+  const statuses = filters.statuses.size > 0
+    ? [...filters.statuses].flatMap(s => CAMPAIGN_STATUS_CONFIG[s].backendStatuses)
+    : null
+  const body = {
+    brands,
+    platforms,
+    types,
+    statuses,
+    fromDate: filters.startDate ? isoToYYYYMMDD(filters.startDate) : null,
+    toDate: filters.endDate ? isoToYYYYMMDD(filters.endDate) : null,
+  }
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/search?page=${page}&size=${size}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  const data = await res.json() as { items: CampaignSummaryDto[] }
+  return data.items.map(dto => ({
+    id:                   dto.campaignId ?? '',
+    code:                 dto.code ?? '',
+    title:                dto.title ?? '',
+    status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
+    platform:             (dto.platform ?? '') as Platform,
     productBrandName:     dto.productBrandName ?? '',
     productName:          dto.productName ?? '',
     productImageUrl:      dto.productImageUrl ?? '',

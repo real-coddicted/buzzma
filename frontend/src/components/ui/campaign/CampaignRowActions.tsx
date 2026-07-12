@@ -11,85 +11,47 @@ interface Props {
   onClose: () => void
 }
 
+const btn = {
+  view:   'p-1.5 rounded-lg text-neon-blue   bg-neon-blue/10   hover:bg-neon-blue/20   transition-colors',
+  edit:   'p-1.5 rounded-lg text-neon-blue   bg-neon-blue/10   hover:bg-neon-blue/20   transition-colors',
+  pause:  'p-1.5 rounded-lg text-neon-yellow bg-neon-yellow/10 hover:bg-neon-yellow/20 transition-colors',
+  resume: 'p-1.5 rounded-lg text-neon-green  bg-neon-green/10  hover:bg-neon-green/20  transition-colors',
+  close:  'p-1.5 rounded-lg text-neon-red    bg-neon-red/10    hover:bg-neon-red/20    transition-colors',
+  copy:   'p-1.5 rounded-lg text-neon-cyan   bg-neon-cyan/10   hover:bg-neon-cyan/20   transition-colors',
+}
+
 export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">
         {c.status === 'draft' && (
-          <button
-            title="Edit"
-            onClick={onEdit}
-            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-          >
-            <IconEdit size={13} />
+          <button title="Edit" onClick={onEdit} className={btn.edit}>
+            <IconEdit size={14} />
+          </button>
+        )}
+        {(c.status === 'active' || c.status === 'paused' || c.status === 'closed' || c.status === 'completed') && (
+          <button title="View" onClick={onView} className={btn.view}>
+            <IconEye size={14} />
           </button>
         )}
         {c.status === 'active' && (
-          <>
-            <button
-              title="View"
-              onClick={onView}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-            >
-              <IconEye size={13} />
-            </button>
-            <button
-              title="Pause"
-              onClick={onPause}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-yellow hover:bg-neon-yellow/10 transition-colors"
-            >
-              <IconPause size={13} />
-            </button>
-            <button
-              title="Close"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
-            >
-              <IconX size={13} />
-            </button>
-          </>
+          <button title="Pause" onClick={onPause} className={btn.pause}>
+            <IconPause size={14} />
+          </button>
         )}
         {c.status === 'paused' && (
-          <>
-            <button
-              title="View"
-              onClick={onView}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-            >
-              <IconEye size={13} />
-            </button>
-            <button
-              title="Resume"
-              onClick={onResume}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-green hover:bg-neon-green/10 transition-colors"
-            >
-              <IconPlay size={13} />
-            </button>
-            <button
-              title="Close"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-red hover:bg-neon-red/10 transition-colors"
-            >
-              <IconX size={13} />
-            </button>
-          </>
+          <button title="Resume" onClick={onResume} className={btn.resume}>
+            <IconPlay size={14} />
+          </button>
         )}
-        {c.status === 'closed' && (
-          <button
-            title="View"
-            onClick={onView}
-            className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/10 transition-colors"
-          >
-            <IconEye size={13} />
+        {(c.status === 'active' || c.status === 'paused') && (
+          <button title="Close" onClick={onClose} className={btn.close}>
+            <IconX size={14} />
           </button>
         )}
       </div>
-      <button
-        title="Copy"
-        onClick={onCopy}
-        className="p-1.5 rounded-lg text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-cyan hover:bg-neon-cyan/10 transition-colors"
-      >
-        <IconCopy size={13} />
+      <button title="Copy" onClick={onCopy} className={btn.copy}>
+        <IconCopy size={14} />
       </button>
     </div>
   )

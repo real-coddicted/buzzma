@@ -1,5 +1,13 @@
 export type CampaignStatus = 'active' | 'paused' | 'completed' | 'closed' | 'draft'
 
+export const CAMPAIGN_STATUS_CONFIG: Record<CampaignStatus, { label: string; backendStatuses: string[] }> = {
+  active:    { label: 'Active',    backendStatuses: ['CAMPAIGN_STATUS_ACTIVE'] },
+  paused:    { label: 'Paused',    backendStatuses: ['CAMPAIGN_STATUS_PAUSED'] },
+  completed: { label: 'Completed', backendStatuses: ['CAMPAIGN_STATUS_COMPLETED'] },
+  closed:    { label: 'Closed',    backendStatuses: ['CAMPAIGN_STATUS_CLOSED'] },
+  draft:     { label: 'Draft',     backendStatuses: ['CAMPAIGN_STATUS_DRAFT'] },
+}
+
 export type TrendDirection = 'up' | 'down' | 'neutral'
 
 export type StatCardAccent =
