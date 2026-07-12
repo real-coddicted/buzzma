@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.persistence;
 
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.Collection;
@@ -36,6 +37,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             JOIN BuzzmaUser b ON b.id = c.ownerId
             JOIN BuzzmaUser m ON m.id = d.ownerId
           WHERE d.ownerId = :mediatorId AND c.isDeleted = false AND d.isDeleted = false
+            AND (:campaignIds IS NULL OR c.campaignId IN :campaignIds)
+            AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -44,9 +47,14 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
           FROM Claim c
             JOIN Deal d ON d.id = c.dealId
           WHERE d.ownerId = :mediatorId AND c.isDeleted = false AND d.isDeleted = false
+            AND (:campaignIds IS NULL OR c.campaignId IN :campaignIds)
+            AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
           """)
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
-      @Param("mediatorId") UUID mediatorId, Pageable pageable);
+      @Param("mediatorId") UUID mediatorId,
+      @Param("campaignIds") Collection<UUID> campaignIds,
+      @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
+      Pageable pageable);
 
   @Query(
       value =
@@ -58,6 +66,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             JOIN BuzzmaUser b ON b.id = c.ownerId
             JOIN BuzzmaUser m ON m.id = d.ownerId
           WHERE c.campaignId IN :campaignIds AND c.isDeleted = false AND d.isDeleted = false
+            AND (:mediatorIds IS NULL OR d.ownerId IN :mediatorIds)
+            AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -66,7 +76,12 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
           FROM Claim c
             JOIN Deal d ON d.id = c.dealId
           WHERE c.campaignId IN :campaignIds AND c.isDeleted = false AND d.isDeleted = false
+            AND (:mediatorIds IS NULL OR d.ownerId IN :mediatorIds)
+            AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
           """)
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
-      @Param("campaignIds") Collection<UUID> campaignIds, Pageable pageable);
+      @Param("campaignIds") Collection<UUID> campaignIds,
+      @Param("mediatorIds") Collection<UUID> mediatorIds,
+      @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
+      Pageable pageable);
 }

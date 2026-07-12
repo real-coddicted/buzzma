@@ -25,6 +25,7 @@ import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
@@ -432,14 +433,18 @@ class ClaimServiceImplTest {
 
   @Test
   void testFindClaimsToReviewForMediator() {
+    final List<UUID> campaignIds = List.of(DEAL_ID);
+    final List<ClaimStatus> claimStatuses = List.of(UNDER_REVIEW);
     final Pageable pageable = Pageable.ofSize(10);
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
-    when(this.mockClaimRepository.findClaimsToReviewForMediator(OWNER_ID, pageable))
+    when(this.mockClaimRepository.findClaimsToReviewForMediator(
+            OWNER_ID, campaignIds, claimStatuses, pageable))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimService.findClaimsToReviewForMediator(OWNER_ID, pageable);
+        this.claimService.findClaimsToReviewForMediator(
+            OWNER_ID, campaignIds, claimStatuses, pageable);
 
     assertEquals(expected, result);
   }
@@ -447,14 +452,18 @@ class ClaimServiceImplTest {
   @Test
   void testFindClaimsToReviewForCampaigns() {
     final List<UUID> campaignIds = List.of(DEAL_ID);
+    final List<UUID> mediatorIds = List.of(OWNER_ID);
+    final List<ClaimStatus> claimStatuses = List.of(UNDER_REVIEW);
     final Pageable pageable = Pageable.ofSize(10);
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
-    when(this.mockClaimRepository.findClaimsToReviewForCampaigns(campaignIds, pageable))
+    when(this.mockClaimRepository.findClaimsToReviewForCampaigns(
+            campaignIds, mediatorIds, claimStatuses, pageable))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimService.findClaimsToReviewForCampaigns(campaignIds, pageable);
+        this.claimService.findClaimsToReviewForCampaigns(
+            campaignIds, mediatorIds, claimStatuses, pageable);
 
     assertEquals(expected, result);
   }

@@ -253,15 +253,23 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Override
   @Transactional(readOnly = true)
   public Page<ClaimReviewModel> findClaimsToReviewForMediator(
-      final UUID mediatorId, final Pageable pageable) {
-    return this.claimRepository.findClaimsToReviewForMediator(mediatorId, pageable);
+      final UUID mediatorId,
+      final Collection<UUID> campaignIds,
+      final Collection<ClaimStatus> claimStatuses,
+      final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForMediator(
+        mediatorId, campaignIds, claimStatuses, pageable);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
-      final Collection<UUID> campaignIds, final Pageable pageable) {
-    return this.claimRepository.findClaimsToReviewForCampaigns(campaignIds, pageable);
+      final Collection<UUID> campaignIds,
+      final Collection<UUID> mediatorIds,
+      final Collection<ClaimStatus> claimStatuses,
+      final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForCampaigns(
+        campaignIds, mediatorIds, claimStatuses, pageable);
   }
 
   @Override

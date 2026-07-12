@@ -6,12 +6,14 @@ import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
+import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
@@ -23,6 +25,7 @@ import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,11 +222,17 @@ public class ClaimController {
         .toList();
   }
 
-  @GetMapping("/review")
+  @PostMapping("/review")
   @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
   public Page<ClaimReviewResponseDto> listClaimsToReview(
-      @CurrentUser BuzzmaUser requester, final Pageable pageable) {
-    return this.claimReviewProcessor.listClaimReviews(requester, pageable);
+      @CurrentUser final BuzzmaUser requester,
+      @RequestBody(required = false) final ClaimReviewFilterRequestDto request,
+      final Pageable pageable) {
+    final Set<UUID> campaignIds = request != null ? request.getCampaignIds() : null;
+    final Set<UUID> mediatorIds = request != null ? request.getMediatorIds() : null;
+    final Set<ClaimStatus> claimStatuses = request != null ? request.getClaimStatuses() : null;
+    return this.claimReviewProcessor.listClaimReviews(
+        requester, campaignIds, mediatorIds, claimStatuses, pageable);
   }
 
   @GetMapping("/{id}")

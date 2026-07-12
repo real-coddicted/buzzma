@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
@@ -46,10 +47,17 @@ public interface ClaimService {
 
   List<ClaimScreenshot> listScreenshots(UUID claimId);
 
-  Page<ClaimReviewModel> findClaimsToReviewForMediator(UUID mediatorId, Pageable pageable);
+  Page<ClaimReviewModel> findClaimsToReviewForMediator(
+      UUID mediatorId,
+      Collection<UUID> campaignIds,
+      Collection<ClaimStatus> claimStatuses,
+      Pageable pageable);
 
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
-      Collection<UUID> campaignIds, Pageable pageable);
+      Collection<UUID> campaignIds,
+      Collection<UUID> mediatorIds,
+      Collection<ClaimStatus> claimStatuses,
+      Pageable pageable);
 
   ClaimWithDeal reviewScreenshot(
       UUID screenshotId,
