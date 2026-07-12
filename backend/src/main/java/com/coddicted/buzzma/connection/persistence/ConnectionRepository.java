@@ -49,6 +49,38 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
       """)
   ConnectionSummary findSummaryByFromUserId(@Param("fromUserId") UUID fromUserId);
 
+  @Query(
+      """
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      FROM Connection c
+      JOIN BuzzmaUser fu ON fu.id = c.fromUserId
+      JOIN BuzzmaUser tu ON tu.id = c.toUserId
+      WHERE c.toUserId = :toUserId AND c.isDeleted = false
+      """)
+  Set<ConnectionView> findViewsByToUserId(@Param("toUserId") UUID toUserId);
+
+  @Query(
+      """
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      FROM Connection c
+      JOIN BuzzmaUser fu ON fu.id = c.fromUserId
+      JOIN BuzzmaUser tu ON tu.id = c.toUserId
+      WHERE c.toUserId = :toUserId AND c.status = :status AND c.isDeleted = false
+      """)
+  Set<ConnectionView> findViewsByToUserIdAndStatus(
+      @Param("toUserId") UUID toUserId, @Param("status") ConnectionStatus status);
+
+  @Query(
+      """
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionSummary(
+        COUNT(CASE WHEN c.status = ConnectionStatus.CONNECTION_STATUS_ACCEPTED THEN 1 END),
+        COUNT(CASE WHEN c.status = ConnectionStatus.CONNECTION_STATUS_REQUESTED THEN 1 END),
+        COUNT(CASE WHEN c.status = ConnectionStatus.CONNECTION_STATUS_REJECTED THEN 1 END))
+      FROM Connection c
+      WHERE c.toUserId = :toUserId AND c.isDeleted = false
+      """)
+  ConnectionSummary findSummaryByToUserId(@Param("toUserId") UUID toUserId);
+
   Optional<Connection> findByToUserIdAndStatusAndIsDeletedFalse(
       UUID toUserId, ConnectionStatus status);
 

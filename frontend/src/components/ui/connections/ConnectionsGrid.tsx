@@ -27,6 +27,8 @@ interface ConnectionsGridProps {
   onDelete: (connection: Connection) => void
   /** Called when a connected row is clicked to view its details. */
   onRowClick?: (connection: Connection) => void
+  /** False when the viewer isn't the approver for pending rows (e.g. viewing parent connections), hiding Accept/Reject. */
+  showApprovalActions?: boolean
 }
 
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
@@ -61,6 +63,7 @@ export function ConnectionsGrid({
   onReject,
   onDelete,
   onRowClick,
+  showApprovalActions = true,
 }: ConnectionsGridProps) {
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -201,7 +204,7 @@ export function ConnectionsGrid({
 
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {c.status === 'pending' && (
+                        {c.status === 'pending' && showApprovalActions && (
                           <>
                             <button
                               title="Accept"

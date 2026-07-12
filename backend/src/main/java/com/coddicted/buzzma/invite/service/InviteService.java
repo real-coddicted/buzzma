@@ -14,4 +14,7 @@ public interface InviteService {
   void delete(UUID id, UUID requesterId);
 
   boolean verify(String inviteCode);
+
+  /** Throws if {@code invite} is deleted, inactive, expired, or over its use limit. */
+  void isActive(Invite invite);
 }

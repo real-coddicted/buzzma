@@ -1,10 +1,18 @@
-import { IconPlus } from '../icons'
+import { IconPlus, IconTicket } from '../icons'
+import { Button } from '../Button'
+import { Tabs } from '../Tabs'
+import type { ConnectionDirection } from '../../../api/connectionApi'
+import type { ConnectionTabLabels } from '../../../utils/connectionTabLabels'
 
 interface ConnectionsHeaderProps {
   total: number
   connectedCount: number
   pendingCount: number
+  direction: ConnectionDirection
+  onDirectionChange: (direction: ConnectionDirection) => void
+  tabLabels: ConnectionTabLabels
   onAddConnection: () => void
+  onRequestConnection: () => void
 }
 
 interface SummaryCardProps {
@@ -26,24 +34,36 @@ export function ConnectionsHeader({
   total,
   connectedCount,
   pendingCount,
+  direction,
+  onDirectionChange,
+  tabLabels,
   onAddConnection,
+  onRequestConnection,
 }: ConnectionsHeaderProps) {
+  const directionTabs = [
+    { value: 'parent' as const, label: tabLabels.parent },
+    ...(tabLabels.child !== null ? [{ value: 'child' as const, label: tabLabels.child }] : []),
+  ]
+
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-ink-light-primary dark:text-ink-dark-primary">
             My Network
           </h1>
         </div>
-        <button
-          onClick={onAddConnection}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-neon-blue text-surface-dark-base hover:brightness-110 transition-all shadow-neon-blue/30"
-        >
-          <IconPlus size={14} />
-          Invite
-        </button>
+        <div className="flex items-center gap-2">
+          <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconTicket size={14} />}>
+            Enter Code
+          </Button>
+          <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />}>
+            Invite
+          </Button>
+        </div>
       </div>
+
+      <Tabs options={directionTabs} value={direction} onChange={onDirectionChange} />
 
       <div className="grid grid-cols-3 gap-4">
         <SummaryCard label="Total"     value={total}          accent="text-neon-blue"   />

@@ -8,14 +8,20 @@ import type { Connection } from '../types/ConnectionTypes'
 import {
   fetchConnections,
   fetchConnectionSummary,
+  fetchParentConnections,
+  fetchParentConnectionSummary,
   fetchInviteCode,
+  requestConnectionByCode,
   actionConnection,
   deleteConnection,
 } from '../api/connectionApi'
-import type { ConnectionSummary } from '../api/connectionApi'
+import type { ConnectionSummary, ConnectionDirection } from '../api/connectionApi'
 import { InviteModal } from '../components/ui/connections/InviteModal'
+import { RequestConnectionModal } from '../components/ui/connections/RequestConnectionModal'
 import { Toast } from '../components/ui/Toast'
 import { ConfirmModal } from '../components/ui/ConfirmModal'
+import { getCurrentUser } from '../api/client'
+import { getConnectionTabLabels } from '../utils/connectionTabLabels'
 
 const statusFilters: ConnectionFilterOption[] = [
   { value: 'all',       label: 'All'       },
@@ -46,16 +52,23 @@ export function Connections() {
   const view = searchParams.get('view')
   const detailId = searchParams.get('id')
 
+  const tabLabels = getConnectionTabLabels(getCurrentUser()?.role)
+
   const [connections, setConnections] = useState<Connection[]>([])
   const [summary, setSummary]         = useState<ConnectionSummary>({ total: 0, connectedCount: 0, pendingCount: 0 })
   const [loading, setLoading]         = useState(true)
 
   const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState<ConnectionStatus | 'all'>('connected')
+  const [direction, setDirection]       = useState<ConnectionDirection>(tabLabels.child === null ? 'parent' : 'child')
 
   const [inviteCode, setInviteCode]     = useState<string | null>(null)
   const [inviteLoading, setInviteLoading] = useState(false)
   const [showInvite, setShowInvite]     = useState(false)
+
+  const [showRequest, setShowRequest]         = useState(false)
+  const [requestSubmitting, setRequestSubmitting] = useState(false)
+  const [requestError, setRequestError]       = useState<string | null>(null)
 
   const [toast, setToast]               = useState<ToastState | null>(null)
   const [actioningId, setActioningId]   = useState<string | null>(null)
@@ -79,22 +92,45 @@ export function Connections() {
       })
   }
 
+  function handleOpenRequest() {
+    setRequestError(null)
+    setShowRequest(true)
+  }
+
+  async function handleSubmitRequest(code: string) {
+    setRequestSubmitting(true)
+    setRequestError(null)
+    try {
+      await requestConnectionByCode(code)
+      setShowRequest(false)
+      setToast({ message: 'Connection request sent.', type: 'success' })
+      loadConnections()
+      refreshSummary()
+    } catch (err: unknown) {
+      setRequestError(err instanceof Error ? err.message : 'Failed to send request.')
+    } finally {
+      setRequestSubmitting(false)
+    }
+  }
+
   const loadConnections = useCallback(() => {
     setLoading(true)
-    fetchConnections(statusFilter)
+    const fetchList = direction === 'parent' ? fetchParentConnections : fetchConnections
+    fetchList(statusFilter)
       .then(list => setConnections(list))
       .catch((err: unknown) => {
         setConnections([])
         setToast({ message: err instanceof Error ? err.message : 'Failed to load connections.', type: 'error' })
       })
       .finally(() => setLoading(false))
-  }, [statusFilter])
+  }, [statusFilter, direction])
 
   const refreshSummary = useCallback(() => {
     // Summary counts are secondary — a failure here is swallowed rather than
     // surfaced, since loadConnections already reports load errors.
-    fetchConnectionSummary().then(setSummary).catch(() => {})
-  }, [])
+    const fetchSummary = direction === 'parent' ? fetchParentConnectionSummary : fetchConnectionSummary
+    fetchSummary().then(setSummary).catch(() => {})
+  }, [direction])
 
   useEffect(() => { loadConnections() }, [loadConnections])
   useEffect(() => { refreshSummary() }, [refreshSummary])
@@ -193,12 +229,24 @@ export function Connections() {
         onClose={() => { setShowInvite(false); setInviteCode(null) }}
       />
     )}
+    {showRequest && (
+      <RequestConnectionModal
+        submitting={requestSubmitting}
+        error={requestError}
+        onSubmit={handleSubmitRequest}
+        onClose={() => setShowRequest(false)}
+      />
+    )}
     <div className="max-w-7xl mx-auto space-y-5">
       <ConnectionsHeader
         total={summary.total}
         connectedCount={summary.connectedCount}
         pendingCount={summary.pendingCount}
+        direction={direction}
+        onDirectionChange={setDirection}
+        tabLabels={tabLabels}
         onAddConnection={handleInvite}
+        onRequestConnection={handleOpenRequest}
       />
 
       <ConnectionsGrid
@@ -214,7 +262,8 @@ export function Connections() {
         onAccept={handleAccept}
         onReject={handleReject}
         onDelete={handleDelete}
-        onRowClick={handleViewConnection}
+        onRowClick={direction === 'child' ? handleViewConnection : undefined}
+        showApprovalActions={direction === 'child'}
       />
     </div>
     </>

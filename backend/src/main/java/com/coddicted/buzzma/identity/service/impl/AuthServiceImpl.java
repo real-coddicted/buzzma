@@ -1,7 +1,5 @@
 package com.coddicted.buzzma.identity.service.impl;
 
-import com.coddicted.buzzma.connection.entity.Connection;
-import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.dto.auth.SignInResult;
 import com.coddicted.buzzma.identity.dto.auth.TokensDto;
@@ -19,8 +17,6 @@ import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserCredentialService;
 import com.coddicted.buzzma.identity.service.UserService;
-import com.coddicted.buzzma.invite.entity.Invite;
-import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
@@ -32,8 +28,6 @@ import com.coddicted.buzzma.shared.security.JwtProperties;
 import com.coddicted.buzzma.shared.security.JwtService;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,20 +40,12 @@ public class AuthServiceImpl implements AuthService {
 
   private static final Logger LOG = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-  private static final Map<UserRole, Set<UserRole>> ALLOWED_ROLES_BY_INVITER =
-      Map.of(
-          UserRole.ROLE_ADMIN, Set.of(UserRole.ROLE_BRAND, UserRole.ROLE_AGENCY),
-          UserRole.ROLE_BRAND, Set.of(UserRole.ROLE_AGENCY),
-          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR),
-          UserRole.ROLE_MEDIATOR, Set.of(UserRole.ROLE_BUYER));
-
   private final JwtService jwtService;
   private final JwtProperties jwtProperties;
   private final RefreshTokenService refreshTokenService;
   private final UserService userService;
   private final UserCredentialService userCredentialService;
   private final UserBankingDetailService userBankingDetailService;
-  private final InviteService inviteService;
   private final SecurityQuestionAnswerService securityQuestionAnswerService;
   private final ConnectionService connectionService;
   private final UserSettingsService userSettingsService;
@@ -81,7 +67,6 @@ public class AuthServiceImpl implements AuthService {
     this.userService = userService;
     this.userCredentialService = userCredentialService;
     this.userBankingDetailService = userBankingDetailService;
-    this.inviteService = inviteService;
     this.securityQuestionAnswerService = securityQuestionAnswerService;
     this.connectionService = connectionService;
     this.userSettingsService = userSettingsService;
@@ -114,8 +99,7 @@ public class AuthServiceImpl implements AuthService {
       final List<SecurityAnswer> securityAnswerList,
       final String inviteCode,
       final UUID requesterId) {
-    final Invite invite = this.inviteService.getByCode(inviteCode);
-    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList, invite)) {
+    if (canRegister(user, userCredential, userBankingDetail, securityAnswerList)) {
       user.setStatus(UserStatus.USER_STATUS_ACTIVE);
       // save user
       final BuzzmaUser savedUser = this.userService.create(user);
@@ -129,16 +113,8 @@ public class AuthServiceImpl implements AuthService {
             securityAnswer.setUserId(savedUser.getId());
             this.securityQuestionAnswerService.createSecurityAnswer(securityAnswer);
           });
-      // consume invite
-      this.inviteService.consume(invite, requesterId);
-
-      // create connection between inviter and new user
-      this.connectionService.createConnection(
-          Connection.builder()
-              .fromUserId(invite.getOwnerId())
-              .toUserId(savedUser.getId())
-              .status(ConnectionStatus.CONNECTION_STATUS_REQUESTED)
-              .build());
+      // create connection between inviter and new user, then consume invite
+      this.connectionService.createConnection(inviteCode, savedUser);
 
       // build and save userSettings with minimal pending-connection settings
       final UserSettings userSettings =
@@ -211,30 +187,15 @@ public class AuthServiceImpl implements AuthService {
       final BuzzmaUser user,
       final UserCredential userCredential,
       final UserBankingDetail userBankingDetail,
-      final List<SecurityAnswer> securityAnswerList,
-      final Invite invite) {
+      final List<SecurityAnswer> securityAnswerList) {
     final boolean validUser = validateUser(user);
     //    final boolean validBankingDetails = validateUserBankingDetails(user, userBankingDetail);
-    final boolean validInvite =
-        invite.getStatus() == InviteStatus.INVITE_STATUS_ACTIVE
-            && invite.getUsedCount() < invite.getMaxUseCount();
-    validateRoleForInvite(user.getRole(), invite);
     final boolean validSecurityAnswerList = validateSecurityAnswer(securityAnswerList);
     final boolean validPassword = validateUserCredential(userCredential);
     return validUser
         //        && validBankingDetails
         && validSecurityAnswerList
-        && validInvite
         && validPassword;
-  }
-
-  private void validateRoleForInvite(final UserRole requestedRole, final Invite invite) {
-    final BuzzmaUser owner = this.userService.getById(invite.getOwnerId());
-    final Set<UserRole> allowed = ALLOWED_ROLES_BY_INVITER.getOrDefault(owner.getRole(), Set.of());
-    if (!allowed.contains(requestedRole)) {
-      throw new BusinessRuleViolationException(
-          "Role " + requestedRole + " is not permitted for invites issued by " + owner.getRole());
-    }
   }
 
   private boolean validateUser(final BuzzmaUser user) {

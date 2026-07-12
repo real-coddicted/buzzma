@@ -4,6 +4,7 @@ import static com.coddicted.buzzma.connection.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
@@ -11,6 +12,8 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.persistence.ConnectionRepository;
+import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.invite.service.InviteService;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -28,12 +31,18 @@ class ConnectionServiceImplTest {
 
   @Mock private ConnectionRepository mockConnectionRepository;
   @Mock private UserSettingsService mockUserSettingsService;
+  @Mock private InviteService mockInviteService;
+  @Mock private UserService mockUserService;
   private ConnectionServiceImpl connectionService;
 
   @BeforeEach
   void setUp() {
     this.connectionService =
-        new ConnectionServiceImpl(this.mockConnectionRepository, this.mockUserSettingsService);
+        new ConnectionServiceImpl(
+            this.mockConnectionRepository,
+            this.mockUserSettingsService,
+            this.mockInviteService,
+            this.mockUserService);
   }
 
   @Test
@@ -62,12 +71,50 @@ class ConnectionServiceImplTest {
   }
 
   @Test
-  void testGetConnectionSummary() {
+  void testGetConnectionSummaryByFromUserId() {
     doReturn(CONNECTION_SUMMARY)
         .when(this.mockConnectionRepository)
         .findSummaryByFromUserId(FROM_USER_ID);
 
-    final ConnectionSummary result = this.connectionService.getConnectionSummary(FROM_USER_ID);
+    final ConnectionSummary result =
+        this.connectionService.getConnectionSummaryByFromUserId(FROM_USER_ID);
+
+    assertEquals(CONNECTION_SUMMARY, result);
+  }
+
+  @Test
+  void testGetConnectionsByToUserIdAndStatus() {
+    final Set<ConnectionView> views = Set.of(CONNECTION_VIEW_ACCEPTED);
+    doReturn(views)
+        .when(this.mockConnectionRepository)
+        .findViewsByToUserIdAndStatus(TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    final Set<ConnectionView> result =
+        this.connectionService.getConnectionsByToUserIdAndStatus(
+            TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+
+    assertEquals(views, result);
+  }
+
+  @Test
+  void testGetConnectionsByToUserIdAndStatusWhenStatusNull() {
+    final Set<ConnectionView> views = Set.of(CONNECTION_VIEW_REQUESTED, CONNECTION_VIEW_ACCEPTED);
+    doReturn(views).when(this.mockConnectionRepository).findViewsByToUserId(TO_USER_ID);
+
+    final Set<ConnectionView> result =
+        this.connectionService.getConnectionsByToUserIdAndStatus(TO_USER_ID, null);
+
+    assertEquals(views, result);
+  }
+
+  @Test
+  void testGetConnectionSummaryByToUserId() {
+    doReturn(CONNECTION_SUMMARY)
+        .when(this.mockConnectionRepository)
+        .findSummaryByToUserId(TO_USER_ID);
+
+    final ConnectionSummary result =
+        this.connectionService.getConnectionSummaryByToUserId(TO_USER_ID);
 
     assertEquals(CONNECTION_SUMMARY, result);
   }
@@ -228,5 +275,36 @@ class ConnectionServiceImplTest {
             FROM_USER_ID, TO_USER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
 
     assertFalse(this.connectionService.isParentOf(FROM_USER_ID, TO_USER_ID));
+  }
+
+  @Test
+  void testCreateConnectionFromInviteCodeSuccess() {
+    doReturn(INVITE_ACTIVE).when(this.mockInviteService).getByCode(INVITE_CODE);
+    doReturn(MEDIATOR_USER).when(this.mockUserService).getById(FROM_USER_ID);
+
+    this.connectionService.createConnection(INVITE_CODE, BUYER_USER);
+
+    verify(this.mockInviteService).isActive(INVITE_ACTIVE);
+    verify(this.mockInviteService).consume(INVITE_ACTIVE, TO_USER_ID);
+    final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
+    verify(this.mockConnectionRepository).save(captor.capture());
+    final Connection saved = captor.getValue();
+    assertEquals(FROM_USER_ID, saved.getFromUserId());
+    assertEquals(TO_USER_ID, saved.getToUserId());
+    assertEquals(ConnectionStatus.CONNECTION_STATUS_REQUESTED, saved.getStatus());
+  }
+
+  @Test
+  void testCreateConnectionFromInviteCodeWhenRoleNotAllowed() {
+    doReturn(INVITE_ACTIVE).when(this.mockInviteService).getByCode(INVITE_CODE);
+    doReturn(MEDIATOR_USER).when(this.mockUserService).getById(FROM_USER_ID);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> this.connectionService.createConnection(INVITE_CODE, BRAND_USER));
+    assertEquals(
+        "Role ROLE_BRAND is not permitted for invites issued by ROLE_MEDIATOR", ex.getMessage());
+    verifyNoInteractions(this.mockConnectionRepository);
   }
 }

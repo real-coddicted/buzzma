@@ -82,29 +82,7 @@ public class InviteServiceImpl extends BaseCrudService implements InviteService 
   @Override
   @Transactional
   public void consume(final Invite invite, final UUID requesterId) {
-    if (invite.getIsDeleted()) {
-      LOG.warn("Invite verification failed: invite {} is deleted", invite.getCode());
-      throw new BusinessRuleViolationException("Invite is not valid");
-    }
-    if (invite.getStatus() != InviteStatus.INVITE_STATUS_ACTIVE) {
-      LOG.warn(
-          "Invite verification failed: invite {} has status {}",
-          invite.getCode(),
-          invite.getStatus());
-      throw new BusinessRuleViolationException("Invite is not active");
-    }
-    final LocalDate validTo = DateTimeUtils.toLocalDate(invite.getValidTo());
-    if (validTo.isBefore(LocalDate.now())) {
-      LOG.warn("Invite verification failed: invite {} expired on {}", invite.getCode(), validTo);
-      throw new BusinessRuleViolationException("Invite has expired");
-    }
-    if (invite.getUsedCount() >= invite.getMaxUseCount()) {
-      LOG.warn(
-          "Invite verification failed: invite {} reached its usage limit of {}",
-          invite.getCode(),
-          invite.getMaxUseCount());
-      throw new BusinessRuleViolationException("Invite has reached its usage limit");
-    }
+    isActive(invite);
     final int usedCount = invite.getUsedCount() + 1;
     final InviteStatus status =
         usedCount >= invite.getMaxUseCount()
@@ -126,8 +104,39 @@ public class InviteServiceImpl extends BaseCrudService implements InviteService 
   @Transactional(readOnly = true)
   public boolean verify(final String inviteCode) {
     final Invite invite = fetchByCode(inviteCode);
-    return invite.getStatus() == InviteStatus.INVITE_STATUS_ACTIVE
-        && invite.getUsedCount() < invite.getMaxUseCount();
+    try {
+      isActive(invite);
+      return true;
+    } catch (final BusinessRuleViolationException e) {
+      return false;
+    }
+  }
+
+  @Override
+  public void isActive(final Invite invite) {
+    if (invite.getIsDeleted()) {
+      LOG.warn("Invite validation failed: invite {} is deleted", invite.getCode());
+      throw new BusinessRuleViolationException("Invite is not valid");
+    }
+    if (invite.getStatus() != InviteStatus.INVITE_STATUS_ACTIVE) {
+      LOG.warn(
+          "Invite validation failed: invite {} has status {}",
+          invite.getCode(),
+          invite.getStatus());
+      throw new BusinessRuleViolationException("Invite is not active");
+    }
+    final LocalDate validTo = DateTimeUtils.toLocalDate(invite.getValidTo());
+    if (validTo.isBefore(LocalDate.now())) {
+      LOG.warn("Invite validation failed: invite {} expired on {}", invite.getCode(), validTo);
+      throw new BusinessRuleViolationException("Invite has expired");
+    }
+    if (invite.getUsedCount() >= invite.getMaxUseCount()) {
+      LOG.warn(
+          "Invite validation failed: invite {} reached its usage limit of {}",
+          invite.getCode(),
+          invite.getMaxUseCount());
+      throw new BusinessRuleViolationException("Invite has reached its usage limit");
+    }
   }
 
   private Invite fetchByCode(final String inviteCode) {

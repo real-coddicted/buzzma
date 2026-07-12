@@ -4,6 +4,7 @@ import { fetchWithAuth } from './client'
 
 type ConnectionResponseDto = components['schemas']['ConnectionResponseDto']
 type ConnectionRequestDto = components['schemas']['ConnectionRequestDto']
+type CreateConnectionRequestDto = components['schemas']['CreateConnectionRequestDto']
 type ConnectionSummaryResponseDto = components['schemas']['ConnectionSummaryResponseDto']
 type InviteRequestDto = components['schemas']['InviteRequestDto']
 type InviteResponseDto = components['schemas']['InviteResponseDto']
@@ -48,20 +49,27 @@ function formatSince(iso?: string): string | undefined {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-function mapConnection(dto: ConnectionResponseDto): Connection {
-  const toUserId = dto.toUserId ?? ''
-  const userId = toUserId || dto.fromUserId || ''
-  const name = dto.toName ?? dto.fromName ?? (userId ? `User ${userId.slice(0, 8)}` : 'Unknown')
+/**
+ * 'child' = connections the current user initiated (they are fromUserId, e.g. their child
+ * connections). 'parent' = connections where the current user was invited (they are toUserId,
+ * e.g. their parent connections) — the "other party" to display is the fromUserId side instead.
+ */
+export type ConnectionDirection = 'child' | 'parent'
+
+function mapConnection(dto: ConnectionResponseDto, direction: ConnectionDirection): Connection {
+  const otherUserId = (direction === 'parent' ? dto.fromUserId : dto.toUserId) ?? ''
+  const otherUserName = direction === 'parent' ? dto.fromName : dto.toName
+  const name = otherUserName ?? (otherUserId ? `User ${otherUserId.slice(0, 8)}` : 'Unknown')
   return {
     id: dto.id ?? '',
-    toUserId,
+    toUserId: otherUserId,
     name,
     type: 'brand',
     category: '',
     status: mapStatus(dto.status),
     since: formatSince(dto.createdAt),
     avatar: (name.charAt(0) || '?').toUpperCase(),
-    avatarColor: pickColor(userId || name),
+    avatarColor: pickColor(otherUserId || name),
   }
 }
 
@@ -73,9 +81,17 @@ const BACKEND_STATUS: Record<ConnectionStatus, string> = {
 
 export async function fetchConnections(filter: ConnectionStatus | 'all'): Promise<Connection[]> {
   const query = filter === 'all' ? '' : `?status=${BACKEND_STATUS[filter]}`
-  const res = await fetchWithAuth(`${API_BASE}/connections${query}`)
+  const res = await fetchWithAuth(`${API_BASE}/connections/child${query}`)
   const data = (await res.json()) as ConnectionResponseDto[]
-  return data.map(mapConnection)
+  return data.map(dto => mapConnection(dto, 'child'))
+}
+
+/** Connections where the current user was invited by someone else (their parent connections). */
+export async function fetchParentConnections(filter: ConnectionStatus | 'all'): Promise<Connection[]> {
+  const query = filter === 'all' ? '' : `?status=${BACKEND_STATUS[filter]}`
+  const res = await fetchWithAuth(`${API_BASE}/connections/parent${query}`)
+  const data = (await res.json()) as ConnectionResponseDto[]
+  return data.map(dto => mapConnection(dto, 'parent'))
 }
 
 /** Accept or reject a pending connection request addressed to `toUserId`. */
@@ -103,8 +119,27 @@ export async function fetchInviteCode(): Promise<string> {
   return data.code ?? ''
 }
 
+/** Redeem someone else's invite code to send a connection request via POST /connections. */
+export async function requestConnectionByCode(code: string): Promise<void> {
+  const body: CreateConnectionRequestDto = { inviteCode: code }
+  await fetchWithAuth(`${API_BASE}/connections`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
 export async function fetchConnectionSummary(): Promise<ConnectionSummary> {
-  const res = await fetchWithAuth(`${API_BASE}/connections/summary`)
+  const res = await fetchWithAuth(`${API_BASE}/connections/child/summary`)
+  const data = (await res.json()) as ConnectionSummaryResponseDto
+  return {
+    total:          data.total ?? 0,
+    connectedCount: data.connected ?? 0,
+    pendingCount:   data.pending ?? 0,
+  }
+}
+
+export async function fetchParentConnectionSummary(): Promise<ConnectionSummary> {
+  const res = await fetchWithAuth(`${API_BASE}/connections/parent/summary`)
   const data = (await res.json()) as ConnectionSummaryResponseDto
   return {
     total:          data.total ?? 0,

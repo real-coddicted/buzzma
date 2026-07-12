@@ -221,6 +221,24 @@ class InviteServiceImplTest {
   }
 
   @Test
+  void testVerifyWhenDeleted() {
+    doReturn(Optional.of(INVITE_5))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse("INV-DELETED");
+
+    assertFalse(this.inviteService.verify("INV-DELETED"));
+  }
+
+  @Test
+  void testVerifyWhenExpired() {
+    doReturn(Optional.of(INVITE_3))
+        .when(this.mockInviteRepository)
+        .findByCodeAndIsDeletedFalse("INV-EXPIRED");
+
+    assertFalse(this.inviteService.verify("INV-EXPIRED"));
+  }
+
+  @Test
   void testVerifyWhenNotFound() {
     doReturn(Optional.empty())
         .when(this.mockInviteRepository)

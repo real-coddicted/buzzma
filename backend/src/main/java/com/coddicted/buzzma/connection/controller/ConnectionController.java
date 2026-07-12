@@ -3,11 +3,14 @@ package com.coddicted.buzzma.connection.controller;
 import com.coddicted.buzzma.connection.dto.ConnectionRequestDto;
 import com.coddicted.buzzma.connection.dto.ConnectionResponseDto;
 import com.coddicted.buzzma.connection.dto.ConnectionSummaryResponseDto;
+import com.coddicted.buzzma.connection.dto.CreateConnectionRequestDto;
 import com.coddicted.buzzma.connection.entity.Action;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.mapper.ConnectionMapper;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.Set;
@@ -39,11 +42,10 @@ public class ConnectionController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public ConnectionResponseDto create(
-      @CurrentUserId final UUID requesterId,
-      @Valid @RequestBody final ConnectionRequestDto request) {
+      @CurrentUser final BuzzmaUser requester,
+      @Valid @RequestBody final CreateConnectionRequestDto request) {
     final Connection connection =
-        this.connectionService.createConnection(
-            this.connectionMapper.toEntity(request, requesterId));
+        this.connectionService.createConnection(request.getInviteCode(), requester);
     return this.connectionMapper.toResponse(connection);
   }
 
@@ -57,18 +59,34 @@ public class ConnectionController {
         requesterId, request.getToUserId(), action, requesterId);
   }
 
-  @GetMapping
-  public Set<ConnectionResponseDto> list(
+  @GetMapping("/child")
+  public Set<ConnectionResponseDto> listChildConnections(
       @CurrentUserId final UUID requesterId,
       @RequestParam(required = false) final ConnectionStatus status) {
     return this.connectionMapper.toResponses(
         this.connectionService.getConnectionsByFromUserIdAndStatus(requesterId, status));
   }
 
-  @GetMapping("/summary")
-  public ConnectionSummaryResponseDto summary(@CurrentUserId final UUID requesterId) {
+  @GetMapping("/child/summary")
+  public ConnectionSummaryResponseDto childConnectionSummary(
+      @CurrentUserId final UUID requesterId) {
     return this.connectionMapper.toResponse(
-        this.connectionService.getConnectionSummary(requesterId));
+        this.connectionService.getConnectionSummaryByFromUserId(requesterId));
+  }
+
+  @GetMapping("/parent")
+  public Set<ConnectionResponseDto> listParentConnections(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(required = false) final ConnectionStatus status) {
+    return this.connectionMapper.toResponses(
+        this.connectionService.getConnectionsByToUserIdAndStatus(requesterId, status));
+  }
+
+  @GetMapping("/parent/summary")
+  public ConnectionSummaryResponseDto parentConnectionSummary(
+      @CurrentUserId final UUID requesterId) {
+    return this.connectionMapper.toResponse(
+        this.connectionService.getConnectionSummaryByToUserId(requesterId));
   }
 
   @DeleteMapping("/{id}")

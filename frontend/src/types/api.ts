@@ -331,7 +331,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get?: never;
         put?: never;
         post: operations["create_4"];
         delete?: never;
@@ -363,7 +363,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_3"];
         put?: never;
         post: operations["create_5"];
         delete?: never;
@@ -475,7 +475,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_4"];
         put?: never;
         post: operations["create_6"];
         delete?: never;
@@ -510,6 +510,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["action_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["search"];
         delete?: never;
         options?: never;
         head?: never;
@@ -884,14 +900,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/connections/summary": {
+    "/api/v1/connections/parent": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["summary"];
+        get: operations["listParentConnections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/parent/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["parentConnectionSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/child": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listChildConnections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/child/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["childConnectionSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1266,9 +1330,8 @@ export interface components {
             field?: string;
             message?: string;
         };
-        ConnectionRequestDto: {
-            /** Format: uuid */
-            toUserId: string;
+        CreateConnectionRequestDto: {
+            inviteCode: string;
         };
         ConnectionResponseDto: {
             /** Format: uuid */
@@ -1288,6 +1351,10 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        ConnectionRequestDto: {
+            /** Format: uuid */
+            toUserId: string;
         };
         ClaimRequestDto: {
             /** Format: uuid */
@@ -1503,6 +1570,49 @@ export interface components {
             updatedBy?: string;
             isDeleted?: boolean;
         };
+        CampaignSearchRequestDto: {
+            brands?: string[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+            types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT")[];
+            statuses?: ("CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED")[];
+            /** Format: int32 */
+            fromDate?: number;
+            /** Format: int32 */
+            toDate?: number;
+        };
+        CampaignSummaryResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            code?: string;
+            title?: string;
+            /** Format: url */
+            productImageUrl?: string;
+            productName?: string;
+            productBrandName?: string;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
+            /** @enum {string} */
+            status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** @enum {string} */
+            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            /** Format: int32 */
+            totalSlots?: number;
+            /** Format: int32 */
+            slotsClaimed?: number;
+        };
+        PagedCampaignsResponseDto: {
+            items?: components["schemas"]["CampaignSummaryResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         UserSignInRequestDto: {
             mobile: string;
             password?: string;
@@ -1701,10 +1811,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1713,21 +1823,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -1735,30 +1845,6 @@ export interface components {
             ascending?: boolean;
             property?: string;
             ignoreCase?: boolean;
-        };
-        CampaignSummaryResponseDto: {
-            /** Format: uuid */
-            campaignId?: string;
-            code?: string;
-            title?: string;
-            /** Format: url */
-            productImageUrl?: string;
-            productName?: string;
-            productBrandName?: string;
-            /** Format: int32 */
-            startDate?: number;
-            /** Format: int32 */
-            endDate?: number;
-            /** @enum {string} */
-            status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
-            /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
-            /** @enum {string} */
-            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
-            /** Format: int32 */
-            totalSlots?: number;
-            /** Format: int32 */
-            slotsClaimed?: number;
         };
         CampaignStepDto: {
             type?: string;
@@ -2463,28 +2549,6 @@ export interface operations {
             };
         };
     };
-    list_3: {
-        parameters: {
-            query?: {
-                status?: "CONNECTION_STATUS_REQUESTED" | "CONNECTION_STATUS_ACCEPTED" | "CONNECTION_STATUS_REJECTED";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ConnectionResponseDto"][];
-                };
-            };
-        };
-    };
     create_4: {
         parameters: {
             query?: never;
@@ -2494,7 +2558,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConnectionRequestDto"];
+                "application/json": components["schemas"]["CreateConnectionRequestDto"];
             };
         };
         responses: {
@@ -2533,7 +2597,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2738,7 +2802,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2823,6 +2887,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CampaignResponseDto"];
+                };
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignSearchRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedCampaignsResponseDto"];
                 };
             };
         };
@@ -3412,7 +3503,71 @@ export interface operations {
             };
         };
     };
-    summary: {
+    listParentConnections: {
+        parameters: {
+            query?: {
+                status?: "CONNECTION_STATUS_REQUESTED" | "CONNECTION_STATUS_ACCEPTED" | "CONNECTION_STATUS_REJECTED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionResponseDto"][];
+                };
+            };
+        };
+    };
+    parentConnectionSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionSummaryResponseDto"];
+                };
+            };
+        };
+    };
+    listChildConnections: {
+        parameters: {
+            query?: {
+                status?: "CONNECTION_STATUS_REQUESTED" | "CONNECTION_STATUS_ACCEPTED" | "CONNECTION_STATUS_REJECTED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ConnectionResponseDto"][];
+                };
+            };
+        };
+    };
+    childConnectionSummary: {
         parameters: {
             query?: never;
             header?: never;

@@ -3,6 +3,10 @@ package com.coddicted.buzzma.connection.service.impl;
 import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.invite.entity.Invite;
+import com.coddicted.buzzma.invite.entity.InviteStatus;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.util.UUID;
 
@@ -46,6 +50,26 @@ public final class Fixtures {
 
   static final ConnectionSummary CONNECTION_SUMMARY =
       ConnectionSummary.builder().connected(2).pending(3).rejected(1).build();
+
+  static final String INVITE_CODE = "INV-CODE1";
+
+  static final Invite INVITE_ACTIVE =
+      Invite.builder()
+          .ownerId(FROM_USER_ID)
+          .status(InviteStatus.INVITE_STATUS_ACTIVE)
+          .validTo(20991231)
+          .maxUseCount(5)
+          .usedCount(0)
+          .isDeleted(false)
+          .build();
+
+  static final BuzzmaUser MEDIATOR_USER = BuzzmaUser.builder().role(UserRole.ROLE_MEDIATOR).build();
+
+  static final BuzzmaUser BUYER_USER =
+      BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_BUYER).build();
+
+  static final BuzzmaUser BRAND_USER =
+      BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_BRAND).build();
 
   private Fixtures() {}
 }
