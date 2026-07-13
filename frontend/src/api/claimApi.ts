@@ -125,7 +125,11 @@ export async function fetchScreenshotUrl(storageKey: string): Promise<string> {
 }
 
 export async function fetchClaimsToReview(page = 0, size = 50): Promise<ClaimReviewItem[]> {
-  const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`)
+  const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  })
   const data = (await res.json()) as PageClaimReviewResponseDto
   return (data.content ?? []).map(mapClaimReview)
 }
