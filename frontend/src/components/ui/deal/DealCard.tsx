@@ -1,6 +1,8 @@
 import type { Deal } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
+import { OrderOnPlatformLink } from './OrderOnPlatformLink'
+import { CopyableCode } from '../CopyableCode'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 interface DealCardProps {
@@ -20,6 +22,11 @@ export function DealCard({ deal, onClick }: DealCardProps) {
           className="h-full"
           imgClassName="group-hover:scale-105 transition-transform duration-300"
         />
+        {deal.code && (
+          <span className="absolute top-2.5 left-2.5" onClick={e => e.stopPropagation()}>
+            <CopyableCode code={deal.code} />
+          </span>
+        )}
         {discount > 0 && (
           <span className="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neon-red text-white">
             -{discount}%
@@ -59,6 +66,8 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
           </span>
         </div>
+
+        <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} />
       </div>
     </div>
   )

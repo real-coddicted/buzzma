@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.persistence;
 
 import com.coddicted.buzzma.campaign.entity.Deal;
+import java.util.Collection;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,7 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       value =
           """
           SELECT d.* FROM deals d, campaigns c
-          WHERE d.owner_id = :ownerId
+          WHERE d.owner_id IN (:ownerIds)
             AND d.is_deleted = false
             AND c.id = d.campaign_id
             AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
@@ -22,11 +23,11 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       countQuery =
           """
           SELECT COUNT(d.*) FROM deals d, campaigns c
-          WHERE d.owner_id = :ownerId
+          WHERE d.owner_id IN (:ownerIds)
             AND d.is_deleted = false
             AND c.id = d.campaign_id
             AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
           """,
       nativeQuery = true)
-  Page<Deal> findActiveDeals(@Param("ownerId") UUID ownerId, Pageable pageable);
+  Page<Deal> findActiveDeals(@Param("ownerIds") Collection<UUID> ownerIds, Pageable pageable);
 }

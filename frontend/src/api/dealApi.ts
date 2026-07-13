@@ -33,6 +33,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
   const dealType = (d.dealType ?? '') as CampaignType
   return {
     id: d.id ?? '',
+    code: d.code,
     claimId: dto.id ?? '',
     campaignId: d.campaignId ?? '',
     productName: d.productName ?? '',
@@ -67,6 +68,7 @@ function dealResponseToDeal(dto: DealResponseDto): Deal {
   const dealType = dto.dealType as CampaignType
   return {
     id: dto.id ?? '',
+    code: dto.code,
     campaignId: dto.campaignId ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',

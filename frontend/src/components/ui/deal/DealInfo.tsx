@@ -2,6 +2,8 @@ import type { Deal } from '../../../types/DealTypes'
 import { APP_NAME } from '../../../constants/app'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
+import { OrderOnPlatformLink } from './OrderOnPlatformLink'
+import { CopyableCode } from '../CopyableCode'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -22,21 +24,28 @@ export function DealInfo({ deal }: DealInfoProps) {
 
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
-      <a
-        href={deal.productUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative h-64 block group"
-        aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
-      >
-        <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-        {discount > 0 && (
-          <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
-            -{discount}%
+      <div className="relative h-64">
+        <a
+          href={deal.productUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative h-64 block group"
+          aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
+        >
+          <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+          {discount > 0 && (
+            <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
+              -{discount}%
+            </span>
+          )}
+        </a>
+        {deal.code && (
+          <span className="absolute top-3 left-3">
+            <CopyableCode code={deal.code} />
           </span>
         )}
-      </a>
+      </div>
 
       {/* badges + title + price */}
       <div className="px-5 pt-5 pb-3 space-y-3">
@@ -58,17 +67,7 @@ export function DealInfo({ deal }: DealInfoProps) {
           <span className="text-sm text-ink-light-muted dark:text-ink-dark-muted line-through">₹{formatRupees(paiseToRupees(deal.originalPricePaise))}</span>
         </div>
 
-        <a
-          href={deal.productUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neon-cyan hover:text-neon-blue transition-colors"
-        >
-          Order on {deal.platformLabel}
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg>
-        </a>
+        <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} />
       </div>
 
       <div className="px-5 pb-5 space-y-4">

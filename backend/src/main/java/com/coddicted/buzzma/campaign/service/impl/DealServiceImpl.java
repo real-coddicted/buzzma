@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import java.util.Collection;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,8 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
   @Override
   @Transactional(readOnly = true)
   public Page<Deal> getActiveDeals(
-      final UUID ownerId, final UUID requesterId, final int page, final int size) {
+      final Collection<UUID> ownerIds, final UUID requesterId, final int page, final int size) {
     LOGGER.info("Get active deals for user {}", requesterId);
-    return this.dealRepository.findActiveDeals(ownerId, PageRequest.of(page, size));
+    return this.dealRepository.findActiveDeals(ownerIds, PageRequest.of(page, size));
   }
 }

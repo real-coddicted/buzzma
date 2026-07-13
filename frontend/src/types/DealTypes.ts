@@ -15,6 +15,7 @@ export interface DealTypeOption {
 
 export interface Deal {
   id: string
+  code?: string
   campaignId: string
   productName: string
   productImageUrl: string
