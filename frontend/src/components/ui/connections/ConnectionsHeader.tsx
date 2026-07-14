@@ -1,4 +1,4 @@
-import { IconPlus, IconTicket } from '../icons'
+import { IconPlus, IconLink } from '../icons'
 import { Button } from '../Button'
 import { Tabs } from '../Tabs'
 import type { ConnectionDirection } from '../../../api/connectionApi'
@@ -54,8 +54,8 @@ export function ConnectionsHeader({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconTicket size={14} />}>
-            Enter Code
+          <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconLink size={14} />}>
+            Request to Connect
           </Button>
           <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />}>
             Invite

@@ -20,7 +20,7 @@ export function RequestConnectionModal({ submitting, error, onSubmit, onClose }:
   return (
     <Modal onClose={submitting ? undefined : onClose}>
       <h2 className="text-base font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-        Request a Connection
+        Request to connect
       </h2>
       <p className="text-sm text-ink-light-secondary dark:text-ink-dark-secondary leading-snug">
         Enter the invite code your contact shared with you.
@@ -30,7 +30,7 @@ export function RequestConnectionModal({ submitting, error, onSubmit, onClose }:
         type="text"
         value={code}
         onChange={e => setCode(e.target.value.toUpperCase())}
-        placeholder="e.g. 7F3K9Q"
+        placeholder="e.g. 7F3-K9Q"
         disabled={submitting}
         className="w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted font-mono tracking-widest uppercase px-4 py-3 text-sm outline-none focus:border-neon-yellow/60"
       />

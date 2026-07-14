@@ -395,3 +395,13 @@ export function IconExternalLink({ size = 18, ...p }: IconProps) {
     </svg>
   )
 }
+
+export function IconLink({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M9 15l6-6" />
+      <path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1" />
+      <path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1" />
+    </svg>
+  )
+}
