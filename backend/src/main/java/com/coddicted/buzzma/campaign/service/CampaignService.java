@@ -29,4 +29,6 @@ public interface CampaignService {
   List<CampaignSummary> getByOwnerId(UUID ownerId);
 
   Page<CampaignSummary> search(UUID ownerId, CampaignSearchCriteria criteria, Pageable pageable);
+
+  List<String> getBrandNames(UUID ownerId);
 }

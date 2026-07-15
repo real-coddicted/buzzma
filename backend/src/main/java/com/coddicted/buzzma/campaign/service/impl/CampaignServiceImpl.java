@@ -164,6 +164,12 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     return campaigns.map(c -> toCampaignSummary(c, slotsByCampaignId));
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getBrandNames(final UUID ownerId) {
+    return this.campaignRepository.findDistinctBrandNamesByOwnerId(ownerId);
+  }
+
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {
     final List<UUID> campaignIds = campaigns.stream().map(Campaign::getId).toList();
     return this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds).stream()

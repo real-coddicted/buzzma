@@ -73,4 +73,14 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
       @Param("fromDate") Integer fromDate,
       @Param("toDate") Integer toDate,
       Pageable pageable);
+
+  @Query(
+      """
+      SELECT DISTINCT p.brandName FROM Campaign c
+        JOIN c.product p
+      WHERE c.ownerId = :ownerId
+        AND c.isDeleted = false
+      ORDER BY p.brandName
+      """)
+  List<String> findDistinctBrandNamesByOwnerId(@Param("ownerId") UUID ownerId);
 }

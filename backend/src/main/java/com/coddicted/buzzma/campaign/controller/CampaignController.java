@@ -77,6 +77,12 @@ public class CampaignController {
     return this.campaignProcessor.getById(id);
   }
 
+  @GetMapping("/brands")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public List<String> getBrandNames(@CurrentUserId final UUID requesterId) {
+    return this.service.getBrandNames(requesterId);
+  }
+
   @PostMapping("/search")
   @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public PagedCampaignsResponseDto search(
