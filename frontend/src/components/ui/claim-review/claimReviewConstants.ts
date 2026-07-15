@@ -26,6 +26,13 @@ export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = [
   { value: 'rejected',  label: 'Rejected',  activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
 ]
 
+export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string; tagClass: string }> = {
+  SCREENSHOT_TYPE_ORDER:  { label: 'Order Receipt',  tag: 'ORDER',  tagClass: 'bg-neon-blue/10   text-neon-blue   border border-neon-blue/25' },
+  SCREENSHOT_TYPE_RATING: { label: 'Product Rating', tag: 'RATING', tagClass: 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/25' },
+  SCREENSHOT_TYPE_REVIEW: { label: 'Written Review', tag: 'REVIEW', tagClass: 'bg-neon-green/10  text-neon-green  border border-neon-green/25' },
+  SCREENSHOT_TYPE_RETURN: { label: 'Return Request', tag: 'RETURN', tagClass: 'bg-neon-red/10    text-neon-red    border border-neon-red/25' },
+}
+
 export const CLAIM_REVIEW_COLUMNS = [
   'Campaign Name',
   'Order ID',

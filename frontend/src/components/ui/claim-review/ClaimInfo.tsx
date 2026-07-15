@@ -1,7 +1,6 @@
 import type { ClaimReviewItem } from '../../../types'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { ReviewStatusCell } from './ReviewStatusCell'
-import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { IconInfo } from '../icons'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -13,14 +12,12 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
-const CLAIM_INFO_TOOLTIP =
-  'Details on this page are as filled by the buyer.\nPlease see Proof tab for AI extracted values from screenshots submitted as proof for this claim.\nPlease note that values extracted using AI tools could occasionally be incorrect.'
-
 interface ClaimInfoProps {
   claim: ClaimReviewItem
+  campaignTitle?: string
 }
 
-export function ClaimInfo({ claim }: ClaimInfoProps) {
+export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
       <div className="px-5 pt-5 pb-3">
@@ -30,21 +27,12 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
           </h2>
           <div className="relative group flex-shrink-0">
             <IconInfo size={15} className="text-ink-light-muted dark:text-ink-dark-muted cursor-help" />
-            <div className="absolute left-0 top-full mt-1.5 w-72 p-3 rounded-xl bg-surface-light-card dark:bg-surface-dark-card border border-surface-light-border dark:border-surface-dark-border shadow-lg text-xs text-ink-light-secondary dark:text-ink-dark-secondary leading-relaxed z-20 hidden group-hover:block whitespace-pre-line">
-              {CLAIM_INFO_TOOLTIP}
-            </div>
           </div>
         </div>
       </div>
 
       <div className="px-5 pb-5">
-        <Row label="Campaign">{claim.campaignName}</Row>
-        {claim.productName && <Row label="Product">{claim.productName}</Row>}
-        {claim.sellerName && <Row label="Seller">{claim.sellerName}</Row>}
-        <Row label="Order ID"><span className="font-mono">{claim.orderId}</span></Row>
-        <Row label="Order Date"><span className="font-mono">{claim.orderDate}</span></Row>
-        {claim.amountPaise != null && <Row label="Amount">₹{formatRupees(paiseToRupees(claim.amountPaise))}</Row>}
-        {claim.accountName && <Row label="Account Name">{claim.accountName}</Row>}
+        <Row label="Campaign Title">{campaignTitle ?? claim.campaignName}</Row>
         {claim.mediatorName && <Row label="Mediator">{claim.mediatorName}</Row>}
         <Row label="Mediator Verified">
           {claim.mediatorVerified
@@ -55,7 +43,6 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
         <Row label="Review Status">
           <ReviewStatusCell status={claim.reviewStatus} approvalMethod={claim.approvalMethod} />
         </Row>
-        {claim.currentStep != null && <Row label="Current Step">{claim.currentStep}</Row>}
         <Row label="Match Score">
           <span className={
             claim.matchPct >= 80 ? 'text-neon-green' :
@@ -63,18 +50,6 @@ export function ClaimInfo({ claim }: ClaimInfoProps) {
             'text-neon-red'
           }>{claim.matchPct}%</span>
         </Row>
-        {claim.reviewUrl && (
-          <Row label="Review URL">
-            <a
-              href={claim.reviewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-neon-cyan hover:text-neon-blue transition-colors truncate"
-            >
-              {claim.reviewUrl}
-            </a>
-          </Row>
-        )}
         {claim.reviewerComments && <Row label="Reviewer Comments">{claim.reviewerComments}</Row>}
       </div>
     </div>

@@ -1,24 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
-import { ClaimDetailsTabs, type ClaimDetailsTab } from '../components/ui/claim-review/ClaimDetailsTabs'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBreadcrumb } from '../contexts/BreadcrumbContext'
-import { ClaimInfo } from '../components/ui/claim-review/ClaimInfo'
-import { ClaimProofGallery, type ClaimProofItem } from '../components/ui/claim-review/ClaimProofGallery'
-import { ClaimProofActions } from '../components/ui/claim-review/ClaimProofActions'
-import { DealInfo } from '../components/ui/deal/DealInfo'
-import { Loading } from '../components/ui/Loading'
+import { ClaimProofUnified } from '../components/ui/claim-review/ClaimProofUnified'
 import { Toast } from '../components/ui/Toast'
 import { fetchCampaignById } from '../api/campaignApi'
 import { fetchClaimById, fetchScreenshotUrl, reviewScreenshot, submitClaimReview } from '../api/claimApi'
 import { campaignToDeal } from '../api/dealApi'
 import { getCurrentUser } from '../api/client'
-import { PLATFORM_LABELS } from '../constants/campaigns'
-import type { Platform } from '../types'
+import { formatExtractedValue, getCampaignValue, getSubmittedValue } from '../components/ui/claim-review/claimUtils'
 import type { ClaimReviewItem, Deal } from '../types'
+import type { ClaimProofItem, ExtractedField } from '../components/ui/claim-review/ClaimProofGallery'
 
 interface ClaimDetailsProps {
   claim: ClaimReviewItem
   onBack: () => void
 }
+
 
 export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
   const { setDetail, clearDetail } = useBreadcrumb()
@@ -27,9 +23,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
     return clearDetail
   }, [claim.orderId, onBack, setDetail, clearDetail])
 
-  const [tab, setTab] = useState<ClaimDetailsTab>('proof')
   const [deal, setDeal] = useState<Deal | null>(null)
-  const [dealLoading, setDealLoading] = useState(true)
   const [claimDetail, setClaimDetail] = useState<ClaimReviewItem | null>(null)
   const [claimLoading, setClaimLoading] = useState(true)
   const [proofItems, setProofItems] = useState<ClaimProofItem[]>([])
@@ -41,25 +35,16 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
   const isAgency = userRole === 'ROLE_AGENCY'
 
   useEffect(() => {
-    if (!claim.campaignId) {
-      setDealLoading(false)
-      setError('No campaign linked to this claim.')
-      return
-    }
+    if (!claim.campaignId) return
     let cancelled = false
-    setDealLoading(true)
     fetchCampaignById(claim.campaignId)
       .then(dto => { if (!cancelled) setDeal(campaignToDeal(dto)) })
       .catch(err => { if (!cancelled) setError((err as Error).message || 'Failed to load deal info.') })
-      .finally(() => { if (!cancelled) setDealLoading(false) })
     return () => { cancelled = true }
   }, [claim.campaignId])
 
   useEffect(() => {
-    if (!claim.id) {
-      setClaimLoading(false)
-      return
-    }
+    if (!claim.id) { setClaimLoading(false); return }
     let cancelled = false
     setClaimLoading(true)
     fetchClaimById(claim.id)
@@ -71,17 +56,10 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
 
   useEffect(() => {
     const screenshots = claimDetail?.screenshots
-    if (!screenshots || screenshots.length === 0) {
-      setProofItems([])
-      return
-    }
+    if (!screenshots || screenshots.length === 0) { setProofItems([]); return }
     let cancelled = false
     setProofLoading(true)
-    Promise.all(
-      screenshots.map(s =>
-        fetchScreenshotUrl(s.storageKey).then(url => ({ s, url }))
-      )
-    )
+    Promise.all(screenshots.map(s => fetchScreenshotUrl(s.storageKey).then(url => ({ s, url }))))
       .then(results => {
         if (cancelled) return
         const prevUrls = blobUrlsRef.current
@@ -95,11 +73,12 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           type: s.type,
           score: s.score,
           verificationStatus: s.verificationStatus,
-          fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]) => {
+          fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]): ExtractedField => {
             const raw = sv.extractedValue ?? ''
-            const value = key === 'platform' ? (PLATFORM_LABELS[raw as Platform] ?? raw) : raw
+            const value = formatExtractedValue(key, raw)
             const hasValue = sv.extractedValue != null
             return {
+              key,
               label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
               value,
               matched: hasValue && sv.score != null ? sv.score >= 0.5 : false,
@@ -119,51 +98,56 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
     return () => { urls.forEach(u => URL.revokeObjectURL(u)) }
   }, [])
 
+  // Enrich proof items with campaign / submitted values once both are loaded
+  const enrichedItems = useMemo((): ClaimProofItem[] => {
+    const c = claimDetail ?? claim
+    return proofItems.map(item => ({
+      ...item,
+      fields: item.fields.map(f => {
+        const campaignValue = deal && f.key ? getCampaignValue(f.key, deal) : undefined
+        const submittedValue = f.key ? getSubmittedValue(f.key, c) : undefined
+        const submittedMismatch = !!(
+          submittedValue &&
+          f.value &&
+          submittedValue.toLowerCase().trim() !== f.value.toLowerCase().trim()
+        )
+        return { ...f, campaignValue, submittedValue, submittedMismatch }
+      }),
+    }))
+  }, [proofItems, deal, claimDetail, claim])
+
+  const effectiveClaim = claimDetail ?? claim
+
   return (
-    <div className="max-w-7xl mx-auto space-y-5">
-      <ClaimDetailsTabs value={tab} onChange={setTab} />
-
-      {tab === 'details' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-14rem)]">
-          {dealLoading ? <Loading size={32} className="m-auto" /> : deal ? <DealInfo deal={deal} /> : <div />}
-          {claimLoading ? <Loading size={32} className="m-auto" /> : <ClaimInfo claim={{ ...claim, ...claimDetail, mediatorName: claim.mediatorName, campaignName: claim.campaignName }} />}
-        </div>
-      )}
-
-      {tab === 'proof' && (
-        proofLoading
-          ? <Loading size={32} className="m-auto" />
-          : <ClaimProofGallery
-              items={proofItems}
-              isAgency={isAgency}
-              onApproveScreenshot={item =>
-                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED')
-                  .then(updated => setClaimDetail(updated))
-                  .catch(err => setError((err as Error).message))
-              }
-              onRejectScreenshot={(item, comment) =>
-                reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED', comment)
-                  .then(updated => setClaimDetail(updated))
-                  .catch(err => setError((err as Error).message))
-              }
-            />
-      )}
-
-      <ClaimProofActions
+    <div className="max-w-[1600px] mx-auto">
+      <ClaimProofUnified
+        items={enrichedItems}
+        loading={claimLoading || proofLoading}
+        isAgency={isAgency}
         userRole={userRole}
-        isUnderReview={claimDetail?.isUnderReview ?? false}
-        mediatorVerified={claimDetail?.mediatorVerified ?? false}
-        onApprove={comment =>
+        claim={effectiveClaim}
+        campaignTitle={deal?.title}
+        onApproveScreenshot={item =>
+          reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED')
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
+        onRejectScreenshot={(item, comment) =>
+          reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED', comment)
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
+        onApproveClaim={comment =>
           submitClaimReview(claim.id, 'APPROVED', comment || undefined)
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
-        onVerified={() =>
+        onVerifiedClaim={() =>
           submitClaimReview(claim.id, 'VERIFIED')
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
-        onReject={comment =>
+        onRejectClaim={comment =>
           submitClaimReview(claim.id, 'REJECTED', comment)
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))

@@ -105,6 +105,7 @@ export function campaignToDeal(dto: CampaignResponseDto): Deal {
   return {
     id: dto.id ?? '',
     campaignId: dto.id ?? '',
+    title: dto.title,
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productLink ?? '',
