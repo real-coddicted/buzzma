@@ -55,7 +55,7 @@ class UserSettingsServiceImplTest {
     final Settings settings =
         this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_ADMIN).getSettings();
 
-    assertTrue(settings.isDashboardTabEnabled());
+    assertFalse(settings.isDashboardTabEnabled());
     assertTrue(settings.isCampaignsTabEnabled());
     assertTrue(settings.isAssignmentsTabEnabled());
     assertTrue(settings.isConnectionsTabEnabled());
@@ -71,7 +71,7 @@ class UserSettingsServiceImplTest {
     final Settings settings =
         this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_MEDIATOR).getSettings();
 
-    assertTrue(settings.isDashboardTabEnabled());
+    assertFalse(settings.isDashboardTabEnabled());
     assertFalse(settings.isCampaignsTabEnabled());
     assertTrue(settings.isAssignmentsTabEnabled());
     assertTrue(settings.isConnectionsTabEnabled());
@@ -90,7 +90,7 @@ class UserSettingsServiceImplTest {
     assertFalse(settings.isDashboardTabEnabled());
     assertFalse(settings.isCampaignsTabEnabled());
     assertFalse(settings.isAssignmentsTabEnabled());
-    assertFalse(settings.isConnectionsTabEnabled());
+    assertTrue(settings.isConnectionsTabEnabled());
     assertTrue(settings.isDealTabEnabled());
     assertTrue(settings.isTicketsTabEnabled());
     assertTrue(settings.isFeedbackTabEnabled());

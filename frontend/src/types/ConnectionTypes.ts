@@ -6,6 +6,8 @@ export interface Connection {
   /** UUID of the other party — used as the body for accept/reject actions. */
   toUserId: string
   name: string
+  /** Role of the other party, e.g. 'ROLE_MEDIATOR' — used to bucket connections by role. */
+  role?: string
   type: ConnectionType
   category: string
   status: ConnectionStatus

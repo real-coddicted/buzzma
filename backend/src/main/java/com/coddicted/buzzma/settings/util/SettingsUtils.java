@@ -8,7 +8,7 @@ public final class SettingsUtils {
 
   public static Settings getAdminSettings() {
     return Settings.builder()
-        .dashboardTabEnabled(true)
+        .dashboardTabEnabled(false)
         .campaignsTabEnabled(true)
         .assignmentsTabEnabled(true)
         .connectionsTabEnabled(true)
@@ -23,7 +23,7 @@ public final class SettingsUtils {
 
   public static Settings getBrandSettings() {
     return Settings.builder()
-        .dashboardTabEnabled(true)
+        .dashboardTabEnabled(false)
         .campaignsTabEnabled(true)
         .connectionsTabEnabled(true)
         .ticketsTabEnabled(true)
@@ -35,7 +35,7 @@ public final class SettingsUtils {
 
   public static Settings getAgencySettings() {
     return Settings.builder()
-        .dashboardTabEnabled(true)
+        .dashboardTabEnabled(false)
         .campaignsTabEnabled(true)
         .assignmentsTabEnabled(true)
         .connectionsTabEnabled(true)
@@ -49,7 +49,7 @@ public final class SettingsUtils {
 
   public static Settings getMediatorSettings() {
     return Settings.builder()
-        .dashboardTabEnabled(true)
+        .dashboardTabEnabled(false)
         .assignmentsTabEnabled(true)
         .connectionsTabEnabled(true)
         .claimReviewEnabled(true)
@@ -63,6 +63,7 @@ public final class SettingsUtils {
   public static Settings getBuyerSettings() {
     return Settings.builder()
         .dealTabEnabled(true)
+        .connectionsTabEnabled(true)
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)

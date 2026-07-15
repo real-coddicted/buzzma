@@ -16,6 +16,7 @@ import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -149,8 +150,12 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
   @Override
   @Transactional(readOnly = true)
   public boolean isParentOf(final UUID parentId, final UUID childId) {
-    return this.connectionRepository.existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
-        parentId, childId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED);
+    return this.connectionRepository.existsByFromUserIdAndToUserIdAndStatusInAndIsDeletedFalse(
+        parentId,
+        childId,
+        List.of(
+            ConnectionStatus.CONNECTION_STATUS_ACCEPTED,
+            ConnectionStatus.CONNECTION_STATUS_REQUESTED));
   }
 
   @Override

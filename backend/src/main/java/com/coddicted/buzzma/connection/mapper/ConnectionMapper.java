@@ -15,8 +15,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ConnectionMapper {
 
-  @Mapping(target = "fromName", ignore = true)
-  @Mapping(target = "toName", ignore = true)
+  @Mapping(target = "fromUserName", ignore = true)
+  @Mapping(target = "fromUserRole", ignore = true)
+  @Mapping(target = "toUserName", ignore = true)
+  @Mapping(target = "toUserRole", ignore = true)
   ConnectionResponseDto toResponse(Connection connection);
 
   @Mapping(source = "connection.id", target = "id")

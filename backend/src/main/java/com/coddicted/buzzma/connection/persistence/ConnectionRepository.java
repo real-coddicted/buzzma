@@ -4,6 +4,7 @@ import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionSummary;
 import com.coddicted.buzzma.connection.model.ConnectionView;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -29,7 +30,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -51,7 +52,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -61,7 +62,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -84,6 +85,6 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
   Optional<Connection> findByToUserIdAndStatusAndIsDeletedFalse(
       UUID toUserId, ConnectionStatus status);
 
-  boolean existsByFromUserIdAndToUserIdAndStatusAndIsDeletedFalse(
-      UUID fromUserId, UUID toUserId, ConnectionStatus status);
+  boolean existsByFromUserIdAndToUserIdAndStatusInAndIsDeletedFalse(
+      UUID fromUserId, UUID toUserId, Collection<ConnectionStatus> statuses);
 }

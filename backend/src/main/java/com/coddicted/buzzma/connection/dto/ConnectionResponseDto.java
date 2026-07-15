@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.connection.dto;
 
+import com.coddicted.buzzma.identity.entity.UserRole;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
@@ -15,11 +16,15 @@ public class ConnectionResponseDto {
 
   UUID fromUserId;
 
-  String fromName;
+  String fromUserName;
+
+  UserRole fromUserRole;
 
   UUID toUserId;
 
-  String toName;
+  String toUserName;
+
+  UserRole toUserRole;
 
   String status;
 

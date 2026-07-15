@@ -58,12 +58,14 @@ export type ConnectionDirection = 'child' | 'parent'
 
 function mapConnection(dto: ConnectionResponseDto, direction: ConnectionDirection): Connection {
   const otherUserId = (direction === 'parent' ? dto.fromUserId : dto.toUserId) ?? ''
-  const otherUserName = direction === 'parent' ? dto.fromName : dto.toName
+  const otherUserName = direction === 'parent' ? dto.fromUserName : dto.toUserName
+  const otherUserRole = direction === 'parent' ? dto.fromUserRole : dto.toUserRole
   const name = otherUserName ?? (otherUserId ? `User ${otherUserId.slice(0, 8)}` : 'Unknown')
   return {
     id: dto.id ?? '',
     toUserId: otherUserId,
     name,
+    role: otherUserRole,
     type: 'brand',
     category: '',
     status: mapStatus(dto.status),

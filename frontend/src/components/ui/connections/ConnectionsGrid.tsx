@@ -168,7 +168,7 @@ export function ConnectionsGrid({
               sorted.map(c => {
                 const s = statusConfig[c.status]
                 const busy = actioningId === c.id
-                const clickable = c.status === 'connected' && !!onRowClick
+                const clickable = (c.status === 'connected' || c.status === 'pending') && !!onRowClick
                 return (
                   <tr
                     key={c.id}
@@ -203,7 +203,7 @@ export function ConnectionsGrid({
                     </td>
 
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1">
                         {c.status === 'pending' && showApprovalActions && (
                           <>
                             <button

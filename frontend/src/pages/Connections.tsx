@@ -52,7 +52,8 @@ export function Connections() {
   const view = searchParams.get('view')
   const detailId = searchParams.get('id')
 
-  const tabLabels = getConnectionTabLabels(getCurrentUser()?.role)
+  const currentRole = getCurrentUser()?.role
+  const tabLabels = useMemo(() => getConnectionTabLabels(currentRole), [currentRole])
 
   const [connections, setConnections] = useState<Connection[]>([])
   const [summary, setSummary]         = useState<ConnectionSummary>({ total: 0, connectedCount: 0, pendingCount: 0 })
@@ -116,14 +117,15 @@ export function Connections() {
   const loadConnections = useCallback(() => {
     setLoading(true)
     const fetchList = direction === 'parent' ? fetchParentConnections : fetchConnections
+    const bucketRole = tabLabels[direction]?.role
     fetchList(statusFilter)
-      .then(list => setConnections(list))
+      .then(list => setConnections(bucketRole ? list.filter(c => c.role === bucketRole) : list))
       .catch((err: unknown) => {
         setConnections([])
         setToast({ message: err instanceof Error ? err.message : 'Failed to load connections.', type: 'error' })
       })
       .finally(() => setLoading(false))
-  }, [statusFilter, direction])
+  }, [statusFilter, direction, tabLabels])
 
   const refreshSummary = useCallback(() => {
     // Summary counts are secondary — a failure here is swallowed rather than

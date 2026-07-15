@@ -37,15 +37,15 @@ public final class Fixtures {
   static final ConnectionView CONNECTION_VIEW_REQUESTED =
       ConnectionView.builder()
           .connection(CONNECTION_REQUESTED)
-          .fromName(FROM_USER_NAME)
-          .toName(TO_USER_NAME)
+          .fromUserName(FROM_USER_NAME)
+          .toUserName(TO_USER_NAME)
           .build();
 
   static final ConnectionView CONNECTION_VIEW_ACCEPTED =
       ConnectionView.builder()
           .connection(CONNECTION_ACCEPTED)
-          .fromName(FROM_USER_NAME)
-          .toName(TO_USER_NAME)
+          .fromUserName(FROM_USER_NAME)
+          .toUserName(TO_USER_NAME)
           .build();
 
   static final ConnectionSummary CONNECTION_SUMMARY =

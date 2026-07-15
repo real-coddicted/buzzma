@@ -41,8 +41,8 @@ export function ConnectionsHeader({
   onRequestConnection,
 }: ConnectionsHeaderProps) {
   const directionTabs = [
-    { value: 'parent' as const, label: tabLabels.parent },
-    ...(tabLabels.child !== null ? [{ value: 'child' as const, label: tabLabels.child }] : []),
+    ...(tabLabels.child !== null ? [{ value: 'child' as const, label: tabLabels.child.label }] : []),
+    ...(tabLabels.parent !== null ? [{ value: 'parent' as const, label: tabLabels.parent.label }] : []),
   ]
 
   return (
@@ -57,9 +57,11 @@ export function ConnectionsHeader({
           <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconLink size={14} />}>
             Request to Connect
           </Button>
-          <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />}>
-            Invite
-          </Button>
+          {tabLabels.child !== null && (
+            <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />}>
+              Invite
+            </Button>
+          )}
         </div>
       </div>
 
