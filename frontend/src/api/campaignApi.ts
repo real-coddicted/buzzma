@@ -93,10 +93,14 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
   return res.json() as Promise<CampaignResponseDto>
 }
 
-export async function fetchCampaigns(): Promise<Campaign[]> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns`)
-  const data = (await res.json()) as CampaignSummaryDto[]
-  return data.map(dto => ({
+export interface PagedCampaigns {
+  items: Campaign[]
+  total: number
+  totalPages: number
+}
+
+function mapCampaignSummaryDto(dto: CampaignSummaryDto): Campaign {
+  return {
     id:                   dto.campaignId ?? '',
     code:                 dto.code ?? '',
     title:                dto.title ?? '',
@@ -122,10 +126,20 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
     ctr:                  0,
     startDate:            yyyymmddToIso(dto.startDate),
     endDate:              yyyymmddToIso(dto.endDate),
-  }))
+  }
 }
 
-export async function searchCampaigns(filters: CampaignFilters, page = 0, size = 20): Promise<Campaign[]> {
+export async function fetchCampaigns(page = 0, size = 10): Promise<PagedCampaigns> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns?page=${page}&size=${size}`)
+  const data = (await res.json()) as { items?: CampaignSummaryDto[]; total?: number; totalPages?: number }
+  return {
+    items:      (data.items ?? []).map(mapCampaignSummaryDto),
+    total:      data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
+}
+
+export async function searchCampaigns(filters: CampaignFilters, page = 0, size = 20): Promise<PagedCampaigns> {
   const brands = filters.brand
     ? filters.brand.split(',').map(s => s.trim()).filter(Boolean)
     : null
@@ -146,34 +160,12 @@ export async function searchCampaigns(filters: CampaignFilters, page = 0, size =
     method: 'POST',
     body: JSON.stringify(body),
   })
-  const data = await res.json() as { items: CampaignSummaryDto[] }
-  return data.items.map(dto => ({
-    id:                   dto.campaignId ?? '',
-    code:                 dto.code ?? '',
-    title:                dto.title ?? '',
-    status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
-    platform:             (dto.platform ?? '') as Platform,
-    productBrandName:     dto.productBrandName ?? '',
-    productName:          dto.productName ?? '',
-    productImageUrl:      dto.productImageUrl ?? '',
-    productUrl:           '',
-    originalPricePaise:   0,
-    campaignPricePaise:   0,
-    commissionOfferedPaise: 0,
-    returnWindowDays:     null,
-    campaignType:         (dto.type ?? null) as CampaignType | null,
-    totalSlots:           dto.totalSlots ?? null,
-    slotsClaimed:         dto.slotsClaimed ?? 0,
-    allowedAgencies:      null,
-    openToAll:            true,
-    spent:                0,
-    impressions:          0,
-    clicks:               0,
-    conversions:          0,
-    ctr:                  0,
-    startDate:            yyyymmddToIso(dto.startDate),
-    endDate:              yyyymmddToIso(dto.endDate),
-  }))
+  const data = await res.json() as { items?: CampaignSummaryDto[]; total?: number; totalPages?: number }
+  return {
+    items:      (data.items ?? []).map(mapCampaignSummaryDto),
+    total:      data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
 }
 
 export async function fetchCampaignById(id: string): Promise<CampaignResponseDto> {

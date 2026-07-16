@@ -2902,7 +2902,10 @@ export interface operations {
     };
     list_4: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2915,7 +2918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CampaignSummaryResponseDto"][];
+                    "*/*": components["schemas"]["PagedCampaignsResponseDto"];
                 };
             };
         };

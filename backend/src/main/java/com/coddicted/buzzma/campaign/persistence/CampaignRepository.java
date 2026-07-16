@@ -26,6 +26,8 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
   List<Campaign> findByOwnerIdAndIsDeletedFalse(UUID ownerId);
 
+  Page<Campaign> findByOwnerIdAndIsDeletedFalse(UUID ownerId, Pageable pageable);
+
   @Query(
       value =
           """

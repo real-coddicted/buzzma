@@ -11,6 +11,7 @@ import type { Campaign, CampaignStatus, CampaignType, Platform } from '../../../
 import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS } from '../../../constants/campaigns'
 import { ProductThumbnail } from './ProductThumbnail'
 import { Loading } from '../Loading'
+import { PaginationToolbar } from '../PaginationToolbar'
 
 
 type SortKey = keyof Pick<Campaign, 'title' | 'totalSlots'>
@@ -67,9 +68,12 @@ interface Props {
   onPause: (id: string) => void
   onResume: (id: string) => void
   onClose: (id: string) => void
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
+export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose, currentPage, totalPages, onPageChange }: Props) {
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -303,22 +307,18 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
         </table>
       </div>
 
-      <div className="px-5 py-3 border-t border-surface-light-border dark:border-surface-dark-border flex items-center justify-between">
+      <div className="px-5 py-3 border-t border-surface-light-border dark:border-surface-dark-border">
         <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
           Showing {filtered.length} of {campaigns.length} campaigns
         </span>
-        <div className="flex items-center gap-1">
-          <button className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40" disabled>
-            Previous
-          </button>
-          <button className="px-3 py-1.5 text-xs rounded-lg bg-neon-blue/10 border border-neon-blue/30 text-neon-blue font-semibold">
-            1
-          </button>
-          <button className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40" disabled>
-            Next
-          </button>
-        </div>
       </div>
+
+      <PaginationToolbar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        disabled={loading}
+      />
 
       <CampaignFilterDrawer
         open={drawerOpen}

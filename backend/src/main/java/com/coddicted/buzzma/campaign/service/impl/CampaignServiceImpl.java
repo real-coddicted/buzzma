@@ -146,6 +146,15 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
 
   @Override
   @Transactional(readOnly = true)
+  public Page<CampaignSummary> getByOwnerId(final UUID ownerId, final Pageable pageable) {
+    final Page<Campaign> campaigns =
+        this.campaignRepository.findByOwnerIdAndIsDeletedFalse(ownerId, pageable);
+    final Map<UUID, CampaignSlot> slotsByCampaignId = loadSlotsByCampaignId(campaigns.getContent());
+    return campaigns.map(c -> toCampaignSummary(c, slotsByCampaignId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Page<CampaignSummary> search(
       final UUID ownerId, final CampaignSearchCriteria criteria, final Pageable pageable) {
     final Page<Campaign> campaigns =

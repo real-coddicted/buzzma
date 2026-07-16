@@ -338,6 +338,24 @@ class CampaignServiceImplTest {
   }
 
   @Test
+  void testGetByOwnerIdPaged() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    final Page<Campaign> campaignPage = new PageImpl<>(List.of(CAMPAIGN_1), pageable, 1);
+    when(this.mockCampaignRepository.findByOwnerIdAndIsDeletedFalse(OWNER_ID, pageable))
+        .thenReturn(campaignPage);
+    when(this.mockCampaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(
+            List.of(CAMPAIGN_ID_1)))
+        .thenReturn(List.of(SLOT_1));
+
+    final Page<CampaignSummary> result = this.campaignService.getByOwnerId(OWNER_ID, pageable);
+
+    assertEquals(1, result.getTotalElements());
+    final CampaignSummary summary = result.getContent().get(0);
+    assertEquals(CAMPAIGN_1, summary.getCampaign());
+    assertEquals(SLOT_1.getTotalSlots() - SLOT_1.getSlotsAvailable(), summary.getSlotsClaimed());
+  }
+
+  @Test
   void testSearchNormalizesEmptyFilterListsToNull() {
     final Pageable pageable = PageRequest.of(0, 20);
     final Page<Campaign> campaignPage = new PageImpl<>(List.of(), pageable, 0);

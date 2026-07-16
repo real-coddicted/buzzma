@@ -69,33 +69,49 @@ export function Campaigns() {
   const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null)
   const [actioningId, setActioningId] = useState<string | null>(null)
   const [appliedFilters, setAppliedFilters] = useState<CampaignFilters>(emptyFilters)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  const loadCampaigns = useCallback(() => {
+  const loadCampaigns = useCallback((page = 1) => {
     setLoading(true)
-    fetchCampaigns()
-      .then(setCampaigns)
+    fetchCampaigns(page - 1)
+      .then(result => {
+        setCampaigns(result.items)
+        setTotalPages(result.totalPages)
+        setCurrentPage(page)
+      })
       .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
       .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => { loadCampaigns() }, [loadCampaigns])
 
-  const handleApplyFilters = useCallback(async (filters: CampaignFilters) => {
+  const handleApplyFilters = useCallback(async (filters: CampaignFilters, page = 1) => {
     setAppliedFilters(filters)
     if (countActiveFilters(filters) === 0) {
-      loadCampaigns()
+      loadCampaigns(page)
       return
     }
     setLoading(true)
     try {
-      const results = await searchCampaigns(filters)
-      setCampaigns(results)
+      const result = await searchCampaigns(filters, page - 1)
+      setCampaigns(result.items)
+      setTotalPages(result.totalPages)
+      setCurrentPage(page)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Search failed.')
     } finally {
       setLoading(false)
     }
   }, [loadCampaigns])
+
+  function handlePageChange(page: number) {
+    if (countActiveFilters(appliedFilters) === 0) {
+      loadCampaigns(page)
+    } else {
+      handleApplyFilters(appliedFilters, page)
+    }
+  }
 
   useSSE('EVENT_TYPE_REFRESH', loadCampaigns, 'campaigns')
 
@@ -253,6 +269,9 @@ export function Campaigns() {
         onPause={handleRequestPause}
         onResume={handleResumeCampaign}
         onClose={handleRequestClose}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
       />
 
       {confirmPauseId && (

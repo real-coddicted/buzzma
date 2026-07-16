@@ -4,7 +4,6 @@ import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
-import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -68,8 +67,18 @@ public class CampaignController {
   }
 
   @GetMapping
-  public List<CampaignSummaryResponseDto> list(@CurrentUserId final UUID requesterId) {
-    return this.campaignMapper.toSummaries(this.service.getByOwnerId(requesterId));
+  public PagedCampaignsResponseDto list(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "10") final int size) {
+    final Page<CampaignSummary> result =
+        this.service.getByOwnerId(requesterId, PageRequest.of(page, size));
+    return PagedCampaignsResponseDto.builder()
+        .items(this.campaignMapper.toSummaries(result.getContent()))
+        .total(result.getTotalElements())
+        .page(page)
+        .totalPages(result.getTotalPages())
+        .build();
   }
 
   @GetMapping("/{id}")
