@@ -15,4 +15,4 @@ def _similarity(expected: str, actual: str) -> float:
     if not expected_clean or not actual_clean:
         return 0.0
 
-    return round(fuzz.token_set_ratio(expected_clean, actual_clean) / 100.0, 4)
+    return round(fuzz.QRatio(expected_clean, actual_clean) / 100.0, 4)
