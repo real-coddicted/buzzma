@@ -90,18 +90,14 @@ export function Deals() {
   function handleClaimedSelect(deal: Deal) {
     setSelectedClaimed(deal)
     setSelectedClaimedResponse(claimedResponses.find(r => r.id === deal.claimId) ?? null)
+    setSearchParams({ view: 'claimed', id: deal.id })
   }
 
-  function clearSelectedClaimed() {
-    setSelectedClaimed(null)
-    setSelectedClaimedResponse(null)
-  }
-
-  if (selectedClaimed) {
+  if (view === 'claimed' && selectedClaimed) {
     return (
       <ClaimedDealDetail
         deal={selectedClaimed}
-        onBack={clearSelectedClaimed}
+        onBack={() => navigate(-1)}
         claimResponse={selectedClaimedResponse ?? undefined}
       />
     )
