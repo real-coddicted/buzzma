@@ -2,6 +2,7 @@ package com.coddicted.buzzma.identity.dto.auth;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -22,7 +23,7 @@ public class UserRegistrationRequestDto {
   @Size(min = 10, max = 10)
   String mobile;
 
-  String email;
+  @NotBlank @Email String email;
 
   @NotBlank
   @Size(min = 8, max = 200)

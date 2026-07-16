@@ -27,6 +27,7 @@ function buildInitialForm(qs: string[]): RegisterForm {
   return {
     registerAs: 'brand',
     mobile: '',
+    email: '',
     password: '',
     inviteCode: '',
     brandName: '',
@@ -75,6 +76,9 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
     if (!form.mobile.trim()) next.mobile = 'Mobile number is required'
     else if (!/^\+?[0-9]{7,15}$/.test(form.mobile.replace(/\s/g, '')))
       next.mobile = 'Enter a valid mobile number'
+    if (!form.email.trim()) next.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+      next.email = 'Enter a valid email address'
     if (!form.password) next.password = 'Password is required'
     else if (form.password.length < 8) next.password = 'Minimum 8 characters'
     if (!form.inviteCode.trim()) next.inviteCode = 'Invite code is required'
@@ -254,6 +258,23 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
               />
               {errors.mobile && (
                 <p className="mt-1 text-xs text-neon-red">{errors.mobile}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={e => set('email', e.target.value)}
+                className={inputBase}
+              />
+              {errors.email && (
+                <p className="mt-1 text-xs text-neon-red">{errors.email}</p>
               )}
             </div>
 

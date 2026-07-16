@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.identity.controller;
 
+import com.coddicted.buzzma.identity.dto.UpdateProfileRequestDto;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -10,12 +11,14 @@ import com.coddicted.buzzma.identity.mapper.UserMapper;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +50,15 @@ public class UsersController {
   @PreAuthorize("@ownershipGuard.isOwner(#requesterId)")
   public UserSummaryDto me(@CurrentUserId final UUID requesterId) {
     final BuzzmaUser user = this.userService.getById(requesterId);
+    return this.userMapper.toUserSummaryDto(user);
+  }
+
+  @PostMapping("/me")
+  @PreAuthorize("@ownershipGuard.isOwner(#requesterId)")
+  public UserSummaryDto updateProfile(
+      @CurrentUserId final UUID requesterId,
+      @Valid @RequestBody final UpdateProfileRequestDto request) {
+    final BuzzmaUser user = this.userService.updateProfile(request.getEmail(), requesterId);
     return this.userMapper.toUserSummaryDto(user);
   }
 

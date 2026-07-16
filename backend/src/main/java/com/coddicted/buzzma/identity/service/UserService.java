@@ -16,6 +16,8 @@ public interface UserService {
 
   BuzzmaUser update(BuzzmaUser user);
 
+  BuzzmaUser updateProfile(String email, UUID requesterId);
+
   BuzzmaUser getByMobile(String mobile);
 
   BuzzmaUser getByRole(UserRole role);

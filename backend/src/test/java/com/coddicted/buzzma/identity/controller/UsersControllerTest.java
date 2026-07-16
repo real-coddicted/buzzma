@@ -1,8 +1,11 @@
 package com.coddicted.buzzma.identity.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.coddicted.buzzma.connection.service.ConnectionService;
@@ -28,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UsersController.class)
@@ -48,6 +52,67 @@ class UsersControllerTest {
 
   private static final UUID TARGET_USER_ID =
       UUID.fromString("44444444-4444-4444-4444-444444444444");
+
+  // --- POST /api/v1/users/me ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER, id = "44444444-4444-4444-4444-444444444444")
+  void testUpdateProfileWithValidEmailReturnsOk() throws Exception {
+    final BuzzmaUser user =
+        BuzzmaUser.builder().id(TARGET_USER_ID).email("new@example.com").build();
+    when(userService.updateProfile(eq("new@example.com"), eq(TARGET_USER_ID))).thenReturn(user);
+    when(userMapper.toUserSummaryDto(user))
+        .thenReturn(UserSummaryDto.builder().id(TARGET_USER_ID).email("new@example.com").build());
+
+    mockMvc
+        .perform(
+            post("/api/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"new@example.com\"}"))
+        .andExpect(status().isOk());
+
+    verify(userService).updateProfile("new@example.com", TARGET_USER_ID);
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testUpdateProfileWithMissingEmailReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/users/me").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testUpdateProfileWithBlankEmailReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testUpdateProfileWithMalformedEmailReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"not-an-email\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testUpdateProfileUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"new@example.com\"}"))
+        .andExpect(status().isUnauthorized());
+  }
 
   // --- GET /api/v1/users/{id} ---
 

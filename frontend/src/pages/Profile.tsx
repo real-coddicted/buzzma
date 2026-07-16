@@ -4,7 +4,7 @@ import { ChangePasswordCard } from '../components/ui/ChangePasswordCard'
 import { BankDetailsForm } from '../components/ui/BankDetailsForm'
 import { getCurrentUser } from '../api/client'
 import type { CurrentUser } from '../api/client'
-import { fetchCurrentUser } from '../api/userApi'
+import { fetchCurrentUser, updateUserProfile } from '../api/userApi'
 import type { UserDetails } from '../types/ProfileTypes'
 import { roleToType } from '../utils/userRole'
 
@@ -62,7 +62,13 @@ export function Profile() {
 
       {activeTab === 'personal' && (
         user ? (
-          <DetailsCard details={toUserDetails(user)} />
+          <DetailsCard
+            details={toUserDetails(user)}
+            onSave={async email => {
+              const updated = await updateUserProfile(email)
+              setUser(prev => prev ? { ...prev, email: updated.email ?? email } : prev)
+            }}
+          />
         ) : (
           <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5">
             <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted">

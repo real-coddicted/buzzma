@@ -71,6 +71,7 @@ export async function registerUser(form: RegisterForm, captchaToken: string): Pr
   const body: UserRegistrationRequestDto & { captchaToken: string } = {
     name,
     mobile: form.mobile.trim(),
+    email: form.email.trim(),
     password: form.password,
     inviteCode: form.inviteCode.trim(),
     userRole: roleMap[form.registerAs],

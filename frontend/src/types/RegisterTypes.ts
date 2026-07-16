@@ -3,6 +3,7 @@ export type LoginAs = 'brand' | 'agency' | 'mediator' | 'buyer'
 export interface RegisterForm {
   registerAs: LoginAs
   mobile: string
+  email: string
   password: string
   inviteCode: string
   brandName: string

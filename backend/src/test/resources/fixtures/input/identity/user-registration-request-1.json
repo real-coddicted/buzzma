@@ -1,0 +1,9 @@
+{
+  "name": "Test User",
+  "mobile": "9876543210",
+  "email": "test@example.com",
+  "password": "password123",
+  "inviteCode": "INV-CODE1",
+  "userRole": "ROLE_BRAND",
+  "captchaToken": "test-captcha-token"
+}

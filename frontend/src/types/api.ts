@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["me"];
+        put?: never;
+        post: operations["updateProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user-settings": {
         parameters: {
             query?: never;
@@ -740,22 +756,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["me"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/tickets/{id}": {
         parameters: {
             query?: never;
@@ -1012,6 +1012,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getBrandNames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assignments": {
         parameters: {
             query?: never;
@@ -1163,6 +1179,28 @@ export interface components {
             feedbackTabEnabled?: boolean;
             settingsTabEnabled?: boolean;
             usersTabEnabled?: boolean;
+        };
+        UpdateProfileRequestDto: {
+            email: string;
+        };
+        UserSummaryDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            mobile?: string;
+            email?: string;
+            /** @enum {string} */
+            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            /** @enum {string} */
+            status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
+            code?: string;
+            avatar?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            createdBy?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            updatedBy?: string;
         };
         TicketRequestDto: {
             /** Format: uuid */
@@ -1729,7 +1767,7 @@ export interface components {
         UserRegistrationRequestDto: {
             name: string;
             mobile: string;
-            email?: string;
+            email: string;
             password: string;
             securityQuestionList?: components["schemas"]["SecurityQuestionWrapper"][];
             inviteCode?: string;
@@ -1762,25 +1800,6 @@ export interface components {
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
             action: "TICKET_ACTION_CLOSE" | "TICKET_ACTION_MARK_RESOLVE" | "TICKET_ACTION_REQUEST_ADDITIONAL_INFO" | "TICKET_ACTION_INFO_PROVIDED" | "TICKET_ACTION_REOPEN";
-        };
-        UserSummaryDto: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            mobile?: string;
-            email?: string;
-            /** @enum {string} */
-            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
-            /** @enum {string} */
-            status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
-            code?: string;
-            avatar?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            createdBy?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            updatedBy?: string;
         };
         TicketCategoryResponseDto: {
             /** Format: uuid */
@@ -2143,6 +2162,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSummaryDto"];
+                };
+            };
+        };
+    };
+    updateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSummaryDto"];
+                };
             };
         };
     };
@@ -3277,26 +3340,6 @@ export interface operations {
             };
         };
     };
-    me: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UserSummaryDto"];
-                };
-            };
-        };
-    };
     getById_1: {
         parameters: {
             query?: never;
@@ -3662,6 +3705,26 @@ export interface operations {
                     "*/*": {
                         [key: string]: components["schemas"]["CampaignStepDto"][];
                     };
+                };
+            };
+        };
+    };
+    getBrandNames: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string[];
                 };
             };
         };

@@ -12,6 +12,16 @@ export async function fetchCurrentUser(): Promise<UserSummaryDto> {
   return user
 }
 
+export async function updateUserProfile(email: string): Promise<UserSummaryDto> {
+  const res = await fetchWithAuth('/api/v1/users/me', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+  const user: UserSummaryDto = await res.json()
+  setCurrentUser(user)
+  return user
+}
+
 export async function searchUserByMobile(mobile: string): Promise<UserSummaryDto> {
   const res = await fetchWithAuth(`/api/v1/users/search?mobile=${encodeURIComponent(mobile)}`)
   return res.json() as Promise<UserSummaryDto>

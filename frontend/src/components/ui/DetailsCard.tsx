@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react'
 import { LabeledField } from './LabeledField'
 import { CopyableCode } from './CopyableCode'
+import { Button } from './Button'
+import { Toast } from './Toast'
 import type { UserDetails } from '../../types/ProfileTypes'
 
 interface DetailsCardProps {
   details: UserDetails
+  onSave?: (email: string) => Promise<void>
 }
 
 const nameLabels: Record<string, string> = {
@@ -13,8 +17,53 @@ const nameLabels: Record<string, string> = {
   buyer:    'Buyer Name',
 }
 
-export function DetailsCard({ details }: DetailsCardProps) {
+const inputBase =
+  'w-full rounded-lg border bg-surface-light-base dark:bg-surface-dark-hover ' +
+  'border-surface-light-border dark:border-surface-dark-border ' +
+  'text-ink-light-primary dark:text-ink-dark-primary ' +
+  'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
+  'px-3 py-2.5 text-sm outline-none transition-colors ' +
+  'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
+
+export function DetailsCard({ details, onSave }: DetailsCardProps) {
   const { code, type, name, mobile, email } = details
+  const [emailValue, setEmailValue] = useState(email ?? '')
+  const [emailError, setEmailError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [apiError, setApiError] = useState('')
+
+  useEffect(() => { setEmailValue(email ?? '') }, [email])
+
+  function validateEmail(): boolean {
+    const trimmed = emailValue.trim()
+    if (!trimmed) {
+      setEmailError('Email is required')
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError('Enter a valid email address')
+      return false
+    }
+    setEmailError('')
+    return true
+  }
+
+  async function handleSaveEmail(e: React.FormEvent) {
+    e.preventDefault()
+    if (!onSave || !validateEmail()) return
+    setSaving(true)
+    setApiError('')
+    setSuccess(false)
+    try {
+      await onSave(emailValue.trim())
+      setSuccess(true)
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5">
@@ -48,7 +97,35 @@ export function DetailsCard({ details }: DetailsCardProps) {
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
         <LabeledField label="Mobile" value={mobile} />
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
-        <LabeledField label="Email" value={email ?? ''} />
+        {onSave ? (
+          <form onSubmit={handleSaveEmail} className="space-y-2">
+            <label className="block text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={emailValue}
+              onChange={e => { setEmailValue(e.target.value); setEmailError('') }}
+              className={inputBase}
+            />
+            {emailError && <p className="text-xs text-neon-red">{emailError}</p>}
+            {apiError && <p className="text-xs text-neon-red">{apiError}</p>}
+            {success && (
+              <Toast
+                message="Email updated successfully."
+                onDismiss={() => setSuccess(false)}
+              />
+            )}
+            <div className="flex justify-end pt-1">
+              <Button type="submit" variant="primary" loading={saving}>
+                Save
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <LabeledField label="Email" value={email ?? ''} />
+        )}
       </div>
     </div>
   )
