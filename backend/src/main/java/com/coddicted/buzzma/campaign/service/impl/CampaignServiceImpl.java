@@ -223,10 +223,28 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       assignments.forEach(
           a -> a.setStatus(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED));
       this.campaignAssignmentRepository.saveAll(assignments);
-    } else {
-      this.stateMachine.transition(campaign, target);
+      final Campaign saved = this.campaignRepository.save(campaign);
+      this.campaignEventPublisher.publishCampaignLaunchedEvent(saved, toAssigneeIds(assignments));
+      return saved;
     }
-    return this.campaignRepository.save(campaign);
+    this.stateMachine.transition(campaign, target);
+    final Campaign saved = this.campaignRepository.save(campaign);
+    if (target == CampaignStatus.CAMPAIGN_STATUS_PAUSED) {
+      this.campaignEventPublisher.publishCampaignPausedEvent(saved, assigneeIdsFor(campaignId));
+    } else if (target == CampaignStatus.CAMPAIGN_STATUS_CLOSED) {
+      this.campaignEventPublisher.publishCampaignStoppedEvent(saved, assigneeIdsFor(campaignId));
+    } else if (target == CampaignStatus.CAMPAIGN_STATUS_ACTIVE) {
+      this.campaignEventPublisher.publishCampaignResumedEvent(saved, assigneeIdsFor(campaignId));
+    }
+    return saved;
+  }
+
+  private List<UUID> assigneeIdsFor(final UUID campaignId) {
+    return toAssigneeIds(this.campaignAssignmentRepository.findByCampaignId(campaignId));
+  }
+
+  private static List<UUID> toAssigneeIds(final List<CampaignAssignment> assignments) {
+    return assignments.stream().map(CampaignAssignment::getAssigneeId).distinct().toList();
   }
 
   private static <T> List<T> nullIfEmpty(final List<T> list) {

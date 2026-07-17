@@ -53,20 +53,34 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   }
 }
 
-export async function fetchUnpublishedAssignments(): Promise<AssignmentSummary[]> {
-  const res = await fetchWithAuth(
-    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_LOCKED`,
-  )
-  const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
-  return (data.items ?? []).map(mapSummary)
+export interface PagedAssignments {
+  items: AssignmentSummary[]
+  total: number
+  totalPages: number
 }
 
-export async function fetchPublishedAssignments(): Promise<AssignmentSummary[]> {
+export async function fetchUnpublishedAssignments(page = 0, size = 5): Promise<PagedAssignments> {
   const res = await fetchWithAuth(
-    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED`,
+    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_LOCKED&page=${page}&size=${size}`,
   )
   const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
-  return (data.items ?? []).map(mapSummary)
+  return {
+    items:      (data.items ?? []).map(mapSummary),
+    total:      data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
+}
+
+export async function fetchPublishedAssignments(page = 0, size = 5): Promise<PagedAssignments> {
+  const res = await fetchWithAuth(
+    `${API_BASE}/assignments?status=CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED&page=${page}&size=${size}`,
+  )
+  const data = (await res.json()) as components['schemas']['PagedAssignmentsResponseDto']
+  return {
+    items:      (data.items ?? []).map(mapSummary),
+    total:      data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
 }
 
 export async function getAssignmentById(id: string): Promise<AssignmentItem> {

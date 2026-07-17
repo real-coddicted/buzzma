@@ -165,6 +165,8 @@ class CampaignServiceImplTest {
     verify(this.mockCampaignAssignmentRepository).saveAll(List.of(ASSIGNMENT_1));
     assertEquals(CAMPAIGN_ASSIGNMENT_STATUS_LOCKED, ASSIGNMENT_1.getStatus());
     verify(this.mockCampaignRepository).save(CAMPAIGN_1);
+    verify(this.mockCampaignEventPublisher)
+        .publishCampaignLaunchedEvent(CAMPAIGN_1, List.of(ASSIGNEE_ID));
   }
 
   @Test
@@ -197,11 +199,15 @@ class CampaignServiceImplTest {
   void testActionPause() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
     when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_2))
+        .thenReturn(List.of(ASSIGNMENT_1));
 
     this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_PAUSE, OWNER_ID);
 
     verify(this.mockStateMachine).transition(CAMPAIGN_2, CAMPAIGN_STATUS_PAUSED);
     verify(this.mockCampaignRepository).save(CAMPAIGN_2);
+    verify(this.mockCampaignEventPublisher)
+        .publishCampaignPausedEvent(CAMPAIGN_2, List.of(ASSIGNEE_ID));
   }
 
   @Test
@@ -221,11 +227,15 @@ class CampaignServiceImplTest {
   void testActionResume() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_3)).thenReturn(Optional.of(CAMPAIGN_3));
     when(this.mockCampaignRepository.save(CAMPAIGN_3)).thenReturn(CAMPAIGN_3);
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_3))
+        .thenReturn(List.of(ASSIGNMENT_1));
 
     this.campaignService.action(CAMPAIGN_ID_3, CAMPAIGN_ACTION_RESUME, OWNER_ID);
 
     verify(this.mockStateMachine).transition(CAMPAIGN_3, CAMPAIGN_STATUS_ACTIVE);
     verify(this.mockCampaignRepository).save(CAMPAIGN_3);
+    verify(this.mockCampaignEventPublisher)
+        .publishCampaignResumedEvent(CAMPAIGN_3, List.of(ASSIGNEE_ID));
   }
 
   @Test
@@ -245,11 +255,15 @@ class CampaignServiceImplTest {
   void testActionClose() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
     when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_2))
+        .thenReturn(List.of(ASSIGNMENT_1));
 
     this.campaignService.action(CAMPAIGN_ID_2, CAMPAIGN_ACTION_CLOSE, OWNER_ID);
 
     verify(this.mockStateMachine).transition(CAMPAIGN_2, CAMPAIGN_STATUS_CLOSED);
     verify(this.mockCampaignRepository).save(CAMPAIGN_2);
+    verify(this.mockCampaignEventPublisher)
+        .publishCampaignStoppedEvent(CAMPAIGN_2, List.of(ASSIGNEE_ID));
   }
 
   @Test

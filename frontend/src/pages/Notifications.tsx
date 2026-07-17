@@ -14,6 +14,7 @@ import {
   pinNotification,
   markAllRead as apiMarkAllRead,
 } from '../api/notificationApi'
+import { useSSE } from '../hooks/useSSE'
 
 interface NotificationsProps {
   onUnreadCountChange: (count: number) => void
@@ -64,6 +65,11 @@ export function Notifications({ onUnreadCountChange }: NotificationsProps) {
     return fetchNotificationsPage(activeTab, currentPage)
       .then(data => { setNotifications(data.items); setTotalPages(data.totalPages) })
   }
+
+  useSSE('EVENT_TYPE_NOTIFICATION', () => {
+    refreshUnreadCount()
+    refetchCurrentPage().catch((err: unknown) => reportError(err, 'Failed to load notifications.'))
+  })
 
   function markAllRead() {
     apiMarkAllRead()
