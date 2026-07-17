@@ -129,17 +129,7 @@ function mapCampaignSummaryDto(dto: CampaignSummaryDto): Campaign {
   }
 }
 
-export async function fetchCampaigns(page = 0, size = 10): Promise<PagedCampaigns> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns?page=${page}&size=${size}`)
-  const data = (await res.json()) as { items?: CampaignSummaryDto[]; total?: number; totalPages?: number }
-  return {
-    items:      (data.items ?? []).map(mapCampaignSummaryDto),
-    total:      data.total ?? 0,
-    totalPages: data.totalPages ?? 0,
-  }
-}
-
-export async function searchCampaigns(filters: CampaignFilters, page = 0, size = 20): Promise<PagedCampaigns> {
+export async function searchCampaigns(filters: CampaignFilters, page = 0, size = 10): Promise<PagedCampaigns> {
   const brands = filters.brand
     ? filters.brand.split(',').map(s => s.trim()).filter(Boolean)
     : null
@@ -258,4 +248,8 @@ export async function closeCampaign(campaignId: string): Promise<CampaignRespons
     { method: 'POST' },
   )
   return res.json() as Promise<CampaignResponseDto>
+}
+
+export async function deleteCampaign(campaignId: string): Promise<void> {
+  await fetchWithAuth(`${API_BASE}/campaigns/${campaignId}`, { method: 'DELETE' })
 }

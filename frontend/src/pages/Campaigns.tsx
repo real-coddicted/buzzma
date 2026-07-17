@@ -7,7 +7,7 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaigns, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, searchCampaigns, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, yyyymmddToIso, type CampaignResponseDto } from '../api/campaignApi'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
@@ -67,6 +67,7 @@ export function Campaigns() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [confirmPauseId, setConfirmPauseId] = useState<string | null>(null)
   const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [actioningId, setActioningId] = useState<string | null>(null)
   const [appliedFilters, setAppliedFilters] = useState<CampaignFilters>(emptyFilters)
   const [currentPage, setCurrentPage] = useState(1)
@@ -74,7 +75,7 @@ export function Campaigns() {
 
   const loadCampaigns = useCallback((page = 1) => {
     setLoading(true)
-    fetchCampaigns(page - 1)
+    searchCampaigns(emptyFilters(), page - 1)
       .then(result => {
         setCampaigns(result.items)
         setTotalPages(result.totalPages)
@@ -139,7 +140,7 @@ export function Campaigns() {
   async function handleCopyCampaign(id: string) {
     try {
       await copyCampaign(id)
-      loadCampaigns()
+      handleApplyFilters(appliedFilters, currentPage)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to copy campaign.')
     }
@@ -158,10 +159,28 @@ export function Campaigns() {
     setActioningId(confirmCloseId)
     try {
       await closeCampaign(confirmCloseId)
-      loadCampaigns()
+      handleApplyFilters(appliedFilters, currentPage)
       setConfirmCloseId(null)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to close campaign.')
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  function handleRequestDelete(id: string) {
+    setConfirmDeleteId(id)
+  }
+
+  async function handleConfirmDelete() {
+    if (!confirmDeleteId) return
+    setActioningId(confirmDeleteId)
+    try {
+      await deleteCampaign(confirmDeleteId)
+      handleApplyFilters(appliedFilters, currentPage)
+      setConfirmDeleteId(null)
+    } catch (err) {
+      setErrorMsg((err as Error).message || 'Failed to delete campaign.')
     } finally {
       setActioningId(null)
     }
@@ -180,7 +199,7 @@ export function Campaigns() {
     setActioningId(confirmPauseId)
     try {
       await pauseCampaign(confirmPauseId)
-      loadCampaigns()
+      handleApplyFilters(appliedFilters, currentPage)
       setConfirmPauseId(null)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to pause campaign.')
@@ -192,7 +211,7 @@ export function Campaigns() {
   async function handleResumeCampaign(id: string) {
     try {
       await resumeCampaign(id)
-      loadCampaigns()
+      handleApplyFilters(appliedFilters, currentPage)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Failed to resume campaign.')
     }
@@ -205,14 +224,14 @@ export function Campaigns() {
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
     await createCampaign(dto)
     handleBack()
-    loadCampaigns()
+    handleApplyFilters(appliedFilters, currentPage)
   }
 
   async function handleUpdateCampaign(dto: CampaignRequestDto): Promise<void> {
     if (!campaignId || !detail?.status) return
     await updateCampaign(campaignId, dto, detail.status)
     handleBack()
-    loadCampaigns()
+    handleApplyFilters(appliedFilters, currentPage)
   }
 
   const totalSpent  = campaigns.reduce((s, c) => s + c.spent, 0)
@@ -269,6 +288,7 @@ export function Campaigns() {
         onPause={handleRequestPause}
         onResume={handleResumeCampaign}
         onClose={handleRequestClose}
+        onDelete={handleRequestDelete}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
@@ -295,6 +315,18 @@ export function Campaigns() {
           busy={actioningId === confirmCloseId}
           onConfirm={handleConfirmClose}
           onCancel={() => setConfirmCloseId(null)}
+        />
+      )}
+
+      {confirmDeleteId && (
+        <ConfirmModal
+          title="Delete campaign?"
+          message="Are you sure you want to delete this draft campaign? This can't be undone."
+          confirmLabel="Delete Campaign"
+          tone="red"
+          busy={actioningId === confirmDeleteId}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmDeleteId(null)}
         />
       )}
 

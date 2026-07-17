@@ -1,4 +1,4 @@
-import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye } from '../icons'
+import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye, IconTrash } from '../icons'
 import type { Campaign } from '../../../types'
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   onPause: () => void
   onResume: () => void
   onClose: () => void
+  onDelete: () => void
 }
 
 const btn = {
@@ -18,15 +19,21 @@ const btn = {
   resume: 'p-1.5 rounded-lg text-neon-green  bg-neon-green/10  hover:bg-neon-green/20  transition-colors',
   close:  'p-1.5 rounded-lg text-neon-red    bg-neon-red/10    hover:bg-neon-red/20    transition-colors',
   copy:   'p-1.5 rounded-lg text-neon-cyan   bg-neon-cyan/10   hover:bg-neon-cyan/20   transition-colors',
+  delete: 'p-1.5 rounded-lg text-neon-red    bg-neon-red/10    hover:bg-neon-red/20    transition-colors',
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">
         {c.status === 'draft' && (
           <button title="Edit" onClick={onEdit} className={btn.edit}>
             <IconEdit size={14} />
+          </button>
+        )}
+        {c.status === 'draft' && (
+          <button title="Delete" onClick={onDelete} className={btn.delete}>
+            <IconTrash size={14} />
           </button>
         )}
         {(c.status === 'active' || c.status === 'paused' || c.status === 'closed' || c.status === 'completed') && (

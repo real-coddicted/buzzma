@@ -47,14 +47,12 @@ public class UsersController {
   }
 
   @GetMapping("/me")
-  @PreAuthorize("@ownershipGuard.isOwner(#requesterId)")
   public UserSummaryDto me(@CurrentUserId final UUID requesterId) {
     final BuzzmaUser user = this.userService.getById(requesterId);
     return this.userMapper.toUserSummaryDto(user);
   }
 
   @PostMapping("/me")
-  @PreAuthorize("@ownershipGuard.isOwner(#requesterId)")
   public UserSummaryDto updateProfile(
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final UpdateProfileRequestDto request) {

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -203,5 +204,46 @@ class CampaignControllerTest {
   @Test
   void testListUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc.perform(get("/api/v1/campaigns")).andExpect(status().isUnauthorized());
+  }
+
+  // --- DELETE /api/v1/campaigns/{id} ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testDeleteWithBrandRoleReturns204() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testDeleteWithAgencyRoleReturns204() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testDeleteWithBuyerRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void testDeleteWithMediatorRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testDeleteUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isUnauthorized());
   }
 }

@@ -86,10 +86,11 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   @Override
   @Transactional
   public Campaign delete(final UUID campaignId, final UUID requesterId) {
-    final Campaign existingCampaign = mustFind(this.campaignRepository, campaignId, "Campaign");
-    final Campaign updatedCampaign =
-        existingCampaign.toBuilder().isDeleted(true).updatedBy(requesterId).build();
-    return this.campaignRepository.save(updatedCampaign);
+    final int rowsAffected = this.campaignRepository.deleteDraftCampaign(requesterId, campaignId);
+    if (rowsAffected != 1) {
+      throw new BusinessRuleViolationException("Unable to delete campaign " + campaignId);
+    }
+    return mustFind(this.campaignRepository, campaignId, "Campaign");
   }
 
   @Override

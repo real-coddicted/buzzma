@@ -116,24 +116,40 @@ class CampaignServiceImplTest {
 
   @Test
   void testDelete() {
+    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_1)).thenReturn(1);
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
 
-    this.campaignService.delete(CAMPAIGN_ID_1, REQUESTER_ID);
+    final Campaign result = this.campaignService.delete(CAMPAIGN_ID_1, OWNER_ID);
 
-    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
-    verify(this.mockCampaignRepository).save(captor.capture());
-    final Campaign saved = captor.getValue();
-    assertEquals(CAMPAIGN_ID_1, saved.getId());
-    assertTrue(saved.isDeleted());
-    assertEquals(REQUESTER_ID, saved.getUpdatedBy());
+    assertEquals(CAMPAIGN_1, result);
   }
 
   @Test
   void testDeleteWhenNotFound() {
-    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.empty());
+    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_1)).thenReturn(0);
 
     assertThrows(
-        NotFoundException.class, () -> this.campaignService.delete(CAMPAIGN_ID_1, REQUESTER_ID));
+        BusinessRuleViolationException.class,
+        () -> this.campaignService.delete(CAMPAIGN_ID_1, OWNER_ID));
+  }
+
+  @Test
+  void testDeleteWhenNotOwner() {
+    when(this.mockCampaignRepository.deleteDraftCampaign(NON_OWNER_ID, CAMPAIGN_ID_1))
+        .thenReturn(0);
+
+    assertThrows(
+        BusinessRuleViolationException.class,
+        () -> this.campaignService.delete(CAMPAIGN_ID_1, NON_OWNER_ID));
+  }
+
+  @Test
+  void testDeleteWhenNotDraft() {
+    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_2)).thenReturn(0);
+
+    assertThrows(
+        BusinessRuleViolationException.class,
+        () -> this.campaignService.delete(CAMPAIGN_ID_2, OWNER_ID));
   }
 
   @Test

@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -85,4 +86,14 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
       ORDER BY p.brandName
       """)
   List<String> findDistinctBrandNamesByOwnerId(@Param("ownerId") UUID ownerId);
+
+  @Modifying
+  @Query(
+      """
+      UPDATE Campaign c SET c.isDeleted = true
+      WHERE c.ownerId = :ownerId
+        AND c.id = :campaignId
+        AND c.status = CampaignStatus.CAMPAIGN_STATUS_DRAFT
+      """)
+  int deleteDraftCampaign(@Param("ownerId") UUID ownerId, @Param("campaignId") UUID campaignId);
 }

@@ -136,7 +136,8 @@ public class CampaignController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public void delete(@CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
     this.service.delete(id, requesterId);
   }
 
