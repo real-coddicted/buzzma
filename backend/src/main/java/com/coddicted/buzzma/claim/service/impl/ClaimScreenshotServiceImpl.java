@@ -7,6 +7,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.utils.ClaimUtils;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.RatingExtractionResult;
@@ -26,16 +27,16 @@ import com.coddicted.buzzma.shared.score.PayloadItem;
 import com.coddicted.buzzma.shared.score.ScoreApiClient;
 import com.coddicted.buzzma.shared.score.ScoreRequestDto;
 import com.coddicted.buzzma.shared.score.ScoreResponseDto;
+import com.coddicted.buzzma.shared.score.ScoringAlgorithm;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -174,25 +175,26 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     final Map<String, ScoredValue> map = new HashMap<>();
 
     // Local match: orderDate
-    final double orderDateScore = scoreOrderDate(result.getOrderDate(), campaign);
+    final int orderDateScore =
+        (int) Math.round(scoreOrderDate(result.getOrderDate(), campaign) * 100);
     map.put(
-        "orderDate",
+        BuzzmahConstants.ORDER_DATE,
         ScoredValue.builder().extractedValue(result.getOrderDate()).score(orderDateScore).build());
 
-    // Local match: amount
-    final double amountScore = scoreAmount(result.getAmount(), campaign);
+    // Unscored field
     map.put(
-        "amount",
+        BuzzmahConstants.AMOUNT,
         ScoredValue.builder()
             .extractedValue(result.getAmount() != null ? result.getAmount().toPlainString() : null)
-            .score(amountScore)
+            .score(null)
             .build());
 
     // Unscored fields
     map.put(
-        "orderId", ScoredValue.builder().extractedValue(result.getOrderId()).score(null).build());
+        BuzzmahConstants.ORDER_ID,
+        ScoredValue.builder().extractedValue(result.getOrderId()).score(null).build());
     map.put(
-        "orderedBy",
+        BuzzmahConstants.ORDERED_BY,
         ScoredValue.builder().extractedValue(result.getOrderedBy()).score(null).build());
 
     // Score API: platform, productName, sellerName
@@ -218,26 +220,25 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
                     .build()));
     map.putAll(apiScoring.extractedResult());
 
-    final double overallScore =
-        combineOverallScore(orderDateScore, amountScore, apiScoring.extractedResult());
+    final int overallScore = combineOverallScore(orderDateScore, apiScoring.extractedResult());
     return new ExtractedScoredResult(map, overallScore);
   }
 
   /**
-   * Averages the locally-computed orderDate/amount scores together with the Score API's per-field
-   * scores, so that fields scored outside the Score API still contribute to the overall score.
+   * Returns the minimum of the locally-computed orderDate score and the Score API's per-field
+   * scores, so a single low-confidence field pulls the overall score down.
    */
-  private double combineOverallScore(
-      final double orderDateScore,
-      final double amountScore,
-      final Map<String, ScoredValue> apiScores) {
-    final List<Double> scores = new ArrayList<>(List.of(orderDateScore, amountScore));
-    for (final ScoredValue value : apiScores.values()) {
-      if (value.getScore() != null) {
-        scores.add(value.getScore());
-      }
-    }
-    return scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+  private int combineOverallScore(
+      final int orderDateScore, final Map<String, ScoredValue> apiScores) {
+
+    final java.util.OptionalInt apiMin =
+        apiScores.values().stream()
+            .map(ScoredValue::getScore)
+            .filter(Objects::nonNull)
+            .mapToInt(Integer::intValue)
+            .min();
+
+    return apiMin.isPresent() ? Math.min(orderDateScore, apiMin.getAsInt()) : orderDateScore;
   }
 
   /**
@@ -246,7 +247,8 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
    */
   private ExtractedScoredResult scoreViaApi(final String key, final List<PayloadItem> payload) {
     final ScoreRequestDto request = ScoreRequestDto.builder().key(key).payload(payload).build();
-    final List<ScoreResponseDto> scoreResponses = this.scoreApiClient.score(List.of(request));
+    final List<ScoreResponseDto> scoreResponses =
+        this.scoreApiClient.score(List.of(request), ScoringAlgorithm.MIN_VALUE);
     final ScoreResponseDto response =
         scoreResponses.stream()
             .filter(r -> key.equals(r.getKey()))
@@ -262,14 +264,15 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
 
     final Map<String, ScoredValue> map = new HashMap<>();
     for (final PayloadItem item : payload) {
+      final Double rawScore = labelScores.get(item.getLabel());
       map.put(
           item.getLabel(),
           ScoredValue.builder()
               .extractedValue(item.getActual())
-              .score(labelScores.get(item.getLabel()))
+              .score(rawScore != null ? (int) Math.round(rawScore * 100) : null)
               .build());
     }
-    return new ExtractedScoredResult(map, response.getOverallScore());
+    return new ExtractedScoredResult(map, (int) Math.round(response.getOverallScore() * 100));
   }
 
   /**
@@ -329,28 +332,6 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     return 1.0;
   }
 
-  private double scoreAmount(final BigDecimal amount, final Campaign campaign) {
-    if (amount == null
-        || campaign.getProduct() == null
-        || campaign.getProduct().getPricePaise() == null) {
-      return 0.0;
-    }
-    final BigInteger amountPaise = amount.multiply(BigDecimal.valueOf(100)).toBigInteger();
-    return amountPaise.compareTo(campaign.getProduct().getPricePaise()) >= 0 ? 1.0 : 0.0;
-  }
-
-  private BigDecimal parseAmount(final String amount) {
-    if (amount == null) {
-      return null;
-    }
-    try {
-      return new BigDecimal(amount);
-    } catch (final NumberFormatException e) {
-      LOGGER.warn("parseAmount: could not parse amount '{}': {}", amount, e.getMessage());
-      return null;
-    }
-  }
-
   private void processOrderScreenshot(final ExtractionJob job, final ClaimScreenshot screenshot) {
     final String storageKey = screenshot.getStorageKey();
     LOGGER.info(
@@ -378,10 +359,10 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         BuzzmahConstants.PLATFORM,
         ScoredValue.builder().extractedValue(platformValue).score(null).build());
     details.put(
-        "orderId",
+        BuzzmahConstants.ORDER_ID,
         ScoredValue.builder().extractedValue(extracted.getOrderId()).score(null).build());
     details.put(
-        "orderDate",
+        BuzzmahConstants.ORDER_DATE,
         ScoredValue.builder().extractedValue(extracted.getOrderDate()).score(null).build());
     details.put(
         BuzzmahConstants.PRODUCT_NAME,
@@ -390,14 +371,14 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         BuzzmahConstants.SELLER_NAME,
         ScoredValue.builder().extractedValue(extracted.getSellerName()).score(null).build());
     details.put(
-        "amount",
+        BuzzmahConstants.AMOUNT,
         ScoredValue.builder()
             .extractedValue(
                 extracted.getAmount() != null ? extracted.getAmount().toPlainString() : null)
             .score(null)
             .build());
     details.put(
-        "orderedBy",
+        BuzzmahConstants.ORDERED_BY,
         ScoredValue.builder().extractedValue(extracted.getOrderedBy()).score(null).build());
 
     screenshot.setExtractedDetails(details);
@@ -595,15 +576,11 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
     final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
 
-    final String orderDate = details.get("orderDate").getExtractedValue();
-    final double orderDateScore = scoreOrderDate(orderDate, campaign);
+    final String orderDate = details.get(BuzzmahConstants.ORDER_DATE).getExtractedValue();
+    final int orderDateScore = (int) Math.round(scoreOrderDate(orderDate, campaign) * 100);
     details.put(
-        "orderDate", ScoredValue.builder().extractedValue(orderDate).score(orderDateScore).build());
-
-    final String amountValue = details.get("amount").getExtractedValue();
-    final double amountScore = scoreAmount(parseAmount(amountValue), campaign);
-    details.put(
-        "amount", ScoredValue.builder().extractedValue(amountValue).score(amountScore).build());
+        BuzzmahConstants.ORDER_DATE,
+        ScoredValue.builder().extractedValue(orderDate).score(orderDateScore).build());
 
     final String platformValue = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
     final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
@@ -629,12 +606,24 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
                     .build()));
     details.putAll(apiScoring.extractedResult());
 
-    screenshot.setExtractedDetails(details);
-    screenshot.setScore(
-        combineOverallScore(orderDateScore, amountScore, apiScoring.extractedResult()));
+    int overallScore = combineOverallScore(orderDateScore, apiScoring.extractedResult());
+
+    ClaimUtils.ExtractedScoredResult extractedScoredResult =
+        ClaimUtils.updateExtractedDataForMatchWithManualEntryInOrder(claim, details, overallScore);
+
+    screenshot.setExtractedDetails(extractedScoredResult.extractedResult());
+    screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
+    updateClaimScore(claim, extractedScoredResult.overallScore());
+
     LOGGER.info("scoreOrderScreenshot: saved score for screenshot {}", screenshot.getId());
+  }
+
+  private void updateClaimScore(Claim claim, int overallScore) {
+    final int newScore =
+        claim.getScore() == null ? overallScore : Math.min(overallScore, claim.getScore());
+    this.claimService.updateClaimScore(claim.getId(), newScore);
   }
 
   private void scoreRatingScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
@@ -660,13 +649,18 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         "rating",
         ScoredValue.builder()
             .extractedValue(rating)
-            .score(StringUtils.isNumeric(rating) && Integer.parseInt(rating) >= 4 ? 1.0 : 0.0)
+            .score(StringUtils.isNumeric(rating) && Integer.parseInt(rating) >= 4 ? 100 : 0)
             .build());
 
-    screenshot.setExtractedDetails(details);
-    screenshot.setScore(scoring.overallScore());
+    ClaimUtils.ExtractedScoredResult extractedScoredResult =
+        ClaimUtils.updateExtractedDataForMatchWithManualEntryInRating(
+            claim, details, scoring.overallScore());
+
+    screenshot.setExtractedDetails(extractedScoredResult.extractedResult());
+    screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
+    updateClaimScore(claim, extractedScoredResult.overallScore());
     LOGGER.info("scoreRatingScreenshot: saved score for screenshot {}", screenshot.getId());
   }
 
@@ -697,9 +691,15 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             "reviewData", platform, productName, accountName, campaign, claim, extraItems);
     details.putAll(scoring.extractedResult());
 
-    screenshot.setExtractedDetails(details);
-    screenshot.setScore(scoring.overallScore());
+    ClaimUtils.ExtractedScoredResult extractedScoredResult =
+        ClaimUtils.updateExtractedDataForMatchWithManualEntryInReview(
+            claim, details, scoring.overallScore());
+
+    screenshot.setExtractedDetails(extractedScoredResult.extractedResult());
+    screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
+
+    updateClaimScore(claim, extractedScoredResult.overallScore());
 
     LOGGER.info("scoreReviewScreenshot: saved score for screenshot {}", screenshot.getId());
   }
@@ -721,9 +721,15 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             "returnData", platform, productName, accountName, campaign, claim, List.of());
     details.putAll(scoring.extractedResult());
 
-    screenshot.setExtractedDetails(details);
-    screenshot.setScore(scoring.overallScore());
+    ClaimUtils.ExtractedScoredResult extractedScoredResult =
+        ClaimUtils.updateExtractedDataForMatchWithManualEntryInReturn(
+            claim, details, scoring.overallScore());
+
+    screenshot.setExtractedDetails(extractedScoredResult.extractedResult());
+    screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
+
+    updateClaimScore(claim, extractedScoredResult.overallScore());
 
     LOGGER.info("scoreReturnScreenshot: saved score for screenshot {}", screenshot.getId());
   }
@@ -770,5 +776,5 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   }
 
   private record ExtractedScoredResult(
-      Map<String, ScoredValue> extractedResult, double overallScore) {}
+      Map<String, ScoredValue> extractedResult, int overallScore) {}
 }

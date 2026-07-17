@@ -35,5 +35,5 @@ public class ClaimRequestDto {
 
   @NotNull private Map<String, ScoredValue> extractedDetails;
 
-  private Double overallScore;
+  private Integer overallScore;
 }

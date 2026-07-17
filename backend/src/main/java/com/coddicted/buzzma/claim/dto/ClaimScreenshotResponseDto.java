@@ -18,7 +18,7 @@ public class ClaimScreenshotResponseDto {
   String storageKey;
   ScreenshotType type;
   ScreenshotVerificationStatus verificationStatus;
-  Double score;
+  Integer score;
   Map<String, ScoredValue> extractedDetails;
   Instant createdAt;
 }

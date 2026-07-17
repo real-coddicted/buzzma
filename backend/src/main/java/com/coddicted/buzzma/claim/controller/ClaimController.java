@@ -71,7 +71,7 @@ public class ClaimController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  // TODO add preauth for buyer role only
+  @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid final ClaimRequestDto request) {
 
@@ -91,7 +91,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/rating")
-  // TODO add preauth for buyer role only
+  @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto submitRating(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -110,7 +110,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/review")
-  // TODO add preauth for buyer role only
+  @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto submitReview(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -131,7 +131,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/return")
-  // TODO add preauth for buyer role only
+  @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto submitReturn(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -150,7 +150,7 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/update")
-  // TODO add preauth for buyer role only
+  @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto updateScreenshot(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
@@ -190,7 +190,7 @@ public class ClaimController {
   }
 
   @PostMapping("/screenshots/review")
-  // TODO Preauth for Agency role only
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public ClaimResponseDto reviewScreenshot(
       @CurrentUserId final UUID reviewerId,
       @Valid @RequestBody final ScreenshotReviewRequestDto request) {

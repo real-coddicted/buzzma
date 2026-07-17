@@ -1356,13 +1356,14 @@ export interface components {
             extractedResult?: {
                 [key: string]: components["schemas"]["ScoredValue"];
             };
-            /** Format: double */
+            /** Format: int32 */
             overallScore?: number;
         };
         ScoredValue: {
             extractedValue?: string;
-            /** Format: double */
+            /** Format: int32 */
             score?: number;
+            mismatch?: boolean;
         };
         ValidationError: {
             field?: string;
@@ -1417,7 +1418,7 @@ export interface components {
             extractedDetails: {
                 [key: string]: components["schemas"]["ScoredValue"];
             };
-            /** Format: double */
+            /** Format: int32 */
             overallScore?: number;
         };
         ClaimResponseDto: {
@@ -1435,15 +1436,19 @@ export interface components {
             /** Format: int32 */
             orderDate?: number;
             accountName?: string;
+            orderedBy?: string;
             reviewUrl?: string;
             screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
             mediatorVerified?: boolean;
+            /** Format: int32 */
             score?: number;
             reviewerComments?: string;
             /** Format: uuid */
             reviewerId?: string;
             /** @enum {string} */
             reviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_ACCEPTED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1457,7 +1462,7 @@ export interface components {
             type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
             /** @enum {string} */
             verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
-            /** Format: double */
+            /** Format: int32 */
             score?: number;
             extractedDetails?: {
                 [key: string]: components["schemas"]["ScoredValue"];
@@ -1547,10 +1552,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1559,21 +1564,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;

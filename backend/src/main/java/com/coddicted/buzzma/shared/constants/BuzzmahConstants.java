@@ -6,4 +6,8 @@ public class BuzzmahConstants {
   public static final String PLATFORM = "platform";
   public static final String ACCOUNT_NAME = "accountName";
   public static final String REVIEW_URL = "reviewUrl";
+  public static final String ORDER_ID = "orderId";
+  public static final String ORDER_DATE = "orderDate";
+  public static final String AMOUNT = "amount";
+  public static final String ORDERED_BY = "orderedBy";
 }

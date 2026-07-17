@@ -25,7 +25,7 @@ public interface ClaimService {
       String screenshotFilename,
       String contentType,
       Map<String, ScoredValue> extractedDetails,
-      Double overallScore);
+      Integer overallScore);
 
   ClaimWithDeal submitReview(
       UUID claimId,
@@ -81,4 +81,6 @@ public interface ClaimService {
       UserRole reviewerRole,
       ReviewerDecision decision,
       String reviewerComment);
+
+  void updateClaimScore(UUID claimId, int score);
 }

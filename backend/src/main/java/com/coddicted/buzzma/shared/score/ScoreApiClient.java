@@ -21,12 +21,21 @@ public class ScoreApiClient {
     LOGGER.info("ScoreApiClient initialized: baseUrl={}", properties.getBaseUrl());
   }
 
-  public List<ScoreResponseDto> score(final List<ScoreRequestDto> requests) {
-    LOGGER.debug("score: sending {} request(s) to /api/v1/score", requests.size());
+  public List<ScoreResponseDto> score(
+      final List<ScoreRequestDto> requests, final ScoringAlgorithm algorithm) {
+    LOGGER.debug(
+        "score: sending {} request(s) to /api/v1/score with algorithm={}",
+        requests.size(),
+        algorithm);
     try {
       return restClient
           .post()
-          .uri("/api/v1/score")
+          .uri(
+              uriBuilder ->
+                  uriBuilder
+                      .path("/api/v1/score")
+                      .queryParam("algorithm", algorithm.getValue())
+                      .build())
           .contentType(MediaType.APPLICATION_JSON)
           .body(requests)
           .retrieve()

@@ -54,7 +54,7 @@ public class ClaimScreenshot implements Auditable {
   private ScreenshotVerificationStatus verificationStatus;
 
   @Column(name = "score")
-  private Double score;
+  private Integer score;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "extracted_details", columnDefinition = "jsonb")

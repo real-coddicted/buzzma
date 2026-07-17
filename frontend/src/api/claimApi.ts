@@ -59,8 +59,10 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     reviewStatus: toReviewStatus(status),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
-    matchPct: Math.round((dto.score ?? 0) * 100),
+    matchPct: dto.score ?? 0,
+    platform: dto.platform as ClaimReviewItem['platform'] ?? undefined,
     accountName: dto.accountName ?? undefined,
+    orderedBy: dto.orderedBy ?? undefined,
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
     sellerName: dto.sellerName ?? undefined,
     amountPaise: dto.amountPaise ?? undefined,
@@ -95,7 +97,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     ),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
-    matchPct: Math.round((dto.matchScore ?? 0) * 100),
+    matchPct: dto.matchScore ?? 0,
     isUnderReview: backendStatus === 'UNDER_REVIEW',
   }
 }

@@ -26,6 +26,7 @@ export function getCampaignValue(key: string, deal: Deal): string | undefined {
 
 export function getSubmittedValue(key: string, claim: ClaimReviewItem): string | undefined {
   switch (key) {
+    case 'platform':     return claim.platform ? PLATFORM_LABELS[claim.platform] : undefined
     case 'orderId':      return claim.orderId
     case 'orderDate':    return claim.orderDate
       ? claim.orderDate.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')
@@ -34,6 +35,7 @@ export function getSubmittedValue(key: string, claim: ClaimReviewItem): string |
     case 'sellerName':   return claim.sellerName ?? undefined
     case 'accountName':
     case 'buyerName':    return claim.accountName ?? undefined
+    case 'orderedBy':    return claim.orderedBy ?? undefined
     case 'amount':       return claim.amountPaise != null
       ? `₹${formatRupees(paiseToRupees(claim.amountPaise))}`
       : undefined
@@ -43,13 +45,13 @@ export function getSubmittedValue(key: string, claim: ClaimReviewItem): string |
 }
 
 export function getProofScore(item: ClaimProofItem): number {
-  if (item.score != null) return Math.round(item.score * 100)
+  if (item.score != null) return item.score
   if (item.fields.length === 0) return 0
   return Math.round((item.fields.filter(f => f.matched).length / item.fields.length) * 100)
 }
 
 export function scorePillClass(pct: number): string {
-  if (pct >= 80) return 'bg-neon-green/10 border border-neon-green/30 text-neon-green'
+  if (pct >= 95) return 'bg-neon-green/10 border border-neon-green/30 text-neon-green'
   if (pct >= 50) return 'bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow'
   return 'bg-neon-red/10 border border-neon-red/30 text-neon-red'
 }

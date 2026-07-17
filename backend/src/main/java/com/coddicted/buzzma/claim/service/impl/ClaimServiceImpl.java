@@ -18,6 +18,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.utils.ClaimUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -79,7 +80,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String screenshotFilename,
       final String contentType,
       final Map<String, ScoredValue> extractedDetails,
-      final Double overallScore) {
+      final Integer overallScore) {
 
     if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
         claim.getEcommerceOrderId(), claim.getPlatform())) {
@@ -103,10 +104,15 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String screenshotKey =
         this.storageService.store("claims", screenshotFilename, contentType, screenshot);
 
+    ClaimUtils.ExtractedScoredResult extractedScoredResult =
+        ClaimUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+            claim, extractedDetails, overallScore);
+
     final Claim saved =
         this.claimRepository.save(
             claim.toBuilder()
                 .status(ClaimStatus.ORDERED)
+                .score(extractedScoredResult.overallScore())
                 .isDeleted(false)
                 .createdBy(claim.getOwnerId())
                 .updatedBy(claim.getOwnerId())
@@ -118,8 +124,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         screenshotKey,
         ScreenshotType.SCREENSHOT_TYPE_ORDER,
         saved.getOwnerId(),
-        extractedDetails,
-        overallScore);
+        extractedScoredResult.extractedResult(),
+        extractedScoredResult.overallScore());
 
     return saved;
   }
@@ -416,6 +422,17 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
   }
 
+  @Override
+  public void updateClaimScore(UUID claimId, int score) {
+    this.claimRepository
+        .findById(claimId)
+        .ifPresent(
+            claim -> {
+              claim.setScore(score);
+              this.claimRepository.save(claim);
+            });
+  }
+
   private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
     final List<ClaimScreenshot> screenshots =
         this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
@@ -456,7 +473,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final ScreenshotType type,
       final UUID actorId,
       final Map<String, ScoredValue> extractedDetails,
-      final Double score) {
+      final Integer score) {
     return this.claimScreenshotRepository.save(
         ClaimScreenshot.builder()
             .claimId(claimId)

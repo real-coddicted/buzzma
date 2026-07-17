@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +33,7 @@ import com.coddicted.buzzma.shared.score.LabelScore;
 import com.coddicted.buzzma.shared.score.ScoreApiClient;
 import com.coddicted.buzzma.shared.score.ScoreRequestDto;
 import com.coddicted.buzzma.shared.score.ScoreResponseDto;
+import com.coddicted.buzzma.shared.score.ScoringAlgorithm;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -87,7 +89,13 @@ class ClaimScreenshotServiceImplTest {
             ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), new byte[] {1}));
 
     final Claim claim =
-        Claim.builder().id(CLAIM_ID).campaignId(CAMPAIGN_ID).accountName("john.doe").build();
+        Claim.builder()
+            .id(CLAIM_ID)
+            .campaignId(CAMPAIGN_ID)
+            .platform(Platform.PLATFORM_AMAZON)
+            .ecommerceOrderId("403-1234567-8901234")
+            .accountName("john.doe")
+            .build();
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(claim);
 
     final Campaign campaign =
@@ -122,7 +130,7 @@ class ClaimScreenshotServiceImplTest {
         labelScores.entrySet().stream()
             .map(e -> LabelScore.builder().label(e.getKey()).score(e.getValue()).build())
             .toList();
-    when(this.mockScoreApiClient.score(any()))
+    when(this.mockScoreApiClient.score(any(), any()))
         .thenReturn(
             List.of(
                 ScoreResponseDto.builder()
@@ -197,14 +205,14 @@ class ClaimScreenshotServiceImplTest {
         0.95);
 
     final ClaimScreenshot scored = score(extracted);
-    // Combined score averages orderDate/amount (both 1.0) with the API's platform/productName/
-    // sellerName scores (all 1.0), rather than using the API's overallScore (0.95) verbatim.
-    assertEquals(1.0, scored.getScore());
+    // Combined score is the min of orderDate (100) and the API's platform/productName/sellerName
+    // scores (all 100), rather than using the API's overallScore (95) verbatim.
+    assertEquals(100, scored.getScore());
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
-    assertEquals(1.0, details.get("orderDate").getScore());
-    assertEquals(1.0, details.get("amount").getScore());
-    assertEquals(1.0, details.get(BuzzmahConstants.PLATFORM).getScore());
-    assertEquals(1.0, details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
+    assertEquals(100, details.get("orderDate").getScore());
+    assertNull(details.get("amount").getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
     assertNull(details.get("orderId").getScore());
   }
 
@@ -248,11 +256,11 @@ class ClaimScreenshotServiceImplTest {
 
     final ClaimScreenshot scored = score(extracted);
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
-    assertEquals(0.0, details.get("orderDate").getScore());
-    assertEquals(0.0, details.get("amount").getScore());
-    // Combined score (average of 0.0, 0.0, 1.0, 1.0, 1.0) is pulled down to 0.6, unlike the
-    // API's inflated overallScore of 0.95 which ignored the mismatched orderDate/amount.
-    assertEquals(0.6, scored.getScore());
+    assertEquals(0, details.get("orderDate").getScore());
+    assertNull(details.get("amount").getScore());
+    // Combined score (min of 0, 100, 100, 100) is 0, unlike the
+    // API's inflated overallScore of 95 which ignored the mismatched orderDate.
+    assertEquals(0, scored.getScore());
   }
 
   @Test
@@ -278,13 +286,13 @@ class ClaimScreenshotServiceImplTest {
         0.9);
 
     final ClaimScreenshot scored = score(extracted);
-    assertEquals(0.9, scored.getScore());
+    assertEquals(90, scored.getScore());
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
-    assertEquals(1.0, details.get(BuzzmahConstants.PLATFORM).getScore());
-    assertEquals(1.0, details.get("productName").getScore());
-    assertEquals(0.8, details.get("accountName").getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertEquals(100, details.get("productName").getScore());
+    assertEquals(80, details.get("accountName").getScore());
     assertEquals("5", details.get("rating").getExtractedValue());
-    assertEquals(1.0, details.get("rating").getScore());
+    assertEquals(100, details.get("rating").getScore());
   }
 
   @Test
@@ -301,7 +309,7 @@ class ClaimScreenshotServiceImplTest {
     final ClaimScreenshot scored = score(extracted);
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
     assertNull(details.get("rating").getExtractedValue());
-    assertEquals(0.0, details.get("rating").getScore());
+    assertEquals(0, details.get("rating").getScore());
   }
 
   @Test
@@ -324,6 +332,7 @@ class ClaimScreenshotServiceImplTest {
             Claim.builder()
                 .id(CLAIM_ID)
                 .campaignId(CAMPAIGN_ID)
+                .platform(Platform.PLATFORM_AMAZON)
                 .accountName("john.doe")
                 .reviewUrl("https://amazon.in/review/123")
                 .build());
@@ -342,14 +351,15 @@ class ClaimScreenshotServiceImplTest {
 
     final ClaimScreenshot scored = score(extracted);
 
-    verify(this.mockScoreApiClient).score(this.requestCaptor.capture());
+    verify(this.mockScoreApiClient)
+        .score(this.requestCaptor.capture(), eq(ScoringAlgorithm.MIN_VALUE));
     assertEquals(4, this.requestCaptor.getValue().get(0).getPayload().size());
 
-    assertEquals(0.9, scored.getScore());
+    assertEquals(90, scored.getScore());
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
-    assertEquals(1.0, details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
     assertEquals("https://amazon.in/review/123", details.get("reviewUrl").getExtractedValue());
-    assertEquals(1.0, details.get("reviewUrl").getScore());
+    assertEquals(100, details.get("reviewUrl").getScore());
     assertNull(details.get("reviewText").getScore());
   }
 
@@ -370,12 +380,13 @@ class ClaimScreenshotServiceImplTest {
 
     final ClaimScreenshot scored = score(extracted);
 
-    verify(this.mockScoreApiClient).score(this.requestCaptor.capture());
+    verify(this.mockScoreApiClient)
+        .score(this.requestCaptor.capture(), eq(ScoringAlgorithm.MIN_VALUE));
     assertEquals(3, this.requestCaptor.getValue().get(0).getPayload().size());
 
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
     assertNull(details.get("reviewUrl").getExtractedValue());
-    assertNull(details.get("reviewUrl").getScore());
+    assertEquals(0, details.get("reviewUrl").getScore());
   }
 
   @Test
@@ -394,11 +405,11 @@ class ClaimScreenshotServiceImplTest {
         0.9);
 
     final ClaimScreenshot scored = score(extracted);
-    assertEquals(0.9, scored.getScore());
+    assertEquals(90, scored.getScore());
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
-    assertEquals(1.0, details.get(BuzzmahConstants.PLATFORM).getScore());
-    assertEquals(1.0, details.get("productName").getScore());
-    assertEquals(0.8, details.get("accountName").getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertEquals(100, details.get("productName").getScore());
+    assertEquals(80, details.get("accountName").getScore());
     assertNull(details.get("returnWindowClosedText").getScore());
   }
 }

@@ -98,11 +98,12 @@ class ClaimServiceImplTest {
             SCREENSHOT_FILENAME,
             CONTENT_TYPE,
             EXTRACTED_DETAILS,
-            0.85);
+            85);
 
     assertEquals(CLAIM_1, result);
     final Claim saved = claimCaptor.getValue();
     assertEquals(ORDERED, saved.getStatus());
+    assertEquals(85, saved.getScore());
     assertFalse(saved.getIsDeleted());
     assertEquals(OWNER_ID, saved.getCreatedBy());
     assertEquals(OWNER_ID, saved.getUpdatedBy());
@@ -115,7 +116,13 @@ class ClaimServiceImplTest {
     assertEquals(SCREENSHOT_KEY, savedScreenshot.getStorageKey());
     assertEquals(SCREENSHOT_TYPE_ORDER, savedScreenshot.getType());
     assertEquals(SCREENSHOT_VERIFICATION_STATUS_PENDING, savedScreenshot.getVerificationStatus());
-    assertEquals(EXTRACTED_DETAILS, savedScreenshot.getExtractedDetails());
+    // Extracted details are enriched with mismatch flags; verify the original values are preserved
+    assertEquals(
+        "403-1234567-8901234",
+        savedScreenshot.getExtractedDetails().get("orderId").getExtractedValue());
+    assertEquals(
+        "Test Product",
+        savedScreenshot.getExtractedDetails().get("productName").getExtractedValue());
     assertFalse(savedScreenshot.isDeleted());
     assertEquals(OWNER_ID, savedScreenshot.getCreatedBy());
     assertEquals(OWNER_ID, savedScreenshot.getUpdatedBy());

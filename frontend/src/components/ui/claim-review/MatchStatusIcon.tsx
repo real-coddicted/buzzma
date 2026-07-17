@@ -15,7 +15,7 @@ export function MatchStatusIcon({ matched, indeterminate }: Props) {
   }
   if (indeterminate) {
     return (
-      <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-400/10 text-amber-400">
+      <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full bg-neon-yellow/10 text-neon-yellow">
         <IconInfo size={9} />
       </span>
     )

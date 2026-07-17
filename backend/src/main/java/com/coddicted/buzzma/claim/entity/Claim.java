@@ -88,7 +88,7 @@ public class Claim implements Auditable {
   private Boolean mediatorVerified;
 
   @Column(name = "score")
-  private BigInteger score;
+  private Integer score;
 
   @Column(name = "reviewer_comments", columnDefinition = "TEXT")
   private String reviewerComments;

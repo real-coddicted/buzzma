@@ -29,10 +29,14 @@ public interface ClaimMapper {
   @Mapping(source = "claim.sellerName", target = "sellerName")
   @Mapping(source = "claim.orderDate", target = "orderDate")
   @Mapping(source = "claim.accountName", target = "accountName")
+  // TODO to be changed later when the screenshot data extraction
+  //  is enhanced to fetch profile vs buyer name separately
+  @Mapping(source = "claim.accountName", target = "orderedBy")
   @Mapping(source = "claim.reviewUrl", target = "reviewUrl")
   @Mapping(source = "screenshots", target = "screenshots")
   @Mapping(source = "claim.mediatorVerified", target = "mediatorVerified")
   @Mapping(source = "claim.score", target = "score")
+  @Mapping(source = "claim.platform", target = "platform")
   @Mapping(source = "claim.reviewerComments", target = "reviewerComments")
   @Mapping(source = "claim.reviewerId", target = "reviewerId")
   @Mapping(source = "claim.reviewStatus", target = "reviewStatus")

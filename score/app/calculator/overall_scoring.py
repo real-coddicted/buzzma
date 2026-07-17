@@ -30,9 +30,17 @@ def compute_penalized_overall_score_by_key(df: pd.DataFrame) -> pd.DataFrame:
     return df.groupby("key").apply(penalized_weighted_avg).reset_index(name="overall_score")
 
 
+def compute_min_valued_overall_score_by_key(df: pd.DataFrame) -> pd.DataFrame:
+    def min_valued(g: pd.DataFrame) -> float:
+        return round(g["score"].min(), 2)
+
+    return df.groupby("key").apply(min_valued).reset_index(name="overall_score")
+
+
 _ALGORITHM_MAP = {
     ScoringAlgorithm.WEIGHTED_AVERAGE: compute_overall_score_by_key,
     ScoringAlgorithm.PENALIZED_WEIGHTED_AVERAGE: compute_penalized_overall_score_by_key,
+    ScoringAlgorithm.MIN_VALUE: compute_min_valued_overall_score_by_key,
 }
 
 

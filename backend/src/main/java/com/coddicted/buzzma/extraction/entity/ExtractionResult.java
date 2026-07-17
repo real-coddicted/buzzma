@@ -21,5 +21,5 @@ public class ExtractionResult {
   String orderedBy;
   List<ValidationError> validationErrors;
   Map<String, ScoredValue> extractedResult;
-  Double overallScore;
+  Integer overallScore;
 }

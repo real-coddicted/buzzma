@@ -84,6 +84,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
               matched: hasValue && sv.score != null ? sv.score >= 0.5 : false,
               indeterminate: hasValue && sv.score == null,
               score: sv.score,
+              submittedMismatch: sv.mismatch ?? false,
             }
           }),
         })))
@@ -106,12 +107,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
       fields: item.fields.map(f => {
         const campaignValue = deal && f.key ? getCampaignValue(f.key, deal) : undefined
         const submittedValue = f.key ? getSubmittedValue(f.key, c) : undefined
-        const submittedMismatch = !!(
-          submittedValue &&
-          f.value &&
-          submittedValue.toLowerCase().trim() !== f.value.toLowerCase().trim()
-        )
-        return { ...f, campaignValue, submittedValue, submittedMismatch }
+        return { ...f, campaignValue, submittedValue }
       }),
     }))
   }, [proofItems, deal, claimDetail, claim])

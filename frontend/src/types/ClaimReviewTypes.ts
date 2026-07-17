@@ -1,4 +1,5 @@
 import type { components } from './api'
+import type { Platform } from './CampaignTypes'
 
 type ScoredValue = components['schemas']['ScoredValue']
 
@@ -34,7 +35,9 @@ export interface ClaimReviewItem {
   mediatorVerified: boolean
   matchPct: number
   // Extended detail fields (from GET /claims/{id})
+  platform?: Platform
   accountName?: string
+  orderedBy?: string
   productName?: string
   sellerName?: string
   amountPaise?: number

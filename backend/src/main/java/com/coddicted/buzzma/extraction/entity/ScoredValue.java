@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ScoredValue {
   String extractedValue;
-  Double score;
+  Integer score;
+  boolean isMismatch;
 }
