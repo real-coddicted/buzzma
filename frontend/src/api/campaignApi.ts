@@ -4,6 +4,7 @@ import { CAMPAIGN_STATUS_CONFIG } from '../types'
 import type { CampaignFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import { fetchWithAuth, getCurrentUser } from './client'
 import { rupeesToPaise } from '../utils/currency'
+import { yyyymmddToIso } from '../utils/time'
 
 const API_BASE = '/api/v1'
 
@@ -35,12 +36,6 @@ const statusMap: Record<NonNullable<CampaignSummaryDto['status']>, CampaignStatu
   CAMPAIGN_STATUS_PAUSED:    'paused',
   CAMPAIGN_STATUS_COMPLETED: 'completed',
   CAMPAIGN_STATUS_CLOSED:    'closed',
-}
-
-export function yyyymmddToIso(n: number | undefined): string {
-  if (!n) return ''
-  const s = n.toString().padStart(8, '0')
-  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`
 }
 
 function isoToYYYYMMDD(iso: string): number {

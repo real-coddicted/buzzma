@@ -6,11 +6,12 @@ export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClas
   'completed':   { label: 'Completed',   colorClass: 'text-neon-green' },
 }
 
-export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; classes: string; dot: string }> = {
-  'pending':   { label: 'Pending',   classes: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', dot: 'bg-neon-yellow' },
-  'in-review': { label: 'In Review', classes: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', dot: 'bg-neon-purple animate-pulse-slow' },
-  'approved':  { label: 'Approved',  classes: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  dot: 'bg-neon-green' },
-  'rejected':  { label: 'Rejected',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    dot: 'bg-neon-red' },
+export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; classes: string; activeClass: string }> = {
+  'pending':   { label: 'Pending',   classes: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', activeClass: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30' },
+  'in-review': { label: 'In Review', classes: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', activeClass: 'bg-neon-purple/10 text-neon-purple border-neon-purple/30' },
+  'objected':  { label: 'Objected',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
+  'approved':  { label: 'Approved',  classes: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  activeClass: 'bg-neon-green/10  text-neon-green  border-neon-green/30'  },
+  'rejected':  { label: 'Rejected',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
 }
 
 export const APPROVAL_METHOD_CONFIG: Record<ApprovalMethod, { label: string; classes: string }> = {
@@ -18,13 +19,13 @@ export const APPROVAL_METHOD_CONFIG: Record<ApprovalMethod, { label: string; cla
   auto:   { label: 'Auto',   classes: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/25' },
 }
 
-export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = [
-  { value: 'all',       label: 'All',       activeClass: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/30'   },
-  { value: 'pending',   label: 'Pending',   activeClass: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30' },
-  { value: 'in-review', label: 'In Review', activeClass: 'bg-neon-purple/10 text-neon-purple border-neon-purple/30' },
-  { value: 'approved',  label: 'Approved',  activeClass: 'bg-neon-green/10  text-neon-green  border-neon-green/30'  },
-  { value: 'rejected',  label: 'Rejected',  activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
-]
+const REVIEW_FILTER_ORDER: (ReviewStatus | 'all')[] = ['all', 'pending', 'in-review', 'approved', 'rejected', 'objected']
+
+export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = REVIEW_FILTER_ORDER.map(value => ({
+  value,
+  label:       value === 'all' ? 'All' : REVIEW_STATUS_CONFIG[value].label,
+  activeClass: value === 'all' ? 'bg-neon-blue/10 text-neon-blue border-neon-blue/30' : REVIEW_STATUS_CONFIG[value].activeClass,
+}))
 
 export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string; tagClass: string }> = {
   SCREENSHOT_TYPE_ORDER:  { label: 'Order Receipt',  tag: 'ORDER',  tagClass: 'bg-neon-blue/10   text-neon-blue   border border-neon-blue/25' },
@@ -36,10 +37,13 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
 export const CLAIM_REVIEW_COLUMNS = [
   'Campaign Name',
   'Order ID',
+  'Platform',
+  'Brand Name',
+  'Order Date',
   'Mediator Name',
   'Claim Status',
   'Review Status',
-  'Verified',
+  'Mediator Verified',
   'Match %',
   'Actions',
 ] as const

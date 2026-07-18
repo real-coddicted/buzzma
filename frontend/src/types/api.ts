@@ -1446,7 +1446,7 @@ export interface components {
             /** Format: uuid */
             reviewerId?: string;
             /** @enum {string} */
-            reviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_ACCEPTED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            reviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED";
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** Format: date-time */
@@ -1545,7 +1545,12 @@ export interface components {
             mediatorVerified?: boolean;
             matchScore?: number;
             /** @enum {string} */
-            claimReviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_ACCEPTED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            claimReviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            /** Format: int32 */
+            orderDate?: number;
+            brandName?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */

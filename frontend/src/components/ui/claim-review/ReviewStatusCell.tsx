@@ -7,7 +7,7 @@ interface ReviewStatusCellProps {
 }
 
 export function ReviewStatusCell({ status, approvalMethod }: ReviewStatusCellProps) {
-  const { label, classes, dot } = REVIEW_STATUS_CONFIG[status]
+  const { label, classes } = REVIEW_STATUS_CONFIG[status]
   return (
     <div>
       {status === 'approved' && (
@@ -15,8 +15,7 @@ export function ReviewStatusCell({ status, approvalMethod }: ReviewStatusCellPro
           {APPROVAL_METHOD_CONFIG[approvalMethod].label}
         </div>
       )}
-      <span className={['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
-        <span className={['w-1.5 h-1.5 rounded-full inline-block flex-shrink-0', dot].join(' ')} />
+      <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', classes].join(' ')}>
         {label}
       </span>
     </div>

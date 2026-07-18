@@ -24,6 +24,9 @@ public interface ClaimReviewMapper {
   @Mapping(source = "claim.mediatorVerified", target = "mediatorVerified")
   @Mapping(source = "claim.score", target = "matchScore")
   @Mapping(source = "claim.reviewStatus", target = "claimReviewStatus")
+  @Mapping(source = "campaign.platform", target = "platform")
+  @Mapping(source = "claim.orderDate", target = "orderDate")
+  @Mapping(source = "campaign.product.brandName", target = "brandName")
   @Mapping(source = "claim.createdAt", target = "createdAt")
   @Mapping(source = "claim.updatedAt", target = "updatedAt")
   ClaimReviewResponseDto toResponse(ClaimReviewModel model);

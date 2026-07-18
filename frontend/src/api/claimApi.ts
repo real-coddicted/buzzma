@@ -1,7 +1,9 @@
 import type { components } from '../types/api'
 import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
+import type { Platform } from '../types/CampaignTypes'
 import { fetchWithAuth, getAccessToken, throwIfUnauthorized } from './client'
 import { rupeesToPaise } from '../utils/currency'
+import { yyyymmddToIso } from '../utils/time'
 
 const API_BASE = '/api/v1'
 
@@ -34,12 +36,14 @@ function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
 
 function reviewStatusFromClaimReviewStatus(status: ClaimReviewStatus): ReviewStatus {
   switch (status) {
-    case 'CLAIM_REVIEW_STATUS_ACCEPTED':
+    case 'CLAIM_REVIEW_STATUS_APPROVED':
       return 'approved'
     case 'CLAIM_REVIEW_STATUS_REJECTED':
       return 'rejected'
     case 'CLAIM_REVIEW_STATUS_PROOF_REQUESTED':
       return 'in-review'
+    case 'CLAIM_REVIEW_STATUS_OBJECTED':
+      return 'objected'
     default:
       return 'pending'
   }
@@ -52,7 +56,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     campaignId: '',
     campaignName: dto.productName ?? dto.deal?.productName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
-    orderDate: dto.orderDate != null ? String(dto.orderDate) : '',
+    orderDate: yyyymmddToIso(dto.orderDate ?? undefined),
     mediatorName: '',
     buyerName: '',
     claimStatus: toClaimStatus(status),
@@ -60,7 +64,8 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: dto.score ?? 0,
-    platform: dto.platform as ClaimReviewItem['platform'] ?? undefined,
+    platform: (dto.platform ?? '') as Platform,
+    brandName: '',
     accountName: dto.accountName ?? undefined,
     orderedBy: dto.orderedBy ?? undefined,
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
@@ -88,7 +93,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     campaignId: dto.campaignId ?? '',
     campaignName: dto.campaignName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
-    orderDate: dto.createdAt ? dto.createdAt.slice(0, 10) : '',
+    orderDate: yyyymmddToIso(dto.orderDate),
     mediatorName: dto.dealOwnerName ?? '',
     buyerName: dto.buyerName ?? '',
     claimStatus: toClaimStatus(backendStatus),
@@ -98,6 +103,8 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: dto.matchScore ?? 0,
+    platform: (dto.platform ?? '') as Platform,
+    brandName: dto.brandName ?? '',
     isUnderReview: backendStatus === 'UNDER_REVIEW',
   }
 }

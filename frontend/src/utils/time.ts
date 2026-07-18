@@ -1,3 +1,9 @@
+export function yyyymmddToIso(n: number | undefined): string {
+  if (!n) return ''
+  const s = n.toString().padStart(8, '0')
+  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`
+}
+
 export function toRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60_000)

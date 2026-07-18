@@ -4,7 +4,7 @@ import type { Platform } from './CampaignTypes'
 type ScoredValue = components['schemas']['ScoredValue']
 
 export type ClaimStatus = 'in-progress' | 'completed'
-export type ReviewStatus = 'pending' | 'in-review' | 'approved' | 'rejected'
+export type ReviewStatus = 'pending' | 'in-review' | 'approved' | 'rejected' | 'objected'
 export type ApprovalMethod = 'manual' | 'auto'
 
 export type ScreenshotVerificationStatus =
@@ -34,8 +34,9 @@ export interface ClaimReviewItem {
   approvalMethod: ApprovalMethod
   mediatorVerified: boolean
   matchPct: number
+  platform: Platform
+  brandName: string
   // Extended detail fields (from GET /claims/{id})
-  platform?: Platform
   accountName?: string
   orderedBy?: string
   productName?: string

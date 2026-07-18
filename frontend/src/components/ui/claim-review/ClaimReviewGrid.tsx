@@ -8,6 +8,8 @@ import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { Loading } from '../Loading'
 import { getCurrentUser } from '../../../api/client'
 import type { ClaimReviewItem, ReviewStatus } from '../../../types'
+import { PLATFORM_LABELS } from '../../../constants/campaigns'
+import { PLATFORM_COLORS } from '../campaign/filters/chipColors'
 
 // --- main grid ---
 
@@ -68,7 +70,7 @@ export function ClaimReviewGrid({ claims, loading = false, onViewDetails, onAppr
                   key={col}
                   className={[
                     'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                    col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Verified' ? 'text-center' : 'text-left',
+                    col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Mediator Verified' ? 'text-center' : 'text-left',
                   ].join(' ')}
                 >
                   {col}
@@ -104,12 +106,20 @@ export function ClaimReviewGrid({ claims, loading = false, onViewDetails, onAppr
                     </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
+                    <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">
                       {row.orderId}
                     </span>
-                    <div className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted mt-0.5 font-mono">
-                      {row.orderDate}
-                    </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    {row.platform
+                      ? <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', PLATFORM_COLORS[row.platform].base].join(' ')}>{PLATFORM_LABELS[row.platform]}</span>
+                      : '—'}
+                  </td>
+                  <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
+                    {row.brandName || '—'}
+                  </td>
+                  <td className="px-5 py-4 font-mono text-ink-light-primary dark:text-ink-dark-primary whitespace-nowrap">
+                    {row.orderDate || '—'}
                   </td>
                   <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
                     {isMediator ? row.buyerName : row.mediatorName}

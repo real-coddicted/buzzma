@@ -8,6 +8,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
@@ -309,7 +310,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (action == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED) {
       claim =
           this.claimRepository.save(
-              claim.toBuilder().status(ClaimStatus.PROOF_REJECTED).updatedBy(reviewerId).build());
+              claim.toBuilder()
+                  .status(ClaimStatus.PROOF_REJECTED)
+                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED)
+                  .updatedBy(reviewerId)
+                  .build());
     }
 
     return new ClaimWithDeal(claim, this.dealService.getById(claim.getDealId()));
@@ -402,6 +407,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           this.claimRepository.save(
               claim.toBuilder()
                   .status(ClaimStatus.APPROVED)
+                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
                   .reviewerComments(reviewerComment)
                   .reviewerId(reviewerId)
                   .updatedAt(Instant.now())
@@ -412,6 +418,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           this.claimRepository.save(
               claim.toBuilder()
                   .status(ClaimStatus.REJECTED)
+                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_REJECTED)
                   .reviewerComments(reviewerComment)
                   .reviewerId(reviewerId)
                   .updatedAt(Instant.now())
