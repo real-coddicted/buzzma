@@ -16,4 +16,5 @@ public class PublishAssignmentRequestDto {
   @NotNull BigInteger commissionChargedPaise;
   @NotNull BigInteger dealPricePaise;
   @Nullable String affiliateUrl;
+  @Builder.Default boolean sendNotificationOnPublish = true;
 }

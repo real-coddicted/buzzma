@@ -18,6 +18,7 @@ import { fetchUnreadNotificationCount } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { initSSE } from './api/sseClient'
+import { useSSE } from './hooks/useSSE'
 import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
 import { signOut } from './api/authApi'
 import { useTheme } from './hooks/useTheme'
@@ -78,6 +79,10 @@ export default function App() {
     if (!isAuthenticated) return
     fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
   }, [isAuthenticated])
+
+  useSSE('EVENT_TYPE_NOTIFICATION', () => {
+    fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
+  })
 
   if (!isAuthenticated) {
     return <Auth onAuth={() => setIsAuthenticated(true)} />

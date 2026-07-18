@@ -2,6 +2,7 @@ import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
 import { useConnections } from '../../../hooks/useConnections'
+import { ToggleSwitch } from '../ToggleSwitch'
 
 interface FormSlice {
   totalSlots: string
@@ -20,8 +21,7 @@ interface Props {
 export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
   const { connections, loading } = useConnections(!readOnly)
 
-  function handleOpenToAllToggle() {
-    const next = !form.openToAll
+  function handleOpenToAllToggle(next: boolean) {
     set('openToAll', next)
     set('assignees', next
       ? connections.map(c => ({ id: c.id, name: c.name, slotsAvailable: 0, commissionOffered: 0 }))
@@ -60,31 +60,13 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={form.openToAll}
-          disabled={!readOnly && loading}
-          onClick={handleOpenToAllToggle}
-          className={[
-            'relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none',
-            readOnly || loading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus:ring-2 focus:ring-neon-blue/40',
-            form.openToAll ? 'bg-neon-blue' : 'bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border',
-          ].join(' ')}
-        >
-          <span
-            className={[
-              'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200',
-              form.openToAll ? 'translate-x-4' : 'translate-x-0',
-            ].join(' ')}
-          />
-        </button>
-        <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">Open to All</span>
-        <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted">
-          {form.openToAll ? 'Any agency can participate' : 'Restricted to allowed agencies'}
-        </span>
-      </div>
+      <ToggleSwitch
+        checked={form.openToAll}
+        onChange={handleOpenToAllToggle}
+        disabled={readOnly || loading}
+        label="Open to All"
+        hint={form.openToAll ? 'Any agency can participate' : 'Restricted to allowed agencies'}
+      />
 
       <LinkedEntitiesTable
         entities={form.assignees}

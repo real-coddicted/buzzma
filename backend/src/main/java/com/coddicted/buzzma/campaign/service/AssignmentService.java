@@ -24,5 +24,6 @@ public interface AssignmentService {
       final BigInteger commissionChargedPaise,
       final BigInteger dealPricePaise,
       final UUID chargedById,
-      final String affiliateUrl);
+      final String affiliateUrl,
+      final boolean sendNotificationOnPublish);
 }

@@ -9,11 +9,14 @@ import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
+import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
 import com.coddicted.buzzma.campaign.service.AssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
@@ -43,18 +46,24 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
   private final CommissionService commissionService;
   private final DealService dealService;
   private final AssignmentMapper assignmentMapper;
+  private final ConnectionService connectionService;
+  private final DealEventPublisher dealEventPublisher;
 
   public AssignmentServiceImpl(
       final CampaignService campaignService,
       final CampaignAssignmentService campaignAssignmentService,
       final CommissionService commissionService,
       final DealService dealService,
-      final AssignmentMapper assignmentMapper) {
+      final AssignmentMapper assignmentMapper,
+      final ConnectionService connectionService,
+      final DealEventPublisher dealEventPublisher) {
     this.campaignService = campaignService;
     this.campaignAssignmentService = campaignAssignmentService;
     this.commissionService = commissionService;
     this.dealService = dealService;
     this.assignmentMapper = assignmentMapper;
+    this.connectionService = connectionService;
+    this.dealEventPublisher = dealEventPublisher;
   }
 
   @Override
@@ -104,7 +113,8 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
       @NotNull final BigInteger commissionCharged,
       @NotNull final BigInteger dealPrice,
       final UUID chargedById,
-      final String affiliateUrl) {
+      final String affiliateUrl,
+      final boolean sendNotificationOnPublish) {
     final Campaign campaign = this.campaignService.getById(campaignId);
     if (StringUtils.hasText(affiliateUrl) && !campaign.isAffiliateLinkAllowed()) {
       throw new BusinessRuleViolationException(
@@ -125,13 +135,24 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     final Deal deal =
         toDeal(
             campaign, campaignAssignment.getCampaignSlot(), dealPrice, chargedById, affiliateUrl);
-    this.dealService.create(deal);
+    final Deal savedDeal = this.dealService.create(deal);
     final CampaignAssignment updated =
         campaignAssignment.toBuilder()
             .status(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED)
             .updatedBy(chargedById)
             .build();
     this.campaignAssignmentService.update(updated);
+    if (sendNotificationOnPublish) {
+      final List<UUID> buyerIds =
+          this.connectionService
+              .getConnectionsByFromUserIdAndStatus(
+                  chargedById, ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+              .stream()
+              .map(view -> view.getConnection().getToUserId())
+              .distinct()
+              .toList();
+      this.dealEventPublisher.publishDealPublishedEvent(savedDeal, buyerIds);
+    }
     return true;
     // Todo: Add error handling
   }

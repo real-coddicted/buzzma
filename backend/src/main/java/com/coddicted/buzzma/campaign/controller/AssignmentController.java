@@ -84,7 +84,8 @@ public class AssignmentController {
         request.getCommissionChargedPaise(),
         request.getDealPricePaise(),
         requesterId,
-        request.getAffiliateUrl());
+        request.getAffiliateUrl(),
+        request.isSendNotificationOnPublish());
   }
 
   @GetMapping("/commissionCharged/{campaignId}")

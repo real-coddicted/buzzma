@@ -102,11 +102,13 @@ export async function publishAssignment(
   commissionChargedPaise: number,
   dealPricePaise: number,
   affiliateUrl?: string,
+  sendNotificationOnPublish = true,
 ): Promise<boolean> {
   const body: PublishAssignmentRequestDto = {
     campaignId,
     commissionChargedPaise,
     dealPricePaise,
+    sendNotificationOnPublish,
     ...(affiliateUrl ? { affiliateUrl } : {}),
   }
   const res = await fetchWithAuth(`${API_BASE}/assignments/${assignmentId}/publish`, {

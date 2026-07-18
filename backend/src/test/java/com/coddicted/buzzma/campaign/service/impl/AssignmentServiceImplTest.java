@@ -14,14 +14,20 @@ import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
+import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.connection.entity.Connection;
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
+import com.coddicted.buzzma.connection.model.ConnectionView;
+import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +46,8 @@ class AssignmentServiceImplTest {
   @Mock private CommissionService mockCommissionService;
   @Mock private DealService mockDealService;
   @Mock private AssignmentMapper mockAssignmentMapper;
+  @Mock private ConnectionService mockConnectionService;
+  @Mock private DealEventPublisher mockDealEventPublisher;
   private AssignmentServiceImpl assignmentService;
 
   @BeforeEach
@@ -50,7 +58,9 @@ class AssignmentServiceImplTest {
             this.mockCampaignAssignmentService,
             this.mockCommissionService,
             this.mockDealService,
-            this.mockAssignmentMapper);
+            this.mockAssignmentMapper,
+            this.mockConnectionService,
+            this.mockDealEventPublisher);
   }
 
   @Test
@@ -121,9 +131,12 @@ class AssignmentServiceImplTest {
             COMMISSION_PAISE,
             DEAL_PRICE_PAISE,
             REQUESTER_ID,
-            AFFILIATE_URL);
+            AFFILIATE_URL,
+            false);
 
     assertTrue(result);
+
+    verifyNoInteractions(this.mockConnectionService, this.mockDealEventPublisher);
 
     final ArgumentCaptor<Commission> commissionCaptor = ArgumentCaptor.forClass(Commission.class);
     verify(this.mockCommissionService).create(commissionCaptor.capture(), eq(REQUESTER_ID));
@@ -157,7 +170,8 @@ class AssignmentServiceImplTest {
                 COMMISSION_PAISE,
                 DEAL_PRICE_PAISE,
                 REQUESTER_ID,
-                AFFILIATE_URL));
+                AFFILIATE_URL,
+                false));
 
     verifyNoInteractions(
         this.mockCampaignAssignmentService, this.mockCommissionService, this.mockDealService);
@@ -170,7 +184,13 @@ class AssignmentServiceImplTest {
 
     final boolean result =
         this.assignmentService.publishAssignment(
-            CAMPAIGN_ID_1, ASSIGNMENT_ID_1, COMMISSION_PAISE, DEAL_PRICE_PAISE, REQUESTER_ID, null);
+            CAMPAIGN_ID_1,
+            ASSIGNMENT_ID_1,
+            COMMISSION_PAISE,
+            DEAL_PRICE_PAISE,
+            REQUESTER_ID,
+            null,
+            false);
 
     assertTrue(result);
 
@@ -179,5 +199,60 @@ class AssignmentServiceImplTest {
     final Deal savedDeal = dealCaptor.getValue();
     assertEquals(CAMPAIGN_1, savedDeal.getCampaign());
     assertNull(savedDeal.getAffiliateUrl());
+  }
+
+  @Test
+  void testPublishAssignmentSendsNotificationToConnectedBuyersWhenFlagTrue() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_AFFILIATE_ALLOWED);
+    when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
+    final UUID buyerId = UUID.fromString("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+    final Connection connection =
+        Connection.builder()
+            .fromUserId(REQUESTER_ID)
+            .toUserId(buyerId)
+            .status(ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+            .build();
+    when(this.mockConnectionService.getConnectionsByFromUserIdAndStatus(
+            REQUESTER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED))
+        .thenReturn(Set.of(ConnectionView.builder().connection(connection).build()));
+    when(this.mockDealService.create(org.mockito.ArgumentMatchers.any(Deal.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    final boolean result =
+        this.assignmentService.publishAssignment(
+            CAMPAIGN_ID_1,
+            ASSIGNMENT_ID_1,
+            COMMISSION_PAISE,
+            DEAL_PRICE_PAISE,
+            REQUESTER_ID,
+            AFFILIATE_URL,
+            true);
+
+    assertTrue(result);
+
+    final ArgumentCaptor<Deal> dealCaptor = ArgumentCaptor.forClass(Deal.class);
+    verify(this.mockDealEventPublisher)
+        .publishDealPublishedEvent(dealCaptor.capture(), eq(List.of(buyerId)));
+    assertEquals(CAMPAIGN_AFFILIATE_ALLOWED, dealCaptor.getValue().getCampaign());
+  }
+
+  @Test
+  void testPublishAssignmentDoesNotSendNotificationWhenFlagFalse() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_AFFILIATE_ALLOWED);
+    when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
+
+    final boolean result =
+        this.assignmentService.publishAssignment(
+            CAMPAIGN_ID_1,
+            ASSIGNMENT_ID_1,
+            COMMISSION_PAISE,
+            DEAL_PRICE_PAISE,
+            REQUESTER_ID,
+            AFFILIATE_URL,
+            false);
+
+    assertTrue(result);
+
+    verifyNoInteractions(this.mockConnectionService, this.mockDealEventPublisher);
   }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { publishAssignment } from '../../../api/assignmentApi'
 import { Toast } from '../Toast'
 import { RupeeInput } from '../RupeeInput'
+import { ToggleSwitch } from '../ToggleSwitch'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 export interface AssignmentFormFields {
@@ -33,6 +34,7 @@ export function AssignmentForm({
 }: AssignmentFormProps) {
   const [yourCommission, setYourCommission] = useState('')
   const [affiliateUrl, setAffiliateUrl] = useState('')
+  const [sendNotificationOnPublish, setSendNotificationOnPublish] = useState(true)
   const [loading, setLoading]   = useState(false)
   const [success, setSuccess]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -53,6 +55,7 @@ export function AssignmentForm({
         yourCommissionPaise,
         offeredPricePaise,
         affiliateUrl.trim() || undefined,
+        sendNotificationOnPublish,
       )
       setSuccess(true)
       onPublished?.()
@@ -147,6 +150,14 @@ export function AssignmentForm({
                 Optional — takes precedence over the product URL if provided
               </p>
             </div>
+          )}
+
+          {!readOnly && (
+            <ToggleSwitch
+              checked={sendNotificationOnPublish}
+              onChange={setSendNotificationOnPublish}
+              label="Send Notifications to Buyer"
+            />
           )}
 
           {!readOnly && (
