@@ -33,6 +33,19 @@ services:
       retries: 10
       start_period: 60s
 
+  communications:
+    image: gitea.local.coddicted.com/coddicted/buzzma-communications:latest
+    container_name: buzzma-communications
+    env_file: .env
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
   score:
     image: gitea.local.coddicted.com/coddicted/buzzma-score:latest
     container_name: buzzma-score

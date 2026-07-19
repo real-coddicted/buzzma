@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: buzzma-communications
+  mail:
+    host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
+    port: ${EMAIL_SMTP_PORT:587}
+    username: ${EMAIL_SMTP_USERNAME:}
+    password: ${EMAIL_SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: ${PORT:8083}
+
+app:
+  jwt:
+    access-secret: ${JWT_ACCESS_SECRET:change-me-access-secret-min-32-chars!!}
+  whatsapp:
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+    app-secret: ${WHATSAPP_APP_SECRET:}
+    api-version: ${WHATSAPP_API_VERSION:v21.0}
+    graph-base-url: ${WHATSAPP_GRAPH_BASE_URL:https://graph.facebook.com}
+  email:
+    from-address: ${EMAIL_FROM_ADDRESS:donotreply@buzzmah.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p ${PID:- } --- [%15.15t] %-40.40logger{39}:%line : %m%n%wEx"
+  level:
+    com.coddicted.buzzma.communications: INFO
