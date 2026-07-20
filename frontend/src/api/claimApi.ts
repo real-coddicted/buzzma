@@ -13,22 +13,6 @@ type ClaimReviewResponseDto = components['schemas']['ClaimReviewResponseDto']
 type ClaimReviewStatus = NonNullable<ClaimReviewResponseDto['claimReviewStatus']>
 type PageClaimReviewResponseDto = components['schemas']['PageClaimReviewResponseDto']
 
-function toReviewStatus(status: BackendClaimStatus): ReviewStatus {
-  switch (status) {
-    case 'APPROVED':
-    case 'REWARD_PENDING':
-    case 'COMPLETED':
-      return 'approved'
-    case 'REJECTED':
-    case 'FAILED':
-      return 'rejected'
-    case 'UNDER_REVIEW':
-    case 'ADDITIONAL_PROOF_REQUESTED':
-      return 'in-review'
-    default:
-      return 'pending'
-  }
-}
 
 function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
   return status === 'COMPLETED' || status === 'REWARD_PENDING' ? 'completed' : 'in-progress'
@@ -60,7 +44,9 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     mediatorName: '',
     buyerName: '',
     claimStatus: toClaimStatus(status),
-    reviewStatus: toReviewStatus(status),
+    reviewStatus: reviewStatusFromClaimReviewStatus(
+      dto.reviewStatus ?? 'CLAIM_REVIEW_STATUS_PENDING'
+    ),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: dto.score ?? 0,
@@ -82,6 +68,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
       score: s.score,
       extractedDetails: s.extractedDetails as ClaimScreenshotItem['extractedDetails'],
       verificationStatus: s.verificationStatus as ClaimScreenshotItem['verificationStatus'],
+      reviewerComments: s.reviewerComments ?? undefined,
     })),
   }
 }
@@ -240,12 +227,14 @@ export async function updateScreenshot(
   claimId: string,
   screenshotId: string,
   screenshotType: string,
-  screenshot: File
+  screenshot: File,
+  reviewUrl?: string
 ): Promise<ClaimResponseDto> {
   const formData = new FormData()
   formData.append('screenshotId', screenshotId)
   formData.append('screenshotType', screenshotType)
   formData.append('screenshot', screenshot)
+  if (reviewUrl) formData.append('reviewUrl', reviewUrl)
 
   const token = getAccessToken()
   const res = await fetch(`${API_BASE}/claims/${claimId}/update`, {
@@ -258,6 +247,53 @@ export async function updateScreenshot(
 
   if (!res.ok) {
     let message = 'Failed to update screenshot. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export async function updateOrderScreenshot(
+  claimId: string,
+  screenshotId: string,
+  screenshot: File,
+  fields: {
+    platform: string
+    orderId: string
+    amount: number
+    productName: string
+    sellerName: string
+    orderDate: string
+    accountName: string
+  }
+): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshotId', screenshotId)
+  formData.append('screenshotType', 'SCREENSHOT_TYPE_ORDER')
+  formData.append('screenshot', screenshot)
+  formData.append('platform', fields.platform)
+  formData.append('orderId', fields.orderId)
+  formData.append('amount', String(rupeesToPaise(fields.amount)))
+  formData.append('productName', fields.productName)
+  formData.append('sellerName', fields.sellerName)
+  formData.append('orderDate', fields.orderDate.replace(/-/g, ''))
+  formData.append('accountName', fields.accountName)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/update`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to resubmit order. Please try again.'
     try {
       const body = (await res.clone().json()) as Record<string, unknown>
       if (typeof body['message'] === 'string') message = body['message']

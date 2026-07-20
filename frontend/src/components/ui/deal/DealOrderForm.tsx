@@ -2,12 +2,18 @@ import { useState } from 'react'
 import { IconCalendar } from '../icons'
 import { ScreenshotUpload } from './ScreenshotUpload'
 import type { ExtractionResponse } from '../../../api/extractionApi'
-import { submitClaim } from '../../../api/claimApi'
+import { submitClaim, updateOrderScreenshot } from '../../../api/claimApi'
 import type { components } from '../../../types/api'
 import { ScoreBadge } from '../../utils/ScoreBadge'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ScoredValue = components['schemas']['ScoredValue']
+
+interface ResubmitConfig {
+  claimId: string
+  screenshotId: string
+  initialScreenshotUrl?: string
+}
 
 interface DealOrderFormProps {
   dealId: string
@@ -15,6 +21,7 @@ interface DealOrderFormProps {
   onSuccess?: (claim: ClaimResponseDto) => void
   readOnly?: boolean
   claimValues?: Partial<FormFields>
+  resubmit?: ResubmitConfig
 }
 
 export interface FormFields {
@@ -35,7 +42,7 @@ const scoreKeyMap: Partial<Record<string, keyof FormFields>> = {
   amount:      'amount',
 }
 
-export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues }: DealOrderFormProps) {
+export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit }: DealOrderFormProps) {
   const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
     orderId:     '',
@@ -114,23 +121,33 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
     setIsSubmitting(true)
     setError(null)
     try {
-      const claim = await submitClaim({
-        campaignId,
-        dealId,
-        platform:        fields.platform,
-        orderId:         fields.orderId,
-        amount:          parseFloat(fields.amount),
-        productName:     fields.productName,
-        sellerName:      fields.sellerName,
-        orderDate:       fields.orderDate,
-        accountName:     fields.accountName,
-        screenshot:      screenshotFile,
-        extractedDetails,
-        overallScore,
-      })
+      const claim = resubmit
+        ? await updateOrderScreenshot(resubmit.claimId, resubmit.screenshotId, screenshotFile, {
+            platform:    fields.platform,
+            orderId:     fields.orderId,
+            amount:      parseFloat(fields.amount),
+            productName: fields.productName,
+            sellerName:  fields.sellerName,
+            orderDate:   fields.orderDate,
+            accountName: fields.accountName,
+          })
+        : await submitClaim({
+            campaignId,
+            dealId,
+            platform:        fields.platform,
+            orderId:         fields.orderId,
+            amount:          parseFloat(fields.amount),
+            productName:     fields.productName,
+            sellerName:      fields.sellerName,
+            orderDate:       fields.orderDate,
+            accountName:     fields.accountName,
+            screenshot:      screenshotFile,
+            extractedDetails,
+            overallScore,
+          })
       onSuccess?.(claim)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit claim.')
+      setError(err instanceof Error ? err.message : 'Failed to submit.')
     } finally {
       setIsSubmitting(false)
     }
@@ -143,9 +160,10 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
           <ScreenshotUpload
             label="Order Confirmation Screenshot"
             hint="Ensure the order ID, amount, and product name are clearly visible."
-            campaignId={campaignId}
-            onExtract={handleExtraction}
+            campaignId={resubmit ? undefined : campaignId}
+            onExtract={resubmit ? undefined : handleExtraction}
             onFileChange={setScreenshotFile}
+            initialPreview={resubmit?.initialScreenshotUrl}
           />
           <Field
             as="select"
@@ -202,7 +220,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
           {isSubmitting && (
             <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
           )}
-          {isSubmitting ? 'Submitting…' : 'Submit Claim'}
+          {isSubmitting ? 'Submitting…' : resubmit ? 'Resubmit Order' : 'Submit Claim'}
         </button>
       )}
     </form>

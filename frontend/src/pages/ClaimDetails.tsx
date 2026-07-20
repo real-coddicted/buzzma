@@ -73,6 +73,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
           type: s.type,
           score: s.score,
           verificationStatus: s.verificationStatus,
+          reviewerComments: s.reviewerComments,
           fields: Object.entries(s.extractedDetails ?? {}).map(([key, sv]): ExtractedField => {
             const raw = sv.extractedValue ?? ''
             const value = formatExtractedValue(key, raw)

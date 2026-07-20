@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { extractOrderDetails, type ExtractionResponse } from '../../../api/extractionApi'
 import { Toast } from '../Toast'
+import { ImageLightbox } from './ImageLightbox'
 
 interface ScreenshotUploadProps {
   label: string
@@ -8,6 +9,7 @@ interface ScreenshotUploadProps {
   campaignId?: string
   onExtract?: (data: ExtractionResponse) => void
   onFileChange?: (file: File) => void
+  initialPreview?: string
 }
 
 function resolveError(raw: string): string {
@@ -16,10 +18,15 @@ function resolveError(raw: string): string {
   return 'Screenshot data extraction failed. Please try again or contact support if the issue persists.'
 }
 
-export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileChange }: ScreenshotUploadProps) {
+export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileChange, initialPreview }: ScreenshotUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(initialPreview ?? null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
+  useEffect(() => {
+    if (initialPreview) setPreview(prev => prev ?? initialPreview)
+  }, [initialPreview])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,6 +74,15 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
         {preview ? (
           <div className="relative">
             <img src={preview} alt="preview" className="w-full max-h-48 object-contain bg-surface-light-hover dark:bg-surface-dark-hover" />
+            {!isLoading && (
+              <button
+                type="button"
+                onClick={e => { e.stopPropagation(); setLightboxOpen(true) }}
+                className="absolute top-2 right-2 text-xs px-2 py-1 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                ⤢ View full
+              </button>
+            )}
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">
@@ -97,6 +113,9 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
         disabled={isLoading}
         onChange={e => handleFile(e.target.files?.[0])}
       />
+      {lightboxOpen && preview && (
+        <ImageLightbox src={preview} alt={label} onClose={() => setLightboxOpen(false)} />
+      )}
     </div>
   )
 }

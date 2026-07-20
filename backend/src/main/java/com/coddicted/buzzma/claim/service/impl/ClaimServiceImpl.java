@@ -19,6 +19,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
 import com.coddicted.buzzma.claim.utils.ClaimUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
@@ -329,9 +330,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final ScreenshotType screenshotType,
       final byte[] screenshot,
       final String filename,
-      final String contentType) {
+      final String contentType,
+      final OrderUpdateFields orderFields,
+      final String reviewUrl) {
 
-    final Claim claim = loadAndVerifyOwnership(claimId, requesterId);
+    Claim claim = loadAndVerifyOwnership(claimId, requesterId);
 
     final ClaimScreenshot existing =
         this.claimScreenshotRepository
@@ -363,8 +366,50 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     this.extractionService.submitJob(updated.getId(), requesterId);
 
-    final Claim finalClaim = verifyAndUpdateClaimStatus(claim, requesterId);
+    final Claim finalClaim =
+        updateClaim(requesterId, screenshotType, orderFields, reviewUrl, claim);
+
     return new ClaimWithDeal(finalClaim, this.dealService.getById(finalClaim.getDealId()));
+  }
+
+  private Claim updateClaim(
+      UUID requesterId,
+      ScreenshotType screenshotType,
+      OrderUpdateFields orderFields,
+      String reviewUrl,
+      Claim claim) {
+
+    Claim.ClaimBuilder b = claim.toBuilder();
+    if (screenshotType == ScreenshotType.SCREENSHOT_TYPE_REVIEW && reviewUrl != null) {
+      b = b.reviewUrl(reviewUrl).updatedBy(requesterId);
+    }
+    if (screenshotType == ScreenshotType.SCREENSHOT_TYPE_ORDER && orderFields != null) {
+      b = claim.toBuilder().updatedBy(requesterId);
+      if (orderFields.platform() != null) {
+        b.platform(orderFields.platform());
+      }
+      if (orderFields.ecommerceOrderId() != null) {
+        b.ecommerceOrderId(orderFields.ecommerceOrderId());
+      }
+      if (orderFields.amountPaise() != null) {
+        b.amountPaise(orderFields.amountPaise());
+      }
+      if (orderFields.productName() != null) {
+        b.productName(orderFields.productName());
+      }
+      if (orderFields.sellerName() != null) {
+        b.sellerName(orderFields.sellerName());
+      }
+      if (orderFields.orderDate() != null) {
+        b.orderDate(orderFields.orderDate());
+      }
+      if (orderFields.accountName() != null) {
+        b.accountName(orderFields.accountName());
+      }
+    }
+    claim = verifyAndUpdateClaimStatus(b.build(), requesterId);
+    claim = this.claimRepository.save(claim);
+    return claim;
   }
 
   @Override
@@ -430,26 +475,15 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
-  public void updateClaimScore(UUID claimId, int score) {
-    this.claimRepository
-        .findById(claimId)
-        .ifPresent(
-            claim -> {
-              claim.setScore(score);
-              this.claimRepository.save(claim);
-            });
+  @Transactional
+  public void updateClaimScore(UUID claimId) {
+    this.claimRepository.updateScoreFromScreenshots(claimId);
   }
 
   private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
     final List<ClaimScreenshot> screenshots =
         this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
             claim.getId());
-
-    final boolean hasReturn =
-        screenshots.stream().anyMatch(s -> s.getType() == ScreenshotType.SCREENSHOT_TYPE_RETURN);
-    if (!hasReturn) {
-      return claim;
-    }
 
     final boolean hasRejected =
         screenshots.stream()
@@ -458,15 +492,26 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                     s.getVerificationStatus()
                         == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED);
     if (hasRejected) {
+      // No need to update claim status (Which should be objected at this point)
       return claim;
     }
+    // Otherwise status update is needed depending on already completed steps
+    // setting default status values below
+    ClaimStatus claimStatus = ClaimStatus.ORDERED;
 
-    return this.claimRepository.save(
-        claim.toBuilder()
-            .status(ClaimStatus.UNDER_REVIEW)
-            .updatedAt(Instant.now())
-            .updatedBy(requesterId)
-            .build());
+    final boolean hasReturn =
+        screenshots.stream().anyMatch(s -> s.getType() == ScreenshotType.SCREENSHOT_TYPE_RETURN);
+
+    if (hasReturn) {
+      // This should be revisited in case of change in end step
+      claimStatus = ClaimStatus.UNDER_REVIEW;
+    }
+
+    return claim.toBuilder()
+        .status(claimStatus)
+        .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING)
+        .updatedBy(requesterId)
+        .build();
   }
 
   private ClaimScreenshot saveScreenshot(

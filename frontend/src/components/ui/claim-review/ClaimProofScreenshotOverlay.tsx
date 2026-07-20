@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '../Button'
 import { IconCheck, IconX } from '../icons'
+import { ScreenshotRejectionBanner } from '../ScreenshotRejectionBanner'
 import { ClaimProofScoreBar } from './ClaimProofScoreBar'
 import { ClaimProofCompareTable } from './ClaimProofCompareTable'
 import { ReviewerCommentBox } from './ReviewerCommentBox'
@@ -129,21 +130,35 @@ export function ClaimProofScreenshotOverlay({ item, idx, score, isAgency, hasPre
         {isAgency && (
           <div className="flex-shrink-0 border-t border-surface-light-border dark:border-surface-dark-border px-4 py-3 space-y-2">
             {isActioned ? (
-              <div className="flex justify-end">
-                <span className={[
-                  'text-xs font-semibold',
-                  item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? 'text-neon-green' : 'text-neon-red',
-                ].join(' ')}>
-                  {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? '✓ Already verified' : '✗ Already rejected'}
-                </span>
+              <div className="space-y-2">
+                <div className="flex justify-start">
+                  <span className={[
+                    'text-xs font-semibold',
+                    item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? 'text-neon-green' : 'text-neon-red',
+                  ].join(' ')}>
+                    {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? '✓ Already verified' : '✗ Already rejected'}
+                  </span>
+                </div>
+                {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && item.reviewerComments && (
+                  <ScreenshotRejectionBanner comment={item.reviewerComments} />
+                )}
               </div>
             ) : (
               <>
-                <ReviewerCommentBox
-                  value={comment}
-                  onChange={v => { setComment(v); if (commentError) setCommentError('') }}
-                  error={commentError}
-                />
+                <div className="flex gap-3 items-stretch">
+                  {item.reviewerComments && (
+                    <div className="flex-1 min-w-0 flex">
+                      <ScreenshotRejectionBanner comment={item.reviewerComments} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <ReviewerCommentBox
+                      value={comment}
+                      onChange={v => { setComment(v); if (commentError) setCommentError('') }}
+                      error={commentError}
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <Button
                     size="sm"

@@ -615,15 +615,13 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
-    updateClaimScore(claim, extractedScoredResult.overallScore());
+    updateClaimScore(screenshot.getClaimId());
 
     LOGGER.info("scoreOrderScreenshot: saved score for screenshot {}", screenshot.getId());
   }
 
-  private void updateClaimScore(Claim claim, int overallScore) {
-    final int newScore =
-        claim.getScore() == null ? overallScore : Math.min(overallScore, claim.getScore());
-    this.claimService.updateClaimScore(claim.getId(), newScore);
+  private void updateClaimScore(UUID claimId) {
+    this.claimService.updateClaimScore(claimId);
   }
 
   private void scoreRatingScreenshot(final ScoringJob job, final ClaimScreenshot screenshot) {
@@ -660,7 +658,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
-    updateClaimScore(claim, extractedScoredResult.overallScore());
+    updateClaimScore(screenshot.getClaimId());
     LOGGER.info("scoreRatingScreenshot: saved score for screenshot {}", screenshot.getId());
   }
 
@@ -699,7 +697,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
-    updateClaimScore(claim, extractedScoredResult.overallScore());
+    updateClaimScore(screenshot.getClaimId());
 
     LOGGER.info("scoreReviewScreenshot: saved score for screenshot {}", screenshot.getId());
   }
@@ -729,7 +727,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     screenshot.setScore(extractedScoredResult.overallScore());
     this.screenshotRepository.save(screenshot);
 
-    updateClaimScore(claim, extractedScoredResult.overallScore());
+    updateClaimScore(screenshot.getClaimId());
 
     LOGGER.info("scoreReturnScreenshot: saved score for screenshot {}", screenshot.getId());
   }

@@ -1,5 +1,6 @@
 # Pattern
 
+Always follow these guidelines to ensure consistency and maintainability in your codebase while making any code changes.
 
 ## Controller -> Service -> Repository pattern
 - A controller should only be responsible for handling HTTP requests and responses. It should not contain any business logic or data access code.
@@ -15,7 +16,7 @@
 ## General Java Guidelines
 - Use `final` for variables that should not be reassigned after initialization.
 - Use `@Override` annotation when overriding methods from a superclass or implementing methods from an interface
-- `if` construct must use brackets `{}`s
+- `if` construct must use braces `{}`s
 
 ## Unit Testing
 - Avoid Mockito's `any()`, `anyList()`, and other loose argument matcher variants unless the exact value genuinely cannot be asserted (e.g. a generated ID/timestamp). Prefer matching/asserting on concrete values so tests fail loudly when behavior changes.

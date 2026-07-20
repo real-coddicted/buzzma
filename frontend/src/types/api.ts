@@ -1469,6 +1469,7 @@ export interface components {
             };
             /** Format: date-time */
             createdAt?: string;
+            reviewerComments?: string;
         };
         DealResponseDto: {
             /** Format: uuid */
@@ -1499,6 +1500,16 @@ export interface components {
             screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
             /** Format: binary */
             screenshot: string;
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            orderId?: string;
+            amount?: number;
+            productName?: string;
+            sellerName?: string;
+            /** Format: int32 */
+            orderDate?: number;
+            accountName?: string;
+            reviewUrl?: string;
         };
         ClaimReviewRequestDto: {
             /** @enum {string} */

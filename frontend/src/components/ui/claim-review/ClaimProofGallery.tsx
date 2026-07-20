@@ -20,4 +20,5 @@ export interface ClaimProofItem {
   score?: number
   fields: ExtractedField[]
   verificationStatus?: ScreenshotVerificationStatus
+  reviewerComments?: string
 }

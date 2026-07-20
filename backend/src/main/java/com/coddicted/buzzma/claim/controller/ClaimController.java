@@ -14,10 +14,12 @@ import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
@@ -156,6 +158,17 @@ public class ClaimController {
       @PathVariable final UUID id,
       @Valid final UpdateClaimRequestDto request) {
     final MultipartFile screenshot = request.getScreenshot();
+    final OrderUpdateFields orderFields =
+        request.getScreenshotType() == ScreenshotType.SCREENSHOT_TYPE_ORDER
+            ? new OrderUpdateFields(
+                request.getPlatform(),
+                request.getOrderId(),
+                request.getAmount(),
+                request.getProductName(),
+                request.getSellerName(),
+                request.getOrderDate(),
+                request.getAccountName())
+            : null;
     final ClaimWithDeal result =
         this.claimService.updateScreenshot(
             id,
@@ -164,7 +177,9 @@ public class ClaimController {
             request.getScreenshotType(),
             readBytes(screenshot),
             screenshot.getOriginalFilename(),
-            screenshot.getContentType());
+            screenshot.getContentType(),
+            orderFields,
+            request.getReviewUrl());
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

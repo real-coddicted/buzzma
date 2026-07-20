@@ -10,6 +10,8 @@ import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.shared.enums.Platform;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ClaimService {
+
+  record OrderUpdateFields(
+      Platform platform,
+      String ecommerceOrderId,
+      BigInteger amountPaise,
+      String productName,
+      String sellerName,
+      Integer orderDate,
+      String accountName) {}
 
   Claim createClaim(
       Claim claim,
@@ -73,7 +84,9 @@ public interface ClaimService {
       ScreenshotType screenshotType,
       byte[] screenshot,
       String filename,
-      String contentType);
+      String contentType,
+      OrderUpdateFields orderFields,
+      String reviewUrl);
 
   ClaimWithDeal submitClaimReview(
       UUID claimId,
@@ -82,5 +95,5 @@ public interface ClaimService {
       ReviewerDecision decision,
       String reviewerComment);
 
-  void updateClaimScore(UUID claimId, int score);
+  void updateClaimScore(UUID claimId);
 }

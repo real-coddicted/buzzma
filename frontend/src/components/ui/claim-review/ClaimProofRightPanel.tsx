@@ -66,7 +66,17 @@ export function ClaimProofRightPanel({
                   <span className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary flex-1">
                     {sc?.label ?? `Screenshot ${idx + 1}`}
                   </span>
-                  <span className={['text-sm font-extrabold px-2.5 py-0.5 rounded-full flex-shrink-0', scorePillClass(score)].join(' ')}>
+                  {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' && (
+                    <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green flex-shrink-0">
+                      ✓ Verified
+                    </span>
+                  )}
+                  {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && (
+                    <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex-shrink-0">
+                      ✗ Rejected
+                    </span>
+                  )}
+                  <span className={['text-sm font-bold px-2.5 py-0.5 rounded-full flex-shrink-0', scorePillClass(score)].join(' ')}>
                     {score}%
                   </span>
                   <button

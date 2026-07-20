@@ -21,4 +21,5 @@ public class ClaimScreenshotResponseDto {
   Integer score;
   Map<String, ScoredValue> extractedDetails;
   Instant createdAt;
+  String reviewerComments;
 }

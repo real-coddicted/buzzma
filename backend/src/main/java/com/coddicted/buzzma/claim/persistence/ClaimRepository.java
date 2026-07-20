@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -84,4 +85,18 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("mediatorIds") Collection<UUID> mediatorIds,
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       Pageable pageable);
+
+  @Modifying
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+          UPDATE claims
+          SET score = (
+              SELECT MIN(s.score) FROM claim_screenshots s
+              WHERE s.claim_id = :claimId AND s.is_deleted = false AND s.score IS NOT NULL
+          )
+          WHERE id = :claimId
+          """)
+  void updateScoreFromScreenshots(@Param("claimId") UUID claimId);
 }

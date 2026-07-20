@@ -4,13 +4,28 @@ import type { components } from '../../../types/api'
 import type { CampaignStepDto } from '../../../api/campaignApi'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS, STEP_TYPE_TO_SCREENSHOT_TYPE } from '../../../constants/claimSteps'
+import { ScreenshotRejectionBanner } from '../ScreenshotRejectionBanner'
 import { paiseToRupees } from '../../../utils/currency'
-import { submitRating, submitReview, submitReturn, updateScreenshot } from '../../../api/claimApi'
+import { fetchScreenshotUrl, submitRating, submitReview, submitReturn, updateScreenshot } from '../../../api/claimApi'
 import { DealOrderForm } from './DealOrderForm'
+import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ClaimScreenshotResponseDto = components['schemas']['ClaimScreenshotResponseDto']
+
+function useRejectedScreenshotUrl(storageKey: string | undefined): string | null {
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    if (!storageKey) return
+    let objectUrl: string | null = null
+    fetchScreenshotUrl(storageKey)
+      .then(u => { objectUrl = u; setUrl(u) })
+      .catch(() => {})
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
+  }, [storageKey])
+  return url
+}
 
 const inputClass = [
   'w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border',
@@ -36,48 +51,13 @@ interface OrderStepProps {
 }
 
 function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: OrderStepProps) {
-  const [file, setFile] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const screenshotUrl = useRejectedScreenshotUrl(rejectedScreenshot?.storageKey)
 
-  async function handleResubmit() {
-    if (!claimId || !file || !rejectedScreenshot?.id) return
-    setLoading(true)
-    setError(null)
-    try {
-      const claim = await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_ORDER', file)
-      onSuccess(claim)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update screenshot.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const orderScreenshotKey = rejectedScreenshot?.storageKey
+    ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_ORDER')?.storageKey
 
-  if (rejectedScreenshot) {
-    return (
-      <div className="space-y-5">
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-          Your order screenshot was rejected. Upload a new one below.
-        </p>
-        <ScreenshotUpload
-          label="Order Screenshot"
-          hint="Show your order confirmation page clearly."
-          onFileChange={setFile}
-        />
-        {error && <p className="text-xs text-neon-red">{error}</p>}
-        <button
-          className={submitBtnClass('bg-neon-blue hover:brightness-110')}
-          onClick={handleResubmit}
-          disabled={!file || loading}
-        >
-          {loading ? 'Submitting…' : 'Resubmit Screenshot'}
-        </button>
-      </div>
-    )
-  }
-
-  const claimValues = readOnly && claimResponse ? {
+  const claimValues = claimResponse ? {
+    platform:    String(claimResponse.platform ?? ''),
     orderId:     claimResponse.ecommerceOrderId ?? '',
     amount:      claimResponse.amountPaise != null ? String(paiseToRupees(claimResponse.amountPaise)) : '',
     productName: claimResponse.productName ?? '',
@@ -87,6 +67,26 @@ function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, 
       : '',
     accountName: claimResponse.accountName ?? '',
   } : undefined
+
+  if (rejectedScreenshot) {
+    return (
+      <div className="space-y-5">
+  
+        <DealOrderForm
+          dealId={deal.id}
+          campaignId={deal.campaignId}
+          onSuccess={onSuccess}
+          claimValues={claimValues}
+          resubmit={{
+            claimId: claimId!,
+            screenshotId: rejectedScreenshot.id ?? '',
+            initialScreenshotUrl: screenshotUrl ?? undefined,
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {!readOnly && (
@@ -99,12 +99,13 @@ function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, 
           your order details below.
         </p>
       )}
+      {readOnly && <ScreenshotPreview storageKey={orderScreenshotKey} label="Order Screenshot" />}
       <DealOrderForm
         dealId={deal.id}
         campaignId={deal.campaignId}
         onSuccess={onSuccess}
         readOnly={readOnly}
-        claimValues={claimValues}
+        claimValues={readOnly ? claimValues : undefined}
       />
     </div>
   )
@@ -115,13 +116,18 @@ interface RatingStepProps {
   claimId?: string
   onSuccess: (claim: ClaimResponseDto) => void
   readOnly?: boolean
+  claimResponse?: ClaimResponseDto
   rejectedScreenshot?: ClaimScreenshotResponseDto
 }
 
-function RatingStep({ deal, claimId, onSuccess, readOnly = false, rejectedScreenshot }: RatingStepProps) {
+function RatingStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: RatingStepProps) {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const rejectedScreenshotUrl = useRejectedScreenshotUrl(rejectedScreenshot?.storageKey)
+
+  const screenshotKey = rejectedScreenshot?.storageKey
+    ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_RATING')?.storageKey
 
   async function handleSubmit() {
     if (!claimId || !file) return
@@ -146,12 +152,14 @@ function RatingStep({ deal, claimId, onSuccess, readOnly = false, rejectedScreen
           ? 'Rating submitted.'
           : `Rate the product on ${deal.platformLabel} and upload a screenshot of your submitted rating.`}
       </p>
+      {readOnly && <ScreenshotPreview storageKey={screenshotKey} label="Rating Screenshot" />}
       {!readOnly && (
         <>
           <ScreenshotUpload
             label="Rating Screenshot"
             hint="Show the star rating you submitted on the product page."
             onFileChange={setFile}
+            initialPreview={rejectedScreenshotUrl ?? undefined}
           />
           {error && <p className="text-xs text-neon-red">{error}</p>}
           <button
@@ -177,10 +185,13 @@ interface ReviewStepProps {
 }
 
 function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: ReviewStepProps) {
-  const [reviewUrl, setReviewUrl] = useState('')
+  const [reviewUrl, setReviewUrl] = useState(claimResponse?.reviewUrl ?? '')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const rejectedScreenshotUrl = useRejectedScreenshotUrl(rejectedScreenshot?.storageKey)
+  const screenshotKey = rejectedScreenshot?.storageKey
+    ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_REVIEW')?.storageKey
 
   async function handleSubmit() {
     if (!claimId || !file) return
@@ -188,7 +199,7 @@ function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse,
     setError(null)
     try {
       const claim = rejectedScreenshot?.id
-        ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_REVIEW', file)
+        ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_REVIEW', file, reviewUrl || undefined)
         : await submitReview(claimId, file, reviewUrl || undefined)
       onSuccess(claim)
     } catch (err) {
@@ -208,9 +219,9 @@ function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse,
       )}
       <div>
         <label className={labelClass}>
-          Review URL {!readOnly && !rejectedScreenshot && <span className="text-neon-red">*</span>}
+          Review URL {!readOnly && <span className="text-neon-red">*</span>}
         </label>
-        {readOnly || rejectedScreenshot ? (
+        {readOnly ? (
           claimResponse?.reviewUrl ? (
             <a
               href={claimResponse.reviewUrl}
@@ -233,12 +244,14 @@ function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse,
           />
         )}
       </div>
+      {readOnly && <ScreenshotPreview storageKey={screenshotKey} label="Review Screenshot" />}
       {!readOnly && (
         <>
           <ScreenshotUpload
             label="Review Screenshot"
             hint="Ensure your username and review text are clearly visible."
             onFileChange={setFile}
+            initialPreview={rejectedScreenshotUrl ?? undefined}
           />
           {error && <p className="text-xs text-neon-red">{error}</p>}
           <button
@@ -258,13 +271,17 @@ interface ReturnStepProps {
   claimId?: string
   onSuccess: (claim: ClaimResponseDto) => void
   readOnly?: boolean
+  claimResponse?: ClaimResponseDto
   rejectedScreenshot?: ClaimScreenshotResponseDto
 }
 
-function ReturnStep({ claimId, onSuccess, readOnly = false, rejectedScreenshot }: ReturnStepProps) {
+function ReturnStep({ claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: ReturnStepProps) {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const rejectedScreenshotUrl = useRejectedScreenshotUrl(rejectedScreenshot?.storageKey)
+  const screenshotKey = rejectedScreenshot?.storageKey
+    ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_RETURN')?.storageKey
 
   async function handleSubmit() {
     if (!claimId || !file) return
@@ -289,12 +306,14 @@ function ReturnStep({ claimId, onSuccess, readOnly = false, rejectedScreenshot }
           ? 'Return window screenshot submitted.'
           : 'Upload a screenshot of return window completed page.'}
       </p>
+      {readOnly && <ScreenshotPreview storageKey={screenshotKey} label="Return Window Screenshot" />}
       {!readOnly && (
         <>
           <ScreenshotUpload
             label="Return Window Completed Screenshot"
             hint="Ensure the order ID and product name are clearly visible."
             onFileChange={setFile}
+            initialPreview={rejectedScreenshotUrl ?? undefined}
           />
           {error && <p className="text-xs text-neon-red">{error}</p>}
           <button
@@ -379,10 +398,14 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
         </p>
       </div>
 
+      {rejectedScreenshot?.reviewerComments && (
+        <ScreenshotRejectionBanner comment={rejectedScreenshot.reviewerComments} label={step?.label} />
+      )}
+
       {stepType === 'ORDER'         && <OrderStep  deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
-      {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'REVIEW'        && <ReviewStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
-      {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>
   )

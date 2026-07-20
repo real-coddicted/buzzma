@@ -62,6 +62,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
-**Project Specific guidelines for this project are in `GUIDELINES.md` and `../docs/`. Follow those as well.**  
+**Project Specific guidelines for this project are in `GUIDELINES.md` and `../docs/`. MUST follow those.**
 
 **Refer to `ARCHITECTURE.md` for high-level design principles and patterns.**

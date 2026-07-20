@@ -19,6 +19,7 @@ export interface ClaimScreenshotItem {
   score?: number
   extractedDetails?: Record<string, ScoredValue>
   verificationStatus?: ScreenshotVerificationStatus
+  reviewerComments?: string
 }
 
 export interface ClaimReviewItem {
