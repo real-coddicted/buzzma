@@ -28,6 +28,7 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
   }, [deal.dealType])
 
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, deal.screenshots ?? [])
+  const screenshotRejected = stepStatuses.includes('rejected') && deal.reviewStatus !== 'rejected'
 
   return (
     <div
@@ -69,12 +70,23 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
                   {REVIEW_STATUS_CONFIG[deal.reviewStatus].label}
                 </span>
               )}
+              {screenshotRejected && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-neon-red/30 bg-neon-red/10 text-neon-red">
+                  Rejected
+                </span>
+              )}
             </div>
           </div>
           <span className="text-sm font-bold text-neon-green shrink-0">
             ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
           </span>
         </div>
+
+        {screenshotRejected && (
+          <p className="text-[11px] font-medium text-neon-red">
+            Screenshot rejected — reupload required
+          </p>
+        )}
 
         {steps.length > 0 && <Stepper steps={steps} currentStep={currentStep} stepStatuses={stepStatuses} />}
       </div>

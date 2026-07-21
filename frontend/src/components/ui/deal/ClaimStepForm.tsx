@@ -3,7 +3,7 @@ import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import type { CampaignStepDto } from '../../../api/campaignApi'
 import { fetchStepConfig } from '../../../api/campaignApi'
-import { STEP_TYPE_COLORS, STEP_TYPE_TO_SCREENSHOT_TYPE } from '../../../constants/claimSteps'
+import { STEP_TYPE_COLORS, STEP_TYPE_TO_SCREENSHOT_TYPE, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { ScreenshotRejectionBanner } from '../ScreenshotRejectionBanner'
 import { paiseToRupees } from '../../../utils/currency'
 import { fetchScreenshotUrl, submitRating, submitReview, submitReturn, updateScreenshot } from '../../../api/claimApi'
@@ -384,7 +384,9 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
   function handleClaimSuccess(claim: ClaimResponseDto) {
     setLocalClaim(claim)
     onClaimUpdate?.(claim)
-    onStepChange(claim.currentStep ?? currentStep + 1)
+    const nextRejected = getStepVerificationStatuses(steps.map(s => s.type), claim.screenshots ?? [])
+      .findIndex(s => s === 'rejected')
+    onStepChange(nextRejected !== -1 ? nextRejected : (claim.currentStep ?? currentStep + 1))
   }
 
   return (

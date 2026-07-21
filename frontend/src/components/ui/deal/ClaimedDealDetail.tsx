@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import type { StepperStep } from '../Stepper'
@@ -31,6 +31,14 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
       setRawStepTypes(cfg.map(s => s.type))
     })
   }, [deal.dealType])
+
+  const didLandOnRejected = useRef(false)
+  useEffect(() => {
+    if (didLandOnRejected.current || rawStepTypes.length === 0) return
+    didLandOnRejected.current = true
+    const firstRejected = getStepVerificationStatuses(rawStepTypes, effectiveClaim?.screenshots ?? []).findIndex(s => s === 'rejected')
+    if (firstRejected !== -1) setViewedStep(firstRejected)
+  }, [rawStepTypes, effectiveClaim])
 
   const { setDetail, clearDetail } = useBreadcrumb()
   useEffect(() => {
