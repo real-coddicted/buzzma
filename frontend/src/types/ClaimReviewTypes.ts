@@ -28,6 +28,7 @@ export interface ClaimReviewItem {
   campaignName: string
   orderId: string
   orderDate: string
+  mediatorId: string
   mediatorName: string
   buyerName: string
   claimStatus: ClaimStatus

@@ -1,6 +1,6 @@
 import type { components } from '../types/api'
 import type { Deal, Platform, CampaignType, ReviewStatus } from '../types/DealTypes'
-import type { CampaignResponseDto } from './campaignApi'
+import type { CampaignResponseDto, CampaignNameOption } from './campaignApi'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 import { fetchWithAuth } from './client'
 
@@ -97,6 +97,19 @@ export async function fetchExploreDeals(page: number): Promise<ExploreDealsPage>
   const total = data.total ?? items.length
   const totalPages = data.totalPages ?? Math.max(1, Math.ceil(total / EXPLORE_PAGE_SIZE))
   return { items, total, page: (data.page ?? page - 1) + 1, totalPages }
+}
+
+/** GET /deals/campaigns — id+title+code of campaigns the current mediator has a published deal on, for typeahead pickers. */
+export async function fetchPublishedCampaignNames(): Promise<CampaignNameOption[]> {
+  const res = await fetchWithAuth(`${API_BASE}/deals/campaigns`)
+  const data = await res.json() as { id?: string; title?: string; code?: string }[]
+  return data.map(d => ({ id: d.id ?? '', title: d.title ?? '', code: d.code ?? '' }))
+}
+
+/** GET /deals/brands — distinct brand names across the current mediator's published deals. */
+export async function fetchPublishedBrandNames(): Promise<string[]> {
+  const res = await fetchWithAuth(`${API_BASE}/deals/brands`)
+  return (await res.json()) as string[]
 }
 
 export function campaignToDeal(dto: CampaignResponseDto): Deal {

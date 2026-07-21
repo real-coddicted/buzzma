@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.controller;
 
+import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.PagedDealsResponseDto;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.DealMapper;
@@ -8,6 +9,7 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,5 +62,25 @@ public class DealController {
         .page(page)
         .totalPages(dealsPage.getTotalPages())
         .build();
+  }
+
+  @GetMapping("/campaigns")
+  @PreAuthorize(UserRole.Expr.MEDIATOR)
+  public List<CampaignOptionDto> getPublishedCampaigns(@CurrentUserId final UUID requesterId) {
+    return this.dealService.getPublishedCampaigns(requesterId).stream()
+        .map(
+            c ->
+                CampaignOptionDto.builder()
+                    .id(c.getId())
+                    .title(c.getTitle())
+                    .code(c.getCode())
+                    .build())
+        .toList();
+  }
+
+  @GetMapping("/brands")
+  @PreAuthorize(UserRole.Expr.MEDIATOR)
+  public List<String> getPublishedBrandNames(@CurrentUserId final UUID requesterId) {
+    return this.dealService.getPublishedBrandNames(requesterId);
   }
 }

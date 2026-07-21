@@ -6,6 +6,7 @@ import static com.coddicted.buzzma.campaign.entity.CampaignAction.CAMPAIGN_ACTIO
 import static com.coddicted.buzzma.campaign.entity.CampaignAction.CAMPAIGN_ACTION_PUBLISH;
 import static com.coddicted.buzzma.campaign.entity.CampaignAction.CAMPAIGN_ACTION_RESUME;
 import static com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED;
+import static com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_CLOSED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_COMPLETED;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
@@ -285,6 +287,48 @@ class CampaignServiceImplTest {
     final Set<Campaign> result = this.campaignService.findCampaignsById(CAMPAIGN_ID_SET);
 
     assertEquals(CAMPAIGN_SET, result);
+  }
+
+  @Test
+  void testGetCampaignsForOwnerIncludesOwnedAndAssignedCampaigns() {
+    final CampaignAssignment publishedAssignment =
+        ASSIGNMENT_1.toBuilder()
+            .campaignId(CAMPAIGN_ID_2)
+            .assigneeId(REQUESTER_ID)
+            .status(CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED)
+            .build();
+    when(this.mockCampaignRepository.findByOwnerIdAndIsDeletedFalse(REQUESTER_ID))
+        .thenReturn(List.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByAssigneeIdAndStatus(
+            REQUESTER_ID, CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED))
+        .thenReturn(List.of(publishedAssignment));
+    when(this.mockCampaignRepository.findByIdInAndIsDeletedFalse(Set.of(CAMPAIGN_ID_2)))
+        .thenReturn(Set.of(CAMPAIGN_2));
+
+    final List<Campaign> result = this.campaignService.getCampaignsForOwner(REQUESTER_ID);
+
+    assertEquals(List.of(CAMPAIGN_1, CAMPAIGN_2), result);
+  }
+
+  @Test
+  void testGetCampaignsForOwnerDoesNotDuplicateCampaignOwnedAndAssigned() {
+    final CampaignAssignment publishedAssignment =
+        ASSIGNMENT_1.toBuilder()
+            .campaignId(CAMPAIGN_ID_1)
+            .assigneeId(REQUESTER_ID)
+            .status(CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED)
+            .build();
+    when(this.mockCampaignRepository.findByOwnerIdAndIsDeletedFalse(REQUESTER_ID))
+        .thenReturn(List.of(CAMPAIGN_1));
+    when(this.mockCampaignAssignmentRepository.findByAssigneeIdAndStatus(
+            REQUESTER_ID, CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED))
+        .thenReturn(List.of(publishedAssignment));
+    when(this.mockCampaignRepository.findByIdInAndIsDeletedFalse(Set.of(CAMPAIGN_ID_1)))
+        .thenReturn(Set.of(CAMPAIGN_1));
+
+    final List<Campaign> result = this.campaignService.getCampaignsForOwner(REQUESTER_ID);
+
+    assertEquals(List.of(CAMPAIGN_1), result);
   }
 
   @Test

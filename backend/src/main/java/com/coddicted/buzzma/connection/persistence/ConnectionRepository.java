@@ -20,7 +20,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role, fu.code, tu.code)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -30,7 +30,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role, fu.code, tu.code)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -52,7 +52,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role, fu.code, tu.code)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId
@@ -62,7 +62,7 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
 
   @Query(
       """
-      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role)
+      SELECT new com.coddicted.buzzma.connection.model.ConnectionView(c, fu.name, tu.name, fu.role, tu.role, fu.code, tu.code)
       FROM Connection c
       JOIN BuzzmaUser fu ON fu.id = c.fromUserId
       JOIN BuzzmaUser tu ON tu.id = c.toUserId

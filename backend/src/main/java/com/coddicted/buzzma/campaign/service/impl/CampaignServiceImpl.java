@@ -21,6 +21,8 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -178,6 +180,28 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   @Transactional(readOnly = true)
   public List<String> getBrandNames(final UUID ownerId) {
     return this.campaignRepository.findDistinctBrandNamesByOwnerId(ownerId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Campaign> getCampaignsForOwner(final UUID ownerId) {
+    final List<Campaign> owned = this.campaignRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+
+    final Set<UUID> assignedCampaignIds =
+        this.campaignAssignmentRepository
+            .findByAssigneeIdAndStatus(
+                ownerId, CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_PUBLISHED)
+            .stream()
+            .map(CampaignAssignment::getCampaignId)
+            .collect(Collectors.toSet());
+    final Set<Campaign> assigned =
+        this.campaignRepository.findByIdInAndIsDeletedFalse(assignedCampaignIds);
+
+    final Map<UUID, Campaign> byId = new LinkedHashMap<>();
+    owned.forEach(c -> byId.put(c.getId(), c));
+    assigned.forEach(c -> byId.putIfAbsent(c.getId(), c));
+
+    return byId.values().stream().sorted(Comparator.comparing(Campaign::getTitle)).toList();
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {

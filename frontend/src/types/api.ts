@@ -900,6 +900,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/deals/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPublishedCampaigns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deals/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPublishedBrandNames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/deals/active": {
         parameters: {
             query?: never;
@@ -1004,6 +1036,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getStepConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/names": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCampaignNames"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1380,11 +1428,13 @@ export interface components {
             fromUserName?: string;
             /** @enum {string} */
             fromUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            fromUserCode?: string;
             /** Format: uuid */
             toUserId?: string;
             toUserName?: string;
             /** @enum {string} */
             toUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            toUserCode?: string;
             status?: string;
             /** Format: uuid */
             createdBy?: string;
@@ -1876,6 +1926,12 @@ export interface components {
             page?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        CampaignOptionDto: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            code?: string;
         };
         PagedDealsResponseDto: {
             items?: components["schemas"]["DealResponseDto"][];
@@ -3583,6 +3639,46 @@ export interface operations {
             };
         };
     };
+    getPublishedCampaigns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignOptionDto"][];
+                };
+            };
+        };
+    };
+    getPublishedBrandNames: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string[];
+                };
+            };
+        };
+    };
     getActiveDeals: {
         parameters: {
             query?: {
@@ -3730,6 +3826,26 @@ export interface operations {
                     "*/*": {
                         [key: string]: components["schemas"]["CampaignStepDto"][];
                     };
+                };
+            };
+        };
+    };
+    getCampaignNames: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignOptionDto"][];
                 };
             };
         };

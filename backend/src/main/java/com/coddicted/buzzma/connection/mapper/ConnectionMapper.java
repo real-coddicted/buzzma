@@ -17,8 +17,10 @@ public interface ConnectionMapper {
 
   @Mapping(target = "fromUserName", ignore = true)
   @Mapping(target = "fromUserRole", ignore = true)
+  @Mapping(target = "fromUserCode", ignore = true)
   @Mapping(target = "toUserName", ignore = true)
   @Mapping(target = "toUserRole", ignore = true)
+  @Mapping(target = "toUserCode", ignore = true)
   ConnectionResponseDto toResponse(Connection connection);
 
   @Mapping(source = "connection.id", target = "id")

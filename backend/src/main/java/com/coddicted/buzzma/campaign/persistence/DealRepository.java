@@ -1,7 +1,9 @@
 package com.coddicted.buzzma.campaign.persistence;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +32,27 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
           """,
       nativeQuery = true)
   Page<Deal> findActiveDeals(@Param("ownerIds") Collection<UUID> ownerIds, Pageable pageable);
+
+  @Query(
+      """
+      SELECT DISTINCT c FROM Deal d
+        JOIN d.campaign c
+      WHERE d.ownerId = :mediatorId
+        AND d.isDeleted = false
+        AND c.isDeleted = false
+      ORDER BY c.title
+      """)
+  List<Campaign> findCampaignsForMediator(@Param("mediatorId") UUID mediatorId);
+
+  @Query(
+      """
+      SELECT DISTINCT p.brandName FROM Deal d
+        JOIN d.campaign c
+        JOIN c.product p
+      WHERE d.ownerId = :mediatorId
+        AND d.isDeleted = false
+        AND c.isDeleted = false
+      ORDER BY p.brandName
+      """)
+  List<String> findDistinctBrandNamesForMediator(@Param("mediatorId") UUID mediatorId);
 }

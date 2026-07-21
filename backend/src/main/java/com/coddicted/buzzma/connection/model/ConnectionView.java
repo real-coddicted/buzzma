@@ -19,4 +19,6 @@ public class ConnectionView {
   private String toUserName;
   private UserRole fromUserRole;
   private UserRole toUserRole;
+  private String fromUserCode;
+  private String toUserCode;
 }

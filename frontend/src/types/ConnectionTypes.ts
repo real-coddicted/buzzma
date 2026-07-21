@@ -8,6 +8,7 @@ export interface Connection {
   name: string
   /** Role of the other party, e.g. 'ROLE_MEDIATOR' — used to bucket connections by role. */
   role?: string
+  code?: string
   type: ConnectionType
   category: string
   status: ConnectionStatus

@@ -1,4 +1,3 @@
-import type { FilterOption } from '../StatusFilterPills'
 import type { ClaimStatus, ReviewStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
@@ -18,14 +17,6 @@ export const APPROVAL_METHOD_CONFIG: Record<ApprovalMethod, { label: string; cla
   manual: { label: 'Manual', classes: 'bg-neon-orange/10 text-neon-orange border-neon-orange/25' },
   auto:   { label: 'Auto',   classes: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/25' },
 }
-
-const REVIEW_FILTER_ORDER: (ReviewStatus | 'all')[] = ['all', 'pending', 'in-review', 'approved', 'rejected', 'objected']
-
-export const REVIEW_FILTER_OPTIONS: FilterOption<ReviewStatus | 'all'>[] = REVIEW_FILTER_ORDER.map(value => ({
-  value,
-  label:       value === 'all' ? 'All' : REVIEW_STATUS_CONFIG[value].label,
-  activeClass: value === 'all' ? 'bg-neon-blue/10 text-neon-blue border-neon-blue/30' : REVIEW_STATUS_CONFIG[value].activeClass,
-}))
 
 export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string; tagClass: string }> = {
   SCREENSHOT_TYPE_ORDER:  { label: 'Order Receipt',  tag: 'ORDER',  tagClass: 'bg-neon-blue/10   text-neon-blue   border border-neon-blue/25' },

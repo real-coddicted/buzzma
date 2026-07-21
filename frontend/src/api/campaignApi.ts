@@ -153,6 +153,25 @@ export async function searchCampaigns(filters: CampaignFilters, page = 0, size =
   }
 }
 
+export interface CampaignNameOption {
+  id: string
+  title: string
+  code: string
+}
+
+/** GET /campaigns/names — lightweight id+title+code list of campaigns owned by the requester, for typeahead pickers. */
+export async function fetchCampaignNames(): Promise<CampaignNameOption[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/names`)
+  const data = await res.json() as { id?: string; title?: string; code?: string }[]
+  return data.map(d => ({ id: d.id ?? '', title: d.title ?? '', code: d.code ?? '' }))
+}
+
+/** GET /campaigns/brands — distinct brand names across campaigns owned by the requester. */
+export async function fetchBrandNames(): Promise<string[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/brands`)
+  return (await res.json()) as string[]
+}
+
 export async function fetchCampaignById(id: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`)
   return res.json() as Promise<CampaignResponseDto>

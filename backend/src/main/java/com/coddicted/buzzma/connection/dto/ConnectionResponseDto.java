@@ -20,11 +20,15 @@ public class ConnectionResponseDto {
 
   UserRole fromUserRole;
 
+  String fromUserCode;
+
   UUID toUserId;
 
   String toUserName;
 
   UserRole toUserRole;
+
+  String toUserCode;
 
   String status;
 

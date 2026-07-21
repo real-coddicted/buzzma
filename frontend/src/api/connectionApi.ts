@@ -60,12 +60,14 @@ function mapConnection(dto: ConnectionResponseDto, direction: ConnectionDirectio
   const otherUserId = (direction === 'parent' ? dto.fromUserId : dto.toUserId) ?? ''
   const otherUserName = direction === 'parent' ? dto.fromUserName : dto.toUserName
   const otherUserRole = direction === 'parent' ? dto.fromUserRole : dto.toUserRole
+  const otherUserCode = direction === 'parent' ? dto.fromUserCode : dto.toUserCode
   const name = otherUserName ?? (otherUserId ? `User ${otherUserId.slice(0, 8)}` : 'Unknown')
   return {
     id: dto.id ?? '',
     toUserId: otherUserId,
     name,
     role: otherUserRole,
+    code: otherUserCode,
     type: 'brand',
     category: '',
     status: mapStatus(dto.status),

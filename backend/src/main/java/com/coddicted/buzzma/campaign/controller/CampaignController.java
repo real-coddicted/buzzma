@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.controller;
 
+import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
@@ -90,6 +91,20 @@ public class CampaignController {
   @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public List<String> getBrandNames(@CurrentUserId final UUID requesterId) {
     return this.service.getBrandNames(requesterId);
+  }
+
+  @GetMapping("/names")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public List<CampaignOptionDto> getCampaignNames(@CurrentUserId final UUID requesterId) {
+    return this.service.getCampaignsForOwner(requesterId).stream()
+        .map(
+            c ->
+                CampaignOptionDto.builder()
+                    .id(c.getId())
+                    .title(c.getTitle())
+                    .code(c.getCode())
+                    .build())
+        .toList();
   }
 
   @PostMapping("/search")

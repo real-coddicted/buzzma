@@ -41,6 +41,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     campaignName: dto.productName ?? dto.deal?.productName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
     orderDate: yyyymmddToIso(dto.orderDate ?? undefined),
+    mediatorId: '',
     mediatorName: '',
     buyerName: '',
     claimStatus: toClaimStatus(status),
@@ -81,6 +82,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     campaignName: dto.campaignName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
     orderDate: yyyymmddToIso(dto.orderDate),
+    mediatorId: dto.dealOwnerId ?? '',
     mediatorName: dto.dealOwnerName ?? '',
     buyerName: dto.buyerName ?? '',
     claimStatus: toClaimStatus(backendStatus),
@@ -120,11 +122,20 @@ export async function fetchScreenshotUrl(storageKey: string): Promise<string> {
   return URL.createObjectURL(blob)
 }
 
-export async function fetchClaimsToReview(page = 0, size = 50): Promise<ClaimReviewItem[]> {
+export interface ClaimReviewServerFilter {
+  campaignIds?: Set<string>
+  mediatorIds?: Set<string>
+}
+
+export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page = 0, size = 50): Promise<ClaimReviewItem[]> {
+  const body = {
+    campaignIds: filter?.campaignIds && filter.campaignIds.size > 0 ? [...filter.campaignIds] : null,
+    mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
+  }
   const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
+    body: JSON.stringify(body),
   })
   const data = (await res.json()) as PageClaimReviewResponseDto
   return (data.content ?? []).map(mapClaimReview)

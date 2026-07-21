@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
 import { fetchClaimsToReview, submitClaimReview } from '../api/claimApi'
+import { type ClaimReviewFilters, emptyFilters } from '../components/ui/claim-review/filters/ClaimReviewFilterTypes'
 import type { ClaimReviewItem } from '../types'
 
 interface ClaimReviewListProps {
@@ -12,16 +13,17 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
   const [claims, setClaims] = useState<ClaimReviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [appliedFilters, setAppliedFilters] = useState<ClaimReviewFilters>(emptyFilters)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchClaimsToReview()
+    fetchClaimsToReview({ campaignIds: appliedFilters.campaignIds, mediatorIds: appliedFilters.mediatorIds })
       .then(data => { if (!cancelled) setClaims(data) })
       .catch(err => { if (!cancelled) setError((err as Error).message) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [appliedFilters])
 
   function handleApprove(row: ClaimReviewItem) {
     submitClaimReview(row.id, 'APPROVED')
@@ -38,7 +40,14 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
           Claim Review
         </h1>
       </div>
-      <ClaimReviewGrid claims={claims} loading={loading} onViewDetails={onViewDetails} onApprove={handleApprove} />
+      <ClaimReviewGrid
+        claims={claims}
+        loading={loading}
+        appliedFilters={appliedFilters}
+        onApplyFilters={setAppliedFilters}
+        onViewDetails={onViewDetails}
+        onApprove={handleApprove}
+      />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )

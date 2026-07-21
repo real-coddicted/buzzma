@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.DealRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -7,6 +8,7 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,5 +50,17 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
       final Collection<UUID> ownerIds, final UUID requesterId, final int page, final int size) {
     LOGGER.info("Get active deals for user {}", requesterId);
     return this.dealRepository.findActiveDeals(ownerIds, PageRequest.of(page, size));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Campaign> getPublishedCampaigns(final UUID mediatorId) {
+    return this.dealRepository.findCampaignsForMediator(mediatorId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getPublishedBrandNames(final UUID mediatorId) {
+    return this.dealRepository.findDistinctBrandNamesForMediator(mediatorId);
   }
 }
