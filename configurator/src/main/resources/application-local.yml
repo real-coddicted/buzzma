@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/buzzma}
+    username: ${DB_USERNAME:buzzma}
+    password: ${DB_PASSWORD:buzzma}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  flyway:
+    baseline-on-migrate: false
+    user: ${FLYWAY_MIGRATOR_USER:${spring.datasource.username}}
+    password: ${FLYWAY_MIGRATOR_PASSWORD:${spring.datasource.password}}

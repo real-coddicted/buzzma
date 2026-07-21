@@ -1,0 +1,94 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '3.3.4'
+  id 'io.spring.dependency-management' version '1.1.6'
+  id 'com.diffplug.spotless' version '8.4.0'
+  id 'checkstyle'
+}
+
+group = 'com.coddicted.buzzma'
+version = '0.0.1-SNAPSHOT'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+ext {
+  jjwtVersion = '0.12.6'
+  testcontainersVersion = '1.20.4'
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+  // Flyway — PostgreSQL only; this service does not support H2
+  implementation 'org.flywaydb:flyway-core'
+  implementation 'org.flywaydb:flyway-database-postgresql'
+
+  runtimeOnly 'org.postgresql:postgresql'
+
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+  runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+  runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+  implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+  // OpenAPI / Swagger UI
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.testcontainers:postgresql'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+  java {
+    target 'src/*/java/**/*.java'
+    googleJavaFormat()
+    removeUnusedImports()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+}
+
+checkstyle {
+  toolVersion = '10.17.0'
+  configFile = file('config/checkstyle/google_checks.xml')
+  checkstyleTest.enabled = false
+  maxWarnings = 0
+}
+
+tasks.named('spotlessJavaCheck') {
+  dependsOn 'spotlessJavaApply'
+}
+
+tasks.named('check') {
+  dependsOn 'spotlessCheck'
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}
