@@ -32,7 +32,6 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
   const blobUrlsRef = useRef<string[]>([])
 
   const userRole = getCurrentUser()?.role
-  const isAgency = userRole === 'ROLE_AGENCY'
 
   useEffect(() => {
     if (!claim.campaignId) return
@@ -120,7 +119,6 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
       <ClaimProofUnified
         items={enrichedItems}
         loading={claimLoading || proofLoading}
-        isAgency={isAgency}
         userRole={userRole}
         claim={effectiveClaim}
         campaignTitle={deal?.title}

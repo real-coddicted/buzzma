@@ -12,7 +12,7 @@ interface Props {
   item: ClaimProofItem
   idx: number
   score: number
-  isAgency: boolean
+  userRole: string | undefined
   hasPrev: boolean
   hasNext: boolean
   onPrev: () => void
@@ -22,7 +22,8 @@ interface Props {
   onReject: (comment: string) => void
 }
 
-export function ClaimProofScreenshotOverlay({ item, idx, score, isAgency, hasPrev, hasNext, onPrev, onNext, onClose, onApprove, onReject }: Props) {
+export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, hasPrev, hasNext, onPrev, onNext, onClose, onApprove, onReject }: Props) {
+  const isAgency = userRole === 'ROLE_AGENCY'
   const [fullImage, setFullImage] = useState(false)
   const [comment, setComment] = useState('')
 
@@ -126,61 +127,57 @@ export function ClaimProofScreenshotOverlay({ item, idx, score, isAgency, hasPre
           )}
         </div>
 
-        {/* footer — agency actions */}
-        {isAgency && (
+        {isActioned && (
           <div className="flex-shrink-0 border-t border-surface-light-border dark:border-surface-dark-border px-4 py-3 space-y-2">
-            {isActioned ? (
-              <div className="space-y-2">
-                <div className="flex justify-start">
-                  <span className={[
-                    'text-xs font-semibold',
-                    item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? 'text-neon-green' : 'text-neon-red',
-                  ].join(' ')}>
-                    {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? '✓ Already verified' : '✗ Already rejected'}
-                  </span>
-                </div>
-                {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && item.reviewerComments && (
-                  <ScreenshotRejectionBanner comment={item.reviewerComments} />
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="flex gap-3 items-stretch">
-                  {item.reviewerComments && (
-                    <div className="flex-1 min-w-0 flex">
-                      <ScreenshotRejectionBanner comment={item.reviewerComments} />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <ReviewerCommentBox
-                      value={comment}
-                      onChange={v => { setComment(v); if (commentError) setCommentError('') }}
-                      error={commentError}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={<IconCheck size={12} />}
-                    onClick={onApprove}
-                    className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    leftIcon={<IconX size={12} />}
-                    onClick={handleReject}
-                    className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </>
+            <div className="flex justify-start">
+              <span className={[
+                'text-xs font-semibold',
+                item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? 'text-neon-green' : 'text-neon-red',
+              ].join(' ')}>
+                {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' ? '✓ Already verified' : '✗ Already rejected'}
+              </span>
+            </div>
+            {item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED' && item.reviewerComments && (
+              <ScreenshotRejectionBanner comment={item.reviewerComments} />
             )}
+          </div>
+        )}
+        {isAgency && !isActioned && (
+          <div className="flex-shrink-0 border-t border-surface-light-border dark:border-surface-dark-border px-4 py-3 space-y-2">
+            <div className="flex gap-3 items-stretch">
+              {item.reviewerComments && (
+                <div className="flex-1 min-w-0 flex">
+                  <ScreenshotRejectionBanner comment={item.reviewerComments} />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <ReviewerCommentBox
+                  value={comment}
+                  onChange={v => { setComment(v); if (commentError) setCommentError('') }}
+                  error={commentError}
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                leftIcon={<IconCheck size={12} />}
+                onClick={onApprove}
+                className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                leftIcon={<IconX size={12} />}
+                onClick={handleReject}
+                className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
+              >
+                Reject
+              </Button>
+            </div>
           </div>
         )}
       </div>

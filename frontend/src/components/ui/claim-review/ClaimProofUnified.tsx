@@ -9,7 +9,6 @@ import type { ClaimReviewItem } from '../../../types'
 interface Props {
   items: ClaimProofItem[]
   loading: boolean
-  isAgency: boolean
   userRole: string | undefined
   claim: ClaimReviewItem
   campaignTitle?: string
@@ -23,7 +22,6 @@ interface Props {
 export function ClaimProofUnified({
   items,
   loading,
-  isAgency,
   userRole,
   claim,
   campaignTitle,
@@ -64,7 +62,7 @@ export function ClaimProofUnified({
       <ClaimProofLeftRail
         items={items}
         loading={loading}
-        isAgency={isAgency}
+        userRole={userRole}
         activeId={effectiveActiveId}
         onSelect={handleRailSelect}
         onOpenOverlay={openOverlay}
@@ -88,7 +86,7 @@ export function ClaimProofUnified({
           item={overlayItem}
           idx={overlayIdx}
           score={getProofScore(overlayItem)}
-          isAgency={isAgency}
+          userRole={userRole}
           hasPrev={overlayIdx > 0}
           hasNext={overlayIdx < items.length - 1}
           onPrev={() => handleOverlayNav(-1)}

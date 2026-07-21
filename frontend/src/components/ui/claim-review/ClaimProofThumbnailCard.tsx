@@ -19,7 +19,7 @@ interface Props {
   item: ClaimProofItem
   idx: number
   isActive: boolean
-  isAgency: boolean
+  userRole: string | undefined
   score: number
   onSelect: () => void
   onOpenOverlay: () => void
@@ -28,10 +28,11 @@ interface Props {
 }
 
 export function ClaimProofThumbnailCard({
-  item, idx, isActive, isAgency, score,
+  item, idx, isActive, userRole, score,
   onSelect, onOpenOverlay, onApprove, onOpenRejectOverlay,
 }: Props) {
   const sc = SCREENSHOT_TYPE_CONFIG[item.type ?? '']
+  const isAgency = userRole === 'ROLE_AGENCY'
   const isVerified = item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED'
   const isRejected = item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
   const isActioned = isVerified || isRejected
@@ -99,34 +100,34 @@ export function ClaimProofThumbnailCard({
         </div>
       </div>
 
-      {/* Agency actions */}
-      {isAgency && (
+      {isActioned && (
         <div className="border-t border-surface-light-border dark:border-surface-dark-border px-2.5 py-2">
-          {isActioned ? (
-            <span className={[
-              'w-full flex items-center justify-center gap-1 text-[10px] font-semibold py-0.5',
-              isVerified ? 'text-neon-green' : 'text-neon-red',
-            ].join(' ')}>
-              {isVerified
-                ? <><IconCheck size={9} /> Verified</>
-                : <><IconX size={9} /> Rejected</>}
-            </span>
-          ) : (
-            <div className="flex gap-1.5">
-              <button
-                onClick={e => { e.stopPropagation(); onApprove() }}
-                className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg text-[10px] font-semibold bg-neon-green/10 text-neon-green border border-neon-green/25 hover:bg-neon-green/20 transition-colors"
-              >
-                <IconCheck size={9} /> Approve
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onOpenRejectOverlay() }}
-                className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg text-[10px] font-semibold bg-neon-red/10 text-neon-red border border-neon-red/25 hover:bg-neon-red/20 transition-colors"
-              >
-                <IconX size={9} /> Reject
-              </button>
-            </div>
-          )}
+          <span className={[
+            'w-full flex items-center justify-center gap-1 text-[10px] font-semibold py-0.5',
+            isVerified ? 'text-neon-green' : 'text-neon-red',
+          ].join(' ')}>
+            {isVerified
+              ? <><IconCheck size={9} /> Verified</>
+              : <><IconX size={9} /> Rejected</>}
+          </span>
+        </div>
+      )}
+      {isAgency && !isActioned && (
+        <div className="border-t border-surface-light-border dark:border-surface-dark-border px-2.5 py-2">
+          <div className="flex gap-1.5">
+            <button
+              onClick={e => { e.stopPropagation(); onApprove() }}
+              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg text-[10px] font-semibold bg-neon-green/10 text-neon-green border border-neon-green/25 hover:bg-neon-green/20 transition-colors"
+            >
+              <IconCheck size={9} /> Approve
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onOpenRejectOverlay() }}
+              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg text-[10px] font-semibold bg-neon-red/10 text-neon-red border border-neon-red/25 hover:bg-neon-red/20 transition-colors"
+            >
+              <IconX size={9} /> Reject
+            </button>
+          </div>
         </div>
       )}
     </div>

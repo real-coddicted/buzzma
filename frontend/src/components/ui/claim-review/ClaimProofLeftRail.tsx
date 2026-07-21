@@ -6,14 +6,14 @@ import type { ClaimProofItem } from './ClaimProofGallery'
 interface Props {
   items: ClaimProofItem[]
   loading: boolean
-  isAgency: boolean
+  userRole: string | undefined
   activeId: string | null
   onSelect: (item: ClaimProofItem) => void
   onOpenOverlay: (item: ClaimProofItem) => void
   onApprove: (item: ClaimProofItem) => void
 }
 
-export function ClaimProofLeftRail({ items, loading, isAgency, activeId, onSelect, onOpenOverlay, onApprove }: Props) {
+export function ClaimProofLeftRail({ items, loading, userRole, activeId, onSelect, onOpenOverlay, onApprove }: Props) {
   return (
     <div className="w-52 flex-shrink-0 border-r border-surface-light-border dark:border-surface-dark-border overflow-y-auto flex flex-col">
       <div className="px-3 py-2 border-b border-surface-light-border dark:border-surface-dark-border flex-shrink-0 flex items-center justify-between">
@@ -33,7 +33,7 @@ export function ClaimProofLeftRail({ items, loading, isAgency, activeId, onSelec
               item={item}
               idx={idx}
               isActive={activeId === item.id}
-              isAgency={isAgency}
+              userRole={userRole}
               score={getProofScore(item)}
               onSelect={() => onSelect(item)}
               onOpenOverlay={() => onOpenOverlay(item)}
