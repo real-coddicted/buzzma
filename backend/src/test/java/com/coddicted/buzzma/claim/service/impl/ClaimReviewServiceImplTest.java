@@ -87,6 +87,25 @@ class ClaimReviewServiceImplTest {
   }
 
   @Test
+  void testGetClaimReviewsForMediatorWithUnpagedPageableDoesNotThrow() {
+    final BuzzmaUser mediator =
+        BuzzmaUser.builder().id(MEDIATOR_ID).role(UserRole.ROLE_MEDIATOR).build();
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+
+    final ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+    when(this.mockClaimService.findClaimsToReviewForMediator(
+            eq(MEDIATOR_ID), isNull(), isNull(), pageableCaptor.capture()))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimReviewService.getClaimReviews(mediator, null, null, null, Pageable.unpaged());
+
+    assertSame(expected, result);
+    assertTrue(pageableCaptor.getValue().isUnpaged());
+  }
+
+  @Test
   void testGetClaimReviewsForMediatorPassesThroughCampaignIdsFilter() {
     final BuzzmaUser mediator =
         BuzzmaUser.builder().id(MEDIATOR_ID).role(UserRole.ROLE_MEDIATOR).build();

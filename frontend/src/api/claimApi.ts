@@ -141,6 +141,30 @@ export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page
   return (data.content ?? []).map(mapClaimReview)
 }
 
+/** POST /reports/claim-review/excel — downloads the claim review report as an .xlsx file for the given filters. */
+export async function downloadClaimReviewReport(filter?: ClaimReviewServerFilter): Promise<void> {
+  const body = {
+    campaignIds: filter?.campaignIds && filter.campaignIds.size > 0 ? [...filter.campaignIds] : null,
+    mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
+  }
+  const res = await fetchWithAuth(`${API_BASE}/reports/claim-review/excel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filenameFromContentDisposition(res.headers.get('Content-Disposition')) ?? 'claim-review-report.xlsx'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function filenameFromContentDisposition(header: string | null): string | undefined {
+  return header?.match(/filename="?([^"]+)"?/)?.[1]
+}
+
 type ScoredValue = components['schemas']['ScoredValue']
 
 export interface SubmitClaimParams {

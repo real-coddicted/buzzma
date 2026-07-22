@@ -17,12 +17,15 @@ public class ClaimReviewResponseDto {
   UUID id;
   UUID campaignId;
   String campaignName;
+  String campaignCode;
 
   UUID dealId;
   UUID dealOwnerId;
   String dealOwnerName;
+  String dealOwnerCode;
 
   String buyerName;
+  String buyerCode;
 
   UUID claimId;
   String claimStatus;

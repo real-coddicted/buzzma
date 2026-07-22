@@ -47,8 +47,12 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final Pageable pageable) {
     // updatedAt-descending ordering is a business rule enforced in the repository queries
     // themselves, so any client-supplied sort is stripped here to avoid a conflicting ORDER BY.
+    // Pageable.unpaged() (used by report generation to fetch every matching row) throws on
+    // getPageNumber()/getPageSize(), so it must be passed through as-is rather than rebuilt.
     final Pageable unsortedPageable =
-        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        pageable.isPaged()
+            ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize())
+            : Pageable.unpaged();
 
     if (requester.getRole() == UserRole.ROLE_MEDIATOR) {
       // A mediator can only ever see their own claims, so mediatorIdsFilter is meaningless here

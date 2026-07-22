@@ -19,5 +19,7 @@ public class ClaimReviewModel {
   private Campaign campaign;
   private UUID dealOwnerId;
   private String dealOwnerName;
+  private String dealOwnerCode;
   private String buyerName;
+  private String buyerCode;
 }

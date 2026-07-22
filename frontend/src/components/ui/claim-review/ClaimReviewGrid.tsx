@@ -12,6 +12,7 @@ import { getCurrentUser } from '../../../api/client'
 import { fetchCampaignNames, fetchBrandNames } from '../../../api/campaignApi'
 import { fetchPublishedCampaignNames, fetchPublishedBrandNames } from '../../../api/dealApi'
 import { fetchConnections } from '../../../api/connectionApi'
+import { downloadClaimReviewReport } from '../../../api/claimApi'
 import type { ClaimReviewItem } from '../../../types'
 import { PLATFORM_LABELS } from '../../../constants/campaigns'
 import { PLATFORM_COLORS } from '../campaign/filters/chipColors'
@@ -37,6 +38,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const [brandOptions, setBrandOptions] = useState<TypeaheadOption[]>([])
   const [mediatorOptions, setMediatorOptions] = useState<TypeaheadOption[]>([])
   const [optionsError, setOptionsError] = useState<string | null>(null)
+  const [downloadingReport, setDownloadingReport] = useState(false)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const columns = isMediator
     ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator Name' ? 'Buyer Name' : col)
@@ -159,6 +161,21 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     })
   }, [claims, search, appliedFilters])
 
+  async function handleDownloadReport() {
+    setDownloadingReport(true)
+    try {
+      await downloadClaimReviewReport({
+        campaignIds: appliedFilters.campaignIds,
+        mediatorIds: appliedFilters.mediatorIds,
+      })
+    } catch (err) {
+      console.error('Failed to download claim review report', err)
+      setOptionsError('Failed to download the report.')
+    } finally {
+      setDownloadingReport(false)
+    }
+  }
+
   function handleAction(action: string, row: ClaimReviewItem) {
     if (action === 'details') {
       onViewDetails(row)
@@ -178,6 +195,8 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           onSearchChange={setSearch}
           activeFilterCount={activeFilterCount}
           onOpenFilters={() => setDrawerOpen(true)}
+          onDownloadReport={handleDownloadReport}
+          downloadingReport={downloadingReport}
         />
 
         <FilterChips chips={chips} onClearAll={() => onApplyFilters(emptyFilters())} />

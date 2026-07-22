@@ -406,6 +406,20 @@ export function IconLink({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconFileSpreadsheet({ size = 18, ...p }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" {...p}>
+      <path
+        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+        fill="#107C41"
+      />
+      <path d="M14 2v6h6" fill="#0B5C30" />
+      <rect x="7" y="12" width="10" height="7" rx="0.5" fill="#ffffff" fillOpacity={0.92} />
+      <path d="M7 15.5h10M12 12v7" stroke="#107C41" strokeWidth={0.9} />
+    </svg>
+  )
+}
+
 export function IconWarning({ size = 18, ...p }: IconProps) {
   return (
     <svg {...base(size, p)}>

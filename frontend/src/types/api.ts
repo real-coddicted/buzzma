@@ -260,6 +260,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/claim-review/excel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["claimReviewReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites": {
         parameters: {
             query?: never;
@@ -1341,6 +1357,11 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        ClaimReviewFilterRequestDto: {
+            campaignIds?: string[];
+            mediatorIds?: string[];
+            claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+        };
         InviteRequestDto: {
             /** Format: int32 */
             validityInDays?: number;
@@ -1575,11 +1596,6 @@ export interface components {
             action: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
             reviewerComments?: string;
         };
-        ClaimReviewFilterRequestDto: {
-            campaignIds?: string[];
-            mediatorIds?: string[];
-            claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
-        };
         Pageable: {
             /** Format: int32 */
             page?: number;
@@ -1593,12 +1609,15 @@ export interface components {
             /** Format: uuid */
             campaignId?: string;
             campaignName?: string;
+            campaignCode?: string;
             /** Format: uuid */
             dealId?: string;
             /** Format: uuid */
             dealOwnerId?: string;
             dealOwnerName?: string;
+            dealOwnerCode?: string;
             buyerName?: string;
+            buyerCode?: string;
             /** Format: uuid */
             claimId?: string;
             claimStatus?: string;
@@ -2544,6 +2563,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SecurityQuestionResponseDto"];
+                };
+            };
+        };
+    };
+    claimReviewReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ClaimReviewFilterRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };

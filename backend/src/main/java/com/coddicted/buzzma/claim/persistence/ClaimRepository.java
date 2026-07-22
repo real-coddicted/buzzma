@@ -32,7 +32,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       value =
           """
           SELECT new com.coddicted.buzzma.claim.model.ClaimReviewModel(
-            c, d.campaign, d.ownerId, m.name, b.name)
+            c, d.campaign, d.ownerId, m.name, m.code, b.name, b.code)
           FROM Claim c
             JOIN Deal d ON d.id = c.dealId
             JOIN BuzzmaUser b ON b.id = c.ownerId
@@ -61,7 +61,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       value =
           """
           SELECT new com.coddicted.buzzma.claim.model.ClaimReviewModel(
-            c, d.campaign, d.ownerId, m.name, b.name)
+            c, d.campaign, d.ownerId, m.name, m.code, b.name, b.code)
           FROM Claim c
             JOIN Deal d ON d.id = c.dealId
             JOIN BuzzmaUser b ON b.id = c.ownerId

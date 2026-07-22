@@ -1,11 +1,13 @@
 import { SearchInput } from '../SearchInput'
-import { IconFilter } from '../icons'
+import { IconFilter, IconFileSpreadsheet } from '../icons'
 
 interface ClaimReviewToolbarProps {
   search: string
   onSearchChange: (value: string) => void
   activeFilterCount: number
   onOpenFilters: () => void
+  onDownloadReport: () => void
+  downloadingReport: boolean
 }
 
 export function ClaimReviewToolbar({
@@ -13,6 +15,8 @@ export function ClaimReviewToolbar({
   onSearchChange,
   activeFilterCount,
   onOpenFilters,
+  onDownloadReport,
+  downloadingReport,
 }: ClaimReviewToolbarProps) {
   return (
     <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
@@ -37,6 +41,16 @@ export function ClaimReviewToolbar({
             {activeFilterCount}
           </span>
         )}
+      </button>
+      <button
+        onClick={onDownloadReport}
+        disabled={downloadingReport}
+        title="Download report"
+        aria-label="Download report"
+        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <IconFileSpreadsheet size={13} />
+        {downloadingReport ? 'Downloading…' : 'Export'}
       </button>
     </div>
   )
