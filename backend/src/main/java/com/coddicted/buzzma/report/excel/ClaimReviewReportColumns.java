@@ -21,6 +21,7 @@ public final class ClaimReviewReportColumns {
           new ExcelColumn<>("Platform", ClaimReviewResponseDto::getPlatform),
           new ExcelColumn<>("Order ID", ClaimReviewResponseDto::getEcommerceOrderId),
           new ExcelColumn<>("Order Date", ClaimReviewReportColumns::formatOrderDate),
+          new ExcelColumn<>("Claim Code", ClaimReviewResponseDto::getClaimCode),
           new ExcelColumn<>("Claim Status", ClaimReviewResponseDto::getClaimStatus),
           new ExcelColumn<>("Review Status", ClaimReviewResponseDto::getClaimReviewStatus),
           new ExcelColumn<>("Match Score", ClaimReviewResponseDto::getMatchScore),

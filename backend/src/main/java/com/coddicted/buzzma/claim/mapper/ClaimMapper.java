@@ -20,6 +20,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface ClaimMapper {
 
   @Mapping(source = "claim.id", target = "id")
+  @Mapping(source = "claim.code", target = "code")
   @Mapping(source = "deal", target = "deal")
   @Mapping(source = "claim.status", target = "status")
   @Mapping(source = "currentStep", target = "currentStep")
@@ -60,6 +61,7 @@ public interface ClaimMapper {
   @Mapping(source = "request.accountName", target = "accountName")
   @Mapping(source = "ownerId", target = "ownerId")
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "code", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "currentStep", ignore = true)
   @Mapping(target = "reviewStatus", ignore = true)

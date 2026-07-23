@@ -38,6 +38,9 @@ public class Claim implements Auditable {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id;
 
+  @Column(name = "code", length = 16, unique = true)
+  private String code;
+
   @Column(name = "campaign_id", nullable = false)
   private UUID campaignId;
 

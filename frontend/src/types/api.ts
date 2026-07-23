@@ -1495,6 +1495,7 @@ export interface components {
         ClaimResponseDto: {
             /** Format: uuid */
             id?: string;
+            code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
             status?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
@@ -1620,6 +1621,7 @@ export interface components {
             buyerCode?: string;
             /** Format: uuid */
             claimId?: string;
+            claimCode?: string;
             claimStatus?: string;
             ecommerceOrderId?: string;
             mediatorVerified?: boolean;
@@ -1641,14 +1643,14 @@ export interface components {
             totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ClaimReviewResponseDto"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            first?: boolean;
-            last?: boolean;
             /** Format: int32 */
             numberOfElements?: number;
             pageable?: components["schemas"]["PageableObject"];

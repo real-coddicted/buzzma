@@ -24,6 +24,7 @@ public interface ClaimReviewMapper {
   @Mapping(source = "buyerName", target = "buyerName")
   @Mapping(source = "buyerCode", target = "buyerCode")
   @Mapping(source = "claim.id", target = "claimId")
+  @Mapping(source = "claim.code", target = "claimCode")
   @Mapping(source = "claim.status", target = "claimStatus")
   @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
   @Mapping(

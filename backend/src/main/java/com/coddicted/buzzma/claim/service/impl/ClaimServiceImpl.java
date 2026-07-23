@@ -25,8 +25,10 @@ import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
 import java.util.Collection;
@@ -54,6 +56,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final CampaignTypeStepService campaignTypeStepService;
   private final StorageService storageService;
   private final ExtractionService extractionService;
+  private final CodeGenerationService codeGenerationService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -63,7 +66,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignTypeStepService campaignTypeStepService,
       final StorageService storageService,
-      final ExtractionService extractionService) {
+      final ExtractionService extractionService,
+      final CodeGenerationService codeGenerationService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -72,6 +76,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.campaignTypeStepService = campaignTypeStepService;
     this.storageService = storageService;
     this.extractionService = extractionService;
+    this.codeGenerationService = codeGenerationService;
   }
 
   @Override
@@ -110,9 +115,13 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         ClaimUtils.updateExtractedDataForMatchWithManualEntryInOrder(
             claim, extractedDetails, overallScore);
 
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
+
     final Claim saved =
         this.claimRepository.save(
             claim.toBuilder()
+                .code(code)
                 .status(ClaimStatus.ORDERED)
                 .score(extractedScoredResult.overallScore())
                 .isDeleted(false)

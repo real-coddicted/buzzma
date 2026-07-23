@@ -22,6 +22,8 @@ final class Fixtures {
   static final UUID DEAL_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
   static final UUID SLOT_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
 
+  static final String CLAIM_CODE = "CLM1-A2B3";
+
   static final String SCREENSHOT_KEY = "claims/order-screenshot.jpg";
   static final String SCREENSHOT_FILENAME = "screenshot.jpg";
   static final String CONTENT_TYPE = "image/jpeg";

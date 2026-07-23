@@ -28,6 +28,7 @@ public class ClaimReviewResponseDto {
   String buyerCode;
 
   UUID claimId;
+  String claimCode;
   String claimStatus;
   String ecommerceOrderId;
 

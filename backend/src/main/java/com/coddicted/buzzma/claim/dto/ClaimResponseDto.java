@@ -17,6 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class ClaimResponseDto {
   UUID id;
+  String code;
   DealResponseDto deal;
   ClaimStatus status;
   int currentStep;

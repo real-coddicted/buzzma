@@ -31,9 +31,11 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
+import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,7 @@ class ClaimServiceImplTest {
   @Mock private CampaignTypeStepService mockCampaignTypeStepService;
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
+  @Mock private CodeGenerationService mockCodeGenerationService;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -75,7 +78,8 @@ class ClaimServiceImplTest {
             this.mockCampaignSlotRepository,
             this.mockCampaignTypeStepService,
             this.mockStorageService,
-            this.mockExtractionService);
+            this.mockExtractionService,
+            this.mockCodeGenerationService);
   }
 
   @Test
@@ -88,6 +92,8 @@ class ClaimServiceImplTest {
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
@@ -102,6 +108,7 @@ class ClaimServiceImplTest {
 
     assertEquals(CLAIM_1, result);
     final Claim saved = claimCaptor.getValue();
+    assertEquals(CLAIM_CODE, saved.getCode());
     assertEquals(ORDERED, saved.getStatus());
     assertEquals(85, saved.getScore());
     assertFalse(saved.getIsDeleted());
