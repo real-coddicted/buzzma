@@ -92,4 +92,7 @@ tasks.named('check') {
 
 tasks.named('test') {
   useJUnitPlatform()
+  // Docker 25+ rejects docker-java's default API version; pin to a supported one.
+  environment 'DOCKER_API_VERSION', '1.45'
+  systemProperty 'api.version', '1.45'
 }

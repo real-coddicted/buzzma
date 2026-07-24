@@ -1,9 +1,20 @@
 spring:
+  datasource:
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      data-source-properties: { }
   security:
     user:
       name: admin
       password: test-secret
   jpa:
     show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     baseline-on-migrate: false
+    baseline-version: 1
