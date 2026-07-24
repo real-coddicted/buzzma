@@ -1,0 +1,8 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
+  "productName": { "extractedValue": "Test Product", "score": null },
+  "reviewText": { "extractedValue": "Great product!", "score": null },
+  "accountName": { "extractedValue": "john.doe", "score": null },
+  "reviewDate": { "extractedValue": "2026-01-01", "score": null },
+  "reviewUrl": { "extractedValue": "https://amazon.in/review/123", "score": null }
+}

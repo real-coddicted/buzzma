@@ -1,0 +1,10 @@
+[
+  { "label": "platform", "expected": "PLATFORM_AMAZON", "actual": "PLATFORM_AMAZON" },
+  { "label": "productName", "expected": "Test Product", "actual": "Test Product" },
+  { "label": "accountName", "expected": "john.doe", "actual": "john.doe" },
+  {
+    "label": "reviewUrl",
+    "expected": "https://amazon.in/review/123",
+    "actual": "https://amazon.in/review/123"
+  }
+]

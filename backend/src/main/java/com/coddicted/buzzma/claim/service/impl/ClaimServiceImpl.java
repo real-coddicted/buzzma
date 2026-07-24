@@ -7,6 +7,7 @@ import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -19,8 +20,7 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
-import com.coddicted.buzzma.claim.utils.ClaimUtils;
+import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -111,8 +111,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String screenshotKey =
         this.storageService.store("claims", screenshotFilename, contentType, screenshot);
 
-    ClaimUtils.ExtractedScoredResult extractedScoredResult =
-        ClaimUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+    final ExtractedScoredResult extractedScoredResult =
+        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
             claim, extractedDetails, overallScore);
 
     final String code =
@@ -343,7 +343,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final OrderUpdateFields orderFields,
       final String reviewUrl) {
 
-    Claim claim = loadAndVerifyOwnership(claimId, requesterId);
+    final Claim claim = loadAndVerifyOwnership(claimId, requesterId);
 
     final ClaimScreenshot existing =
         this.claimScreenshotRepository
@@ -382,10 +382,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   private Claim updateClaim(
-      UUID requesterId,
-      ScreenshotType screenshotType,
-      OrderUpdateFields orderFields,
-      String reviewUrl,
+      final UUID requesterId,
+      final ScreenshotType screenshotType,
+      final OrderUpdateFields orderFields,
+      final String reviewUrl,
       Claim claim) {
 
     Claim.ClaimBuilder b = claim.toBuilder();
@@ -485,7 +485,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
-  public void updateClaimScore(UUID claimId) {
+  public void updateClaimScore(final UUID claimId) {
     this.claimRepository.updateScoreFromScreenshots(claimId);
   }
 

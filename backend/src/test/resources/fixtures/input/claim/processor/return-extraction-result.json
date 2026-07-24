@@ -1,0 +1,7 @@
+{
+  "platform": "PLATFORM_AMAZON",
+  "productName": "Test Product",
+  "accountName": "john.doe",
+  "returnWindowClosedText": "Return window closed",
+  "returnWindowClosedDate": "2026-02-01"
+}

@@ -1,0 +1,11 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": 100, "mismatch": false },
+  "productName": { "extractedValue": "Test Product", "score": 100, "mismatch": false },
+  "accountName": { "extractedValue": "john.doe", "score": 80, "mismatch": false },
+  "returnWindowClosedText": {
+    "extractedValue": "Return window closed",
+    "score": null,
+    "mismatch": false
+  },
+  "returnWindowClosedDate": { "extractedValue": "2026-02-01", "score": null, "mismatch": false }
+}

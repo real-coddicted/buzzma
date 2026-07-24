@@ -1,0 +1,7 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
+  "productName": { "extractedValue": "Test Product", "score": null },
+  "accountName": { "extractedValue": "john.doe", "score": null },
+  "returnWindowClosedText": { "extractedValue": "Return window closed", "score": null },
+  "returnWindowClosedDate": { "extractedValue": "2026-02-01", "score": null }
+}

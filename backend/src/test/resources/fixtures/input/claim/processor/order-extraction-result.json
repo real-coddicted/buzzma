@@ -1,0 +1,9 @@
+{
+  "platform": "PLATFORM_AMAZON",
+  "orderId": "403-1234567-8901234",
+  "orderDate": "2026-06-15",
+  "productName": "Test Product",
+  "sellerName": "Acme Sellers",
+  "amount": 500,
+  "orderedBy": "john.doe"
+}

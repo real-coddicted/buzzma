@@ -1,0 +1,9 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": 100, "mismatch": false },
+  "productName": { "extractedValue": "Test Product", "score": 100, "mismatch": false },
+  "sellerName": { "extractedValue": "Acme Sellers", "score": 100, "mismatch": false },
+  "orderDate": { "extractedValue": "2026-06-15", "score": 100, "mismatch": false },
+  "orderId": { "extractedValue": "403-1234567-8901234", "score": null, "mismatch": false },
+  "amount": { "extractedValue": "500", "score": null, "mismatch": false },
+  "orderedBy": { "extractedValue": "john.doe", "score": null, "mismatch": false }
+}

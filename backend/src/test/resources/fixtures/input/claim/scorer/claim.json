@@ -1,0 +1,21 @@
+{
+  "id": "44444444-4444-4444-4444-444444444444",
+  "campaignId": "77777777-7777-7777-7777-777777777777",
+  "dealId": "55555555-5555-5555-5555-555555555555",
+  "ownerId": "66666666-6666-6666-6666-666666666666",
+  "status": "UNDER_REVIEW",
+  "platform": "PLATFORM_AMAZON",
+  "ecommerceOrderId": "403-1234567-8901234",
+  "orderDate": 20260615,
+  "amountPaise": 500,
+  "accountName": "john.doe",
+  "productName": "Test Product",
+  "sellerName": "Acme Sellers",
+  "reviewUrl": "https://amazon.in/review/123",
+  "currentStep": "REVIEW",
+  "isDeleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "66666666-6666-6666-6666-666666666666",
+  "updatedBy": "66666666-6666-6666-6666-666666666666"
+}

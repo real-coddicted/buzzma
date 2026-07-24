@@ -1,0 +1,9 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
+  "orderId": { "extractedValue": "403-1234567-8901234", "score": null },
+  "orderDate": { "extractedValue": "2026-06-15", "score": null },
+  "productName": { "extractedValue": "Test Product", "score": null },
+  "sellerName": { "extractedValue": "Acme Sellers", "score": null },
+  "amount": { "extractedValue": "500", "score": null },
+  "orderedBy": { "extractedValue": "john.doe", "score": null }
+}

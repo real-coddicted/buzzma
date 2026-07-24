@@ -1,0 +1,8 @@
+{
+  "platform": "PLATFORM_AMAZON",
+  "productName": "Test Product",
+  "reviewText": "Great product!",
+  "accountName": "john.doe",
+  "reviewDate": "2026-01-01",
+  "reviewUrl": "https://amazon.in/review/123"
+}

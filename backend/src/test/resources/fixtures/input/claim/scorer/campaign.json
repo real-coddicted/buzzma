@@ -1,0 +1,18 @@
+{
+  "id": "77777777-7777-7777-7777-777777777777",
+  "code": "CMP1-A2B3",
+  "title": "Summer Sale",
+  "ownerId": "88888888-8888-8888-8888-888888888888",
+  "product": {
+    "name": "Test Product",
+    "brandName": "Acme"
+  },
+  "platform": "PLATFORM_AMAZON",
+  "type": "CAMPAIGN_TYPE_REVIEW",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "startDate": 20260101,
+  "endDate": 20261231,
+  "sellerName": "Acme Sellers",
+  "openToAll": false,
+  "deleted": false
+}

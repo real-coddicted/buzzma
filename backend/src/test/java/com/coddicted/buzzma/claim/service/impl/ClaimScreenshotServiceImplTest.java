@@ -16,10 +16,27 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.claim.client.GeminiClientProxy;
+import com.coddicted.buzzma.claim.client.GeminiClientProxyImpl;
+import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
+import com.coddicted.buzzma.claim.client.ScoreApiClientProxyImpl;
+import com.coddicted.buzzma.claim.client.ScoreDatasetKeys;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.processor.ChainedScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.OrderScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.RatingScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.ReturnScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.ReviewScreenshotProcessor;
+import com.coddicted.buzzma.claim.scorer.ChainedScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ReviewScreenshotScorer;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
@@ -72,17 +89,59 @@ class ClaimScreenshotServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    final GeminiClientProxy geminiClientProxy =
+        new GeminiClientProxyImpl(
+            this.mockGeminiClient, new GeminiExtractionPromptBuilder(), new ObjectMapper());
+    final ScoreApiClientProxy scoreApiClientProxy =
+        new ScoreApiClientProxyImpl(this.mockScoreApiClient);
+
+    final ClaimScreenshotProcessor processor =
+        new ChainedScreenshotProcessor(
+            List.of(
+                new OrderScreenshotProcessor(
+                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
+                new RatingScreenshotProcessor(
+                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
+                new ReviewScreenshotProcessor(
+                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
+                new ReturnScreenshotProcessor(
+                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService)));
+
+    final OrderScreenshotScorer orderScreenshotScorer =
+        new OrderScreenshotScorer(
+            this.mockScreenshotRepository,
+            this.mockCampaignService,
+            this.mockClaimService,
+            scoreApiClientProxy);
+    final ClaimScreenshotScorer scorer =
+        new ChainedScreenshotScorer(
+            List.of(
+                orderScreenshotScorer,
+                new RatingScreenshotScorer(
+                    this.mockScreenshotRepository,
+                    this.mockCampaignService,
+                    scoreApiClientProxy,
+                    this.mockClaimService),
+                new ReviewScreenshotScorer(
+                    this.mockScreenshotRepository,
+                    this.mockCampaignService,
+                    scoreApiClientProxy,
+                    this.mockClaimService),
+                new ReturnScreenshotScorer(
+                    this.mockScreenshotRepository,
+                    this.mockCampaignService,
+                    scoreApiClientProxy,
+                    this.mockClaimService)));
+
     this.service =
         new ClaimScreenshotServiceImpl(
+            processor,
+            scorer,
             this.mockScreenshotRepository,
-            this.mockGeminiClient,
-            new GeminiExtractionPromptBuilder(),
+            geminiClientProxy,
             new ExtractionResultValidator(),
-            this.mockStorageService,
-            new ObjectMapper(),
             this.mockCampaignService,
-            this.mockScoreApiClient,
-            this.mockClaimService);
+            orderScreenshotScorer);
 
     when(this.mockStorageService.retrieve(STORAGE_KEY))
         .thenReturn(
@@ -194,7 +253,7 @@ class ClaimScreenshotServiceImplTest {
     assertNull(extractedDetails.get(BuzzmahConstants.PRODUCT_NAME).getScore());
 
     mockScoreApi(
-        "orderData",
+        ScoreDatasetKeys.ORDER,
         Map.of(
             BuzzmahConstants.PLATFORM,
             1.0,
@@ -217,7 +276,7 @@ class ClaimScreenshotServiceImplTest {
   }
 
   @Test
-  void testProcessOrderScreenshot_mismatchedOrderDateAndAmountLowerOverallScore() {
+  void testProcessOrderScreenshotMismatchedOrderDateAndAmountLowerOverallScore() {
     when(this.mockCampaignService.getById(CAMPAIGN_ID))
         .thenReturn(
             Campaign.builder()
@@ -244,7 +303,7 @@ class ClaimScreenshotServiceImplTest {
     // product price (1000), so both local scores are 0.0, even though the Score API rates
     // platform/productName/sellerName perfectly and reports a high overallScore.
     mockScoreApi(
-        "orderData",
+        ScoreDatasetKeys.ORDER,
         Map.of(
             BuzzmahConstants.PLATFORM,
             1.0,
@@ -264,7 +323,7 @@ class ClaimScreenshotServiceImplTest {
   }
 
   @Test
-  void testProcessRatingScreenshot_ratingPresent() {
+  void testProcessRatingScreenshotRatingPresent() {
     when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
         .thenReturn(
             "{\"platform\":\"PLATFORM_AMAZON\",\"productName\":\"Test Product\","
@@ -281,7 +340,7 @@ class ClaimScreenshotServiceImplTest {
     assertNull(extractedDetails.get(BuzzmahConstants.PRODUCT_NAME).getScore());
 
     mockScoreApi(
-        "ratingData",
+        ScoreDatasetKeys.RATING,
         Map.of(BuzzmahConstants.PLATFORM, 1.0, "productName", 1.0, "accountName", 0.8),
         0.9);
 
@@ -296,7 +355,7 @@ class ClaimScreenshotServiceImplTest {
   }
 
   @Test
-  void testProcessRatingScreenshot_ratingMissing() {
+  void testProcessRatingScreenshotRatingMissing() {
     when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
         .thenReturn(
             "{\"productName\":\"Test Product\",\"accountName\":\"john.doe\",\"rating\":null}");
@@ -304,7 +363,7 @@ class ClaimScreenshotServiceImplTest {
     final ClaimScreenshot extracted = extract(SCREENSHOT_TYPE_RATING);
     assertNull(extracted.getExtractedDetails().get("rating").getExtractedValue());
 
-    mockScoreApi("ratingData", Map.of("productName", 1.0, "accountName", 0.8), 0.9);
+    mockScoreApi(ScoreDatasetKeys.RATING, Map.of("productName", 1.0, "accountName", 0.8), 0.9);
 
     final ClaimScreenshot scored = score(extracted);
     final Map<String, ScoredValue> details = scored.getExtractedDetails();
@@ -313,7 +372,7 @@ class ClaimScreenshotServiceImplTest {
   }
 
   @Test
-  void testProcessReviewScreenshot_withReviewUrl() {
+  void testProcessReviewScreenshotWithReviewUrl() {
     when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
         .thenReturn(
             "{\"platform\":\"PLATFORM_AMAZON\",\"productName\":\"Test Product\",\"reviewText\":\"Great!\","
@@ -337,7 +396,7 @@ class ClaimScreenshotServiceImplTest {
                 .reviewUrl("https://amazon.in/review/123")
                 .build());
     mockScoreApi(
-        "reviewData",
+        ScoreDatasetKeys.REVIEW,
         Map.of(
             BuzzmahConstants.PLATFORM,
             1.0,
@@ -364,7 +423,7 @@ class ClaimScreenshotServiceImplTest {
   }
 
   @Test
-  void testProcessReviewScreenshot_withoutReviewUrl() {
+  void testProcessReviewScreenshotWithoutReviewUrl() {
     when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
         .thenReturn(
             "{\"platform\":\"PLATFORM_AMAZON\",\"productName\":\"Test Product\",\"reviewText\":\"Great!\","
@@ -374,7 +433,7 @@ class ClaimScreenshotServiceImplTest {
     assertNull(extracted.getExtractedDetails().get("reviewUrl").getExtractedValue());
 
     mockScoreApi(
-        "reviewData",
+        ScoreDatasetKeys.REVIEW,
         Map.of(BuzzmahConstants.PLATFORM, 1.0, "productName", 1.0, "accountName", 0.8),
         0.85);
 
@@ -400,7 +459,7 @@ class ClaimScreenshotServiceImplTest {
     assertNull(extracted.getScore());
 
     mockScoreApi(
-        "returnData",
+        ScoreDatasetKeys.RETURN,
         Map.of(BuzzmahConstants.PLATFORM, 1.0, "productName", 1.0, "accountName", 0.8),
         0.9);
 
