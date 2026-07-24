@@ -10,7 +10,7 @@
     "run_worker_first": true
   },
   "observability": {
-    "enabled": false,
+    "enabled": true,
     "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
@@ -19,13 +19,25 @@
       "invocation_logs": true
     },
     "traces": {
-      "enabled": false,
+      "enabled": true,
       "persist": true,
       "head_sampling_rate": 1
     }
   },
-  "vars": {
-    "BACKEND_URL": "https://test-backend.buzzmah.com",
-    "SSE_URL": "https://test-notifications.buzzmah.com"
+  "env": {
+    "test": {
+      "name": "buzzma-test",
+      "vars": {
+        "BACKEND_URL": "https://test-backend.buzzmah.com",
+        "SSE_URL": "https://test-notifications.buzzmah.com"
+      }
+    },
+    "production": {
+      "name": "buzzma-prod",
+      "vars": {
+        "BACKEND_URL": "https://test2-backend.buzzmah.com",
+        "SSE_URL": "https://test2-notifications.buzzmah.com"
+      }
+    }
   }
 }
