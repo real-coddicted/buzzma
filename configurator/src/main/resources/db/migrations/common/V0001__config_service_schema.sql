@@ -8,25 +8,27 @@
 
 -- ---------- Enums ----------
 
-CREATE TYPE value_type_enum AS ENUM ('boolean', 'string', 'number', 'json');
+-- value_type is stable by design (maps 1:1 to JSON primitive types) so a
+-- native PG enum is appropriate here.
+DO $$ BEGIN
+    CREATE TYPE value_type_enum AS ENUM ('boolean', 'string', 'number', 'json');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- Only 'static' evaluation is supported now. Adding targeting/rollout later
--- is an additive ALTER TYPE — do not build rule evaluation until that is
--- explicitly picked up (see design doc §9).
-CREATE TYPE evaluation_type_enum AS ENUM ('static');
+-- evaluation_type and entry_status are expected to grow over time; they use
+-- VARCHAR + CHECK constraints so adding or removing values is a simple ALTER
+-- TABLE rather than a full type recreation.
 
-CREATE TYPE entry_status_enum AS ENUM ('active', 'deprecated', 'deleted');
-
--- ---------- Global version sequence ----------
+-- ---------- Global change sequence ----------
 -- Shared across every row and write. Gives a strict global ordering so the
--- SDK's delta-poll query (WHERE version > :since_version) is a cheap indexed
--- range scan rather than a timestamp comparison.
+-- SDK's delta-poll query (WHERE change_seq > :since_change_seq) is a cheap
+-- indexed range scan rather than a timestamp comparison.
 
-CREATE SEQUENCE config_version_seq;
+CREATE SEQUENCE IF NOT EXISTS config_change_seq;
 
 -- ---------- Main table ----------
 
-CREATE TABLE config_entries (
+CREATE TABLE IF NOT EXISTS config_entries (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     -- Namespace represents a logical grouping (team or service). May map 1:1
@@ -51,17 +53,17 @@ CREATE TABLE config_entries (
     -- Extension point for future targeting/rollout rules. Currently only
     -- 'static' is allowed. Do not populate `rules` until the rule engine is
     -- designed (see design doc §9).
-    evaluation_type evaluation_type_enum NOT NULL DEFAULT 'static',
+    evaluation_type VARCHAR(50) NOT NULL DEFAULT 'STATIC',
     rules           JSONB,
 
     -- Soft delete: history stays intact; a deleted-then-recreated key does
     -- not lose its audit trail.
-    status          entry_status_enum NOT NULL DEFAULT 'active',
+    status          VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
 
     description     TEXT,
     owner           VARCHAR(100),
 
-    version         BIGINT NOT NULL DEFAULT nextval('config_version_seq'),
+    change_seq      BIGINT NOT NULL DEFAULT nextval('config_change_seq'),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
@@ -70,6 +72,10 @@ CREATE TABLE config_entries (
     updated_by      VARCHAR(100) NOT NULL,
 
     CONSTRAINT uq_config_entry UNIQUE (namespace, environment, key),
+
+    CONSTRAINT chk_evaluation_type CHECK (evaluation_type IN ('STATIC')),
+
+    CONSTRAINT chk_status CHECK (status IN ('ACTIVE', 'DELETED')),
 
     CONSTRAINT chk_value_type_match CHECK (
         (value_type = 'boolean' AND jsonb_typeof(value) = 'boolean') OR
@@ -80,19 +86,19 @@ CREATE TABLE config_entries (
 );
 
 -- Fast path for SDK bulk startup fetch: all active configs for a namespace+env
-CREATE INDEX idx_config_lookup
+CREATE INDEX IF NOT EXISTS idx_config_lookup
     ON config_entries (namespace, environment)
-    WHERE status = 'active';
+    WHERE status = 'ACTIVE';
 
--- Fast path for SDK delta poll: changes since version N for a namespace+env
-CREATE INDEX idx_config_delta_poll
-    ON config_entries (namespace, environment, version);
+-- Fast path for SDK delta poll: changes since change_seq N for a namespace+env
+CREATE INDEX IF NOT EXISTS idx_config_delta_poll
+    ON config_entries (namespace, environment, change_seq);
 
 -- ---------- History table (append-only audit trail) ----------
 -- Kept separate from config_entries so the main table stays small and its
 -- indexes stay fast. History can grow indefinitely.
 
-CREATE TABLE config_entries_history (
+CREATE TABLE IF NOT EXISTS config_entries_history (
     history_id      BIGSERIAL PRIMARY KEY,
 
     entry_id        UUID NOT NULL,
@@ -102,16 +108,16 @@ CREATE TABLE config_entries_history (
 
     old_value       JSONB,
     new_value       JSONB,
-    old_status      entry_status_enum,
-    new_status      entry_status_enum,
+    old_status      VARCHAR(50),
+    new_status      VARCHAR(50),
 
-    version         BIGINT NOT NULL,
+    change_seq      BIGINT NOT NULL,
     changed_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     changed_by      VARCHAR(100) NOT NULL,
     change_reason   TEXT
 );
 
-CREATE INDEX idx_history_entry
+CREATE INDEX IF NOT EXISTS idx_history_entry
     ON config_entries_history (entry_id, changed_at DESC);
 
 -- ---------- Trigger: auto-version + auto-audit ----------
@@ -125,30 +131,30 @@ BEGIN
         INSERT INTO config_entries_history
             (entry_id, namespace, environment, key,
              old_value, new_value, old_status, new_status,
-             version, changed_by, change_reason)
+             change_seq, changed_by, change_reason)
         VALUES
             (NEW.id, NEW.namespace, NEW.environment, NEW.key,
              NULL, NEW.value, NULL, NEW.status,
-             NEW.version, NEW.updated_by, 'created');
+             NEW.change_seq, NEW.updated_by, 'created');
 
     ELSIF TG_OP = 'UPDATE' THEN
-        NEW.version    := nextval('config_version_seq');
-        NEW.updated_at := now();
+        NEW.change_seq  := nextval('config_change_seq');
+        NEW.updated_at  := now();
 
         INSERT INTO config_entries_history
             (entry_id, namespace, environment, key,
              old_value, new_value, old_status, new_status,
-             version, changed_by, change_reason)
+             change_seq, changed_by, change_reason)
         VALUES
             (NEW.id, NEW.namespace, NEW.environment, NEW.key,
              OLD.value, NEW.value, OLD.status, NEW.status,
-             NEW.version, NEW.updated_by, 'updated');
+             NEW.change_seq, NEW.updated_by, 'updated');
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_config_entries_audit
+CREATE OR REPLACE TRIGGER trg_config_entries_audit
     BEFORE INSERT OR UPDATE ON config_entries
     FOR EACH ROW EXECUTE FUNCTION fn_config_entries_audit();

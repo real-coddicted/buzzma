@@ -108,22 +108,22 @@ application request.
 See `config_service_schema.sql` for the full DDL (PostgreSQL). Key decisions
 and the reasoning behind each:
 
-### Single global version sequence, not per-row versioning
+### Single global change sequence, not per-row versioning
 
-One sequence (`config_version_seq`) is shared by every write across every
+One sequence (`config_change_seq`) is shared by every write across every
 namespace/environment/key. This gives a strict global ordering of changes,
 which is what makes the SDK's delta-poll query
-(`WHERE version > :since_version`) both correct and cheap — a simple indexed
-range scan, rather than comparing timestamps across rows (fragile under
-clock skew) or tracking per-key versions independently. It doubles as an
-optimistic-concurrency token for the admin write path.
+(`WHERE change_seq > :since_change_seq`) both correct and cheap — a simple
+indexed range scan, rather than comparing timestamps across rows (fragile
+under clock skew) or tracking per-key sequences independently. It doubles as
+an optimistic-concurrency token for the admin write path.
 
-### Trigger-managed versioning and audit, not application-managed
+### Trigger-managed change_seq and audit, not application-managed
 
-A DB trigger (`fn_config_entries_audit`) bumps `version` and writes a row to
-`config_entries_history` on every INSERT/UPDATE. This guarantees the audit
-trail and version bump happen even if a write comes through a path other than
-the API service — a migration, a console session, a script. If this were
+A DB trigger (`fn_config_entries_audit`) bumps `change_seq` and writes a row
+to `config_entries_history` on every INSERT/UPDATE. This guarantees the audit
+trail and change_seq bump happen even if a write comes through a path other
+than the API service — a migration, a console session, a script. If this were
 left to application code, bypassing that code path silently breaks both the
 audit trail and the SDK's freshness signal.
 
@@ -191,7 +191,7 @@ instance, because:
 
 ### Soft delete, not hard delete
 
-`status` enum (`active` / `deprecated` / `deleted`) rather than removing
+`status` enum (`active` / `deleted`) rather than removing
 rows. Supports a "dead flag" cleanup workflow and keeps history sane (a
 deleted-then-recreated key doesn't lose its audit trail).
 
@@ -309,8 +309,8 @@ instance connecting to multiple environments' databases.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /v1/configs?namespace=X&environment=Y` | Bulk fetch on SDK startup. Returns all active entries + `snapshot_version` (max version in the response). |
-| `GET /v1/configs/delta?namespace=X&environment=Y&since_version=N` | Recurring poll. Returns rows with `version > N`, **including** deleted/deprecated ones so the SDK knows to drop them, not just what to add/update. Response also includes `poll_interval_seconds` (see below). |
+| `GET /v1/configs?namespace=X&environment=Y` | Bulk fetch on SDK startup. Returns all active entries + `snapshot_change_seq` (max change_seq in the response). |
+| `GET /v1/configs/delta?namespace=X&environment=Y&sinceChangeSeq=N` | Recurring poll. Returns rows with `change_seq > N`, **including** deleted ones so the SDK knows to drop them, not just what to add/update. Response also includes `poll_interval_seconds` (see below). |
 | `GET /v1/configs/{namespace}/{environment}/{key}` | Single-key read. **SDKs never use this** — added specifically for admin UI / debugging so a detail view doesn't require fetching the whole namespace. |
 
 **Server-driven poll interval — decided, not left to the SDK to hardcode.**
@@ -333,7 +333,7 @@ current scale — see §6.1 for when that might change).
 | Endpoint | Purpose |
 |---|---|
 | `POST /v1/configs` | Create a new entry. |
-| `PUT /v1/configs/{id}` | Update value. Body includes `expected_version`; service does compare-and-swap, returns `409 Conflict` if the row changed since the caller last read it. |
+| `PUT /v1/configs/{id}` | Update value. Body includes `expected_change_seq`; service does compare-and-swap, returns `409 Conflict` if the row changed since the caller last read it. |
 | `DELETE /v1/configs/{id}` | Soft delete (`status = deleted`), never a hard DB delete. |
 | `GET /v1/configs/{id}/history` | Audit trail for one entry, for the admin UI. |
 | `GET /v1/configs?namespace=X&environment=Y&search=...` | Paginated list/search, for the admin UI. |
@@ -402,7 +402,7 @@ Revisit only if a concrete reactive use case shows up.
 ### Internal components
 
 - **Cache store:** `Map<namespace, NamespaceCache>`, each holding its own
-  immutable `Map<key, ConfigEntry>` + `snapshot_version`.
+  immutable `Map<key, ConfigEntry>` + `snapshot_change_seq`.
 - **Fetcher:** wraps the two read endpoints (bulk fetch, delta poll).
   Owns retry/timeout logic only.
 - **Poller:** one shared scheduler runs independent poll tasks per
@@ -439,7 +439,7 @@ rather than hang.
   clears or degrades the cache** — it just means slightly stale data, an
   explicitly accepted tradeoff given the 1-2 min propagation requirement.
 - On success: apply the delta (add/update changed keys, drop
-  deleted/deprecated ones), bump `snapshot_version`, refresh the disk
+  deleted ones), bump `snapshot_change_seq`, refresh the disk
   snapshot for that namespace.
 
 ### Concurrency — the atomic swap (the one place a bug would actually hurt)

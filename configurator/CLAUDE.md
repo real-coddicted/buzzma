@@ -20,7 +20,7 @@ code on the hot path never makes a network call to this service.
 | Phase | Status    | Description |
 |-------|-----------|-------------|
 | 1     | ✅ Done   | Schema + Flyway structure — migration files under `db/migrations/` |
-| 2     | ⏳ Next   | Config API service — Spring Boot app, read + write endpoints |
+| 2     | ✅ Done   | Config API service — Spring Boot app, read + write endpoints |
 | 3     | Pending   | Java SDK / Spring Boot Starter |
 | 4     | Pending   | Pilot integration into one consuming service |
 | 5     | Pending   | Behavioral contract + OpenAPI spec for future language SDKs |
@@ -69,18 +69,18 @@ code on the hot path never makes a network call to this service.
 - **`updated_by` is always set from the authenticated caller identity**, never
   trusted from the request body. Flyway-authored rows use the literal `'flyway'`.
 
-- **Delta poll uses a version sequence, not `updated_at` timestamps.** This is
+- **Delta poll uses a change sequence, not `updated_at` timestamps.** This is
   a deliberate correctness decision, not a style choice. PostgreSQL's `now()`
   returns the *transaction start time*, not the commit time. If a slow transaction
   A (started at T=100, commits at T=200) overlaps with a fast transaction B
   (started at T=150, commits at T=160), an SDK that polls at T=170 and stores
   `last_seen = 150` will never pick up transaction A's row — its `updated_at` is
-  100, which is behind the watermark. The sequence (`config_version_seq`) is
+  100, which is behind the watermark. The sequence (`config_change_seq`) is
   assigned inside the `BEFORE` trigger and is strictly monotonic, so
-  `WHERE version > :last_version` has no equivalent gap. The low write frequency
-  of this service makes the practical risk of timestamp-polling small, but the
-  failure mode is silent data loss on the SDK side, which makes it not worth the
-  simplicity tradeoff.
+  `WHERE change_seq > :last_change_seq` has no equivalent gap. The low write
+  frequency of this service makes the practical risk of timestamp-polling small,
+  but the failure mode is silent data loss on the SDK side, which makes it not
+  worth the simplicity tradeoff.
 
 ---
 
@@ -91,29 +91,109 @@ Migrations live in `src/main/resources/db/migrations/` with per-environment fold
 ```
 db/migrations/
   common/      # structural DDL — applies to every environment
-  dev/         # dev-environment seed data
+  local/       # local developer seed data
   staging/     # staging-environment seed data
   prod/        # production config values
 ```
 
-When the Spring Boot runner is wired (Phase 2), Flyway locations will be set to
-`classpath:db/migrations/common` + the environment-specific folder:
+Flyway locations are `classpath:db/migrations/common` + the environment-specific
+folder, resolved from `CONFIGURATOR_ENV` (defaults to `local`):
 
 ```yaml
 spring:
   flyway:
-    locations: classpath:db/migrations/common,classpath:db/migrations/${CONFIGURATOR_ENV:dev}
+    locations: classpath:db/migrations/common,classpath:db/migrations/${CONFIGURATOR_ENV:local}
     table: flyway_schema_history_configurator
 ```
+
+Services are started with `-Dspring.profiles.active=local` for local dev.
+`CONFIGURATOR_ENV` is a separate concern: it controls which Flyway migration
+folder runs, not which `application-*.yml` is loaded.
 
 **Migration versioning** starts at V0001 independently of `backend/` (separate
 Flyway history table). Use zero-padded four-digit version numbers: `V0001`, `V0002`, …
 
+Flyway aggregates all configured locations into a single flat migration list, so
+version numbers must be globally unique across folders. Use these reserved ranges:
+
+| Folder    | Version range | Purpose                        |
+|-----------|---------------|--------------------------------|
+| `common/` | V0001–V0999   | Structural DDL, no data        |
+| `local/`  | V1001–V1999   | Local dev seed data            |
+| `staging/`| V2001–V2999   | Staging seed / smoke data      |
+| `prod/`   | V3001–V3999   | Production config values       |
+
 **Naming conventions:**
 - `common/V####__<structural_description>.sql` — DDL only, no data
-- `dev/V####__seed_<description>.sql`
+- `local/V####__seed_<description>.sql`
 - `staging/V####__seed_<description>.sql`
 - `prod/V####__set_<namespace>_<key>.sql` — one logical config change per file
+
+**Tests** run with `CONFIGURATOR_ENV` defaulting to `local`, so Testcontainer runs
+apply both `common/` and `local/` migrations — the same set that local dev uses.
+This is intentional: keeping test and dev schema states in sync surfaces problems
+with seed migrations before they reach CI.
+
+---
+
+## Phase 2 implementation notes
+
+### Package layout
+
+```
+com.coddicted.buzzma.configurator/
+  config/       SecurityConfig, ConfiguratorProperties
+  converter/    AttributeConverters for the three PostgreSQL enum types
+  controller/   ConfigController  (/v1/configs)
+  dto/          Request/response DTOs
+  entity/       ConfigEntry, ConfigEntryHistory
+  enums/        ValueTypeEnum, EntryStatusEnum, EvaluationTypeEnum
+  exception/    Typed exceptions + GlobalExceptionHandler
+  repository/   ConfigEntryRepository, ConfigEntryHistoryRepository
+  service/      ConfigService
+```
+
+### Auth — Phase 2 uses HTTP Basic
+
+Write endpoints (`POST`, `PUT`, `DELETE`) require HTTP Basic authentication.
+`spring.security.user.name/password` configure the credentials (via env vars
+`ADMIN_USERNAME` / `ADMIN_PASSWORD`). The authenticated username becomes
+`updated_by` in the DB — the controller passes `authentication.getName()` to
+the service; the service never accepts `updatedBy` from the request body.
+
+This is a placeholder that keeps the audit trail meaningful. Upgrading to
+JWT + RBAC is a deferred item. Read endpoints (`GET`) are permit-all; network
+isolation (§4 of the design doc) is the primary guard for SDK traffic.
+
+### JPA ↔ PostgreSQL enum types
+
+The schema uses `CREATE TYPE ... AS ENUM` with lowercase values (`'active'`,
+`'deleted'`, etc.). Java enum constants are `ACTIVE`, `DELETED` (standard
+style). Three `AttributeConverter` classes in `converter/` bridge the case gap.
+`@Column(columnDefinition = "...")` names the PG type for reference; the
+converter is what actually handles the mapping.
+
+### Trigger-set fields — EntityManager.refresh()
+
+`version`, `created_at`, and `updated_at` are all `insertable = false,
+updatable = false` on the JPA entity. The DB trigger and column DEFAULTs set
+them. After every `repository.save()` on a write path, the service does
+`entityManager.flush()` + `entityManager.refresh()` to reload the
+trigger-set values before returning them in the response. Without the refresh,
+JPA's first-level cache returns stale values.
+
+### In-process bulk-fetch cache
+
+A `ConcurrentHashMap<String, CachedBulkFetch>` in `ConfigService` with a
+configurable TTL (`configurator.bulk-fetch-cache-ttl-seconds`, default 5s)
+collapses thundering-herd fleet restarts into one DB query. No Redis needed
+at current scale. Cache is keyed on `namespace:environment`.
+
+### `ddl-auto: none`
+
+Set to `none` because PostgreSQL custom enum column types interfere with
+Hibernate's validate pass. Flyway is the schema manager; JPA validate is
+redundant and adds startup fragility from custom type metadata mismatches.
 
 ---
 
@@ -121,6 +201,9 @@ Flyway history table). Use zero-padded four-digit version numbers: `V0001`, `V00
 
 Do not build these speculatively. Flag them to the user when they become relevant:
 
+- **Auth upgrade** — replace HTTP Basic with JWT + RBAC. The audit trail is
+  correct (username = `updated_by`) but a shared credential is not sufficient
+  for multi-team or multi-environment write access in prod.
 - Percentage-rollout / targeting rule engine (`evaluation_type`, `rules` columns
   are reserved extension points — see `V0001` comments)
 - `namespace` / `environment` as FK-validated lookup tables (governance hardening)

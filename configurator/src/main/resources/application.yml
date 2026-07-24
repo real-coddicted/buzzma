@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
@@ -19,14 +19,23 @@ spring:
     # from CONFIGURATOR_ENV at runtime (dev | staging | prod).
     locations:
       - classpath:db/migrations/common
-      - classpath:db/migrations/${CONFIGURATOR_ENV:dev}
+      - classpath:db/migrations/${CONFIGURATOR_ENV:local}
     # Separate history table from backend's flyway_schema_history.
     table: flyway_schema_history_configurator
     user: ${FLYWAY_MIGRATOR_USER:}
     password: ${FLYWAY_MIGRATOR_PASSWORD:}
 
+  security:
+    user:
+      name: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:}
+
 server:
   port: ${PORT:8084}
+
+configurator:
+  poll-interval-seconds: ${POLL_INTERVAL_SECONDS:45}
+  bulk-fetch-cache-ttl-seconds: 5
 
 management:
   endpoints:

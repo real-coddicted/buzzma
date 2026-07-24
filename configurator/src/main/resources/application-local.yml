@@ -1,4 +1,8 @@
 spring:
+  security:
+    user:
+      name: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:admin}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/buzzma}
     username: ${DB_USERNAME:buzzma}
@@ -11,5 +15,6 @@ spring:
     show-sql: true
   flyway:
     baseline-on-migrate: false
+    baseline-version: 1
     user: ${FLYWAY_MIGRATOR_USER:${spring.datasource.username}}
     password: ${FLYWAY_MIGRATOR_PASSWORD:${spring.datasource.password}}

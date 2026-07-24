@@ -1,6 +1,6 @@
-# dev migrations
+# local migrations
 
-Flyway migrations that apply only to the `dev` environment.
+Flyway migrations that apply only to local developer environments.
 
 Use this folder for:
 - Seed data needed to exercise the service locally

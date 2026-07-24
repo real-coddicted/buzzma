@@ -31,16 +31,16 @@ CREATE TYPE value_type_enum AS ENUM ('boolean', 'string', 'number', 'json');
 -- Add 'rule_based' later via: ALTER TYPE evaluation_type_enum ADD VALUE 'rule_based';
 CREATE TYPE evaluation_type_enum AS ENUM ('static');
 
-CREATE TYPE entry_status_enum AS ENUM ('active', 'deprecated', 'deleted');
+CREATE TYPE entry_status_enum AS ENUM ('active', 'deleted');
 
--- ---------- Global version sequence ----------
+-- ---------- Global change sequence ----------
 -- One sequence shared by every row/write. This gives us a single
 -- monotonically increasing counter across the whole table, which is
--- what makes "give me everything changed since version N" (the SDK's
+-- what makes "give me everything changed since change_seq N" (the SDK's
 -- delta-poll query) cheap and correct. It also doubles as an
 -- optimistic-concurrency token for the admin UI.
 
-CREATE SEQUENCE config_version_seq;
+CREATE SEQUENCE config_change_seq;
 
 -- ---------- Main table (current state) ----------
 
@@ -64,7 +64,7 @@ CREATE TABLE config_entries (
     description     TEXT,
     owner           VARCHAR(100),
 
-    version         BIGINT NOT NULL DEFAULT nextval('config_version_seq'),
+    change_seq      BIGINT NOT NULL DEFAULT nextval('config_change_seq'),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_by      VARCHAR(100) NOT NULL,
@@ -86,9 +86,9 @@ CREATE INDEX idx_config_lookup
     ON config_entries (namespace, environment)
     WHERE status = 'active';
 
--- Fast path for SDK's delta poll: "changes since version N for service+env"
+-- Fast path for SDK's delta poll: "changes since change_seq N for service+env"
 CREATE INDEX idx_config_delta_poll
-    ON config_entries (namespace, environment, version);
+    ON config_entries (namespace, environment, change_seq);
 
 -- ---------- History table (append-only audit trail) ----------
 -- Kept separate from the main table so config_entries stays small and
@@ -108,7 +108,7 @@ CREATE TABLE config_entries_history (
     old_status      entry_status_enum,
     new_status      entry_status_enum,
 
-    version         BIGINT NOT NULL,
+    change_seq      BIGINT NOT NULL,
     changed_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     changed_by      VARCHAR(100) NOT NULL,
     change_reason   TEXT
@@ -129,24 +129,24 @@ BEGIN
         INSERT INTO config_entries_history
             (entry_id, namespace, environment, key,
              old_value, new_value, old_status, new_status,
-             version, changed_by, change_reason)
+             change_seq, changed_by, change_reason)
         VALUES
             (NEW.id, NEW.namespace, NEW.environment, NEW.key,
              NULL, NEW.value, NULL, NEW.status,
-             NEW.version, NEW.updated_by, 'created');
+             NEW.change_seq, NEW.updated_by, 'created');
 
     ELSIF TG_OP = 'UPDATE' THEN
-        NEW.version    := nextval('config_version_seq');
-        NEW.updated_at := now();
+        NEW.change_seq  := nextval('config_change_seq');
+        NEW.updated_at  := now();
 
         INSERT INTO config_entries_history
             (entry_id, namespace, environment, key,
              old_value, new_value, old_status, new_status,
-             version, changed_by, change_reason)
+             change_seq, changed_by, change_reason)
         VALUES
             (NEW.id, NEW.namespace, NEW.environment, NEW.key,
              OLD.value, NEW.value, OLD.status, NEW.status,
-             NEW.version, NEW.updated_by, 'updated');
+             NEW.change_seq, NEW.updated_by, 'updated');
     END IF;
 
     RETURN NEW;
@@ -168,12 +168,12 @@ CREATE TRIGGER trg_config_entries_audit
 -- SDK delta poll (every 30-60s):
 -- SELECT * FROM config_entries
 -- WHERE namespace = :service AND environment = :env
---   AND version > :since_version AND status != 'deleted'
--- ORDER BY version;
+--   AND change_seq > :since_change_seq AND status != 'deleted'
+-- ORDER BY change_seq;
 
 -- Admin UI optimistic-concurrency update (prevents two admins clobbering
--- each other's edits — the trigger still bumps version automatically):
+-- each other's edits — the trigger still bumps change_seq automatically):
 -- UPDATE config_entries
 -- SET value = :new_value, updated_by = :admin_user
--- WHERE id = :entry_id AND version = :expected_version;
+-- WHERE id = :entry_id AND change_seq = :expected_change_seq;
 -- (zero rows affected = someone else changed it since you loaded it — reload and retry)
