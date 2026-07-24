@@ -5,7 +5,7 @@
 -- Environment isolation:
 -- Prod runs on its own DB instance, its own credentials, and its own
 -- deployment of the Config API service — never reachable from non-prod.
--- Lower environments (dev, staging, qa) may share a single DB instance,
+-- Lower environments (dev, test, qa) may share a single DB instance,
 -- using the `environment` column below to separate their data.
 --
 -- Because of this, `environment` is NOT the isolation mechanism between
@@ -16,7 +16,7 @@
 -- It's kept anyway as a misconfiguration safety net: each deployment of
 -- the Config API service knows which environment it's supposed to be
 -- serving, and should assert that on startup against the rows it reads,
--- e.g. refuse to start if it expects `staging` but the DB contains
+-- e.g. refuse to start if it expects `test` but the DB contains
 -- `prod` rows. This turns a silent wrong-DB connection mistake into a
 -- loud startup failure instead of quietly serving the wrong config.
 -- It also preserves provenance if data is ever copied out of its

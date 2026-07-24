@@ -16,7 +16,7 @@ spring:
   flyway:
     enabled: true
     # common/ applies to every environment; the env-specific folder is resolved
-    # from CONFIGURATOR_ENV at runtime (dev | staging | prod).
+    # from CONFIGURATOR_ENV at runtime (dev | test | prod).
     locations:
       - classpath:db/migrations/common
       - classpath:db/migrations/${CONFIGURATOR_ENV:local}

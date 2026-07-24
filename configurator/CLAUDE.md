@@ -92,7 +92,7 @@ Migrations live in `src/main/resources/db/migrations/` with per-environment fold
 db/migrations/
   common/      # structural DDL — applies to every environment
   local/       # local developer seed data
-  staging/     # staging-environment seed data
+  test/        # test-environment seed data
   prod/        # production config values
 ```
 
@@ -120,13 +120,13 @@ version numbers must be globally unique across folders. Use these reserved range
 |-----------|---------------|--------------------------------|
 | `common/` | V0001–V0999   | Structural DDL, no data        |
 | `local/`  | V1001–V1999   | Local dev seed data            |
-| `staging/`| V2001–V2999   | Staging seed / smoke data      |
+| `test/`   | V2001–V2999   | Test seed / smoke data         |
 | `prod/`   | V3001–V3999   | Production config values       |
 
 **Naming conventions:**
 - `common/V####__<structural_description>.sql` — DDL only, no data
 - `local/V####__seed_<description>.sql`
-- `staging/V####__seed_<description>.sql`
+- `test/V####__seed_<description>.sql`
 - `prod/V####__set_<namespace>_<key>.sql` — one logical config change per file
 
 **Tests** run with `CONFIGURATOR_ENV` defaulting to `local`, so Testcontainer runs

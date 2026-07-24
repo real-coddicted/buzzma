@@ -181,7 +181,7 @@ instance, because:
 
 - Each deployment of the Config API service knows which environment it's
   supposed to serve, and can assert that on startup against the rows it
-  reads — e.g. refuse to start if it expects `staging` but sees `prod` rows.
+  reads — e.g. refuse to start if it expects `test` but sees `prod` rows.
   Turns a silent wrong-DB-connection mistake into a loud startup failure.
 - Preserves provenance if data is ever copied out of its original DB
   (backup restores, debugging snapshots).
@@ -201,7 +201,7 @@ deleted-then-recreated key doesn't lose its audit trail).
 
 **Decision: prod runs on its own DB instance, its own credentials, its own
 network path, and its own deployment of the Config API service — never
-reachable from non-prod. Lower environments (dev, staging, qa) may share a
+reachable from non-prod. Lower environments (dev, test, qa) may share a
 single DB instance**, distinguished by the `environment` column as described
 in §3.
 
@@ -234,7 +234,7 @@ ignore it. Physical/infrastructure isolation is.
 
 ### Consequence: cross-environment tooling changes shape
 
-"What's different between staging and prod" and "promote this value" can no
+"What's different between test and prod" and "promote this value" can no
 longer be a single-DB query — see §5 for how promotion is actually handled
 (Flyway, not the API service).
 
@@ -250,21 +250,21 @@ API service.**
 db/migrations/
   common/     -- structural DDL, applies to every environment
   dev/
-  staging/
+  test/
   prod/
 ```
 
 Each environment's Flyway run applies `common/` + its own folder as
-`locations`. Since dev and staging share one physical DB instance under the
+`locations`. Since dev and test share one physical DB instance under the
 isolation model in §4, they need **separate `flyway_schema_history` table
 names** (Flyway supports overriding this) so their migration histories don't
 collide against the same DB.
 
 ### Why the Config API service does not own promotion
 
-Considered and rejected: an in-service "promote this value from staging to
+Considered and rejected: an in-service "promote this value from test to
 prod" operation. Rejected because it would require one service instance to
-read from staging's DB and write to prod's DB in a single call — which
+read from test's DB and write to prod's DB in a single call — which
 directly violates the isolation just established in §4. Promotion has to be
 an explicit, separately-authenticated, separately-audited action, not a
 capability embedded in the read/write API.
@@ -462,10 +462,10 @@ defaults for values that were known and current moments ago.
 ### Local dev/test overrides
 
 **Decided as a non-issue under the current isolation model.** Since dev,
-staging, and any developer sandbox each has its own DB instance (§4), a
+test, and any developer sandbox each has its own DB instance (§4), a
 developer can edit their own DB's rows directly, or point their local
 instance at a disposable seeded DB. No SDK-level override mechanism is
-needed. (This assumes no shared DB at any tier below staging — if that
+needed. (This assumes no shared DB at any tier below test — if that
 assumption changes, revisit.)
 
 ### Spring Boot Starter specifics
@@ -610,7 +610,7 @@ change:
 
 1. **Schema + Flyway restructure.** Convert `config_service_schema.sql`
    into versioned migrations under `db/migrations/common/`, `dev/`,
-   `staging/`, `prod/` per §5. Stand up separate DB instances per §4 (or
+   `test/`, `prod/` per §5. Stand up separate DB instances per §4 (or
    at minimum, separate schemas/credentials as a local approximation if
    full infra isolation isn't available yet).
 2. **Config API service.** Read endpoints first (bulk fetch, delta poll,
