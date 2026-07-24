@@ -28,15 +28,15 @@
     "test": {
       "name": "buzzma-test",
       "vars": {
-        "BACKEND_URL": "https://test-backend.buzzmah.com",
-        "SSE_URL": "https://test-notifications.buzzmah.com"
+        "BACKEND_URL": "https://test2-backend.buzzmah.com",
+        "SSE_URL": "https://test2-notifications.buzzmah.com"
       }
     },
     "production": {
       "name": "buzzma-prod",
       "vars": {
-        "BACKEND_URL": "https://test2-backend.buzzmah.com",
-        "SSE_URL": "https://test2-notifications.buzzmah.com"
+        "BACKEND_URL": "https://prod-backend.buzzmah.com",
+        "SSE_URL": "https://prod-notifications.buzzmah.com"
       }
     }
   }
