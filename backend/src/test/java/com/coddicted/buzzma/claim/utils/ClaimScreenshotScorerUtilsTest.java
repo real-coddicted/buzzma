@@ -145,4 +145,24 @@ class ClaimScreenshotScorerUtilsTest {
             ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
                 claim, immutable, 90));
   }
+
+  @Test
+  void nullClaimSellerNameIsNotMismatch() {
+    // When the campaign has no seller name, the claim won't have one either — absence is not a
+    // mismatch.
+    Claim claim =
+        buildClaim(
+            Platform.PLATFORM_AMAZON, "ORD-123", 20260615, BigInteger.valueOf(50000), "john.doe");
+    Map<String, ScoredValue> input =
+        details("PLATFORM_AMAZON", "ORD-123", "2026-06-15", "500.00", "john.doe");
+    input.put(
+        BuzzmahConstants.SELLER_NAME, ScoredValue.builder().extractedValue("Some Seller").build());
+
+    ExtractedScoredResult result =
+        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+            claim, input, 90);
+
+    assertFalse(result.extractedResult().get(BuzzmahConstants.SELLER_NAME).isMismatch());
+    assertEquals(90, result.overallScore());
+  }
 }

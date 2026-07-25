@@ -9,9 +9,12 @@ import static com.coddicted.buzzma.claim.scorer.Fixtures.SCREENSHOT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
@@ -103,5 +106,37 @@ class OrderScreenshotScorerTest {
         saved.getExtractedDetails());
 
     verify(this.mockClaimService).updateClaimScore(CLAIM.getId());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testScoreFieldsExcludesSellerNameFromPayloadWhenCampaignHasNone() {
+    final OrderScreenshotScorer scorer =
+        new OrderScreenshotScorer(
+            this.mockScreenshotRepository,
+            this.mockCampaignService,
+            this.mockClaimService,
+            this.mockScoreApiClientProxy);
+
+    final Campaign campaignNoSeller = CAMPAIGN.toBuilder().sellerName(null).build();
+    when(this.mockScoreApiClientProxy.score(eq(ScoreDatasetKeys.ORDER), any()))
+        .thenReturn(
+            new ExtractedScoredResult(
+                Map.of(
+                    BuzzmahConstants.PLATFORM,
+                        ScoredValue.builder().extractedValue("PLATFORM_AMAZON").score(100).build(),
+                    BuzzmahConstants.PRODUCT_NAME,
+                        ScoredValue.builder().extractedValue("Test Product").score(100).build()),
+                100));
+
+    scorer.scoreFields(
+        "PLATFORM_AMAZON", "Test Product", "Acme Sellers", "2026-06-15", campaignNoSeller);
+
+    final ArgumentCaptor<List<PayloadItem>> captor =
+        ArgumentCaptor.forClass((Class<List<PayloadItem>>) (Class<?>) List.class);
+    verify(this.mockScoreApiClientProxy).score(eq(ScoreDatasetKeys.ORDER), captor.capture());
+    assertTrue(
+        captor.getValue().stream()
+            .noneMatch(p -> BuzzmahConstants.SELLER_NAME.equals(p.getLabel())));
   }
 }

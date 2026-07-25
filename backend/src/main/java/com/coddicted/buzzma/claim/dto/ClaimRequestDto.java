@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.enums.Platform;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
@@ -25,7 +26,7 @@ public class ClaimRequestDto {
 
   @NotBlank private String productName;
 
-  @NotBlank private String sellerName;
+  @Nullable private String sellerName;
 
   private int orderDate;
 

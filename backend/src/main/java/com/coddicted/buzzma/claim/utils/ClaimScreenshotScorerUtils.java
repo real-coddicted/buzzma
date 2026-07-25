@@ -240,7 +240,7 @@ public final class ClaimScreenshotScorerUtils {
     final ScoredValue scoredValue =
         details.getOrDefault(BuzzmahConstants.SELLER_NAME, new ScoredValue());
     if (claim.getSellerName() == null) {
-      scoredValue.setMismatch(true);
+      scoredValue.setMismatch(false);
     } else {
       scoredValue.setMismatch(
           !claim.getSellerName().equalsIgnoreCase(scoredValue.getExtractedValue()));

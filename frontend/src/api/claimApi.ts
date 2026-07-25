@@ -174,7 +174,7 @@ export interface SubmitClaimParams {
   orderId: string
   amount: number
   productName: string
-  sellerName: string
+  sellerName?: string
   orderDate: string   // YYYY-MM-DD from date picker
   accountName: string
   screenshot: File
@@ -301,7 +301,7 @@ export async function updateOrderScreenshot(
     orderId: string
     amount: number
     productName: string
-    sellerName: string
+    sellerName?: string
     orderDate: string
     accountName: string
   }
@@ -314,7 +314,7 @@ export async function updateOrderScreenshot(
   formData.append('orderId', fields.orderId)
   formData.append('amount', String(rupeesToPaise(fields.amount)))
   formData.append('productName', fields.productName)
-  formData.append('sellerName', fields.sellerName)
+  if (fields.sellerName) formData.append('sellerName', fields.sellerName)
   formData.append('orderDate', fields.orderDate.replace(/-/g, ''))
   formData.append('accountName', fields.accountName)
 
@@ -387,7 +387,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   formData.append('orderId', params.orderId)
   formData.append('amount', String(rupeesToPaise(params.amount)))
   formData.append('productName', params.productName)
-  formData.append('sellerName', params.sellerName)
+  if (params.sellerName) formData.append('sellerName', params.sellerName)
   // Convert YYYY-MM-DD to YYYYMMDD integer expected by the backend
   formData.append('orderDate', params.orderDate.replace(/-/g, ''))
   formData.append('accountName', params.accountName)

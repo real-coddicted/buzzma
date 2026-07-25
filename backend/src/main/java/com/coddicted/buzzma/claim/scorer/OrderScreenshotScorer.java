@@ -62,7 +62,8 @@ public class OrderScreenshotScorer implements ClaimScreenshotScorer {
     final String orderDate = details.get(BuzzmahConstants.ORDER_DATE).getExtractedValue();
     final String platformValue = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
     final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
-    final String sellerName = details.get(BuzzmahConstants.SELLER_NAME).getExtractedValue();
+    final ScoredValue sellerNameValue = details.get(BuzzmahConstants.SELLER_NAME);
+    final String sellerName = sellerNameValue != null ? sellerNameValue.getExtractedValue() : null;
 
     final ExtractedScoredResult fieldScoring =
         scoreFields(platformValue, productName, sellerName, orderDate, campaign);
@@ -103,9 +104,11 @@ public class OrderScreenshotScorer implements ClaimScreenshotScorer {
             platform,
             productName,
             campaign,
-            List.of(
-                ClaimScreenshotScorerUtils.payloadItem(
-                    BuzzmahConstants.SELLER_NAME, campaign.getSellerName(), sellerName)));
+            campaign.getSellerName() != null
+                ? List.of(
+                    ClaimScreenshotScorerUtils.payloadItem(
+                        BuzzmahConstants.SELLER_NAME, campaign.getSellerName(), sellerName))
+                : List.of());
 
     final ExtractedScoredResult apiScoring =
         this.scoreApiClientProxy.score(ScoreDatasetKeys.ORDER, payload);

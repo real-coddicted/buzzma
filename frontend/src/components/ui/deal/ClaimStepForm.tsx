@@ -77,6 +77,7 @@ function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, 
           campaignId={deal.campaignId}
           onSuccess={onSuccess}
           claimValues={claimValues}
+          sellerNameOptional={!deal.sellerName}
           resubmit={{
             claimId: claimId!,
             screenshotId: rejectedScreenshot.id ?? '',
@@ -106,6 +107,7 @@ function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, 
         onSuccess={onSuccess}
         readOnly={readOnly}
         claimValues={readOnly ? claimValues : undefined}
+        sellerNameOptional={!deal.sellerName}
       />
     </div>
   )

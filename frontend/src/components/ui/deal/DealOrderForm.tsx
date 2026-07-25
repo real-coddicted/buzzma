@@ -22,6 +22,7 @@ interface DealOrderFormProps {
   readOnly?: boolean
   claimValues?: Partial<FormFields>
   resubmit?: ResubmitConfig
+  sellerNameOptional?: boolean
 }
 
 export interface FormFields {
@@ -42,7 +43,7 @@ const scoreKeyMap: Partial<Record<string, keyof FormFields>> = {
   amount:      'amount',
 }
 
-export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit }: DealOrderFormProps) {
+export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit, sellerNameOptional = false }: DealOrderFormProps) {
   const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
     orderId:     '',
@@ -114,7 +115,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
   const isValid =
     screenshotFile !== null &&
     !isExtracting &&
-    Object.values(fields).every(v => v.trim() !== '')
+    Object.entries(fields).every(([key, v]) => (sellerNameOptional && key === 'sellerName') || v.trim() !== '')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -197,7 +198,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
         <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
         <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     score={fieldScores.amount}     readOnly={readOnly} />
         <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} score={fieldScores.productName} readOnly={readOnly} />
-        <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />
+        {!sellerNameOptional && <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />}
 
         <div>
           <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
