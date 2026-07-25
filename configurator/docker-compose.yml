@@ -1,0 +1,16 @@
+services:
+  configurator:
+    build: .
+    env_file: .env
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+networks:
+  buzzma-net:
+    external: true

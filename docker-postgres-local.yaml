@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-buzzma}
+      POSTGRES_USER: ${POSTGRES_USER:-buzzma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buzzma}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-buzzma} -d ${POSTGRES_DB:-buzzma}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
+
+networks:
+  buzzma-net:
+    external: true
