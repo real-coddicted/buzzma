@@ -58,6 +58,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
   const [overallScore, setOverallScore] = useState<number | null>(null)
   const [fieldScores, setFieldScores] = useState<Partial<Record<keyof FormFields, number>>>({})
   const [extractionErrors, setExtractionErrors] = useState<Partial<Record<keyof FormFields, string>>>({})
+  const [isExtracting, setIsExtracting] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -112,6 +113,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
 
   const isValid =
     screenshotFile !== null &&
+    !isExtracting &&
     Object.values(fields).every(v => v.trim() !== '')
 
   async function handleSubmit(e: React.FormEvent) {
@@ -155,16 +157,27 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      {!readOnly && (
-        <>
+      <div className="relative space-y-3">
+        {isExtracting && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-light-base/60 dark:bg-surface-dark-base/60 backdrop-blur-[1px] rounded-xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-5 h-5 border-2 border-neon-blue border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary font-medium">Extracting details…</span>
+            </div>
+          </div>
+        )}
+        {!readOnly && (
           <ScreenshotUpload
             label="Order Confirmation Screenshot"
             hint="Ensure the order ID, amount, and product name are clearly visible."
             campaignId={resubmit ? undefined : campaignId}
             onExtract={resubmit ? undefined : handleExtraction}
+            onExtracting={setIsExtracting}
             onFileChange={setScreenshotFile}
             initialPreview={resubmit?.initialScreenshotUrl}
           />
+        )}
+        {!readOnly && (
           <Field
             as="select"
             label="Platform"
@@ -180,49 +193,49 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
               { value: 'PLATFORM_MYNTRA', label: 'Myntra' },
             ]}
           />
-        </>
-      )}
-      <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
-      <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     score={fieldScores.amount}     readOnly={readOnly} />
-      <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} score={fieldScores.productName} readOnly={readOnly} />
-      <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />
+        )}
+        <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
+        <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     score={fieldScores.amount}     readOnly={readOnly} />
+        <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} score={fieldScores.productName} readOnly={readOnly} />
+        <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />
 
-      <div>
-        <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-          Order Date {!readOnly && <span className="text-neon-red">*</span>}
-          {extractionErrors.orderDate && <span className="text-neon-red font-normal ml-2">{extractionErrors.orderDate}</span>}
-          {!extractionErrors.orderDate && <ScoreBadge score={fieldScores.orderDate} />}
-        </label>
-        <div className="relative">
-          <input
-            type="date"
-            value={fields.orderDate}
-            onChange={set('orderDate')}
-            disabled={readOnly}
-            className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary pl-9 pr-3 py-2 outline-none focus:border-neon-blue/50 transition-colors"
-          />
-          <IconCalendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted pointer-events-none" />
+        <div>
+          <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
+            Order Date {!readOnly && <span className="text-neon-red">*</span>}
+            {extractionErrors.orderDate && <span className="text-neon-red font-normal ml-2">{extractionErrors.orderDate}</span>}
+            {!extractionErrors.orderDate && <ScoreBadge score={fieldScores.orderDate} />}
+          </label>
+          <div className="relative">
+            <input
+              type="date"
+              value={fields.orderDate}
+              onChange={set('orderDate')}
+              disabled={readOnly}
+              className="w-full text-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary dark:text-ink-dark-primary pl-9 pr-3 py-2 outline-none focus:border-neon-blue/50 transition-colors"
+            />
+            <IconCalendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light-muted dark:text-ink-dark-muted pointer-events-none" />
+          </div>
         </div>
+
+        <Field label="Account Name" placeholder="Name on your account" value={fields.accountName} onChange={set('accountName')} error={extractionErrors.accountName} readOnly={readOnly} />
+
+        {!readOnly && error && (
+          <p className="text-[11px] text-neon-red">{error}</p>
+        )}
+
+        {!readOnly && (
+          <button
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting && (
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            )}
+            {isSubmitting ? 'Submitting…' : resubmit ? 'Resubmit Order' : 'Submit Claim'}
+          </button>
+        )}
       </div>
-
-      <Field label="Account Name" placeholder="Name on your account" value={fields.accountName} onChange={set('accountName')} error={extractionErrors.accountName} readOnly={readOnly} />
-
-      {!readOnly && error && (
-        <p className="text-[11px] text-neon-red">{error}</p>
-      )}
-
-      {!readOnly && (
-        <button
-          type="submit"
-          disabled={!isValid || isSubmitting}
-          className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isSubmitting && (
-            <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          )}
-          {isSubmitting ? 'Submitting…' : resubmit ? 'Resubmit Order' : 'Submit Claim'}
-        </button>
-      )}
     </form>
   )
 }

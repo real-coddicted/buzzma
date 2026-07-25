@@ -8,6 +8,7 @@ interface ScreenshotUploadProps {
   hint?: string
   campaignId?: string
   onExtract?: (data: ExtractionResponse) => void
+  onExtracting?: (loading: boolean) => void
   onFileChange?: (file: File) => void
   initialPreview?: string
 }
@@ -18,7 +19,7 @@ function resolveError(raw: string): string {
   return 'Screenshot data extraction failed. Please try again or contact support if the issue persists.'
 }
 
-export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileChange, initialPreview }: ScreenshotUploadProps) {
+export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtracting, onFileChange, initialPreview }: ScreenshotUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(initialPreview ?? null)
@@ -39,6 +40,7 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
     onFileChange?.(file)
 
     if (onExtract && campaignId) {
+      onExtracting?.(true)
       setIsLoading(true)
       try {
         const extractedData = await extractOrderDetails(file, campaignId)
@@ -48,6 +50,7 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
         setError(resolveError(raw))
       } finally {
         setIsLoading(false)
+        onExtracting?.(false)
       }
     }
   }
@@ -83,7 +86,7 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onFileCha
                 ⤢ View full
               </button>
             )}
-            {isLoading && (
+            {isLoading && !onExtracting && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-6 h-6 border-2 border-neon-blue border-t-transparent rounded-full animate-spin" />
