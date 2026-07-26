@@ -26,4 +26,5 @@ public class DealResponseDto {
   Integer returnWindowDays;
   String termsAndConditions;
   String sellerName;
+  Integer slotsAvailable;
 }

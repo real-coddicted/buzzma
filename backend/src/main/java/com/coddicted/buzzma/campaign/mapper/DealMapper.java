@@ -28,6 +28,7 @@ public interface DealMapper {
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")
   @Mapping(source = "campaign.termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "campaign.sellerName", target = "sellerName")
+  @Mapping(source = "campaignSlot.slotsAvailable", target = "slotsAvailable")
   DealResponseDto toDealResponse(Deal deal);
 
   List<DealResponseDto> toDealResponse(List<Deal> deals);

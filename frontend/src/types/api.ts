@@ -1565,6 +1565,8 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            /** Format: int32 */
+            slotsAvailable?: number;
         };
         UpdateClaimRequestDto: {
             /** Format: uuid */

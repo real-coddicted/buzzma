@@ -27,11 +27,6 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             <CopyableCode code={deal.code} />
           </span>
         )}
-        {discount > 0 && (
-          <span className="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neon-red text-white">
-            -{discount}%
-          </span>
-        )}
       </div>
 
       {/* Content */}
@@ -59,15 +54,24 @@ export function DealCard({ deal, onClick }: DealCardProps) {
 
         {/* Pricing */}
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-bold text-neon-green">
+          <span className="text-xs font-bold text-neon-green">
             ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
           </span>
           <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
             ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
           </span>
+          {discount > 0 && (
+            <span className="text-base font-bold text-neon-red">-{discount}%</span>
+          )}
         </div>
-
-        <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} />
+        <div className="flex items-center justify-between">
+          <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} />
+          {deal.slotsAvailable != null && (
+            <span className={`text-base font-semibold ${deal.slotsAvailable === 0 ? 'text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}`}>
+              {deal.slotsAvailable} Left
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )

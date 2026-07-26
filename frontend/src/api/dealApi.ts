@@ -81,6 +81,7 @@ function dealResponseToDeal(dto: DealResponseDto): Deal {
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     sellerName: dto.sellerName,
     termsAndConditions: dto.termsAndConditions,
+    slotsAvailable: dto.slotsAvailable,
     status: 'explore',
   }
 }

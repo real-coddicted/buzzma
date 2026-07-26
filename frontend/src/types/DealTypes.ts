@@ -29,6 +29,7 @@ export interface Deal {
   offeredPricePaise: number
   sellerName?: string
   termsAndConditions?: string
+  slotsAvailable?: number
   status: DealStatus
   currentStep?: number
   claimId?: string
