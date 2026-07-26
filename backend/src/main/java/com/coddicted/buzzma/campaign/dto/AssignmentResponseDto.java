@@ -31,4 +31,5 @@ public class AssignmentResponseDto {
   String termsAndConditions;
   String sellerName;
   boolean affiliateLinkAllowed;
+  String dealCode;
 }

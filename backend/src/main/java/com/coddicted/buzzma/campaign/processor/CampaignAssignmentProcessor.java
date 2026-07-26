@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.service.impl;
+package com.coddicted.buzzma.campaign.processor;
 
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
@@ -10,14 +10,12 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
 import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
-import com.coddicted.buzzma.campaign.service.AssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
-import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import jakarta.validation.constraints.NotNull;
@@ -28,18 +26,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-@Service
-public class AssignmentServiceImpl extends BaseCrudService implements AssignmentService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AssignmentServiceImpl.class);
+@Component
+public class CampaignAssignmentProcessor {
 
   private final CampaignService campaignService;
   private final CampaignAssignmentService campaignAssignmentService;
@@ -49,7 +43,7 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
   private final ConnectionService connectionService;
   private final DealEventPublisher dealEventPublisher;
 
-  public AssignmentServiceImpl(
+  public CampaignAssignmentProcessor(
       final CampaignService campaignService,
       final CampaignAssignmentService campaignAssignmentService,
       final CommissionService commissionService,
@@ -66,7 +60,6 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     this.dealEventPublisher = dealEventPublisher;
   }
 
-  @Override
   @Transactional(readOnly = true)
   public Assignment getAssignmentById(final UUID id, final UUID requesterId) {
     final CampaignAssignment ca = this.campaignAssignmentService.getById(id);
@@ -74,14 +67,18 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
       throw new ForbiddenException("Assignment does not belong to the requesting user.");
     }
     final Campaign campaign = this.campaignService.getById(ca.getCampaignId());
+    final String dealCode =
+        this.dealService
+            .findCodeByCampaignAndOwner(ca.getCampaignId(), ca.getAssigneeId())
+            .orElse(null);
     return Assignment.builder()
         .campaign(campaign)
         .campaignAssignment(ca)
         .campaignSlot(ca.getCampaignSlot())
+        .dealCode(dealCode)
         .build();
   }
 
-  @Override
   @Transactional(readOnly = true)
   public Set<Assignment> getAssignments(
       final UUID assigneeId, final CampaignAssignmentStatus status) {
@@ -96,7 +93,6 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
     return toAssignmentSet(campaignSet, campaignAssignmentSet);
   }
 
-  @Override
   @Transactional(readOnly = true)
   public Page<AssignmentSummaryResponseDto> getAssignmentSummaries(
       final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
@@ -105,7 +101,6 @@ public class AssignmentServiceImpl extends BaseCrudService implements Assignment
         .map(this.assignmentMapper::toSummaryResponse);
   }
 
-  @Override
   @Transactional
   public boolean publishAssignment(
       final UUID campaignId,

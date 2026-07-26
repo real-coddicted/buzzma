@@ -16,6 +16,7 @@ export default {
           blue:   'rgb(var(--neon-blue) / <alpha-value>)',
           purple: 'rgb(var(--neon-purple) / <alpha-value>)',
         },
+        whatsapp: '#25D366',
         surface: {
           // dark surfaces
           'dark-base':    '#0a0a0a',

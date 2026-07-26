@@ -18,4 +18,5 @@ public class Assignment {
   private Campaign campaign;
   private CampaignAssignment campaignAssignment;
   private CampaignSlot campaignSlot;
+  private String dealCode;
 }

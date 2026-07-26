@@ -112,6 +112,12 @@ export async function fetchPublishedBrandNames(): Promise<string[]> {
   return (await res.json()) as string[]
 }
 
+/** GET /deals/by-code/{code} — full deal details (incl. affiliate-resolved productUrl) for the current mediator. */
+export async function fetchDealByCode(code: string): Promise<Deal> {
+  const res = await fetchWithAuth(`${API_BASE}/deals/by-code/${encodeURIComponent(code)}`)
+  return dealResponseToDeal((await res.json()) as DealResponseDto)
+}
+
 export function campaignToDeal(dto: CampaignResponseDto): Deal {
   const platform = dto.platform as Platform
   const dealType = dto.campaignType as CampaignType

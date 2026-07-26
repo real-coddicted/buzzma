@@ -45,7 +45,7 @@ export function PublishedAssignments({ onSelect }: PublishedAssignmentsProps) {
             <Loading size={32} />
           </div>
         ) : (
-          <AssignmentListView items={items} onSelect={onSelect} />
+          <AssignmentListView items={items} onSelect={onSelect} showShare />
         )}
       </div>
       <PaginationToolbar

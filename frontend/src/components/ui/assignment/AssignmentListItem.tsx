@@ -3,13 +3,16 @@ import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from '../deal/ProductThumbnail'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { StatusBadge } from '../Badge'
+import { CopyableCode } from '../CopyableCode'
+import { ShareOnWhatsAppButton } from './ShareOnWhatsAppButton'
 
 interface AssignmentListItemProps {
   item: AssignmentSummary
   onClick?: () => void
+  showShare?: boolean
 }
 
-export function AssignmentListItem({ item, onClick }: AssignmentListItemProps) {
+export function AssignmentListItem({ item, onClick, showShare = false }: AssignmentListItemProps) {
   return (
     <div
       onClick={onClick}
@@ -28,8 +31,14 @@ export function AssignmentListItem({ item, onClick }: AssignmentListItemProps) {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 space-y-1.5">
-        <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary leading-snug truncate">
-          {item.productName}
+        <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary leading-snug truncate flex items-center gap-1.5">
+          {item.productName.length > 80 ? `${item.productName.slice(0, 80)}…` : item.productName}
+          {showShare && item.dealCode && (
+            <span className="inline-flex items-center gap-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
+              <CopyableCode code={item.dealCode} />
+              <ShareOnWhatsAppButton dealCode={item.dealCode} stopPropagation />
+            </span>
+          )}
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap">

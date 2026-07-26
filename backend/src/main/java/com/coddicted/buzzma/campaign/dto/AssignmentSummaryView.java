@@ -16,4 +16,5 @@ public record AssignmentSummaryView(
     BigInteger originalPricePaise,
     BigInteger offeredPricePaise,
     Integer slotLimit,
-    CampaignStatus campaignStatus) {}
+    CampaignStatus campaignStatus,
+    String dealCode) {}

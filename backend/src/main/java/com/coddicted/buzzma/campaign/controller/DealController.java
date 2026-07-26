@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
+import com.coddicted.buzzma.campaign.dto.DealResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedDealsResponseDto;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.DealMapper;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -82,5 +84,12 @@ public class DealController {
   @PreAuthorize(UserRole.Expr.MEDIATOR)
   public List<String> getPublishedBrandNames(@CurrentUserId final UUID requesterId) {
     return this.dealService.getPublishedBrandNames(requesterId);
+  }
+
+  @GetMapping("/by-code/{code}")
+  @PreAuthorize(UserRole.Expr.MEDIATOR)
+  public DealResponseDto getByCode(
+      @CurrentUserId final UUID requesterId, @PathVariable final String code) {
+    return this.dealMapper.toDealResponse(this.dealService.getByCodeForOwner(code, requesterId));
   }
 }

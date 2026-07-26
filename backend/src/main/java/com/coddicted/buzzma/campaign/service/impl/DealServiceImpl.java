@@ -6,9 +6,11 @@ import com.coddicted.buzzma.campaign.persistence.DealRepository;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,5 +64,19 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
   @Transactional(readOnly = true)
   public List<String> getPublishedBrandNames(final UUID mediatorId) {
     return this.dealRepository.findDistinctBrandNamesForMediator(mediatorId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<String> findCodeByCampaignAndOwner(final UUID campaignId, final UUID ownerId) {
+    return this.dealRepository.findCodeByCampaignIdAndOwnerId(campaignId, ownerId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Deal getByCodeForOwner(final String code, final UUID ownerId) {
+    return this.dealRepository
+        .findByCodeAndOwnerIdAndIsDeletedFalse(code, ownerId)
+        .orElseThrow(() -> new NotFoundException("Deal not found: " + code));
   }
 }

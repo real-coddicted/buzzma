@@ -14,6 +14,7 @@ export interface AssignmentSummary {
   originalPricePaise: number
   offeredPricePaise: number
   slotsOffered: number
+  dealCode?: string
 }
 
 export interface AssignmentItem extends AssignmentSummary {

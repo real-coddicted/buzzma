@@ -15,6 +15,7 @@ import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
 import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
+import com.coddicted.buzzma.campaign.processor.CampaignAssignmentProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
@@ -39,7 +40,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
-class AssignmentServiceImplTest {
+class CampaignAssignmentProcessorTest {
 
   @Mock private CampaignService mockCampaignService;
   @Mock private CampaignAssignmentService mockCampaignAssignmentService;
@@ -48,12 +49,12 @@ class AssignmentServiceImplTest {
   @Mock private AssignmentMapper mockAssignmentMapper;
   @Mock private ConnectionService mockConnectionService;
   @Mock private DealEventPublisher mockDealEventPublisher;
-  private AssignmentServiceImpl assignmentService;
+  private CampaignAssignmentProcessor campaignAssignmentProcessor;
 
   @BeforeEach
   void setUp() {
-    this.assignmentService =
-        new AssignmentServiceImpl(
+    this.campaignAssignmentProcessor =
+        new CampaignAssignmentProcessor(
             this.mockCampaignService,
             this.mockCampaignAssignmentService,
             this.mockCommissionService,
@@ -69,7 +70,7 @@ class AssignmentServiceImplTest {
     when(this.mockCampaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
 
     final Assignment result =
-        this.assignmentService.getAssignmentById(ASSIGNMENT_ID_1, ASSIGNEE_ID);
+        this.campaignAssignmentProcessor.getAssignmentById(ASSIGNMENT_ID_1, ASSIGNEE_ID);
 
     assertEquals(CAMPAIGN_1, result.getCampaign());
     assertEquals(ASSIGNMENT_1, result.getCampaignAssignment());
@@ -81,7 +82,7 @@ class AssignmentServiceImplTest {
 
     assertThrows(
         ForbiddenException.class,
-        () -> this.assignmentService.getAssignmentById(ASSIGNMENT_ID_1, NON_OWNER_ID));
+        () -> this.campaignAssignmentProcessor.getAssignmentById(ASSIGNMENT_ID_1, NON_OWNER_ID));
   }
 
   @Test
@@ -93,7 +94,8 @@ class AssignmentServiceImplTest {
         .thenReturn(Set.of(CAMPAIGN_1));
 
     final Set<Assignment> result =
-        this.assignmentService.getAssignments(ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT);
+        this.campaignAssignmentProcessor.getAssignments(
+            ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT);
 
     assertEquals(1, result.size());
     final Assignment assignment = result.iterator().next();
@@ -112,7 +114,7 @@ class AssignmentServiceImplTest {
     when(this.mockAssignmentMapper.toSummaryResponse(mockView)).thenReturn(mockDto);
 
     final Page<AssignmentSummaryResponseDto> result =
-        this.assignmentService.getAssignmentSummaries(
+        this.campaignAssignmentProcessor.getAssignmentSummaries(
             ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT, pageable);
 
     assertEquals(1, result.getContent().size());
@@ -125,7 +127,7 @@ class AssignmentServiceImplTest {
     when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
 
     final boolean result =
-        this.assignmentService.publishAssignment(
+        this.campaignAssignmentProcessor.publishAssignment(
             CAMPAIGN_ID_1,
             ASSIGNMENT_ID_1,
             COMMISSION_PAISE,
@@ -164,7 +166,7 @@ class AssignmentServiceImplTest {
     assertThrows(
         BusinessRuleViolationException.class,
         () ->
-            this.assignmentService.publishAssignment(
+            this.campaignAssignmentProcessor.publishAssignment(
                 CAMPAIGN_ID_1,
                 ASSIGNMENT_ID_1,
                 COMMISSION_PAISE,
@@ -183,7 +185,7 @@ class AssignmentServiceImplTest {
     when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
 
     final boolean result =
-        this.assignmentService.publishAssignment(
+        this.campaignAssignmentProcessor.publishAssignment(
             CAMPAIGN_ID_1,
             ASSIGNMENT_ID_1,
             COMMISSION_PAISE,
@@ -219,7 +221,7 @@ class AssignmentServiceImplTest {
         .thenAnswer(invocation -> invocation.getArgument(0));
 
     final boolean result =
-        this.assignmentService.publishAssignment(
+        this.campaignAssignmentProcessor.publishAssignment(
             CAMPAIGN_ID_1,
             ASSIGNMENT_ID_1,
             COMMISSION_PAISE,
@@ -242,7 +244,7 @@ class AssignmentServiceImplTest {
     when(this.mockCampaignAssignmentService.getById(ASSIGNMENT_ID_1)).thenReturn(ASSIGNMENT_1);
 
     final boolean result =
-        this.assignmentService.publishAssignment(
+        this.campaignAssignmentProcessor.publishAssignment(
             CAMPAIGN_ID_1,
             ASSIGNMENT_ID_1,
             COMMISSION_PAISE,

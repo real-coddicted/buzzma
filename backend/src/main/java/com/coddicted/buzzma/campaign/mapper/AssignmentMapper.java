@@ -54,6 +54,7 @@ public interface AssignmentMapper {
         .offeredPricePaise(
             view.offeredPricePaise() != null ? view.offeredPricePaise() : BigInteger.ZERO)
         .slotLimit(view.slotLimit())
+        .dealCode(view.dealCode())
         .build();
   }
 

@@ -1995,6 +1995,7 @@ export interface components {
             offeredPricePaise?: number;
             /** Format: int32 */
             slotLimit?: number;
+            dealCode?: string;
         };
         PagedAssignmentsResponseDto: {
             items?: components["schemas"]["AssignmentSummaryResponseDto"][];
@@ -2032,6 +2033,7 @@ export interface components {
             termsAndConditions?: string;
             sellerName?: string;
             affiliateLinkAllowed?: boolean;
+            dealCode?: string;
         };
         CommissionResponseDto: {
             /** Format: uuid */

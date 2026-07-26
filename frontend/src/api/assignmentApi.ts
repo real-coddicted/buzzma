@@ -26,6 +26,7 @@ function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
     originalPricePaise: dto.originalPricePaise ?? 0,
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     slotsOffered: dto.slotLimit ?? 0,
+    dealCode: dto.dealCode,
   }
 }
 
@@ -50,6 +51,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
     sellerName: dto.sellerName,
     termsAndConditions: dto.termsAndConditions,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    dealCode: dto.dealCode,
   }
 }
 

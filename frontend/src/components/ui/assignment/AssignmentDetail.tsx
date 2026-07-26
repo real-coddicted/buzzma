@@ -3,6 +3,8 @@ import type { AssignmentItem } from '../../../types/AssignmentTypes'
 import { DealInfo } from '../deal/DealInfo'
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { AssignmentForm } from './AssignmentForm'
+import { CopyableCode } from '../CopyableCode'
+import { ShareOnWhatsAppButton } from './ShareOnWhatsAppButton'
 import { fetchCommissionCharged } from '../../../api/assignmentApi'
 
 interface AssignmentDetailProps {
@@ -48,17 +50,25 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
     <div className="max-w-7xl mx-auto space-y-5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-10rem)]">
         <DealInfo deal={deal} />
-        <AssignmentForm
-          assignmentId={item.id}
-          campaignId={item.campaignId}
-          basePricePaise={item.offeredPricePaise}
-          commissionOfferedPaise={item.commissionOfferedPaise}
-          slotsOffered={item.slotsOffered}
-          readOnly={readOnly}
-          commissionChargedPaise={commissionChargedPaise}
-          affiliateLinkAllowed={item.affiliateLinkAllowed}
-          onPublished={onBack}
-        />
+        <div className="flex flex-col gap-3">
+          {readOnly && item.dealCode && (
+            <div className="flex items-center justify-between">
+              <CopyableCode code={item.dealCode} />
+              <ShareOnWhatsAppButton dealCode={item.dealCode} />
+            </div>
+          )}
+          <AssignmentForm
+            assignmentId={item.id}
+            campaignId={item.campaignId}
+            basePricePaise={item.offeredPricePaise}
+            commissionOfferedPaise={item.commissionOfferedPaise}
+            slotsOffered={item.slotsOffered}
+            readOnly={readOnly}
+            commissionChargedPaise={commissionChargedPaise}
+            affiliateLinkAllowed={item.affiliateLinkAllowed}
+            onPublished={onBack}
+          />
+        </div>
       </div>
     </div>
   )

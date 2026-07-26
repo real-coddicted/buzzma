@@ -9,7 +9,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.mapper.CommissionMapper;
-import com.coddicted.buzzma.campaign.service.AssignmentService;
+import com.coddicted.buzzma.campaign.processor.CampaignAssignmentProcessor;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
@@ -31,17 +31,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/assignments")
 public class AssignmentController {
 
-  private final AssignmentService assignmentService;
+  private final CampaignAssignmentProcessor campaignAssignmentProcessor;
   private final CommissionService commissionService;
   private final AssignmentMapper assignmentMapper;
   private final CommissionMapper commissionMapper;
 
   public AssignmentController(
-      final AssignmentService assignmentService,
+      final CampaignAssignmentProcessor campaignAssignmentProcessor,
       final CommissionService commissionService,
       final AssignmentMapper assignmentMapper,
       final CommissionMapper commissionMapper) {
-    this.assignmentService = assignmentService;
+    this.campaignAssignmentProcessor = campaignAssignmentProcessor;
     this.commissionService = commissionService;
     this.assignmentMapper = assignmentMapper;
     this.commissionMapper = commissionMapper;
@@ -55,7 +55,7 @@ public class AssignmentController {
       @RequestParam(defaultValue = "20") final int size) {
     final Pageable pageable = PageRequest.of(page, size);
     final Page<AssignmentSummaryResponseDto> assignmentsPage =
-        this.assignmentService.getAssignmentSummaries(requesterId, status, pageable);
+        this.campaignAssignmentProcessor.getAssignmentSummaries(requesterId, status, pageable);
     return PagedAssignmentsResponseDto.builder()
         .items(assignmentsPage.getContent())
         .total(assignmentsPage.getTotalElements())
@@ -69,7 +69,7 @@ public class AssignmentController {
   public AssignmentResponseDto getAssignmentById(
       @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
     return this.assignmentMapper.toResponse(
-        this.assignmentService.getAssignmentById(id, requesterId));
+        this.campaignAssignmentProcessor.getAssignmentById(id, requesterId));
   }
 
   @PostMapping("/{id}/publish")
@@ -78,7 +78,7 @@ public class AssignmentController {
       @PathVariable final UUID id,
       @Valid @RequestBody final PublishAssignmentRequestDto request) {
 
-    return this.assignmentService.publishAssignment(
+    return this.campaignAssignmentProcessor.publishAssignment(
         request.getCampaignId(),
         id,
         request.getCommissionChargedPaise(),

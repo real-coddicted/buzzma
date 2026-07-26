@@ -4,9 +4,10 @@ import { AssignmentListItem } from './AssignmentListItem'
 interface AssignmentListViewProps {
   items: AssignmentSummary[]
   onSelect?: (item: AssignmentSummary) => void
+  showShare?: boolean
 }
 
-export function AssignmentListView({ items, onSelect }: AssignmentListViewProps) {
+export function AssignmentListView({ items, onSelect, showShare = false }: AssignmentListViewProps) {
   if (items.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -18,7 +19,12 @@ export function AssignmentListView({ items, onSelect }: AssignmentListViewProps)
   return (
     <div className="flex flex-col gap-3">
       {items.map(item => (
-        <AssignmentListItem key={item.id} item={item} onClick={onSelect ? () => onSelect(item) : undefined} />
+        <AssignmentListItem
+          key={item.id}
+          item={item}
+          onClick={onSelect ? () => onSelect(item) : undefined}
+          showShare={showShare}
+        />
       ))}
     </div>
   )

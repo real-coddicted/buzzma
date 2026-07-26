@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,4 +56,16 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       ORDER BY p.brandName
       """)
   List<String> findDistinctBrandNamesForMediator(@Param("mediatorId") UUID mediatorId);
+
+  @Query(
+      """
+      SELECT d.code FROM Deal d
+      WHERE d.campaign.id = :campaignId
+        AND d.ownerId = :ownerId
+        AND d.isDeleted = false
+      """)
+  Optional<String> findCodeByCampaignIdAndOwnerId(
+      @Param("campaignId") UUID campaignId, @Param("ownerId") UUID ownerId);
+
+  Optional<Deal> findByCodeAndOwnerIdAndIsDeletedFalse(String code, UUID ownerId);
 }
