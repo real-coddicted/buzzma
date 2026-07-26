@@ -1,6 +1,6 @@
 export type Theme = 'light' | 'dark'
 
-export type NavPage = 'dashboard' | 'campaigns' | 'connections' | 'assignments' | 'deals' | 'feedback' | 'profile' | 'raise-ticket' | 'my-tickets' | 'notifications' | 'claim-review' | 'users' | 'tickets'
+export type NavPage = 'dashboard' | 'campaigns' | 'connections' | 'assignments' | 'deals' | 'feedback' | 'profile' | 'raise-ticket' | 'my-tickets' | 'notifications' | 'claim-review' | 'users' | 'tickets' | 'my-payments'
 
 export * from './CampaignTypes'
 export * from './DealTypes'
@@ -15,3 +15,4 @@ export * from './AssignmentTypes'
 export * from './NotificationTypes'
 export * from './ClaimReviewTypes'
 export * from './UserTypes'
+export * from './MyPaymentsTypes'

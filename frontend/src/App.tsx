@@ -13,6 +13,7 @@ import { MyTickets } from './pages/MyTickets'
 import { Notifications } from './pages/Notifications'
 import { ClaimReview } from './pages/ClaimReview'
 import { Users } from './pages/Users'
+import { MyPayments } from './pages/MyPayments'
 import { Auth } from './pages/Auth'
 import { fetchUnreadNotificationCount } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
@@ -35,9 +36,9 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
 
-  const validPages = useMemo(() => new Set<string>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets']), [])
+  const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
-  const activePage: NavPage = validPages.has(rawPage) ? (rawPage as NavPage) : 'dashboard'
+  const activePage: NavPage = validPages.has(rawPage as NavPage) ? (rawPage as NavPage) : 'dashboard'
 
   const handleNavigate = useCallback((page: NavPage) => {
     navigate('/' + page)
@@ -112,6 +113,7 @@ export default function App() {
       {activePage === 'claim-review' && <ClaimReview />}
       {activePage === 'users'         && <Users />}
       {activePage === 'tickets' && <MyTickets title="Tickets" fetchFn={fetchAllTickets} />}
+      {activePage === 'my-payments' && <MyPayments />}
     </AppLayout>
   )
 }

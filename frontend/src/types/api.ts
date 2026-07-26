@@ -1243,6 +1243,7 @@ export interface components {
             feedbackTabEnabled?: boolean;
             settingsTabEnabled?: boolean;
             usersTabEnabled?: boolean;
+            myPaymentsTabEnabled?: boolean;
         };
         UpdateProfileRequestDto: {
             email: string;

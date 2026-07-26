@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconTicket, IconSettings, IconChart, IconLogout, IconProfile, IconX } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconTicket, IconSettings, IconChart, IconLogout, IconProfile, IconX, IconRupee } from '../ui/icons'
 import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
@@ -148,6 +148,14 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
               label="Claim Review"
               active={activePage === 'claim-review'}
               onClick={() => onNavigate('claim-review')}
+            />
+          )}
+          {show(userSettings?.myPaymentsTabEnabled) && (
+            <NavItem
+              icon={<IconRupee />}
+              label="My Payments"
+              active={activePage === 'my-payments'}
+              onClick={() => onNavigate('my-payments')}
             />
           )}
           {show(userSettings?.connectionsTabEnabled) && (

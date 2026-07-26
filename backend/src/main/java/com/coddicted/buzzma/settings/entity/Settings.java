@@ -18,4 +18,5 @@ public class Settings {
   boolean feedbackTabEnabled;
   boolean settingsTabEnabled;
   boolean usersTabEnabled;
+  boolean myPaymentsTabEnabled;
 }

@@ -86,6 +86,18 @@ export function IconCurrency({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconRupee({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M6 3h12" />
+      <path d="M6 8h12" />
+      <path d="m6 13 8.5 8" />
+      <path d="M6 13h3" />
+      <path d="M9 13c6.667 0 6.667-10 0-10" />
+    </svg>
+  )
+}
+
 export function IconChart({ size = 18, ...p }: IconProps) {
   return (
     <svg {...base(size, p)}>

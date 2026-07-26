@@ -18,4 +18,5 @@ public class UserSettingsDto {
   boolean feedbackTabEnabled;
   boolean settingsTabEnabled;
   boolean usersTabEnabled;
+  boolean myPaymentsTabEnabled;
 }

@@ -18,6 +18,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   'claim-review': { title: 'Claim Review',   subtitle: 'Review and manage your claims' },
   users:           { title: 'Users',            subtitle: 'Manage users and their access' },
   'tickets':       { title: 'Tickets',          subtitle: 'View and action on user tickets' },
+  'my-payments':   { title: 'My Payments',      subtitle: 'Track all payments received and pending against your claims' },
 }
 
 interface TopbarProps {
