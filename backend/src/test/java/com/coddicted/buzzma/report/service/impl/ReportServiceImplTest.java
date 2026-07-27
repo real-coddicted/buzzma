@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -57,7 +58,7 @@ class ReportServiceImplTest {
             .platform(Platform.PLATFORM_AMAZON)
             .ecommerceOrderId("ORD-1")
             .orderDate(20260101)
-            .claimStatus("CLAIM_STATUS_ACTIVE")
+            .claimStatus(ClaimStatus.APPROVED)
             .claimReviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .matchScore(BigInteger.valueOf(90))
             .mediatorVerified(true)
@@ -82,17 +83,21 @@ class ReportServiceImplTest {
       final Row header = sheet.getRow(0);
       assertEquals("Campaign", header.getCell(0).getStringCellValue());
       assertEquals("Campaign Code", header.getCell(1).getStringCellValue());
-      assertEquals("Mediator Code", header.getCell(4).getStringCellValue());
-      assertEquals("Buyer Code", header.getCell(6).getStringCellValue());
-      assertEquals("Order Date", header.getCell(9).getStringCellValue());
+      assertEquals("Mediator", header.getCell(3).getStringCellValue());
+      assertEquals("Buyer", header.getCell(4).getStringCellValue());
+      assertEquals("Order Date", header.getCell(7).getStringCellValue());
+      assertEquals("Claim Status", header.getCell(9).getStringCellValue());
+      assertEquals("Review Status", header.getCell(11).getStringCellValue());
 
       final Row dataRow = sheet.getRow(1);
       assertEquals("Summer Sale", dataRow.getCell(0).getStringCellValue());
       assertEquals("CMP-001", dataRow.getCell(1).getStringCellValue());
       assertEquals("Acme", dataRow.getCell(2).getStringCellValue());
-      assertEquals("MED-001", dataRow.getCell(4).getStringCellValue());
-      assertEquals("BUY-001", dataRow.getCell(6).getStringCellValue());
-      assertEquals("2026-01-01", dataRow.getCell(9).getStringCellValue());
+      assertEquals("Mediator A", dataRow.getCell(3).getStringCellValue());
+      assertEquals("Buyer A", dataRow.getCell(4).getStringCellValue());
+      assertEquals("2026-01-01", dataRow.getCell(7).getStringCellValue());
+      assertEquals("Approved", dataRow.getCell(9).getStringCellValue());
+      assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
     }
   }
 

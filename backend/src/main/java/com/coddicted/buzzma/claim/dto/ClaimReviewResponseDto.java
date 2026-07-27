@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -29,7 +30,7 @@ public class ClaimReviewResponseDto {
 
   UUID claimId;
   String claimCode;
-  String claimStatus;
+  ClaimStatus claimStatus;
   String ecommerceOrderId;
 
   Boolean mediatorVerified;
