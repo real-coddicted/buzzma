@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
@@ -31,6 +32,7 @@ import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.constants.WellKnownSystemActors;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -266,6 +268,34 @@ class CampaignServiceImplTest {
     verify(this.mockCampaignRepository).save(CAMPAIGN_2);
     verify(this.mockCampaignEventPublisher)
         .publishCampaignStoppedEvent(CAMPAIGN_2, List.of(ASSIGNEE_ID));
+  }
+
+  @Test
+  void testActionCloseWithWellKnownSystemActorBypassesOwnershipCheck() {
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_2)).thenReturn(Optional.of(CAMPAIGN_2));
+    when(this.mockCampaignRepository.save(CAMPAIGN_2)).thenReturn(CAMPAIGN_2);
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_2))
+        .thenReturn(List.of(ASSIGNMENT_1));
+
+    this.campaignService.action(
+        CAMPAIGN_ID_2, CAMPAIGN_ACTION_CLOSE, WellKnownSystemActors.SYSTEM_USER_ID);
+
+    verify(this.mockStateMachine).transition(CAMPAIGN_2, CAMPAIGN_STATUS_CLOSED);
+    verify(this.mockCampaignRepository).save(CAMPAIGN_2);
+    verify(this.mockCampaignEventPublisher)
+        .publishCampaignStoppedEvent(CAMPAIGN_2, List.of(ASSIGNEE_ID));
+  }
+
+  @Test
+  void testFindExpiredCampaigns() {
+    final List<CampaignStatus> statuses = List.of(CAMPAIGN_STATUS_ACTIVE, CAMPAIGN_STATUS_PAUSED);
+    when(this.mockCampaignRepository.findExpiredCampaigns(
+            statuses, 20260101, PageRequest.of(0, 50)))
+        .thenReturn(List.of(CAMPAIGN_1));
+
+    final List<Campaign> result = this.campaignService.findExpiredCampaigns(statuses, 20260101, 50);
+
+    assertEquals(List.of(CAMPAIGN_1), result);
   }
 
   @Test

@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.service;
 
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE;
+import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ASSIGNED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_CLOSED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_COMPLETED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_DRAFT;
@@ -21,6 +22,7 @@ public class CampaignStateMachine {
           CAMPAIGN_STATUS_DRAFT, Set.of(CAMPAIGN_STATUS_ACTIVE),
           CAMPAIGN_STATUS_ACTIVE,
               Set.of(CAMPAIGN_STATUS_PAUSED, CAMPAIGN_STATUS_CLOSED, CAMPAIGN_STATUS_COMPLETED),
+          CAMPAIGN_STATUS_ASSIGNED, Set.of(CAMPAIGN_STATUS_CLOSED),
           CAMPAIGN_STATUS_PAUSED, Set.of(CAMPAIGN_STATUS_ACTIVE, CAMPAIGN_STATUS_CLOSED));
 
   public void transition(final Campaign campaign, final CampaignStatus to) {

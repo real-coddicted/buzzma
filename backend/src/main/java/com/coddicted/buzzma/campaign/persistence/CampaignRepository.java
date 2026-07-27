@@ -96,4 +96,16 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         AND c.status = CampaignStatus.CAMPAIGN_STATUS_DRAFT
       """)
   int deleteDraftCampaign(@Param("ownerId") UUID ownerId, @Param("campaignId") UUID campaignId);
+
+  @Query(
+      """
+      SELECT c FROM Campaign c
+      WHERE c.isDeleted = false
+        AND c.status IN :statuses
+        AND c.endDate < :today
+      """)
+  List<Campaign> findExpiredCampaigns(
+      @Param("statuses") List<CampaignStatus> statuses,
+      @Param("today") Integer today,
+      Pageable pageable);
 }

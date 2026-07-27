@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.service;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import java.util.List;
@@ -35,4 +36,6 @@ public interface CampaignService {
   List<String> getBrandNames(UUID ownerId);
 
   List<Campaign> getCampaignsForOwner(UUID ownerId);
+
+  List<Campaign> findExpiredCampaigns(List<CampaignStatus> statuses, int today, int batchSize);
 }

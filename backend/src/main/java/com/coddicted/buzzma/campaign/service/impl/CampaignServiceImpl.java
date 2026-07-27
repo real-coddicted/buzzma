@@ -17,6 +17,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.constants.WellKnownSystemActors;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -30,6 +31,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -204,6 +206,14 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     return byId.values().stream().sorted(Comparator.comparing(Campaign::getTitle)).toList();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<Campaign> findExpiredCampaigns(
+      final List<CampaignStatus> statuses, final int today, final int batchSize) {
+    return this.campaignRepository.findExpiredCampaigns(
+        statuses, today, PageRequest.of(0, batchSize));
+  }
+
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {
     final List<UUID> campaignIds = campaigns.stream().map(Campaign::getId).toList();
     return this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds).stream()
@@ -229,7 +239,8 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       final UUID campaignId, final CampaignStatus target, final UUID requesterId) {
 
     final Campaign campaign = getById(campaignId);
-    if (!campaign.getOwnerId().equals(requesterId)) {
+    if (!WellKnownSystemActors.SYSTEM_USER_ID.equals(requesterId)
+        && !campaign.getOwnerId().equals(requesterId)) {
       throw new ForbiddenException(
           "Only the campaign owner can perform this action on the campaign");
     }
