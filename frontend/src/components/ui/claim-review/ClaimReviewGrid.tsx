@@ -222,7 +222,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     key={col}
                     className={[
                       'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                      col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Mediator Verified' ? 'text-center' : 'text-left',
+                      col === 'Actions' || col === 'Claim Status' || col === 'Review Status' ? 'text-center' : 'text-left',
                     ].join(' ')}
                   >
                     {col}
@@ -285,12 +285,6 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                       <div className="flex justify-center">
                         <ReviewStatusCell status={row.reviewStatus} approvalMethod={row.approvalMethod} />
                       </div>
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      {row.mediatorVerified
-                        ? <span className="text-neon-green text-base" title="Verified">✔</span>
-                        : <span className="text-ink-light-muted dark:text-ink-dark-muted text-base" title="Not verified">✗</span>
-                      }
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2 min-w-[96px]">

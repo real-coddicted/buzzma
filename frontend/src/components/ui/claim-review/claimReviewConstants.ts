@@ -34,7 +34,6 @@ export const CLAIM_REVIEW_COLUMNS = [
   'Mediator Name',
   'Claim Status',
   'Review Status',
-  'Mediator Verified',
   'Match %',
   'Actions',
 ] as const
