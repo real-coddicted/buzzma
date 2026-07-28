@@ -1,8 +1,20 @@
 import type { ClaimStatus, ReviewStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
-  'in-progress': { label: 'In Progress', colorClass: 'text-neon-blue' },
-  'completed':   { label: 'Completed',   colorClass: 'text-neon-green' },
+  'CREATED':                    { label: 'Created',                    colorClass: 'text-neon-blue'   },
+  'REDIRECTED':                 { label: 'Redirected',                 colorClass: 'text-neon-blue'   },
+  'ORDERED':                    { label: 'Ordered',                    colorClass: 'text-neon-blue'   },
+  'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
+  'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },
+  'PROOF_SUBMITTED':            { label: 'Proof Submitted',            colorClass: 'text-neon-purple' },
+  'PROOF_REJECTED':             { label: 'Proof Rejected',             colorClass: 'text-neon-red'    },
+  'UNDER_REVIEW':               { label: 'Under Review',               colorClass: 'text-neon-yellow' },
+  'ADDITIONAL_PROOF_REQUESTED': { label: 'Additional Proof Requested', colorClass: 'text-neon-orange' },
+  'APPROVED':                   { label: 'Approved',                   colorClass: 'text-neon-green'  },
+  'REJECTED':                   { label: 'Rejected',                   colorClass: 'text-neon-red'    },
+  'REWARD_PENDING':             { label: 'Reward Pending',             colorClass: 'text-neon-yellow' },
+  'COMPLETED':                  { label: 'Completed',                  colorClass: 'text-neon-green'  },
+  'FAILED':                     { label: 'Failed',                     colorClass: 'text-neon-red'    },
 }
 
 export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; classes: string; activeClass: string }> = {

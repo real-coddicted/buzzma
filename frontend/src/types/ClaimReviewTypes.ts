@@ -3,7 +3,21 @@ import type { Platform } from './CampaignTypes'
 
 type ScoredValue = components['schemas']['ScoredValue']
 
-export type ClaimStatus = 'in-progress' | 'completed'
+export type ClaimStatus =
+  | 'CREATED'
+  | 'REDIRECTED'
+  | 'ORDERED'
+  | 'RATING_SUBMITTED'
+  | 'REVIEW_SUBMITTED'
+  | 'PROOF_SUBMITTED'
+  | 'PROOF_REJECTED'
+  | 'UNDER_REVIEW'
+  | 'ADDITIONAL_PROOF_REQUESTED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'REWARD_PENDING'
+  | 'COMPLETED'
+  | 'FAILED'
 export type ReviewStatus = 'pending' | 'in-review' | 'approved' | 'rejected' | 'objected'
 export type ApprovalMethod = 'manual' | 'auto'
 

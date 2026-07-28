@@ -15,7 +15,7 @@ type PageClaimReviewResponseDto = components['schemas']['PageClaimReviewResponse
 
 
 function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
-  return status === 'COMPLETED' || status === 'REWARD_PENDING' ? 'completed' : 'in-progress'
+  return status
 }
 
 function reviewStatusFromClaimReviewStatus(status: ClaimReviewStatus): ReviewStatus {

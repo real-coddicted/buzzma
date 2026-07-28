@@ -12,7 +12,7 @@ function makeRow(overrides: Partial<ClaimReviewItem> = {}): ClaimReviewItem {
     mediatorId: 'med-1',
     mediatorName: 'Alice',
     buyerName: 'Bob',
-    claimStatus: 'in-progress',
+    claimStatus: 'CREATED',
     reviewStatus: 'pending',
     approvalMethod: 'manual',
     mediatorVerified: false,
