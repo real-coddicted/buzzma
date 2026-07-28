@@ -19,6 +19,7 @@ public final class SettingsUtils {
         .settingsTabEnabled(true)
         .usersTabEnabled(true)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 
@@ -32,6 +33,7 @@ public final class SettingsUtils {
         .settingsTabEnabled(true)
         .usersTabEnabled(false)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 
@@ -47,6 +49,7 @@ public final class SettingsUtils {
         .settingsTabEnabled(true)
         .usersTabEnabled(false)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 
@@ -61,6 +64,7 @@ public final class SettingsUtils {
         .settingsTabEnabled(true)
         .usersTabEnabled(false)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 
@@ -73,6 +77,7 @@ public final class SettingsUtils {
         .settingsTabEnabled(true)
         .usersTabEnabled(false)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 
@@ -82,6 +87,7 @@ public final class SettingsUtils {
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)
         .myPaymentsTabEnabled(false)
+        .userPayoutsTabEnabled(false)
         .build();
   }
 }

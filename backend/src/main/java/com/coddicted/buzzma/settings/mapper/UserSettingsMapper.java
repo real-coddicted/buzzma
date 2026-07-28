@@ -23,6 +23,7 @@ public interface UserSettingsMapper {
   @Mapping(source = "settings.settingsTabEnabled", target = "settingsTabEnabled")
   @Mapping(source = "settings.usersTabEnabled", target = "usersTabEnabled")
   @Mapping(source = "settings.myPaymentsTabEnabled", target = "myPaymentsTabEnabled")
+  @Mapping(source = "settings.userPayoutsTabEnabled", target = "userPayoutsTabEnabled")
   UserSettingsDto toUserSettingsDto(UserSettings userSettings);
 
   @Mapping(source = "dashboardTabEnabled", target = "dashboardTabEnabled")
@@ -36,6 +37,7 @@ public interface UserSettingsMapper {
   @Mapping(source = "settingsTabEnabled", target = "settingsTabEnabled")
   @Mapping(source = "usersTabEnabled", target = "usersTabEnabled")
   @Mapping(source = "myPaymentsTabEnabled", target = "myPaymentsTabEnabled")
+  @Mapping(source = "userPayoutsTabEnabled", target = "userPayoutsTabEnabled")
   Settings toSettings(UserSettingsDto dto);
 
   @Mapping(target = "id", ignore = true)
