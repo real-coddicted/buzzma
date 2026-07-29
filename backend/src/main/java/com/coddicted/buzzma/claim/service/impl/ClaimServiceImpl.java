@@ -17,6 +17,7 @@ import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
+import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
@@ -57,6 +58,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
+  private final ClaimReviewEventPublisher claimReviewEventPublisher;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -67,7 +69,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignTypeStepService campaignTypeStepService,
       final StorageService storageService,
       final ExtractionService extractionService,
-      final CodeGenerationService codeGenerationService) {
+      final CodeGenerationService codeGenerationService,
+      final ClaimReviewEventPublisher claimReviewEventPublisher) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -77,6 +80,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
+    this.claimReviewEventPublisher = claimReviewEventPublisher;
   }
 
   @Override
@@ -299,6 +303,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String reviewerComments) {
 
     Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
 
     final ClaimScreenshot screenshot =
         this.claimScreenshotRepository
@@ -325,9 +330,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                   .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED)
                   .updatedBy(reviewerId)
                   .build());
+      this.claimReviewEventPublisher.publishScreenshotReviewedEvent(
+          claim, deal, screenshot.getType(), action, reviewerId, reviewerComments);
     }
 
-    return new ClaimWithDeal(claim, this.dealService.getById(claim.getDealId()));
+    return new ClaimWithDeal(claim, deal);
   }
 
   @Override

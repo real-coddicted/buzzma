@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import static com.coddicted.buzzma.claim.entity.ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
@@ -9,11 +10,14 @@ import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_R
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
@@ -28,6 +32,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
+import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
@@ -65,6 +70,7 @@ class ClaimServiceImplTest {
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
+  @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -79,7 +85,8 @@ class ClaimServiceImplTest {
             this.mockCampaignTypeStepService,
             this.mockStorageService,
             this.mockExtractionService,
-            this.mockCodeGenerationService);
+            this.mockCodeGenerationService,
+            this.mockClaimReviewEventPublisher);
   }
 
   @Test
@@ -480,6 +487,70 @@ class ClaimServiceImplTest {
             campaignIds, mediatorIds, claimStatuses, pageable);
 
     assertEquals(expected, result);
+  }
+
+  @Test
+  void testReviewScreenshotRejected() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    final Claim rejectedClaim =
+        CLAIM_1.toBuilder()
+            .status(ClaimStatus.PROOF_REJECTED)
+            .reviewStatus(CLAIM_REVIEW_STATUS_OBJECTED)
+            .updatedBy(OWNER_ID)
+            .build();
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(rejectedClaim);
+
+    final ClaimWithDeal result =
+        this.claimService.reviewScreenshot(
+            SCREENSHOT_ID,
+            CLAIM_ID,
+            SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+            OWNER_ID,
+            REVIEWER_COMMENTS);
+
+    assertEquals(rejectedClaim, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    assertEquals(ClaimStatus.PROOF_REJECTED, claimCaptor.getValue().getStatus());
+    assertEquals(CLAIM_REVIEW_STATUS_OBJECTED, claimCaptor.getValue().getReviewStatus());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(
+        SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+        screenshotCaptor.getValue().getVerificationStatus());
+    assertEquals(REVIEWER_COMMENTS, screenshotCaptor.getValue().getReviewerComments());
+
+    verify(this.mockClaimReviewEventPublisher)
+        .publishScreenshotReviewedEvent(
+            rejectedClaim,
+            DEAL_1,
+            SCREENSHOT_TYPE_ORDER,
+            SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+            OWNER_ID,
+            REVIEWER_COMMENTS);
+  }
+
+  @Test
+  void testReviewScreenshotVerifiedDoesNotPublishEvent() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+
+    final ClaimWithDeal result =
+        this.claimService.reviewScreenshot(
+            SCREENSHOT_ID, CLAIM_ID, SCREENSHOT_VERIFICATION_STATUS_VERIFIED, OWNER_ID, null);
+
+    assertEquals(CLAIM_1, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
   }
 
   private Map<com.coddicted.buzzma.campaign.entity.CampaignType, List<CampaignTypeStep>>
