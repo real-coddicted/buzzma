@@ -96,5 +96,9 @@ public interface ClaimService {
       String reviewerComment,
       BigInteger amountApprovedPaise);
 
+  List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
+
+  List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);
+
   void updateClaimScore(UUID claimId);
 }

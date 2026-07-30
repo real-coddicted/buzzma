@@ -9,5 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClaimScreenshotRepository extends JpaRepository<ClaimScreenshot, UUID> {
 
+  List<ClaimScreenshot> findByClaimIdAndIsDeletedFalse(UUID claimId);
+
   List<ClaimScreenshot> findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(UUID claimId);
 }

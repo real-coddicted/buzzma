@@ -32,6 +32,7 @@ import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -454,28 +455,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           this.claimRepository.save(
               claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
     } else if (decision == ReviewerDecision.APPROVED) {
-      final List<ClaimScreenshot> screenshots =
-          this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(claimId);
-      screenshots.forEach(
-          s ->
-              this.claimScreenshotRepository.save(
-                  s.toBuilder()
-                      .verificationStatus(
-                          ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
-                      .updatedAt(Instant.now())
-                      .updatedBy(reviewerId)
-                      .build()));
       updated =
-          this.claimRepository.save(
-              claim.toBuilder()
-                  .status(ClaimStatus.APPROVED)
-                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
-                  .reviewerComments(reviewerComment)
-                  .reviewerId(reviewerId)
-                  .amountApprovedPaise(amountApprovedPaise)
-                  .updatedAt(Instant.now())
-                  .updatedBy(reviewerId)
-                  .build());
+          approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
     } else {
       updated =
           this.claimRepository.save(
@@ -490,6 +471,53 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
 
     return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkApproveClaimReviews(
+      final Map<UUID, java.math.BigInteger> claimAmounts, final UUID reviewerId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final Map.Entry<UUID, java.math.BigInteger> entry : claimAmounts.entrySet()) {
+      final Claim claim = loadAndVerifyOwnership(entry.getKey(), reviewerId);
+      final Claim updated = approveClaimWithScreenshots(claim, reviewerId, entry.getValue(), null);
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  private Claim approveClaimWithScreenshots(
+      final Claim claim,
+      final UUID reviewerId,
+      final java.math.BigInteger amountApprovedPaise,
+      final String reviewerComments) {
+    this.claimScreenshotRepository
+        .findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(claim.getId())
+        .forEach(
+            s ->
+                this.claimScreenshotRepository.save(
+                    s.toBuilder()
+                        .verificationStatus(
+                            ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
+                        .updatedAt(Instant.now())
+                        .updatedBy(reviewerId)
+                        .build()));
+    return this.claimRepository.save(
+        claim.toBuilder()
+            .status(ClaimStatus.APPROVED)
+            .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
+            .reviewerComments(reviewerComments)
+            .reviewerId(reviewerId)
+            .amountApprovedPaise(amountApprovedPaise)
+            .updatedAt(Instant.now())
+            .updatedBy(reviewerId)
+            .build());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ClaimReviewModel> findClaimReviewModels(final Collection<UUID> claimIds) {
+    return this.claimRepository.findClaimReviewModelsByIds(claimIds);
   }
 
   @Override

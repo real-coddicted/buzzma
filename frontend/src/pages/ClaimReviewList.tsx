@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
-import { fetchClaimsToReview, submitClaimReview } from '../api/claimApi'
+import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews } from '../api/claimApi'
 import { type ClaimReviewFilters, emptyFilters } from '../components/ui/claim-review/filters/ClaimReviewFilterTypes'
 import type { ClaimReviewItem } from '../types'
 
@@ -33,6 +33,18 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
       .catch(err => setError((err as Error).message))
   }
 
+  function handleBulkApprove(selectedClaims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>): Promise<void> {
+    return bulkApproveClaimReviews(selectedClaims.map(c => ({ claimId: c.id, amountApprovedPaise: approvedAmountsPaise[c.id] })))
+      .then(updatedList => {
+        const updatedById = new Map(updatedList.map(u => [u.id, u]))
+        setClaims(prev => prev.map(c => {
+          const updated = updatedById.get(c.id)
+          return updated ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c
+        }))
+      })
+      .catch(err => setError((err as Error).message))
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <div>
@@ -47,6 +59,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
         onApplyFilters={setAppliedFilters}
         onViewDetails={onViewDetails}
         onApprove={handleApprove}
+        onBulkApprove={handleBulkApprove}
       />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>

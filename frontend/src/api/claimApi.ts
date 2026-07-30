@@ -363,6 +363,31 @@ export async function reviewScreenshot(screenshotId: string, claimId: string, ac
   return mapClaim((await res.json()) as ClaimResponseDto)
 }
 
+export async function bulkApproveClaimReviews(
+  items: Array<{ claimId: string; reviewerComment?: string; amountApprovedPaise?: number }>
+): Promise<ClaimReviewItem[]> {
+  const body = items.map(item => ({
+    claimId: item.claimId,
+    reviewerDecision: 'APPROVED',
+    reviewerComment: item.reviewerComment ?? '',
+    amountApprovedPaise: item.amountApprovedPaise,
+  }))
+  const res = await fetchWithAuth(`${API_BASE}/claims/bulkSubmitReview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    let message = 'Failed to bulk approve claims.'
+    try {
+      const resBody = (await res.clone().json()) as Record<string, unknown>
+      if (typeof resBody['message'] === 'string') message = resBody['message']
+    } catch (e) { console.error('Failed to parse bulk approve error response:', e) }
+    throw new Error(message)
+  }
+  return ((await res.json()) as ClaimReviewResponseDto[]).map(mapClaimReview)
+}
+
 export async function submitClaimReview(
   claimId: string,
   decision: 'APPROVED' | 'REJECTED' | 'VERIFIED',

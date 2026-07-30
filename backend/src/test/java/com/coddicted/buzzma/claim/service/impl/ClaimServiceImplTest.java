@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import static com.coddicted.buzzma.claim.entity.ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED;
 import static com.coddicted.buzzma.claim.entity.ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.APPROVED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
@@ -551,6 +553,50 @@ class ClaimServiceImplTest {
     assertEquals(CLAIM_1, result.claim());
     assertEquals(DEAL_1, result.deal());
     verifyNoInteractions(this.mockClaimReviewEventPublisher);
+  }
+
+  @Test
+  void testBulkApproveClaimReviews() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    final List<ClaimWithDeal> results =
+        this.claimService.bulkApproveClaimReviews(
+            Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID);
+
+    assertEquals(1, results.size());
+    assertEquals(DEAL_1, results.get(0).deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(APPROVED, saved.getStatus());
+    assertEquals(CLAIM_REVIEW_STATUS_APPROVED, saved.getReviewStatus());
+    assertEquals(OWNER_ID, saved.getReviewerId());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(
+        SCREENSHOT_VERIFICATION_STATUS_VERIFIED,
+        screenshotCaptor.getValue().getVerificationStatus());
+  }
+
+  @Test
+  void testBulkApproveClaimReviewsWhenClaimNotFound() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimService.bulkApproveClaimReviews(
+                    Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 
   private Map<com.coddicted.buzzma.campaign.entity.CampaignType, List<CampaignTypeStep>>

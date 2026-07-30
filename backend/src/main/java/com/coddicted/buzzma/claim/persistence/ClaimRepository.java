@@ -86,6 +86,20 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       Pageable pageable);
 
+  @Query(
+      value =
+          """
+          SELECT new com.coddicted.buzzma.claim.model.ClaimReviewModel(
+            c, d.campaign, d.ownerId, m.name, m.code, b.name, b.code)
+          FROM Claim c
+            JOIN Deal d ON d.id = c.dealId
+            JOIN BuzzmaUser b ON b.id = c.ownerId
+            JOIN BuzzmaUser m ON m.id = d.ownerId
+          WHERE c.id IN :claimIds AND c.isDeleted = false AND d.isDeleted = false
+          ORDER BY c.updatedAt DESC
+          """)
+  List<ClaimReviewModel> findClaimReviewModelsByIds(@Param("claimIds") Collection<UUID> claimIds);
+
   @Modifying
   @Query(
       nativeQuery = true,

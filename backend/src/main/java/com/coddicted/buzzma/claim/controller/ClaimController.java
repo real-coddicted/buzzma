@@ -16,6 +16,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
+import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
@@ -26,7 +27,10 @@ import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -56,6 +60,7 @@ public class ClaimController {
   private final DealService dealService;
   private final CampaignTypeStepService campaignTypeStepService;
   private final ClaimMapper claimMapper;
+  private final ClaimReviewMapper claimReviewMapper;
   private final ClaimReviewProcessor claimReviewProcessor;
 
   public ClaimController(
@@ -63,11 +68,13 @@ public class ClaimController {
       final DealService dealService,
       final CampaignTypeStepService campaignTypeStepService,
       final ClaimMapper claimMapper,
+      final ClaimReviewMapper claimReviewMapper,
       final ClaimReviewProcessor claimReviewProcessor) {
     this.claimService = claimService;
     this.dealService = dealService;
     this.campaignTypeStepService = campaignTypeStepService;
     this.claimMapper = claimMapper;
+    this.claimReviewMapper = claimReviewMapper;
     this.claimReviewProcessor = claimReviewProcessor;
   }
 
@@ -203,6 +210,22 @@ public class ClaimController {
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/bulkSubmitReview")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public List<ClaimReviewResponseDto> bulkSubmitClaimReview(
+      @CurrentUser final BuzzmaUser requester,
+      @Valid @RequestBody final List<@Valid ClaimReviewRequestDto> requests) {
+    final Map<UUID, BigInteger> claimAmounts = new HashMap<>();
+    for (final ClaimReviewRequestDto r : requests) {
+      claimAmounts.put(r.getClaimId(), r.getAmountApprovedPaise());
+    }
+    this.claimService.bulkApproveClaimReviews(claimAmounts, requester.getId());
+    final List<UUID> claimIds = requests.stream().map(ClaimReviewRequestDto::getClaimId).toList();
+    return this.claimService.findClaimReviewModels(claimIds).stream()
+        .map(this.claimReviewMapper::toResponse)
+        .toList();
   }
 
   @PostMapping("/screenshots/review")

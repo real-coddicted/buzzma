@@ -138,21 +138,6 @@ with seed migrations before they reach CI.
 
 ## Phase 2 implementation notes
 
-### Package layout
-
-```
-com.coddicted.buzzma.configurator/
-  config/       SecurityConfig, ConfiguratorProperties
-  converter/    AttributeConverters for the three PostgreSQL enum types
-  controller/   ConfigController  (/v1/configs)
-  dto/          Request/response DTOs
-  entity/       ConfigEntry, ConfigEntryHistory
-  enums/        ValueTypeEnum, EntryStatusEnum, EvaluationTypeEnum
-  exception/    Typed exceptions + GlobalExceptionHandler
-  repository/   ConfigEntryRepository, ConfigEntryHistoryRepository
-  service/      ConfigService
-```
-
 ### Auth — Phase 2 uses HTTP Basic
 
 Write endpoints (`POST`, `PUT`, `DELETE`) require HTTP Basic authentication.

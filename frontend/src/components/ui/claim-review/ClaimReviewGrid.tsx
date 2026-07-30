@@ -8,6 +8,8 @@ import { ClaimReviewActions } from './ClaimReviewActions'
 import { CLAIM_REVIEW_COLUMNS, REVIEW_STATUS_CONFIG } from './claimReviewConstants'
 import { ReviewStatusCell } from './ReviewStatusCell'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
+import { AlertModal } from '../AlertModal'
+import { ConfirmModal } from '../ConfirmModal'
 import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 import { IconCalendar } from '../icons'
@@ -32,17 +34,23 @@ interface ClaimReviewGridProps {
   onApplyFilters: (filters: ClaimReviewFilters) => void
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
+  onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [campaignOptions, setCampaignOptions] = useState<TypeaheadOption[]>([])
   const [brandOptions, setBrandOptions] = useState<TypeaheadOption[]>([])
   const [mediatorOptions, setMediatorOptions] = useState<TypeaheadOption[]>([])
   const [optionsError, setOptionsError] = useState<string | null>(null)
   const [downloadingReport, setDownloadingReport] = useState(false)
+  const [showBulkAmountError, setShowBulkAmountError] = useState(false)
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false)
+  const [pendingBulkAmounts, setPendingBulkAmounts] = useState<Record<string, number>>({})
+  const [bulkApproving, setBulkApproving] = useState(false)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const columns = isMediator
     ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator Name' ? 'Buyer Name' : col)
@@ -197,6 +205,55 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     setApprovedAmounts(prev => ({ ...prev, [id]: value }))
   }, [])
 
+  const selectedClaims = useMemo(
+    () => filtered.filter(r => selectedIds.has(r.id)),
+    [filtered, selectedIds]
+  )
+  const selectableRows = useMemo(
+    () => filtered.filter(r => r.reviewStatus !== 'approved' && r.reviewStatus !== 'rejected' && r.reviewStatus !== 'objected'),
+    [filtered]
+  )
+  const allSelected = selectableRows.length > 0 && selectableRows.every(r => selectedIds.has(r.id))
+  const allSelectedApprovable = selectedClaims.length > 0 && selectedClaims.every(r => r.isUnderReview)
+
+  function toggleRow(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll(checked: boolean) {
+    setSelectedIds(checked ? new Set(selectableRows.map(r => r.id)) : new Set())
+  }
+
+  function handleBulkApproveClick() {
+    const missing = selectedClaims.filter(c => !approvedAmounts[c.id]?.trim())
+    if (missing.length > 0) {
+      setShowBulkAmountError(true)
+      return
+    }
+    const amountsPaise: Record<string, number> = {}
+    for (const claim of selectedClaims) {
+      amountsPaise[claim.id] = rupeesToPaise(parseFloat(approvedAmounts[claim.id]))
+    }
+    setPendingBulkAmounts(amountsPaise)
+    setShowBulkConfirm(true)
+  }
+
+  async function handleBulkConfirm() {
+    setBulkApproving(true)
+    try {
+      await onBulkApprove(selectedClaims, pendingBulkAmounts)
+      setSelectedIds(new Set())
+    } finally {
+      setBulkApproving(false)
+      setShowBulkConfirm(false)
+    }
+  }
+
   function handleAction(action: string, row: ClaimReviewItem) {
     if (action === 'details') {
       onViewDetails(row)
@@ -243,6 +300,16 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
+                {!isMediator && (
+                  <th className="pl-5 pr-2 py-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={e => toggleAll(e.target.checked)}
+                      className="w-4 h-4 accent-neon-blue cursor-pointer"
+                    />
+                  </th>
+                )}
                 {columns.map(col => (
                   <th
                     key={col}
@@ -259,7 +326,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
             <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-5 py-10 text-center">
+                  <td colSpan={columns.length + (isMediator ? 0 : 1)} className="px-5 py-10 text-center">
                     <div className="flex justify-center text-ink-light-muted dark:text-ink-dark-muted">
                       <Loading size={32} />
                     </div>
@@ -267,7 +334,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                  <td colSpan={columns.length + (isMediator ? 0 : 1)} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                     No orders match your filter.
                   </td>
                 </tr>
@@ -276,8 +343,22 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                   <tr
                     key={row.id}
                     onClick={() => handleAction('details', row)}
-                    className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group cursor-pointer"
+                    className={[
+                      'hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group cursor-pointer',
+                      selectedIds.has(row.id) ? 'bg-neon-blue/5' : '',
+                    ].join(' ')}
                   >
+                    {!isMediator && (
+                      <td className="pl-5 pr-2 py-4 w-8" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(row.id)}
+                          onChange={() => toggleRow(row.id)}
+                          disabled={row.reviewStatus === 'approved' || row.reviewStatus === 'rejected' || row.reviewStatus === 'objected'}
+                          className="w-4 h-4 accent-neon-blue cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </td>
+                    )}
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1">
                         <span className="font-bold font-mono text-ink-light-primary dark:text-ink-dark-primary">
@@ -391,6 +472,46 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
         </div>
       </Card>
       {optionsError && <Toast message={optionsError} type="error" onDismiss={() => setOptionsError(null)} />}
+      {showBulkAmountError && (
+        <AlertModal
+          title="Missing Approved Amount"
+          message="One or more selected claims are missing the approved amount value. To proceed with approval, make sure that each selected claim has a corresponding approved amount value present."
+          onDismiss={() => setShowBulkAmountError(false)}
+        />
+      )}
+      {showBulkConfirm && (
+        <ConfirmModal
+          title="Approve All Selected Claims"
+          message="Are you sure? This will approve all selected claims and cannot be reversed."
+          confirmLabel="Yes, Proceed"
+          cancelLabel="Cancel"
+          tone="blue"
+          busy={bulkApproving}
+          onConfirm={handleBulkConfirm}
+          onCancel={() => setShowBulkConfirm(false)}
+        />
+      )}
+      {!isMediator && selectedIds.size > 0 && (
+        <button
+          onClick={() => allSelectedApprovable && handleBulkApproveClick()}
+          disabled={!allSelectedApprovable}
+          title={!allSelectedApprovable ? 'One or more of the claims are not eligible for approval yet due to pending process' : undefined}
+          className={[
+            'fixed bottom-7 right-8 flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold text-sm shadow-lg z-50',
+            allSelectedApprovable
+              ? 'bg-neon-green text-surface-dark-base shadow-neon-green/40 hover:brightness-110 cursor-pointer'
+              : 'bg-neon-green/40 text-surface-dark-base/70 cursor-not-allowed',
+          ].join(' ')}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M2 8l4 4 8-8" />
+          </svg>
+          Approve All Claims
+          <span className="bg-white/25 rounded-full px-2 py-0.5 text-xs font-bold">
+            {selectedIds.size}
+          </span>
+        </button>
+      )}
     </>
   )
 }

@@ -7,6 +7,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.util.FileUtils;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +23,8 @@ final class Fixtures {
   static final UUID DEAL_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
   static final UUID SLOT_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
   static final UUID SCREENSHOT_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
+
+  static final BigInteger AMOUNT_APPROVED_PAISE = BigInteger.valueOf(10000L);
 
   static final String CLAIM_CODE = "CLM1-A2B3";
   static final String REVIEWER_COMMENTS = "Screenshot does not match the order";
