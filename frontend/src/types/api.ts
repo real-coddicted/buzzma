@@ -1521,6 +1521,7 @@ export interface components {
             currentStep?: number;
             ecommerceOrderId?: string;
             amountPaise?: number;
+            amountApprovedPaise?: number;
             productName?: string;
             sellerName?: string;
             /** Format: int32 */
@@ -1649,6 +1650,10 @@ export interface components {
             matchScore?: number;
             /** @enum {string} */
             claimReviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED";
+            /** Format: int64 */
+            amountPaise?: number;
+            /** Format: int64 */
+            amountApprovedPaise?: number;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
             /** Format: int32 */

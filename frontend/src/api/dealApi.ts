@@ -51,6 +51,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     currentStep: dto.currentStep ?? 0,
     reviewStatus: claimStatusToReviewStatus(dto.status ?? 'CREATED'),
     screenshots: (dto.screenshots ?? []).map(s => ({ type: s.type, verificationStatus: s.verificationStatus })),
+    amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
   }
 }
 

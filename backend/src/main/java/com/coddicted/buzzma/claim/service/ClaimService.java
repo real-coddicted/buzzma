@@ -93,7 +93,8 @@ public interface ClaimService {
       UUID reviewerId,
       UserRole reviewerRole,
       ReviewerDecision decision,
-      String reviewerComment);
+      String reviewerComment,
+      BigInteger amountApprovedPaise);
 
   void updateClaimScore(UUID claimId);
 }

@@ -16,7 +16,7 @@ interface Props {
   campaignTitle?: string
   userRole: string | undefined
   onOpenOverlay: (item: ClaimProofItem) => void
-  onApproveClaim: (comment: string) => void
+  onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
 }
@@ -107,6 +107,7 @@ export function ClaimProofRightPanel({
               userRole={userRole}
               isUnderReview={claim.isUnderReview ?? false}
               mediatorVerified={claim.mediatorVerified ?? false}
+              initialAmountApprovedPaise={claim.amountApprovedPaise}
               onApprove={onApproveClaim}
               onVerified={onVerifiedClaim}
               onReject={onRejectClaim}

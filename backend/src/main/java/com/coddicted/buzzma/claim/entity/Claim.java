@@ -72,6 +72,9 @@ public class Claim implements Auditable {
   @Column(name = "amount_paise")
   private BigInteger amountPaise;
 
+  @Column(name = "amount_approved_paise")
+  private BigInteger amountApprovedPaise;
+
   @Column(name = "product_name", length = 255)
   private String productName;
 

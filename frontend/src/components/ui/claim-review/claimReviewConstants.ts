@@ -38,14 +38,13 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
 }
 
 export const CLAIM_REVIEW_COLUMNS = [
-  'Campaign Name',
-  'Order ID',
-  'Platform',
+  'Order ID / Order Date',
+  'Campaign / Platform',
   'Brand Name',
-  'Order Date',
   'Mediator Name',
   'Claim Status',
   'Review Status',
   'Match %',
+  'Amount',
   'Actions',
 ] as const

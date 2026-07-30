@@ -197,7 +197,8 @@ public class ClaimController {
             requester.getId(),
             requester.getRole(),
             request.getReviewerDecision(),
-            request.getReviewerComment());
+            request.getReviewerComment(),
+            request.getAmountApprovedPaise());
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

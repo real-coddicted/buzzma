@@ -57,7 +57,10 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     orderedBy: dto.orderedBy ?? undefined,
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
     sellerName: dto.sellerName ?? undefined,
+    productPricePaise: dto.deal?.originalPricePaise ?? undefined,
+    campaignPricePaise: dto.deal?.offeredPricePaise ?? undefined,
     amountPaise: dto.amountPaise ?? undefined,
+    amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
     reviewUrl: dto.reviewUrl ?? undefined,
     currentStep: dto.currentStep ?? undefined,
     reviewerComments: dto.reviewerComments ?? undefined,
@@ -94,6 +97,8 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     matchPct: dto.matchScore ?? 0,
     platform: (dto.platform ?? '') as Platform,
     brandName: dto.brandName ?? '',
+    amountPaise: dto.amountPaise ?? undefined,
+    amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
     isUnderReview: backendStatus === 'UNDER_REVIEW',
   }
 }
@@ -361,12 +366,13 @@ export async function reviewScreenshot(screenshotId: string, claimId: string, ac
 export async function submitClaimReview(
   claimId: string,
   decision: 'APPROVED' | 'REJECTED' | 'VERIFIED',
-  comment?: string
+  comment?: string,
+  amountApprovedPaise?: number
 ): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/${claimId}/submitReview`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reviewerDecision: decision, reviewerComment: comment ?? '' }),
+    body: JSON.stringify({ reviewerDecision: decision, reviewerComment: comment ?? '', amountApprovedPaise }),
   })
   if (!res.ok) {
     let message = 'Failed to submit claim review.'

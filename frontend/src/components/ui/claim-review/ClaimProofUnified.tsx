@@ -14,7 +14,7 @@ interface Props {
   campaignTitle?: string
   onApproveScreenshot: (item: ClaimProofItem) => void
   onRejectScreenshot: (item: ClaimProofItem, comment: string) => void
-  onApproveClaim: (comment: string) => void
+  onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
 }

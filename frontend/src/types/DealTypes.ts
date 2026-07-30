@@ -35,4 +35,5 @@ export interface Deal {
   claimId?: string
   reviewStatus?: ReviewStatus
   screenshots?: Array<{ type?: string; verificationStatus?: string }>
+  amountApprovedPaise?: number
 }

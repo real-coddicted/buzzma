@@ -335,7 +335,7 @@ function CashbackStep() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
-        Your submission is under review. Cashback will be credited to your account within{' '}
+        Your submission is under process. Once approved, cashback will be credited to your account within{' '}
         <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
           7–14 business days
         </span>{' '}

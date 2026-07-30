@@ -132,8 +132,8 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
-        onApproveClaim={comment =>
-          submitClaimReview(claim.id, 'APPROVED', comment || undefined)
+        onApproveClaim={(comment, amountApprovedPaise) =>
+          submitClaimReview(claim.id, 'APPROVED', comment || undefined, amountApprovedPaise)
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }

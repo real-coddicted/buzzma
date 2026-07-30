@@ -29,6 +29,7 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
 
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, deal.screenshots ?? [])
   const screenshotRejected = stepStatuses.includes('rejected') && deal.reviewStatus !== 'rejected'
+  const claimApproved = deal.reviewStatus === 'approved'
 
   return (
     <div
@@ -85,6 +86,12 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
         {screenshotRejected && (
           <p className="text-[11px] font-medium text-neon-red">
             Screenshot rejected — reupload required
+          </p>
+        )}
+
+        {claimApproved && deal.amountApprovedPaise != null && (
+          <p className="text-[11px] font-medium text-neon-green">
+            Amount approved: ₹{formatRupees(paiseToRupees(deal.amountApprovedPaise))}
           </p>
         )}
 

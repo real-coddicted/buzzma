@@ -23,6 +23,7 @@ public class ClaimResponseDto {
   int currentStep;
   String ecommerceOrderId;
   BigInteger amountPaise;
+  BigInteger amountApprovedPaise;
   String productName;
   String sellerName;
   int orderDate;

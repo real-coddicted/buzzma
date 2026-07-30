@@ -8,6 +8,7 @@ import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { StepperHeader } from '../StepperHeader'
 import { DealInfo } from './DealInfo'
 import { ClaimDeal } from './ClaimDeal'
+import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 
@@ -75,7 +76,11 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
 
       {claimApproved && (
         <div className="rounded-xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm text-neon-green">
-          <p className="font-semibold">Your claim has been approved</p>
+          <p className="font-semibold">
+            {effectiveClaim?.amountApprovedPaise != null
+              ? `Your claim has been approved for ₹${formatRupees(paiseToRupees(effectiveClaim.amountApprovedPaise))}`
+              : 'Your claim has been approved'}
+          </p>
         </div>
       )}
 

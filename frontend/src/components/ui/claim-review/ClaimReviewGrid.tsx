@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { paiseToRupees, rupeesToPaise, formatRupees } from '../../../utils/currency'
+import { RupeeInput } from '../RupeeInput'
 import { Card } from '../Card'
 import { ClaimReviewToolbar } from './ClaimReviewToolbar'
 import { ClaimReviewFilterDrawer } from './ClaimReviewFilterDrawer'
@@ -8,6 +10,7 @@ import { ReviewStatusCell } from './ReviewStatusCell'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { Loading } from '../Loading'
 import { Toast } from '../Toast'
+import { IconCalendar } from '../icons'
 import { getCurrentUser } from '../../../api/client'
 import { fetchCampaignNames, fetchBrandNames } from '../../../api/campaignApi'
 import { fetchPublishedCampaignNames, fetchPublishedBrandNames } from '../../../api/dealApi'
@@ -28,11 +31,12 @@ interface ClaimReviewGridProps {
   appliedFilters: ClaimReviewFilters
   onApplyFilters: (filters: ClaimReviewFilters) => void
   onViewDetails: (claim: ClaimReviewItem) => void
-  onApprove: (claim: ClaimReviewItem) => void
+  onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
 }
 
 export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
+  const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [campaignOptions, setCampaignOptions] = useState<TypeaheadOption[]>([])
   const [brandOptions, setBrandOptions] = useState<TypeaheadOption[]>([])
@@ -176,13 +180,35 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     }
   }
 
+  useEffect(() => {
+    setApprovedAmounts(prev => {
+      const updates: Record<string, string> = {}
+      for (const claim of claims) {
+        if (claim.amountApprovedPaise != null && !(claim.id in prev)) {
+          updates[claim.id] = paiseToRupees(claim.amountApprovedPaise).toFixed(2)
+        }
+      }
+      return Object.keys(updates).length ? { ...prev, ...updates } : prev
+    })
+  }, [claims])
+
+  const handleAmountChange = useCallback((id: string, value: string) => {
+    if (value !== '' && parseFloat(value) < 0) return
+    setApprovedAmounts(prev => ({ ...prev, [id]: value }))
+  }, [])
+
   function handleAction(action: string, row: ClaimReviewItem) {
     if (action === 'details') {
       onViewDetails(row)
       return
     }
     if (action === 'approve') {
-      onApprove(row)
+      const raw = approvedAmounts[row.id]?.trim()
+      if (!raw) {
+        setOptionsError('Approved amount is mandatory to approve a claim.')
+        return
+      }
+      onApprove(row, rupeesToPaise(parseFloat(raw)))
       return
     }
   }
@@ -222,7 +248,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     key={col}
                     className={[
                       'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                      col === 'Actions' || col === 'Claim Status' || col === 'Review Status' ? 'text-center' : 'text-left',
+                      col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Amount' ? 'text-center' : 'text-left',
                     ].join(' ')}
                   >
                     {col}
@@ -253,25 +279,31 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     className="hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors group cursor-pointer"
                   >
                     <td className="px-5 py-4">
-                      <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">
-                        {row.campaignName}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-bold font-mono text-ink-light-primary dark:text-ink-dark-primary">
+                          {row.orderId}
+                        </span>
+                        <div className="border-t border-surface-light-border dark:border-surface-dark-border pt-1 flex items-center gap-1 text-ink-light-muted dark:text-ink-dark-muted">
+                          <IconCalendar size={11} />
+                          <span className="font-semibold text-[10px] uppercase tracking-wider">ORD</span>
+                          <span className="font-mono text-xs">{row.orderDate || '—'}</span>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="font-mono text-ink-light-primary dark:text-ink-dark-primary">
-                        {row.orderId}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-ink-light-primary dark:text-ink-dark-primary">
+                          {row.campaignName}
+                        </span>
+                        <div className="border-t border-surface-light-border dark:border-surface-dark-border pt-1">
+                          {row.platform
+                            ? <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', PLATFORM_COLORS[row.platform].base].join(' ')}>{PLATFORM_LABELS[row.platform]}</span>
+                            : <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>}
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-5 py-4">
-                      {row.platform
-                        ? <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', PLATFORM_COLORS[row.platform].base].join(' ')}>{PLATFORM_LABELS[row.platform]}</span>
-                        : '—'}
-                    </td>
-                    <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
+                    <td className="px-5 py-4 text-ink-light-muted dark:text-ink-dark-muted">
                       {row.brandName || '—'}
-                    </td>
-                    <td className="px-5 py-4 font-mono text-ink-light-primary dark:text-ink-dark-primary whitespace-nowrap">
-                      {row.orderDate || '—'}
                     </td>
                     <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
                       {isMediator ? row.buyerName : row.mediatorName}
@@ -307,6 +339,27 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                         ].join(' ')}>
                           {row.matchPct}%
                         </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted">Claimed:</span>
+                          <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted whitespace-nowrap">
+                            {row.amountPaise != null ? `₹${formatRupees(paiseToRupees(row.amountPaise))}` : '—'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-light-primary dark:text-ink-dark-primary">Approved:</span>
+                          <RupeeInput
+                            value={approvedAmounts[row.id] ?? ''}
+                            onChange={v => handleAmountChange(row.id, v)}
+                            symbolOffset="left-1.5"
+                            inputPadding="pl-4"
+                            disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED'}
+                            className="w-20 pr-2 py-0.5 text-xs rounded border border-surface-light-border dark:border-surface-dark-border bg-transparent text-ink-light-primary dark:text-ink-dark-primary focus:outline-none focus:border-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                        </div>
                       </div>
                     </td>
                     <td className="px-5 py-4" onClick={e => e.stopPropagation()}>

@@ -32,6 +32,8 @@ public interface ClaimReviewMapper {
       target = "mediatorVerified",
       defaultExpression = "java(Boolean.FALSE)")
   @Mapping(source = "claim.score", target = "matchScore")
+  @Mapping(source = "claim.amountPaise", target = "amountPaise")
+  @Mapping(source = "claim.amountApprovedPaise", target = "amountApprovedPaise")
   @Mapping(
       source = "claim.reviewStatus",
       target = "claimReviewStatus",

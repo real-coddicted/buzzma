@@ -2,6 +2,7 @@ import type { ClaimReviewItem } from '../../../types'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { ReviewStatusCell } from './ReviewStatusCell'
 import { IconInfo } from '../icons'
+import { formatRupees, paiseToRupees } from '../../../utils/currency'
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -33,6 +34,15 @@ export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
 
       <div className="px-5 pb-5">
         <Row label="Campaign Title">{campaignTitle ?? claim.campaignName}</Row>
+        {claim.productPricePaise != null && (
+          <Row label="Product Price">₹{formatRupees(paiseToRupees(claim.productPricePaise))}</Row>
+        )}
+        {claim.campaignPricePaise != null && (
+          <Row label="Campaign Price">₹{formatRupees(paiseToRupees(claim.campaignPricePaise))}</Row>
+        )}
+        {claim.amountPaise != null && (
+          <Row label="Amount Claimed">₹{formatRupees(paiseToRupees(claim.amountPaise))}</Row>
+        )}
         {claim.mediatorName && <Row label="Mediator">{claim.mediatorName}</Row>}
         <Row label="Mediator Verified">
           {claim.mediatorVerified
@@ -50,6 +60,9 @@ export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
             'text-neon-red'
           }>{claim.matchPct}%</span>
         </Row>
+        {claim.amountApprovedPaise != null && (
+          <Row label="Approved Amount">₹{(claim.amountApprovedPaise / 100).toFixed(2)}</Row>
+        )}
         {claim.reviewerComments && <Row label="Reviewer Comments">{claim.reviewerComments}</Row>}
       </div>
     </div>

@@ -435,7 +435,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final UUID reviewerId,
       final UserRole reviewerRole,
       final ReviewerDecision decision,
-      final String reviewerComment) {
+      final String reviewerComment,
+      final java.math.BigInteger amountApprovedPaise) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
 
@@ -471,6 +472,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                   .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
                   .reviewerComments(reviewerComment)
                   .reviewerId(reviewerId)
+                  .amountApprovedPaise(amountApprovedPaise)
                   .updatedAt(Instant.now())
                   .updatedBy(reviewerId)
                   .build());

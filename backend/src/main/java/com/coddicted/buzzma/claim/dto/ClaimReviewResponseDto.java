@@ -38,6 +38,9 @@ public class ClaimReviewResponseDto {
 
   ClaimReviewStatus claimReviewStatus;
 
+  BigInteger amountPaise;
+  BigInteger amountApprovedPaise;
+
   Platform platform;
   int orderDate;
   String brandName;

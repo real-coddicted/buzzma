@@ -25,8 +25,8 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
     return () => { cancelled = true }
   }, [appliedFilters])
 
-  function handleApprove(row: ClaimReviewItem) {
-    submitClaimReview(row.id, 'APPROVED')
+  function handleApprove(row: ClaimReviewItem, amountApprovedPaise?: number) {
+    submitClaimReview(row.id, 'APPROVED', undefined, amountApprovedPaise)
       .then(updated => {
         setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
       })
