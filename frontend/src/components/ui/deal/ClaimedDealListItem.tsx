@@ -6,6 +6,7 @@ import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { REVIEW_STATUS_CONFIG } from '../claim-review/claimReviewConstants'
 import { ProductThumbnail } from './ProductThumbnail'
+import { CopyableCode } from '../CopyableCode'
 import { Stepper } from '../Stepper'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 
@@ -54,6 +55,11 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
               {deal.productName}
             </p>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {deal.claimCode && (
+                <span onClick={e => e.stopPropagation()}>
+                  <CopyableCode code={deal.claimCode} />
+                </span>
+              )}
               <span className={[
                 'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
                 PLATFORM_COLORS[deal.platform],

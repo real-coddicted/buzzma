@@ -34,6 +34,7 @@ export interface Deal {
   status: DealStatus
   currentStep?: number
   claimId?: string
+  claimCode?: string
   reviewStatus?: ReviewStatus
   screenshots?: Array<{ type?: string; verificationStatus?: string }>
   amountApprovedPaise?: number

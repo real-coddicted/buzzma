@@ -58,6 +58,7 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
     <div className="max-w-7xl mx-auto space-y-5">
       <StepperHeader
         label="Claim Progress"
+        code={deal.claimCode}
         steps={steps}
         currentStep={activeStep}
         onStepClick={setViewedStep}

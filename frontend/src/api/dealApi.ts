@@ -35,6 +35,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     id: d.id ?? '',
     code: d.code,
     claimId: dto.id ?? '',
+    claimCode: dto.code,
     campaignId: d.campaignId ?? '',
     productName: d.productName ?? '',
     productImageUrl: d.productImageUrl ?? '',

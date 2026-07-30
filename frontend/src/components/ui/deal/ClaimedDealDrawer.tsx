@@ -43,6 +43,7 @@ export function ClaimedDealDrawer({ deal, onClose }: ClaimedDealDrawerProps) {
 
         <StepperHeader
           label="Claim Progress"
+          code={deal.claimCode}
           steps={steps}
           currentStep={currentStep}
           onClose={onClose}
