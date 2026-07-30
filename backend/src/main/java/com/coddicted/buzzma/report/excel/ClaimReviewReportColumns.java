@@ -29,7 +29,10 @@ public final class ClaimReviewReportColumns {
               dto -> dto.getClaimReviewStatus().getDisplayName(),
               Arrays.stream(ClaimReviewStatus.values())
                   .map(ClaimReviewStatus::getDisplayName)
-                  .toList()));
+                  .toList()),
+          new ExcelColumn<>("Amount Approved", dto -> null),
+          new ExcelColumn<>("Brand Review", dto -> null, List.of("Approved", "Rejected")),
+          new ExcelColumn<>("Remarks", dto -> null));
 
   private static String formatOrderDate(final ClaimReviewResponseDto dto) {
     return dto.getOrderDate() > 0 ? DateTimeUtils.toLocalDate(dto.getOrderDate()).toString() : null;

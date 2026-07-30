@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -88,6 +89,9 @@ class ReportServiceImplTest {
       assertEquals("Order Date", header.getCell(7).getStringCellValue());
       assertEquals("Claim Status", header.getCell(9).getStringCellValue());
       assertEquals("Review Status", header.getCell(11).getStringCellValue());
+      assertEquals("Amount Approved", header.getCell(12).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(13).getStringCellValue());
+      assertEquals("Remarks", header.getCell(14).getStringCellValue());
 
       final Row dataRow = sheet.getRow(1);
       assertEquals("Summer Sale", dataRow.getCell(0).getStringCellValue());
@@ -98,6 +102,9 @@ class ReportServiceImplTest {
       assertEquals("2026-01-01", dataRow.getCell(7).getStringCellValue());
       assertEquals("Approved", dataRow.getCell(9).getStringCellValue());
       assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
+      assertEquals(CellType.BLANK, dataRow.getCell(12).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
     }
   }
 
