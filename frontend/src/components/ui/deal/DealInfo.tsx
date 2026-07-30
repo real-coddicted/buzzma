@@ -40,11 +40,6 @@ export function DealInfo({ deal }: DealInfoProps) {
             </span>
           )}
         </a>
-        {deal.code && (
-          <span className="absolute top-3 left-3">
-            <CopyableCode code={deal.code} />
-          </span>
-        )}
       </div>
 
       {/* badges + title + price */}
@@ -72,6 +67,13 @@ export function DealInfo({ deal }: DealInfoProps) {
 
       <div className="px-5 pb-5 space-y-4">
         <div>
+          {deal.code && (
+            <div className="flex justify-between items-center py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">
+              <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Deal Code</span>
+              <CopyableCode code={deal.code} />
+            </div>
+          )}
+          {deal.mediatorName && <Row label="Mediator" value={deal.mediatorName} />}
           <Row label="Platform"       value={deal.platformLabel} />
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
           {deal.sellerName && <Row label="Seller" value={deal.sellerName} />}

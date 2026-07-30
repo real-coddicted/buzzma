@@ -64,7 +64,7 @@ export interface ExploreDealsPage {
 
 export const EXPLORE_PAGE_SIZE = 6
 
-function dealResponseToDeal(dto: DealResponseDto): Deal {
+export function dealResponseToDeal(dto: DealResponseDto): Deal {
   const platform = dto.platform as Platform
   const dealType = dto.dealType as CampaignType
   return {
@@ -81,6 +81,7 @@ function dealResponseToDeal(dto: DealResponseDto): Deal {
     originalPricePaise: dto.originalPricePaise ?? 0,
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     sellerName: dto.sellerName,
+    mediatorName: dto.ownerName,
     termsAndConditions: dto.termsAndConditions,
     slotsAvailable: dto.slotsAvailable,
     status: 'explore',

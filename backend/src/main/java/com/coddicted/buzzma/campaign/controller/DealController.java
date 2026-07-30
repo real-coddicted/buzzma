@@ -8,9 +8,13 @@ import com.coddicted.buzzma.campaign.mapper.DealMapper;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,14 +34,17 @@ public class DealController {
   private final DealService dealService;
   private final ConnectionService connectionService;
   private final DealMapper dealMapper;
+  private final UserService userService;
 
   public DealController(
       final DealService dealService,
       final ConnectionService connectionService,
-      final DealMapper dealMapper) {
+      final DealMapper dealMapper,
+      final UserService userService) {
     this.dealService = dealService;
     this.connectionService = connectionService;
     this.dealMapper = dealMapper;
+    this.userService = userService;
   }
 
   @GetMapping("/active")
@@ -58,8 +65,17 @@ public class DealController {
         ownerIds.isEmpty()
             ? Page.empty(PageRequest.of(page, size))
             : this.dealService.getActiveDeals(ownerIds, requesterId, page, size);
+    final Map<UUID, String> ownerNames =
+        ownerIds.isEmpty()
+            ? Map.of()
+            : this.userService.getByIds(new ArrayList<>(ownerIds)).stream()
+                .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    final List<DealResponseDto> items =
+        this.dealMapper.toDealResponse(dealsPage.getContent()).stream()
+            .map(item -> item.toBuilder().ownerName(ownerNames.get(item.getOwnerId())).build())
+            .toList();
     return PagedDealsResponseDto.builder()
-        .items(this.dealMapper.toDealResponse(dealsPage.getContent()))
+        .items(items)
         .total(dealsPage.getTotalElements())
         .page(page)
         .totalPages(dealsPage.getTotalPages())

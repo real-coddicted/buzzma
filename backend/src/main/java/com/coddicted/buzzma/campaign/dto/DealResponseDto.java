@@ -9,11 +9,12 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @Jacksonized
 public class DealResponseDto {
   UUID id;
   UUID ownerId;
+  String ownerName;
   UUID campaignId;
   String productName;
   String productImageUrl;

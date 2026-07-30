@@ -77,7 +77,9 @@ export function Deals() {
     return explorePage.items.filter(d => {
       const matchesType     = typeFilter     === 'all' || d.dealType === typeFilter
       const matchesPlatform = platformFilter === 'all' || d.platform === platformFilter
-      const matchesSearch   = d.productName.toLowerCase().includes(search.toLowerCase())
+      const searchTerm      = search.toLowerCase()
+      const matchesSearch   = d.productName.toLowerCase().includes(searchTerm)
+        || (d.code?.toLowerCase().includes(searchTerm) ?? false)
       return matchesType && matchesPlatform && matchesSearch
     })
   }, [explorePage, search, typeFilter, platformFilter])

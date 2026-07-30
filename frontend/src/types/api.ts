@@ -1567,6 +1567,7 @@ export interface components {
             id?: string;
             /** Format: uuid */
             ownerId?: string;
+            ownerName?: string;
             /** Format: uuid */
             campaignId?: string;
             productName?: string;
