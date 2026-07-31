@@ -54,6 +54,22 @@ export function TicketInfo({ ticket }: Props) {
           </Row>
         )}
 
+        {ticket.claimCode && (
+          <Row label="Claim Code">
+            <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
+              {ticket.claimCode}
+            </span>
+          </Row>
+        )}
+
+        {ticket.campaignCode && (
+          <Row label="Campaign Code">
+            <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
+              {ticket.campaignCode}
+            </span>
+          </Row>
+        )}
+
         {(ticket.raisedByName || ticket.raisedBy) && (
           <Row label="Raised by">
             <span className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
