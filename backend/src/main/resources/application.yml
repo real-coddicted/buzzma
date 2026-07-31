@@ -43,7 +43,7 @@ app:
     password: ${SEED_DATA_PASSWORD:}
   gemini:
     api-key: ${GEMINI_API_KEY:}
-    model: ${GEMINI_MODEL:gemini-2.5-flash}
+    model: ${GEMINI_MODEL:gemini-3.6-flash}
   turnstile:
     enabled: ${TURNSTILE_ENABLED:true}
     secret-key: ${TURNSTILE_SECRET_KEY:}

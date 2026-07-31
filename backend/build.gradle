@@ -68,6 +68,9 @@ dependencies {
   implementation platform('software.amazon.awssdk:bom:2.25.60')
   implementation 'software.amazon.awssdk:s3'
 
+  // Gemini SDK
+  implementation 'com.google.genai:google-genai:1.64.0'
+
   // Rate limiting
   implementation 'com.bucket4j:bucket4j-core:8.10.1'
 
