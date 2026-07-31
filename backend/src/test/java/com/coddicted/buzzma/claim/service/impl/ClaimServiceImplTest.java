@@ -421,6 +421,26 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testGetByCode() {
+    when(this.mockClaimRepository.findByCodeAndIsDeletedFalse(CLAIM_CODE))
+        .thenReturn(Optional.of(CLAIM_1));
+
+    final Claim result = this.claimService.getByCode(CLAIM_CODE);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
+  void testGetByCodeWhenNotFound() {
+    when(this.mockClaimRepository.findByCodeAndIsDeletedFalse(CLAIM_CODE))
+        .thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(NotFoundException.class, () -> this.claimService.getByCode(CLAIM_CODE));
+    assertEquals("Claim not found: " + CLAIM_CODE, ex.getMessage());
+  }
+
+  @Test
   @Disabled
   // Todo: fix test case
   void testGetByIdWhenNotOwner() {

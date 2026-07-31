@@ -1341,6 +1341,8 @@ export interface components {
             description: string;
             orderId?: string;
             dealId?: string;
+            claimCode?: string;
+            campaignCode?: string;
         };
         TicketResponseDto: {
             /** Format: uuid */
@@ -1357,6 +1359,8 @@ export interface components {
             description?: string;
             orderId?: string;
             dealId?: string;
+            claimCode?: string;
+            campaignCode?: string;
             /** @enum {string} */
             status?: "TICKET_STATUS_IN_PROGRESS" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_RESOLVED" | "TICKET_STATUS_CLOSED";
             /** Format: uuid */
@@ -1715,10 +1719,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1727,9 +1731,9 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
@@ -1992,6 +1996,8 @@ export interface components {
             code?: string;
             requiresOrderId?: boolean;
             requiresDealId?: boolean;
+            requiresClaimCode?: boolean;
+            requiresCampaignCode?: boolean;
             subCategories?: components["schemas"]["TicketSubCategoryResponseDto"][];
         };
         TicketSubCategoryResponseDto: {

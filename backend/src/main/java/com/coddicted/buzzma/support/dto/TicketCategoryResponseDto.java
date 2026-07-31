@@ -16,5 +16,7 @@ public class TicketCategoryResponseDto {
   String code;
   Boolean requiresOrderId;
   Boolean requiresDealId;
+  Boolean requiresClaimCode;
+  Boolean requiresCampaignCode;
   List<TicketSubCategoryResponseDto> subCategories;
 }

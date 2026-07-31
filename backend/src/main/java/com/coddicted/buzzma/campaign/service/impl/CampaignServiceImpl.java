@@ -75,6 +75,13 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   }
 
   @Override
+  public Campaign getByCode(final String code) {
+    return this.campaignRepository
+        .findByCodeAndIsDeletedFalse(code)
+        .orElseThrow(() -> new NotFoundException("Campaign not found: " + code));
+  }
+
+  @Override
   @Transactional
   public Campaign create(final Campaign campaign) {
     return this.campaignRepository.save(

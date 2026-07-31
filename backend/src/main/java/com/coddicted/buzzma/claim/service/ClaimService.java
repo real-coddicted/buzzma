@@ -54,6 +54,8 @@ public interface ClaimService {
 
   Claim getById(UUID claimId, UUID ownerId);
 
+  Claim getByCode(String code);
+
   List<Claim> listByOwner(UUID ownerId);
 
   List<ClaimScreenshot> listScreenshots(UUID claimId);

@@ -261,6 +261,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional(readOnly = true)
+  public Claim getByCode(final String code) {
+    return this.claimRepository
+        .findByCodeAndIsDeletedFalse(code)
+        .orElseThrow(() -> new NotFoundException("Claim not found: " + code));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Claim> listByOwner(final UUID ownerId) {
     return this.claimRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
   }

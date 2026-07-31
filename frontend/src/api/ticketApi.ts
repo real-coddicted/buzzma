@@ -32,6 +32,8 @@ function mapCategory(dto: TicketCategoryResponseDto): TicketCategory {
     id: dto.id ?? '',
     name: categoryName,
     displayName: toDisplayName(categoryName),
+    requiresClaimCode: Boolean(dto.requiresClaimCode),
+    requiresCampaignCode: Boolean(dto.requiresCampaignCode),
     subCategories: (dto.subCategories ?? []).map(sub => {
       const subName = sub.name ?? sub.code ?? 'unknown'
       return {
@@ -67,6 +69,8 @@ function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket
     categoryDisplayName: category?.displayName ?? 'Unknown',
     subCategoryDisplayName: subCategory?.displayName ?? 'Unknown',
     orderId: dto.orderId ?? null,
+    claimCode: dto.claimCode ?? null,
+    campaignCode: dto.campaignCode ?? null,
     description: dto.description ?? '',
     status: mapStatus(dto.status),
     createdAt: dto.createdAt ?? new Date().toISOString(),
@@ -111,6 +115,8 @@ export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
         title: input.title,
         description: input.description,
         orderId: input.orderId,
+        claimCode: input.claimCode,
+        campaignCode: input.campaignCode,
       } satisfies TicketRequestDto),
     }),
     fetchTicketCategories(),

@@ -22,6 +22,8 @@ public class TicketResponseDto {
   String description;
   String orderId;
   String dealId;
+  String claimCode;
+  String campaignCode;
   TicketStatus status;
   UUID assigneeId;
   String assigneeName;

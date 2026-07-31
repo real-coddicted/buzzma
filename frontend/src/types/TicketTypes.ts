@@ -10,6 +10,8 @@ export interface Ticket {
   categoryDisplayName: string
   subCategoryDisplayName: string
   orderId: string | null
+  claimCode: string | null
+  campaignCode: string | null
   description: string
   status: TicketStatus
   createdAt: string
@@ -31,6 +33,8 @@ export interface CreateTicketInput {
   title: string
   description: string
   orderId?: string
+  claimCode?: string
+  campaignCode?: string
 }
 
 export type TicketActivityType =
@@ -61,5 +65,7 @@ export interface TicketCategory {
   id: string
   name: string
   displayName: string
+  requiresClaimCode: boolean
+  requiresCampaignCode: boolean
   subCategories: TicketSubCategory[]
 }

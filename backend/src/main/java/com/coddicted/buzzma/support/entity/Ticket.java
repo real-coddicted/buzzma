@@ -50,6 +50,12 @@ public class Ticket implements Auditable {
   @Column(name = "order_id")
   private String orderId;
 
+  @Column(name = "claim_code")
+  private String claimCode;
+
+  @Column(name = "campaign_code")
+  private String campaignCode;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 100)
   private TicketStatus status;

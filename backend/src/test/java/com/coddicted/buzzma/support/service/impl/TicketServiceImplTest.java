@@ -7,9 +7,11 @@ import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.InvalidStateTransitionException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.support.entity.Ticket;
+import com.coddicted.buzzma.support.entity.TicketCategory;
 import com.coddicted.buzzma.support.entity.TicketStatus;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
 import com.coddicted.buzzma.support.notification.TicketEventPublisher;
@@ -58,6 +60,15 @@ class TicketServiceImplTest {
           .metadata(null)
           .build();
 
+  private static final TicketCategory GENERAL_CATEGORY =
+      TicketCategory.builder().id(CATEGORY_ID).code("TICKET_CATEGORY_TECHNICAL").build();
+
+  private static final TicketCategory CLAIM_CATEGORY =
+      TicketCategory.builder().id(CATEGORY_ID).code("TICKET_CATEGORY_CLAIM").build();
+
+  private static final TicketCategory CAMPAIGN_CATEGORY =
+      TicketCategory.builder().id(CATEGORY_ID).code("TICKET_CATEGORY_CAMPAIGN").build();
+
   @Mock private TicketRepository mockTicketRepository;
   @Mock private TicketCategoryService mockTicketCategoryService;
   @Mock private TicketRouter mockTicketRouter;
@@ -88,6 +99,7 @@ class TicketServiceImplTest {
             .build();
     when(this.mockTicketCategoryService.getTicketSubCategory(CATEGORY_ID, SUB_CATEGORY_ID))
         .thenReturn(SUB_CATEGORY);
+    when(this.mockTicketCategoryService.getById(CATEGORY_ID)).thenReturn(GENERAL_CATEGORY);
     when(this.mockTicketRouter.route(
             org.mockito.ArgumentMatchers.argThat(t -> USER_ID.equals(t.getRaisedBy()))))
         .thenReturn(ASSIGNED_TICKET);
@@ -102,6 +114,63 @@ class TicketServiceImplTest {
     assertEquals(TICKET_STATUS_IN_PROGRESS, saved.getStatus());
     assertEquals(ASSIGNEE_ID, saved.getAssigneeId());
     assertEquals(USER_ID, saved.getRaisedBy());
+  }
+
+  @Test
+  void create_claimCategoryWithoutClaimCode_throws() {
+    final Ticket input =
+        Ticket.builder()
+            .categoryId(CATEGORY_ID)
+            .subCategoryId(SUB_CATEGORY_ID)
+            .description("help")
+            .build();
+    when(this.mockTicketCategoryService.getTicketSubCategory(CATEGORY_ID, SUB_CATEGORY_ID))
+        .thenReturn(SUB_CATEGORY);
+    when(this.mockTicketCategoryService.getById(CATEGORY_ID)).thenReturn(CLAIM_CATEGORY);
+
+    assertThrows(
+        BusinessRuleViolationException.class, () -> this.ticketService.create(input, USER_ID));
+  }
+
+  @Test
+  void create_campaignCategoryWithoutCampaignCode_throws() {
+    final Ticket input =
+        Ticket.builder()
+            .categoryId(CATEGORY_ID)
+            .subCategoryId(SUB_CATEGORY_ID)
+            .description("help")
+            .build();
+    when(this.mockTicketCategoryService.getTicketSubCategory(CATEGORY_ID, SUB_CATEGORY_ID))
+        .thenReturn(SUB_CATEGORY);
+    when(this.mockTicketCategoryService.getById(CATEGORY_ID)).thenReturn(CAMPAIGN_CATEGORY);
+
+    assertThrows(
+        BusinessRuleViolationException.class, () -> this.ticketService.create(input, USER_ID));
+  }
+
+  @Test
+  void create_claimCategoryWithClaimCode_succeeds() {
+    final Ticket input =
+        Ticket.builder()
+            .categoryId(CATEGORY_ID)
+            .subCategoryId(SUB_CATEGORY_ID)
+            .description("help")
+            .claimCode("CLM1-A2B3")
+            .build();
+    when(this.mockTicketCategoryService.getTicketSubCategory(CATEGORY_ID, SUB_CATEGORY_ID))
+        .thenReturn(SUB_CATEGORY);
+    when(this.mockTicketCategoryService.getById(CATEGORY_ID)).thenReturn(CLAIM_CATEGORY);
+    when(this.mockTicketRouter.route(
+            org.mockito.ArgumentMatchers.argThat(t -> USER_ID.equals(t.getRaisedBy()))))
+        .thenReturn(ASSIGNED_TICKET);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.TICKET))
+        .thenReturn(TICKET_CODE);
+    final ArgumentCaptor<Ticket> captor = forClass(Ticket.class);
+    when(this.mockTicketRepository.save(captor.capture())).thenReturn(ASSIGNED_TICKET);
+
+    final Ticket result = this.ticketService.create(input, USER_ID);
+
+    assertEquals(ASSIGNEE_ID, result.getAssigneeId());
   }
 
   @Test

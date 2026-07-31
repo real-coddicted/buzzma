@@ -23,6 +23,8 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
   Optional<Campaign> findByIdAndOwnerId(UUID id, UUID ownerId);
 
+  Optional<Campaign> findByCodeAndIsDeletedFalse(String code);
+
   Set<Campaign> findByIdInAndIsDeletedFalse(Set<UUID> ids);
 
   List<Campaign> findByOwnerIdAndIsDeletedFalse(UUID ownerId);
