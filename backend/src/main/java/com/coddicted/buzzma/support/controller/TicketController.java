@@ -16,11 +16,13 @@ import com.coddicted.buzzma.support.mapper.TicketAttachmentMapper;
 import com.coddicted.buzzma.support.mapper.TicketCommentMapper;
 import com.coddicted.buzzma.support.mapper.TicketMapper;
 import com.coddicted.buzzma.support.service.TicketAttachmentService;
+import com.coddicted.buzzma.support.service.TicketCategoryService;
 import com.coddicted.buzzma.support.service.TicketCommentService;
 import com.coddicted.buzzma.support.service.TicketService;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,6 +56,7 @@ public class TicketController {
   private final TicketCommentMapper ticketCommentMapper;
   private final TicketAttachmentMapper ticketAttachmentMapper;
   private final UserService userService;
+  private final TicketCategoryService ticketCategoryService;
 
   public TicketController(
       final TicketService ticketService,
@@ -62,7 +65,8 @@ public class TicketController {
       final TicketMapper ticketMapper,
       final TicketCommentMapper ticketCommentMapper,
       final TicketAttachmentMapper ticketAttachmentMapper,
-      final UserService userService) {
+      final UserService userService,
+      final TicketCategoryService ticketCategoryService) {
     this.ticketService = ticketService;
     this.ticketCommentService = ticketCommentService;
     this.ticketAttachmentService = ticketAttachmentService;
@@ -70,6 +74,7 @@ public class TicketController {
     this.ticketCommentMapper = ticketCommentMapper;
     this.ticketAttachmentMapper = ticketAttachmentMapper;
     this.userService = userService;
+    this.ticketCategoryService = ticketCategoryService;
   }
 
   @PostMapping
@@ -89,7 +94,11 @@ public class TicketController {
     final Pageable pageable = PageRequest.of(page, size);
     final Page<Ticket> tickets = this.ticketService.listByRaisedBy(requesterId, pageable);
     final Map<UUID, String> nameMap = buildNameMap(tickets);
-    return tickets.stream().map(t -> toResponseWithNames(t, nameMap)).toList();
+    final Map<UUID, String> categoryNameMap = buildCategoryNameMap(tickets.getContent());
+    final Map<UUID, String> subCategoryNameMap = buildSubCategoryNameMap(tickets.getContent());
+    return tickets.stream()
+        .map(t -> toResponseWithNames(t, nameMap, categoryNameMap, subCategoryNameMap))
+        .toList();
   }
 
   @GetMapping("/assigned")
@@ -100,7 +109,11 @@ public class TicketController {
     final Pageable pageable = PageRequest.of(page, size);
     final Page<Ticket> tickets = this.ticketService.listByAssigneeId(requesterId, pageable);
     final Map<UUID, String> nameMap = buildNameMap(tickets);
-    return tickets.stream().map(t -> toResponseWithNames(t, nameMap)).toList();
+    final Map<UUID, String> categoryNameMap = buildCategoryNameMap(tickets.getContent());
+    final Map<UUID, String> subCategoryNameMap = buildSubCategoryNameMap(tickets.getContent());
+    return tickets.stream()
+        .map(t -> toResponseWithNames(t, nameMap, categoryNameMap, subCategoryNameMap))
+        .toList();
   }
 
   @GetMapping("/{id}")
@@ -184,7 +197,12 @@ public class TicketController {
   }
 
   private TicketResponseDto toResponseWithNames(final Ticket ticket) {
-    return toResponseWithNames(ticket, buildNameMap(List.of(ticket)));
+    final List<Ticket> tickets = List.of(ticket);
+    return toResponseWithNames(
+        ticket,
+        buildNameMap(tickets),
+        buildCategoryNameMap(tickets),
+        buildSubCategoryNameMap(tickets));
   }
 
   private Map<UUID, String> buildNameMap(final List<Ticket> tickets) {
@@ -199,12 +217,37 @@ public class TicketController {
         .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
   }
 
+  private Map<UUID, String> buildCategoryNameMap(final List<Ticket> tickets) {
+    final Map<UUID, String> categoryNameMap = new HashMap<>();
+    for (final Ticket t : tickets) {
+      categoryNameMap.computeIfAbsent(
+          t.getCategoryId(), id -> this.ticketCategoryService.getById(id).getName());
+    }
+    return categoryNameMap;
+  }
+
+  private Map<UUID, String> buildSubCategoryNameMap(final List<Ticket> tickets) {
+    final Map<UUID, String> subCategoryNameMap = new HashMap<>();
+    for (final Ticket t : tickets) {
+      subCategoryNameMap.computeIfAbsent(
+          t.getSubCategoryId(),
+          id -> this.ticketCategoryService.getTicketSubCategory(t.getCategoryId(), id).getName());
+    }
+    return subCategoryNameMap;
+  }
+
   private TicketResponseDto toResponseWithNames(
-      final Ticket ticket, final Map<UUID, String> nameMap) {
+      final Ticket ticket,
+      final Map<UUID, String> nameMap,
+      final Map<UUID, String> categoryNameMap,
+      final Map<UUID, String> subCategoryNameMap) {
     final String raisedByName = nameMap.get(ticket.getRaisedBy());
     final String assigneeName =
         ticket.getAssigneeId() != null ? nameMap.get(ticket.getAssigneeId()) : null;
-    return this.ticketMapper.toResponse(ticket, raisedByName, assigneeName);
+    final String categoryName = categoryNameMap.get(ticket.getCategoryId());
+    final String subCategoryName = subCategoryNameMap.get(ticket.getSubCategoryId());
+    return this.ticketMapper.toResponse(
+        ticket, raisedByName, assigneeName, categoryName, subCategoryName);
   }
 
   private Map<UUID, String> buildCommentNameMap(final List<TicketComment> comments) {

@@ -24,15 +24,20 @@ public interface TicketMapper {
   @Mapping(target = "updatedAt", ignore = true)
   Ticket toEntity(TicketRequestDto request);
 
-  @Mapping(target = "title", ignore = true)
   @Mapping(target = "dealId", ignore = true)
   @Mapping(target = "closedAt", ignore = true)
   @Mapping(target = "raisedByName", ignore = true)
   @Mapping(target = "assigneeName", ignore = true)
+  @Mapping(target = "categoryName", ignore = true)
+  @Mapping(target = "subCategoryName", ignore = true)
   TicketResponseDto toResponse(Ticket ticket);
 
-  @Mapping(target = "title", ignore = true)
   @Mapping(target = "dealId", ignore = true)
   @Mapping(target = "closedAt", ignore = true)
-  TicketResponseDto toResponse(Ticket ticket, String raisedByName, String assigneeName);
+  TicketResponseDto toResponse(
+      Ticket ticket,
+      String raisedByName,
+      String assigneeName,
+      String categoryName,
+      String subCategoryName);
 }

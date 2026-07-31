@@ -46,19 +46,7 @@ function mapCategory(dto: TicketCategoryResponseDto): TicketCategory {
   }
 }
 
-function buildCategoryLookup(categories: TicketCategory[]) {
-  const categoryById = new Map(categories.map(category => [category.id, category]))
-  const subCategoryById = new Map(
-    categories.flatMap(category => category.subCategories.map(subCategory => [subCategory.id, subCategory])),
-  )
-  return { categoryById, subCategoryById }
-}
-
-function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket {
-  const { categoryById, subCategoryById } = buildCategoryLookup(categories)
-  const category = categoryById.get(dto.categoryId ?? '')
-  const subCategory = subCategoryById.get(dto.subCategoryId ?? '')
-
+export function mapTicket(dto: TicketResponseDto): Ticket {
   return {
     id: dto.id ?? '',
     code: dto.code ?? '',
@@ -66,8 +54,9 @@ function mapTicket(dto: TicketResponseDto, categories: TicketCategory[]): Ticket
     raisedByName: dto.raisedByName,
     assigneeId: dto.assigneeId,
     assigneeName: dto.assigneeName,
-    categoryDisplayName: category?.displayName ?? 'Unknown',
-    subCategoryDisplayName: subCategory?.displayName ?? 'Unknown',
+    title: dto.title,
+    categoryDisplayName: toDisplayName(dto.categoryName),
+    subCategoryDisplayName: toDisplayName(dto.subCategoryName),
     orderId: dto.orderId ?? null,
     claimCode: dto.claimCode ?? null,
     campaignCode: dto.campaignCode ?? null,
@@ -96,34 +85,27 @@ export async function fetchTicketCategories(): Promise<TicketCategory[]> {
 }
 
 export async function fetchMyTickets(): Promise<Ticket[]> {
-  const [ticketsRes, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/raised`),
-    fetchTicketCategories(),
-  ])
-
+  const ticketsRes = await fetchWithAuth(`${API_BASE}/tickets/raised`)
   const tickets = (await ticketsRes.json()) as TicketResponseDto[]
-  return tickets.map(ticket => mapTicket(ticket, categories))
+  return tickets.map(mapTicket)
 }
 
 export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
-  const [res, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets`, {
-      method: 'POST',
-      body: JSON.stringify({
-        categoryId: input.categoryId,
-        subCategoryId: input.subCategoryId,
-        title: input.title,
-        description: input.description,
-        orderId: input.orderId,
-        claimCode: input.claimCode,
-        campaignCode: input.campaignCode,
-      } satisfies TicketRequestDto),
-    }),
-    fetchTicketCategories(),
-  ])
+  const res = await fetchWithAuth(`${API_BASE}/tickets`, {
+    method: 'POST',
+    body: JSON.stringify({
+      categoryId: input.categoryId,
+      subCategoryId: input.subCategoryId,
+      title: input.title,
+      description: input.description,
+      orderId: input.orderId,
+      claimCode: input.claimCode,
+      campaignCode: input.campaignCode,
+    } satisfies TicketRequestDto),
+  })
 
   const created = (await res.json()) as TicketResponseDto
-  return mapTicket(created, categories)
+  return mapTicket(created)
 }
 
 export async function fetchTicketComments(ticketId: string): Promise<TicketComment[]> {
@@ -147,20 +129,14 @@ export async function postTicketComment(ticketId: string, message: string): Prom
 }
 
 export async function fetchAssignedTickets(): Promise<Ticket[]> {
-  const [ticketsRes, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/assigned`),
-    fetchTicketCategories(),
-  ])
+  const ticketsRes = await fetchWithAuth(`${API_BASE}/tickets/assigned`)
   const tickets = (await ticketsRes.json()) as TicketResponseDto[]
-  return tickets.map(ticket => mapTicket(ticket, categories))
+  return tickets.map(mapTicket)
 }
 
 export async function fetchTicketById(ticketId: string): Promise<Ticket> {
-  const [res, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/${ticketId}`),
-    fetchTicketCategories(),
-  ])
-  return mapTicket((await res.json()) as TicketResponseDto, categories)
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}`)
+  return mapTicket((await res.json()) as TicketResponseDto)
 }
 
 export async function fetchAllTickets(): Promise<Ticket[]> {
@@ -168,33 +144,24 @@ export async function fetchAllTickets(): Promise<Ticket[]> {
 }
 
 export async function closeTicket(ticketId: string): Promise<Ticket> {
-  const [res, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/close`, { method: 'POST' }),
-    fetchTicketCategories(),
-  ])
-  return mapTicket((await res.json()) as TicketResponseDto, categories)
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}/close`, { method: 'POST' })
+  return mapTicket((await res.json()) as TicketResponseDto)
 }
 
 export async function updateTicketStatus(ticketId: string, action: components['schemas']['TicketStatusUpdateRequestDto']['action']): Promise<Ticket> {
-  const [res, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action }),
-    }),
-    fetchTicketCategories(),
-  ])
-  return mapTicket((await res.json()) as TicketResponseDto, categories)
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action }),
+  })
+  return mapTicket((await res.json()) as TicketResponseDto)
 }
 
 export async function assignTicket(ticketId: string, assigneeId: string): Promise<Ticket> {
-  const [res, categories] = await Promise.all([
-    fetchWithAuth(`${API_BASE}/tickets/${ticketId}/assign`, {
-      method: 'POST',
-      body: JSON.stringify({ assigneeId } satisfies components['schemas']['TicketAssignRequestDto']),
-    }),
-    fetchTicketCategories(),
-  ])
-  return mapTicket((await res.json()) as TicketResponseDto, categories)
+  const res = await fetchWithAuth(`${API_BASE}/tickets/${ticketId}/assign`, {
+    method: 'POST',
+    body: JSON.stringify({ assigneeId } satisfies components['schemas']['TicketAssignRequestDto']),
+  })
+  return mapTicket((await res.json()) as TicketResponseDto)
 }
 
 export async function fetchTicketActivity(ticket: Ticket): Promise<TicketActivityEvent[]> {

@@ -44,6 +44,9 @@ public class Ticket implements Auditable {
   @Column(name = "raised_by", nullable = false)
   private UUID raisedBy;
 
+  @Column(name = "title", length = 255)
+  private String title;
+
   @Column(name = "description", nullable = false, columnDefinition = "TEXT")
   private String description;
 

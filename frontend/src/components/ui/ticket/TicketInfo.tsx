@@ -28,6 +28,14 @@ export function TicketInfo({ ticket }: Props) {
       </div>
 
       <dl className="space-y-3">
+        {ticket.title && (
+          <Row label="Title">
+            <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">
+              {ticket.title}
+            </span>
+          </Row>
+        )}
+
         <Row label="Category">
           <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">
             {ticket.categoryDisplayName}

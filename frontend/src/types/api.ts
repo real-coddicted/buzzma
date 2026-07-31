@@ -1353,8 +1353,10 @@ export interface components {
             raisedByName?: string;
             /** Format: uuid */
             categoryId?: string;
+            categoryName?: string;
             /** Format: uuid */
             subCategoryId?: string;
+            subCategoryName?: string;
             title?: string;
             description?: string;
             orderId?: string;

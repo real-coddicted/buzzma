@@ -7,6 +7,7 @@ export interface Ticket {
   raisedByName?: string
   assigneeId?: string
   assigneeName?: string
+  title?: string
   categoryDisplayName: string
   subCategoryDisplayName: string
   orderId: string | null
