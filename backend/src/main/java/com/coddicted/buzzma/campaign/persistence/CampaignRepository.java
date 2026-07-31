@@ -108,4 +108,37 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
       @Param("statuses") List<CampaignStatus> statuses,
       @Param("today") Integer today,
       Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT
+              c.id         AS campaignId,
+              c.title      AS campaignTitle,
+              c.start_date AS startDate,
+              c.end_date   AS endDate,
+              c.campaign_price_paise AS campaignPricePaise,
+              cs.id              AS slotId,
+              cs.slots_available AS slotsAvailable,
+              cs.total_slots     AS totalSlots
+          FROM campaigns c
+          JOIN campaign_slots cs ON c.id = cs.campaign_id AND cs.is_deleted = false
+          WHERE c.owner_id = :ownerId
+            AND c.open_to_all = true
+            AND c.is_deleted = false
+            AND c.end_date >= :today
+            AND c.status IN ('CAMPAIGN_STATUS_PAUSED', 'CAMPAIGN_STATUS_ACTIVE')
+            AND c.id NOT IN (
+              SELECT campaign_id FROM campaign_assignments
+              WHERE assignor_id = :ownerId
+                AND assignee_id = :assigneeId
+                AND is_deleted = false
+            )
+          ORDER BY c.start_date ASC
+          """,
+      nativeQuery = true)
+  List<AssignableCampaignView> findAssignableCampaigns(
+      @Param("ownerId") UUID ownerId,
+      @Param("assigneeId") UUID assigneeId,
+      @Param("today") Integer today);
 }

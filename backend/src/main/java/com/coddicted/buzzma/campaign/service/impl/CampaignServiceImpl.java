@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
+import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
@@ -22,6 +23,7 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -212,6 +214,27 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       final List<CampaignStatus> statuses, final int today, final int batchSize) {
     return this.campaignRepository.findExpiredCampaigns(
         statuses, today, PageRequest.of(0, batchSize));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<AssignableCampaignResponseDto> findAssignableCampaigns(
+      final UUID ownerId, final UUID assigneeId) {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    return this.campaignRepository.findAssignableCampaigns(ownerId, assigneeId, today).stream()
+        .map(
+            v ->
+                AssignableCampaignResponseDto.builder()
+                    .campaignId(v.getCampaignId())
+                    .campaignTitle(v.getCampaignTitle())
+                    .startDate(v.getStartDate())
+                    .endDate(v.getEndDate())
+                    .campaignPricePaise(v.getCampaignPricePaise())
+                    .slotId(v.getSlotId())
+                    .slotsAvailable(v.getSlotsAvailable())
+                    .totalSlots(v.getTotalSlots())
+                    .build())
+        .toList();
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {

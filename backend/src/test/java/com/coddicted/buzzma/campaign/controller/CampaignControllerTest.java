@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
@@ -21,6 +22,8 @@ import com.coddicted.buzzma.shared.security.JwtService;
 import com.coddicted.buzzma.shared.security.TestSecurityConfig;
 import com.coddicted.buzzma.shared.security.WithBuzzmaUser;
 import com.coddicted.buzzma.shared.util.FileUtils;
+import java.math.BigInteger;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -244,6 +247,83 @@ class CampaignControllerTest {
   void testDeleteUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc
         .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // --- GET /api/v1/campaigns/assignable ---
+
+  private static final UUID CAMPAIGN_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+  private static final UUID SLOT_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
+  private static final UUID ASSIGNEE_ID = UUID.randomUUID();
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetAssignableCampaignsWithAgencyRoleReturns200() throws Exception {
+    when(campaignService.findAssignableCampaigns(any(), any()))
+        .thenReturn(
+            List.of(
+                AssignableCampaignResponseDto.builder()
+                    .campaignId(CAMPAIGN_ID)
+                    .campaignTitle("Test Campaign")
+                    .startDate(20240801)
+                    .endDate(20241231)
+                    .campaignPricePaise(BigInteger.valueOf(100000))
+                    .slotId(SLOT_ID)
+                    .slotsAvailable(10)
+                    .totalSlots(20)
+                    .build()));
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].campaignId").value(CAMPAIGN_ID.toString()))
+        .andExpect(jsonPath("$[0].campaignTitle").value("Test Campaign"))
+        .andExpect(jsonPath("$[0].startDate").value(20240801))
+        .andExpect(jsonPath("$[0].endDate").value(20241231))
+        .andExpect(jsonPath("$[0].slotId").value(SLOT_ID.toString()))
+        .andExpect(jsonPath("$[0].slotsAvailable").value(10))
+        .andExpect(jsonPath("$[0].totalSlots").value(20));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetAssignableCampaignsReturnsEmptyListWhenNoneAvailable() throws Exception {
+    when(campaignService.findAssignableCampaigns(any(), any())).thenReturn(List.of());
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isEmpty());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testGetAssignableCampaignsWithBrandRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void testGetAssignableCampaignsWithMediatorRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testGetAssignableCampaignsWithBuyerRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testGetAssignableCampaignsUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
         .andExpect(status().isUnauthorized());
   }
 }

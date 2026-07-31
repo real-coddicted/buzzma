@@ -6,8 +6,6 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.shared.constants.WellKnownSystemActors;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Component;
 public class CampaignAutoCloseScheduler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CampaignAutoCloseScheduler.class);
-  private static final ZoneId ZONE = ZoneId.of("Asia/Kolkata");
   private static final List<CampaignStatus> ELIGIBLE_STATUSES =
       List.of(
           CampaignStatus.CAMPAIGN_STATUS_ACTIVE,
@@ -38,7 +35,7 @@ public class CampaignAutoCloseScheduler {
 
   @Scheduled(fixedDelayString = "${app.campaign.auto-close.fixed-delay-ms:900000}")
   public void closeExpiredCampaigns() {
-    final int today = DateTimeUtils.toIntDate(LocalDate.now(ZONE));
+    final int today = DateTimeUtils.getAsianTodayDate();
     final List<Campaign> expired =
         campaignService.findExpiredCampaigns(ELIGIBLE_STATUSES, today, batchSize);
     if (expired.isEmpty()) {

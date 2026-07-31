@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.service;
 
+import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
@@ -38,4 +39,6 @@ public interface CampaignService {
   List<Campaign> getCampaignsForOwner(UUID ownerId);
 
   List<Campaign> findExpiredCampaigns(List<CampaignStatus> statuses, int today, int batchSize);
+
+  List<AssignableCampaignResponseDto> findAssignableCampaigns(UUID ownerId, UUID assigneeId);
 }

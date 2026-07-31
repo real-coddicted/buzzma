@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.controller;
 
+import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
@@ -85,6 +86,13 @@ public class CampaignController {
   @GetMapping("/{id}")
   public CampaignResponseDto getById(@PathVariable final UUID id) {
     return this.campaignProcessor.getById(id);
+  }
+
+  @GetMapping("/assignable")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public List<AssignableCampaignResponseDto> getAssignableCampaigns(
+      @CurrentUserId final UUID requesterId, @RequestParam final UUID assigneeId) {
+    return this.service.findAssignableCampaigns(requesterId, assigneeId);
   }
 
   @GetMapping("/brands")
