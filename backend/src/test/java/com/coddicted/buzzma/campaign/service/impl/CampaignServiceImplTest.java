@@ -96,6 +96,26 @@ class CampaignServiceImplTest {
   }
 
   @Test
+  void testGetByCodeWhenFound() {
+    when(this.mockCampaignRepository.findByCodeAndIsDeletedFalse("CMP-001"))
+        .thenReturn(Optional.of(CAMPAIGN_1));
+
+    final Campaign result = this.campaignService.getByCode("CMP-001");
+
+    assertEquals(CAMPAIGN_1, result);
+  }
+
+  @Test
+  void testGetByCodeWhenNotFound() {
+    when(this.mockCampaignRepository.findByCodeAndIsDeletedFalse("CMP-001"))
+        .thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(NotFoundException.class, () -> this.campaignService.getByCode("CMP-001"));
+    assertEquals("Campaign not found: CMP-001", ex.getMessage());
+  }
+
+  @Test
   void testCreate() {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
         .thenReturn(GENERATED_CODE);

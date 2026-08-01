@@ -16,6 +16,8 @@ public interface CampaignService {
 
   Campaign getById(UUID campaignId);
 
+  Campaign getByCode(String code);
+
   Campaign create(Campaign campaign);
 
   Campaign update(Campaign campaign);

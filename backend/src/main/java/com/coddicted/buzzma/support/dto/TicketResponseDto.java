@@ -17,11 +17,15 @@ public class TicketResponseDto {
   UUID raisedBy;
   String raisedByName;
   UUID categoryId;
+  String categoryName;
   UUID subCategoryId;
+  String subCategoryName;
   String title;
   String description;
   String orderId;
   String dealId;
+  String claimCode;
+  String campaignCode;
   TicketStatus status;
   UUID assigneeId;
   String assigneeName;

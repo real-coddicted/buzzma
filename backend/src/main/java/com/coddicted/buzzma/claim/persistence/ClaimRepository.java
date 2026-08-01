@@ -25,6 +25,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
   Optional<Claim> findByIdAndOwnerIdAndIsDeletedFalse(UUID id, UUID ownerId);
 
+  Optional<Claim> findByCodeAndIsDeletedFalse(String code);
+
   boolean existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
       String ecommerceOrderId, Platform platform);
 

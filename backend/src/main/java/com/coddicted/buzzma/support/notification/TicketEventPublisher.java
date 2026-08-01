@@ -7,6 +7,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -29,8 +30,23 @@ public class TicketEventPublisher {
     final UUID raisedById = ticket.getRaisedBy();
     final UUID assigneeId = ticket.getAssigneeId();
     this.notificationService.create(
-        "Ticket Assigned", "A new ticket has been assigned.", assigneeId, raisedById);
+        "Ticket Assigned", buildAssignedMessage(ticket), assigneeId, raisedById);
     this.eventPublisher.publishRefresh(raisedById, PAGE_RAISED);
     this.eventPublisher.publishRefresh(assigneeId, PAGE_ASSIGNED);
+  }
+
+  private String buildAssignedMessage(final Ticket ticket) {
+    final StringBuilder message =
+        new StringBuilder("A new ticket has been assigned: ")
+            .append(ticket.getTitle())
+            .append(" (")
+            .append(ticket.getCode())
+            .append(")");
+    if (StringUtils.hasText(ticket.getClaimCode())) {
+      message.append(" · Claim Code: ").append(ticket.getClaimCode());
+    } else if (StringUtils.hasText(ticket.getCampaignCode())) {
+      message.append(" · Campaign Code: ").append(ticket.getCampaignCode());
+    }
+    return message.toString();
   }
 }

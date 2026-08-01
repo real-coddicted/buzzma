@@ -18,6 +18,7 @@ public interface AssignmentMapper {
 
   @Mapping(source = "campaignAssignment.id", target = "id")
   @Mapping(source = "campaignAssignment.campaignId", target = "campaignId")
+  @Mapping(source = "campaign.code", target = "campaignCode")
   @Mapping(source = "campaignAssignment.assigneeId", target = "ownerId")
   @Mapping(source = "campaign.product.name", target = "productName")
   @Mapping(source = "campaign.product.brandName", target = "productBrandName")
@@ -55,6 +56,7 @@ public interface AssignmentMapper {
             view.offeredPricePaise() != null ? view.offeredPricePaise() : BigInteger.ZERO)
         .slotLimit(view.slotLimit())
         .dealCode(view.dealCode())
+        .campaignCode(view.campaignCode())
         .build();
   }
 

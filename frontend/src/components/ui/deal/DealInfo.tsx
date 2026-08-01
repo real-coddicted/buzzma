@@ -75,6 +75,12 @@ export function DealInfo({ deal }: DealInfoProps) {
           )}
           {deal.mediatorName && <Row label="Mediator" value={deal.mediatorName} />}
           <Row label="Platform"       value={deal.platformLabel} />
+          {deal.campaignCode && (
+            <div className="flex justify-between items-center py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">
+              <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Campaign Code</span>
+              <CopyableCode code={deal.campaignCode} />
+            </div>
+          )}
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
           {deal.sellerName && <Row label="Seller" value={deal.sellerName} />}
           <Row label="Original Price" value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise))}`} />

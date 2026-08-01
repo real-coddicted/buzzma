@@ -27,6 +27,7 @@ function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     slotsOffered: dto.slotLimit ?? 0,
     dealCode: dto.dealCode,
+    campaignCode: dto.campaignCode,
   }
 }
 
@@ -36,6 +37,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   return {
     id: dto.id ?? '',
     campaignId: dto.campaignId ?? '',
+    campaignCode: dto.campaignCode,
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productUrl ?? '',

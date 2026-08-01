@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.support.service;
 
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.support.entity.TicketCategory;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.UUID;
 
 public interface TicketCategoryService {
 
-  List<TicketCategory> listActiveCategories();
+  List<TicketCategory> listActiveCategories(UserRole requesterRole);
 
   List<TicketSubCategory> listActiveSubCategoriesByCategoryId(UUID categoryId);
 

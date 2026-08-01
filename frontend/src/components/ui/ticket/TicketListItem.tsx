@@ -45,6 +45,11 @@ export function TicketListItem({ ticket, onClick, role = 'assignee' }: TicketLis
                 </span>
               )}
             </div>
+            {ticket.title && (
+              <p className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary">
+                {ticket.title}
+              </p>
+            )}
             <p className="text-xs text-ink-light-secondary dark:text-ink-dark-secondary line-clamp-2">
               {ticket.description}
             </p>

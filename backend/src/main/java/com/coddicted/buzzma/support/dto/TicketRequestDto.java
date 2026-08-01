@@ -19,4 +19,6 @@ public class TicketRequestDto {
   @NotBlank String description;
   @Nullable String orderId;
   @Nullable String dealId;
+  @Nullable String claimCode;
+  @Nullable String campaignCode;
 }
