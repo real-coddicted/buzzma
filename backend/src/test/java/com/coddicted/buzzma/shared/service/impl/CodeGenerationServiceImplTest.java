@@ -31,15 +31,19 @@ class CodeGenerationServiceImplTest {
   @Test
   void testGenerateCodeFromSequence() {
     when(this.mockJdbcTemplate.queryForObject(
-            "SELECT nextval(?)", Long.class, WellKnownSequences.CAMPAIGN))
+            "SELECT nextval(?)", Long.class, WellKnownSequences.CAMPAIGN.getSequenceName()))
         .thenReturn(SEQ_VALUE);
 
     final String result =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN);
 
-    final String expected = CodeGenerator.INSTANCE.generateCode(SEQ_VALUE, DEFAULT_LENGTH);
+    final String expected =
+        WellKnownSequences.CAMPAIGN.getPrefix()
+            + "-"
+            + CodeGenerator.INSTANCE.generateCode(SEQ_VALUE, DEFAULT_LENGTH);
     assertEquals(expected, result);
     verify(this.mockJdbcTemplate)
-        .queryForObject("SELECT nextval(?)", Long.class, WellKnownSequences.CAMPAIGN);
+        .queryForObject(
+            "SELECT nextval(?)", Long.class, WellKnownSequences.CAMPAIGN.getSequenceName());
   }
 }
