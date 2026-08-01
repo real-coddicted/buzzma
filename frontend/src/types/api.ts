@@ -2115,6 +2115,7 @@ export interface components {
             /** Format: int32 */
             slotLimit?: number;
             dealCode?: string;
+            campaignCode?: string;
         };
         PagedAssignmentsResponseDto: {
             items?: components["schemas"]["AssignmentSummaryResponseDto"][];

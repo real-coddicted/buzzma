@@ -23,4 +23,5 @@ public class AssignmentSummaryResponseDto {
   BigInteger offeredPricePaise;
   Integer slotLimit;
   String dealCode;
+  String campaignCode;
 }

@@ -27,6 +27,7 @@ function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
     offeredPricePaise: dto.offeredPricePaise ?? 0,
     slotsOffered: dto.slotLimit ?? 0,
     dealCode: dto.dealCode,
+    campaignCode: dto.campaignCode,
   }
 }
 
