@@ -55,6 +55,11 @@ export function AssignmentListItem({ item, onClick, showShare = false }: Assignm
             {item.dealTypeLabel}
           </span>
           <StatusBadge status={item.campaignStatus} textClass="text-[10px] font-semibold" />
+          {item.campaignCode && (
+            <span onClick={e => e.stopPropagation()}>
+              <CopyableCode code={item.campaignCode} />
+            </span>
+          )}
         </div>
       </div>
 
