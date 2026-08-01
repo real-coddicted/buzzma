@@ -2131,6 +2131,7 @@ export interface components {
             id?: string;
             /** Format: uuid */
             campaignId?: string;
+            campaignCode?: string;
             /** Format: uuid */
             ownerId?: string;
             productName?: string;

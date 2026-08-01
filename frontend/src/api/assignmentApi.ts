@@ -37,6 +37,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   return {
     id: dto.id ?? '',
     campaignId: dto.campaignId ?? '',
+    campaignCode: dto.campaignCode,
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
     productUrl: dto.productUrl ?? '',

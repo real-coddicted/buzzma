@@ -15,6 +15,7 @@ import lombok.extern.jackson.Jacksonized;
 public class AssignmentResponseDto {
   UUID id;
   UUID campaignId;
+  String campaignCode;
   UUID ownerId;
   String productName;
   String productBrandName;
