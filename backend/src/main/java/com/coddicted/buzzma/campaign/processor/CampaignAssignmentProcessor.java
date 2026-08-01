@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.processor;
 
+import com.coddicted.buzzma.campaign.dto.AssignToMediatorRequestDto;
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
@@ -9,9 +10,11 @@ import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
+import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
@@ -37,27 +40,33 @@ public class CampaignAssignmentProcessor {
 
   private final CampaignService campaignService;
   private final CampaignAssignmentService campaignAssignmentService;
+  private final CampaignSlotService campaignSlotService;
   private final CommissionService commissionService;
   private final DealService dealService;
   private final AssignmentMapper assignmentMapper;
   private final ConnectionService connectionService;
   private final DealEventPublisher dealEventPublisher;
+  private final CampaignEventPublisher campaignEventPublisher;
 
   public CampaignAssignmentProcessor(
       final CampaignService campaignService,
       final CampaignAssignmentService campaignAssignmentService,
+      final CampaignSlotService campaignSlotService,
       final CommissionService commissionService,
       final DealService dealService,
       final AssignmentMapper assignmentMapper,
       final ConnectionService connectionService,
-      final DealEventPublisher dealEventPublisher) {
+      final DealEventPublisher dealEventPublisher,
+      CampaignEventPublisher campaignEventPublisher) {
     this.campaignService = campaignService;
     this.campaignAssignmentService = campaignAssignmentService;
+    this.campaignSlotService = campaignSlotService;
     this.commissionService = commissionService;
     this.dealService = dealService;
     this.assignmentMapper = assignmentMapper;
     this.connectionService = connectionService;
     this.dealEventPublisher = dealEventPublisher;
+    this.campaignEventPublisher = campaignEventPublisher;
   }
 
   @Transactional(readOnly = true)
@@ -150,6 +159,35 @@ public class CampaignAssignmentProcessor {
     }
     return true;
     // Todo: Add error handling
+  }
+
+  @Transactional
+  public List<CampaignAssignment> assignCampaignsToMediator(
+      final UUID requesterId, final AssignToMediatorRequestDto request) {
+    final List<CampaignAssignment> assignments =
+        request.getCampaigns().stream()
+            .map(
+                item -> {
+                  final CampaignSlot slot =
+                      this.campaignSlotService.getById(item.getCampaignSlotId());
+                  return CampaignAssignment.builder()
+                      .campaignId(item.getCampaignId())
+                      .assignorId(requesterId)
+                      .assigneeId(request.getMediatorId())
+                      .slotLimit(item.getTotalSlots())
+                      .adjustedCampaignPricePaise(item.getAdjustedCampaignPricePaise())
+                      .commissionOfferedPaise(item.getCommissionOfferedPaise())
+                      .campaignSlot(slot)
+                      .status(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED)
+                      .createdBy(requesterId)
+                      .updatedBy(requesterId)
+                      .isDeleted(false)
+                      .build();
+                })
+            .toList();
+    List<CampaignAssignment> savedAssignments = this.campaignAssignmentService.create(assignments);
+    this.campaignEventPublisher.publishCampaignAssignedEvent(requesterId, request.getMediatorId());
+    return savedAssignments;
   }
 
   // Todo: optimize

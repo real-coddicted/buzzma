@@ -516,6 +516,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/bulkSubmitReview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bulkSubmitClaimReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns": {
         parameters: {
             query?: never;
@@ -702,6 +718,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["publishAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assignments/assign-to-mediator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["assignToMediator"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1100,6 +1132,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getBrandNames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/assignable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAssignableCampaigns"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1606,9 +1654,12 @@ export interface components {
             reviewUrl?: string;
         };
         ClaimReviewRequestDto: {
+            /** Format: uuid */
+            claimId?: string;
             /** @enum {string} */
             reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED";
             reviewerComment?: string;
+            amountApprovedPaise?: number;
         };
         ScreenshotReviewRequestDto: {
             /** Format: uuid */
@@ -1651,9 +1702,7 @@ export interface components {
             matchScore?: number;
             /** @enum {string} */
             claimReviewStatus?: "CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED";
-            /** Format: int64 */
             amountPaise?: number;
-            /** Format: int64 */
             amountApprovedPaise?: number;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
@@ -1687,12 +1736,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -1917,6 +1966,21 @@ export interface components {
             affiliateUrl?: string;
             sendNotificationOnPublish?: boolean;
         };
+        AssignToMediatorRequestDto: {
+            /** Format: uuid */
+            mediatorId: string;
+            campaigns: components["schemas"]["MediatorCampaignAssignmentItemDto"][];
+        };
+        MediatorCampaignAssignmentItemDto: {
+            /** Format: uuid */
+            campaignId: string;
+            /** Format: uuid */
+            campaignSlotId: string;
+            commissionOfferedPaise: number;
+            adjustedCampaignPricePaise: number;
+            /** Format: int32 */
+            totalSlots: number;
+        };
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
             action: "TICKET_ACTION_CLOSE" | "TICKET_ACTION_MARK_RESOLVE" | "TICKET_ACTION_REQUEST_ADDITIONAL_INFO" | "TICKET_ACTION_INFO_PROVIDED" | "TICKET_ACTION_REOPEN";
@@ -2005,6 +2069,27 @@ export interface components {
             label?: string;
             /** Format: int32 */
             stepOrder?: number;
+        };
+        AssignableCampaignResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            campaignTitle?: string;
+            code?: string;
+            platform?: string;
+            campaignType?: string;
+            productBrandName?: string;
+            productImageUrl?: string;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
+            campaignPricePaise?: number;
+            /** Format: uuid */
+            slotId?: string;
+            /** Format: int32 */
+            slotsAvailable?: number;
+            /** Format: int32 */
+            totalSlots?: number;
         };
         AssignmentSummaryResponseDto: {
             /** Format: uuid */
@@ -3052,6 +3137,30 @@ export interface operations {
             };
         };
     };
+    bulkSubmitClaimReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClaimReviewRequestDto"][];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimReviewResponseDto"][];
+                };
+            };
+        };
+    };
     list_4: {
         parameters: {
             query?: {
@@ -3353,6 +3462,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": boolean;
+                };
+            };
+        };
+    };
+    assignToMediator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignToMediatorRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignAssignmentResponseDto"][];
                 };
             };
         };
@@ -3962,6 +4095,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": string[];
+                };
+            };
+        };
+    };
+    getAssignableCampaigns: {
+        parameters: {
+            query: {
+                assigneeId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssignableCampaignResponseDto"][];
                 };
             };
         };

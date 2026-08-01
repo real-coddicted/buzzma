@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Card } from '../Card'
 import { Loading } from '../Loading'
-import { IconUsers, IconCheck, IconX, IconTrash, IconSearch, IconFilter } from '../icons'
+import { IconUsers, IconCheck, IconX, IconTrash, IconSearch, IconFilter, IconList } from '../icons'
 import type { Connection, ConnectionStatus, ConnectionSortKey } from '../../../types/ConnectionTypes'
 
 export type { Connection, ConnectionStatus, ConnectionSortKey }
@@ -29,6 +29,8 @@ interface ConnectionsGridProps {
   onRowClick?: (connection: Connection) => void
   /** False when the viewer isn't the approver for pending rows (e.g. viewing parent connections), hiding Accept/Reject. */
   showApprovalActions?: boolean
+  /** When provided, shows an "Assign Campaigns" button for connected rows. */
+  onAssignCampaigns?: (connection: Connection) => void
 }
 
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
@@ -64,6 +66,7 @@ export function ConnectionsGrid({
   onDelete,
   onRowClick,
   showApprovalActions = true,
+  onAssignCampaigns,
 }: ConnectionsGridProps) {
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -225,6 +228,17 @@ export function ConnectionsGrid({
                               Reject
                             </button>
                           </>
+                        )}
+                        {c.status === 'connected' && onAssignCampaigns && (
+                          <button
+                            title="Assign Campaigns"
+                            disabled={busy}
+                            onClick={e => { e.stopPropagation(); onAssignCampaigns(c) }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-blue border border-neon-blue/30 bg-neon-blue/5 hover:bg-neon-blue/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <IconList size={11} />
+                            Assign Campaigns
+                          </button>
                         )}
                         {c.status === 'connected' && (
                           <button

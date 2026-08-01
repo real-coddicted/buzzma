@@ -115,6 +115,11 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
           SELECT
               c.id         AS campaignId,
               c.title      AS campaignTitle,
+              c.code       AS code,
+              c.platform   AS platform,
+              c.type       AS campaignType,
+              p.brand_name AS productBrandName,
+              p.image_url  AS productImageUrl,
               c.start_date AS startDate,
               c.end_date   AS endDate,
               c.campaign_price_paise AS campaignPricePaise,
@@ -122,6 +127,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
               cs.slots_available AS slotsAvailable,
               cs.total_slots     AS totalSlots
           FROM campaigns c
+          JOIN products p ON c.product_id = p.id
           JOIN campaign_slots cs ON c.id = cs.campaign_id AND cs.is_deleted = false
           WHERE c.owner_id = :ownerId
             AND c.open_to_all = true

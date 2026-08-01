@@ -8,16 +8,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.dto.AssignToMediatorRequestDto;
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
+import com.coddicted.buzzma.campaign.dto.MediatorCampaignAssignmentItemDto;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
 import com.coddicted.buzzma.campaign.model.Assignment;
+import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.notification.DealEventPublisher;
 import com.coddicted.buzzma.campaign.processor.CampaignAssignmentProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.Connection;
@@ -44,11 +50,13 @@ class CampaignAssignmentProcessorTest {
 
   @Mock private CampaignService mockCampaignService;
   @Mock private CampaignAssignmentService mockCampaignAssignmentService;
+  @Mock private CampaignSlotService mockCampaignSlotService;
   @Mock private CommissionService mockCommissionService;
   @Mock private DealService mockDealService;
   @Mock private AssignmentMapper mockAssignmentMapper;
   @Mock private ConnectionService mockConnectionService;
   @Mock private DealEventPublisher mockDealEventPublisher;
+  @Mock private CampaignEventPublisher mockCampaignEventPublisher;
   private CampaignAssignmentProcessor campaignAssignmentProcessor;
 
   @BeforeEach
@@ -57,11 +65,13 @@ class CampaignAssignmentProcessorTest {
         new CampaignAssignmentProcessor(
             this.mockCampaignService,
             this.mockCampaignAssignmentService,
+            this.mockCampaignSlotService,
             this.mockCommissionService,
             this.mockDealService,
             this.mockAssignmentMapper,
             this.mockConnectionService,
-            this.mockDealEventPublisher);
+            this.mockDealEventPublisher,
+            this.mockCampaignEventPublisher);
   }
 
   @Test
@@ -256,5 +266,49 @@ class CampaignAssignmentProcessorTest {
     assertTrue(result);
 
     verifyNoInteractions(this.mockConnectionService, this.mockDealEventPublisher);
+  }
+
+  @Test
+  void testAssignCampaignsToMediator() {
+    final MediatorCampaignAssignmentItemDto item =
+        MediatorCampaignAssignmentItemDto.builder()
+            .campaignId(CAMPAIGN_ID_1)
+            .campaignSlotId(SLOT_ID_1)
+            .commissionOfferedPaise(COMMISSION_PAISE)
+            .adjustedCampaignPricePaise(DEAL_PRICE_PAISE)
+            .totalSlots(5)
+            .build();
+    final AssignToMediatorRequestDto request =
+        AssignToMediatorRequestDto.builder()
+            .mediatorId(ASSIGNEE_ID)
+            .campaigns(List.of(item))
+            .build();
+
+    when(this.mockCampaignSlotService.getById(SLOT_ID_1)).thenReturn(SLOT_1);
+    when(this.mockCampaignAssignmentService.create(org.mockito.ArgumentMatchers.anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    final List<CampaignAssignment> result =
+        this.campaignAssignmentProcessor.assignCampaignsToMediator(REQUESTER_ID, request);
+
+    assertEquals(1, result.size());
+    final CampaignAssignment created = result.get(0);
+    assertEquals(CAMPAIGN_ID_1, created.getCampaignId());
+    assertEquals(REQUESTER_ID, created.getAssignorId());
+    assertEquals(ASSIGNEE_ID, created.getAssigneeId());
+    assertEquals(5, created.getSlotLimit());
+    assertEquals(COMMISSION_PAISE, created.getCommissionOfferedPaise());
+    assertEquals(DEAL_PRICE_PAISE, created.getAdjustedCampaignPricePaise());
+    assertEquals(SLOT_1, created.getCampaignSlot());
+    assertEquals(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED, created.getStatus());
+    assertEquals(REQUESTER_ID, created.getCreatedBy());
+    assertEquals(REQUESTER_ID, created.getUpdatedBy());
+
+    verifyNoInteractions(
+        this.mockCampaignService,
+        this.mockCommissionService,
+        this.mockDealService,
+        this.mockConnectionService,
+        this.mockDealEventPublisher);
   }
 }

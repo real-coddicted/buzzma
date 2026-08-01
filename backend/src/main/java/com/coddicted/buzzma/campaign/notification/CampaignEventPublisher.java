@@ -16,6 +16,7 @@ public class CampaignEventPublisher {
 
   private static final String PAGE_CAMPAIGNS = "campaigns";
   private static final String PAGE_ASSIGNMENTS = "assignments";
+  private static final String PAGE_CONNECTIONS = "connections";
 
   private final NotificationService notificationService;
   private final EventPublisher eventPublisher;
@@ -36,6 +37,17 @@ public class CampaignEventPublisher {
     this.notificationService.create(
         "New Campaign", "A new campaign has been created.", ownerId, ownerId);
     this.eventPublisher.publishRefresh(ownerId, PAGE_CAMPAIGNS);
+  }
+
+  @Async
+  public void publishCampaignAssignedEvent(final UUID ownerId, final UUID assigneeId) {
+    String title = "Campaign Assigned";
+    log.info("Publishing '{}' event for assignee id: {}", title, assigneeId);
+    final String ownerName = this.userService.getById(ownerId).getName();
+    final String message = "One or more campaigns assigned by " + ownerName;
+    this.notificationService.create(title, message, assigneeId, ownerId);
+    this.eventPublisher.publishRefresh(assigneeId, PAGE_ASSIGNMENTS);
+    this.eventPublisher.publishRefresh(ownerId, PAGE_CONNECTIONS);
   }
 
   @Async

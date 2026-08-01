@@ -18,6 +18,11 @@ public class CampaignSlotServiceImpl extends BaseCrudService implements Campaign
   }
 
   @Override
+  public CampaignSlot getById(final UUID id) {
+    return mustFind(this.campaignSlotRepository, id, "Campaign Slot");
+  }
+
+  @Override
   public List<CampaignSlot> getByCampaignIds(final List<UUID> campaignIds) {
     return this.campaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(campaignIds);
   }

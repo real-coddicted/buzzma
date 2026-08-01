@@ -9,6 +9,16 @@ public interface AssignableCampaignView {
 
   String getCampaignTitle();
 
+  String getCode();
+
+  String getPlatform();
+
+  String getCampaignType();
+
+  String getProductBrandName();
+
+  String getProductImageUrl();
+
   Integer getStartDate();
 
   Integer getEndDate();

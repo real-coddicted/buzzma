@@ -18,6 +18,7 @@ import {
 import type { ConnectionSummary, ConnectionDirection } from '../api/connectionApi'
 import { InviteModal } from '../components/ui/connections/InviteModal'
 import { RequestConnectionModal } from '../components/ui/connections/RequestConnectionModal'
+import { AssignCampaignsView } from '../components/ui/connections/AssignCampaignsView'
 import { Toast } from '../components/ui/Toast'
 import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { getCurrentUser } from '../api/client'
@@ -182,6 +183,10 @@ export function Connections() {
     setSearchParams({ view: 'detail', id: connection.id })
   }
 
+  function handleAssignCampaigns(connection: Connection) {
+    setSearchParams({ view: 'assign', id: connection.id })
+  }
+
   const filtered = useMemo(() => {
     return connections.filter(c => {
       const matchesSearch =
@@ -205,6 +210,13 @@ export function Connections() {
           />
         </>
       )
+    }
+  }
+
+  if (view === 'assign' && detailId) {
+    const selected = connections.find(c => c.id === detailId)
+    if (selected) {
+      return <AssignCampaignsView connection={selected} onBack={() => setSearchParams({})} />
     }
   }
 
@@ -266,6 +278,7 @@ export function Connections() {
         onDelete={handleDelete}
         onRowClick={direction === 'child' ? handleViewConnection : undefined}
         showApprovalActions={direction === 'child'}
+        onAssignCampaigns={currentRole === 'ROLE_AGENCY' && direction === 'child' ? handleAssignCampaigns : undefined}
       />
     </div>
     </>

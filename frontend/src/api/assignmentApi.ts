@@ -98,6 +98,21 @@ export async function fetchCommissionCharged(campaignId: string): Promise<number
   return data.commissionPaise ?? 0
 }
 
+export interface MediatorCampaignItem {
+  campaignId: string
+  campaignSlotId: string
+  commissionOfferedPaise: number
+  adjustedCampaignPricePaise: number
+  totalSlots: number
+}
+
+export async function assignToMediator(mediatorId: string, campaigns: MediatorCampaignItem[]): Promise<void> {
+  await fetchWithAuth(`${API_BASE}/assignments/assign-to-mediator`, {
+    method: 'POST',
+    body: JSON.stringify({ mediatorId, campaigns }),
+  })
+}
+
 export async function publishAssignment(
   assignmentId: string,
   campaignId: string,

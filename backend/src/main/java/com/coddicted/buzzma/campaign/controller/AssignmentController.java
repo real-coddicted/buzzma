@@ -1,19 +1,23 @@
 package com.coddicted.buzzma.campaign.controller;
 
+import com.coddicted.buzzma.campaign.dto.AssignToMediatorRequestDto;
 import com.coddicted.buzzma.campaign.dto.AssignmentResponseDto;
 import com.coddicted.buzzma.campaign.dto.AssignmentSummaryResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
 import com.coddicted.buzzma.campaign.dto.CommissionResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedAssignmentsResponseDto;
 import com.coddicted.buzzma.campaign.dto.PublishAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.mapper.AssignmentMapper;
+import com.coddicted.buzzma.campaign.mapper.CampaignAssignmentMapper;
 import com.coddicted.buzzma.campaign.mapper.CommissionMapper;
 import com.coddicted.buzzma.campaign.processor.CampaignAssignmentProcessor;
 import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,16 +38,19 @@ public class AssignmentController {
   private final CampaignAssignmentProcessor campaignAssignmentProcessor;
   private final CommissionService commissionService;
   private final AssignmentMapper assignmentMapper;
+  private final CampaignAssignmentMapper campaignAssignmentMapper;
   private final CommissionMapper commissionMapper;
 
   public AssignmentController(
       final CampaignAssignmentProcessor campaignAssignmentProcessor,
       final CommissionService commissionService,
       final AssignmentMapper assignmentMapper,
+      final CampaignAssignmentMapper campaignAssignmentMapper,
       final CommissionMapper commissionMapper) {
     this.campaignAssignmentProcessor = campaignAssignmentProcessor;
     this.commissionService = commissionService;
     this.assignmentMapper = assignmentMapper;
+    this.campaignAssignmentMapper = campaignAssignmentMapper;
     this.commissionMapper = commissionMapper;
   }
 
@@ -86,6 +93,15 @@ public class AssignmentController {
         requesterId,
         request.getAffiliateUrl(),
         request.isSendNotificationOnPublish());
+  }
+
+  @PostMapping("/assign-to-mediator")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public List<CampaignAssignmentResponseDto> assignToMediator(
+      @CurrentUserId final UUID requesterId,
+      @Valid @RequestBody final AssignToMediatorRequestDto request) {
+    return this.campaignAssignmentMapper.toResponse(
+        this.campaignAssignmentProcessor.assignCampaignsToMediator(requesterId, request));
   }
 
   @GetMapping("/commissionCharged/{campaignId}")

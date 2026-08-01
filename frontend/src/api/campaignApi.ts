@@ -267,3 +267,39 @@ export async function closeCampaign(campaignId: string): Promise<CampaignRespons
 export async function deleteCampaign(campaignId: string): Promise<void> {
   await fetchWithAuth(`${API_BASE}/campaigns/${campaignId}`, { method: 'DELETE' })
 }
+
+export interface AssignableCampaign {
+  campaignId: string
+  campaignTitle: string
+  code: string
+  platform: string
+  campaignType: string | null
+  productBrandName: string
+  productImageUrl: string
+  startDate: string
+  endDate: string
+  campaignPricePaise: number
+  slotId: string
+  slotsAvailable: number
+  totalSlots: number
+}
+
+export async function fetchAssignableCampaigns(assigneeId: string): Promise<AssignableCampaign[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/assignable?assigneeId=${assigneeId}`)
+  const data = await res.json() as components['schemas']['AssignableCampaignResponseDto'][]
+  return data.map(d => ({
+    campaignId: d.campaignId ?? '',
+    campaignTitle: d.campaignTitle ?? '',
+    code: d.code ?? '',
+    platform: d.platform ?? '',
+    campaignType: d.campaignType ?? null,
+    productBrandName: d.productBrandName ?? '',
+    productImageUrl: d.productImageUrl ?? '',
+    startDate: yyyymmddToIso(d.startDate),
+    endDate: yyyymmddToIso(d.endDate),
+    campaignPricePaise: d.campaignPricePaise ?? 0,
+    slotId: d.slotId ?? '',
+    slotsAvailable: d.slotsAvailable ?? 0,
+    totalSlots: d.totalSlots ?? 0,
+  }))
+}

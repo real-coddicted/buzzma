@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CampaignSlotService {
+  CampaignSlot getById(UUID id);
+
   List<CampaignSlot> getByCampaignIds(List<UUID> campaignId);
 
   int decrementSlot(UUID campaignSlotId);

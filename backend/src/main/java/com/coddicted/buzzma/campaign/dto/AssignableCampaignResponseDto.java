@@ -15,6 +15,16 @@ public class AssignableCampaignResponseDto {
 
   String campaignTitle;
 
+  String code;
+
+  String platform;
+
+  String campaignType;
+
+  String productBrandName;
+
+  String productImageUrl;
+
   Integer startDate;
 
   Integer endDate;
