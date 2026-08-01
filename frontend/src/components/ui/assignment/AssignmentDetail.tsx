@@ -32,6 +32,7 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
   const deal = {
     id:                   item.id,
     campaignId:           item.campaignId,
+    campaignCode:         item.campaignCode,
     productName:          item.productName,
     productImageUrl:      item.productImageUrl,
     productUrl:           item.productUrl,
@@ -51,12 +52,6 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh-10rem)]">
         <DealInfo deal={deal} />
         <div className="flex flex-col gap-3">
-          {item.campaignCode && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Campaign Code</span>
-              <CopyableCode code={item.campaignCode} />
-            </div>
-          )}
           {readOnly && item.dealCode && (
             <div className="flex items-center justify-between">
               <CopyableCode code={item.dealCode} />
