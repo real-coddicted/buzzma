@@ -43,7 +43,8 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
             AND ca.isDeleted = false AND c.isDeleted = false
             AND ca.assigneeId = :assigneeId AND ca.status = :status
             AND (:status <> com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED
-                 OR c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                 OR (c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE
+                     AND (c.endDate IS NULL OR c.endDate >= :today)))
           """,
       countQuery =
           """
@@ -53,11 +54,13 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
             AND ca.isDeleted = false AND c.isDeleted = false
             AND ca.assigneeId = :assigneeId AND ca.status = :status
             AND (:status <> com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED
-                 OR c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                 OR (c.status = com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE
+                     AND (c.endDate IS NULL OR c.endDate >= :today)))
           """)
   Page<AssignmentSummaryView> findAssignmentSummaries(
       @Param("assigneeId") UUID assigneeId,
       @Param("status") CampaignAssignmentStatus status,
+      @Param("today") int today,
       Pageable pageable);
 
   @Query(

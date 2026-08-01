@@ -48,8 +48,12 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   @Override
   @Transactional(readOnly = true)
   public Page<AssignmentSummaryView> listAssignmentSummaries(
-      final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
-    return this.campaignAssignmentRepository.findAssignmentSummaries(assigneeId, status, pageable);
+      final UUID assigneeId,
+      final CampaignAssignmentStatus status,
+      final int today,
+      final Pageable pageable) {
+    return this.campaignAssignmentRepository.findAssignmentSummaries(
+        assigneeId, status, today, pageable);
   }
 
   @Override

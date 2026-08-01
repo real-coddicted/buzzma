@@ -289,6 +289,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
         throw new BusinessRuleViolationException(
             "Campaign must have at least one assignment before publishing");
       }
+      DateTimeUtils.validateEndDateNotInPast(campaign.getEndDate());
       this.stateMachine.transition(campaign, target);
       assignments.forEach(
           a -> a.setStatus(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED));

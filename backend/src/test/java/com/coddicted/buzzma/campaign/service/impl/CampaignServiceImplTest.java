@@ -207,6 +207,21 @@ class CampaignServiceImplTest {
   }
 
   @Test
+  void testActionPublishWithPastEndDateThrows() {
+    final Campaign campaignWithPastEndDate = CAMPAIGN_1.toBuilder().endDate(20200101).build();
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1))
+        .thenReturn(Optional.of(campaignWithPastEndDate));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of(ASSIGNMENT_1));
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> this.campaignService.action(CAMPAIGN_ID_1, CAMPAIGN_ACTION_PUBLISH, OWNER_ID));
+    assertEquals("Campaign end date cannot be in the past", ex.getMessage());
+  }
+
+  @Test
   void testActionPublishWhenNoAssignments() {
     when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
     when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))

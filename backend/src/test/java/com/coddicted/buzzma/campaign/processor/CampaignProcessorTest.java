@@ -11,9 +11,11 @@ import static com.coddicted.buzzma.campaign.processor.Fixtures.REQUESTER_ID;
 import static com.coddicted.buzzma.campaign.processor.Fixtures.REQUEST_MIXED_SLOT_OFFERED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
@@ -26,6 +28,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +63,18 @@ class CampaignProcessorTest {
             campaignEventPublisher,
             connectionService,
             userService);
+  }
+
+  @Test
+  void testCreateWithPastEndDateThrows() {
+    final CampaignRequestDto requestWithPastEndDate =
+        CampaignRequestDto.builder().endDate(20200101).build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, requestWithPastEndDate));
+    assertEquals("Campaign end date cannot be in the past", ex.getMessage());
   }
 
   // Campaign/CampaignSlot/CampaignAssignment are JPA entities without an equals() override, so

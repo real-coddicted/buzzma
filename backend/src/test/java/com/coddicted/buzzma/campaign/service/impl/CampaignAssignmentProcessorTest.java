@@ -119,7 +119,10 @@ class CampaignAssignmentProcessorTest {
     final AssignmentSummaryView mockView = org.mockito.Mockito.mock(AssignmentSummaryView.class);
     final AssignmentSummaryResponseDto mockDto = AssignmentSummaryResponseDto.builder().build();
     when(this.mockCampaignAssignmentService.listAssignmentSummaries(
-            ASSIGNEE_ID, CAMPAIGN_ASSIGNMENT_STATUS_DRAFT, pageable))
+            org.mockito.ArgumentMatchers.eq(ASSIGNEE_ID),
+            org.mockito.ArgumentMatchers.eq(CAMPAIGN_ASSIGNMENT_STATUS_DRAFT),
+            org.mockito.ArgumentMatchers.anyInt(),
+            org.mockito.ArgumentMatchers.eq(pageable)))
         .thenReturn(new PageImpl<>(List.of(mockView)));
     when(this.mockAssignmentMapper.toSummaryResponse(mockView)).thenReturn(mockDto);
 

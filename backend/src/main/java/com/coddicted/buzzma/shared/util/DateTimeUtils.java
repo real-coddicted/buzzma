@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.shared.util;
 
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -25,6 +26,12 @@ public final class DateTimeUtils {
 
   public static int getAsianTodayDate() {
     return toIntDate(LocalDate.now(ASIA_KOLKATA));
+  }
+
+  public static void validateEndDateNotInPast(final Integer endDate) {
+    if (endDate != null && endDate < getAsianTodayDate()) {
+      throw new BusinessRuleViolationException("Campaign end date cannot be in the past");
+    }
   }
 
   public static String formatTimestamp(final Instant instant) {

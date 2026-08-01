@@ -18,6 +18,7 @@ import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
+import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,7 @@ public class CampaignProcessor {
 
   @Transactional
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
+    DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
     final Campaign savedCampaign =
