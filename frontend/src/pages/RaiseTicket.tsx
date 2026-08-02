@@ -23,6 +23,8 @@ const EMPTY = {
   subCategoryId: '',
   title: '',
   orderId: '',
+  claimCode: '',
+  campaignCode: '',
   description: '',
 }
 
@@ -51,12 +53,16 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
   const subCategories = selectedCategory?.subCategories ?? []
   const selectedSubCategory = subCategories.find(s => s.id === form.subCategoryId)
   const showOrderId = selectedSubCategory?.requiresOrderId ?? false
+  const showClaimCode = selectedCategory?.requiresClaimCode ?? false
+  const showCampaignCode = selectedCategory?.requiresCampaignCode ?? false
 
   function set(field: keyof typeof EMPTY, value: string) {
     setForm(prev => ({
       ...prev,
       [field]: value,
-      ...(field === 'categoryId' ? { subCategoryId: '', orderId: '' } : {}),
+      ...(field === 'categoryId'
+        ? { subCategoryId: '', orderId: '', claimCode: '', campaignCode: '' }
+        : {}),
     }))
     setErrors(prev => ({ ...prev, [field]: undefined }))
   }
@@ -67,6 +73,8 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
     if (subCategories.length > 0 && !form.subCategoryId) e.subCategoryId = 'Required'
     if (!form.title.trim()) e.title = 'Required'
     if (showOrderId && !form.orderId.trim()) e.orderId = 'Required'
+    if (showClaimCode && !form.claimCode.trim()) e.claimCode = 'Required'
+    if (showCampaignCode && !form.campaignCode.trim()) e.campaignCode = 'Required'
     if (!form.description.trim()) e.description = 'Required'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -83,6 +91,8 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
         title: form.title.trim(),
         description: form.description.trim(),
         ...(form.orderId.trim() ? { orderId: form.orderId.trim() } : {}),
+        ...(form.claimCode.trim() ? { claimCode: form.claimCode.trim() } : {}),
+        ...(form.campaignCode.trim() ? { campaignCode: form.campaignCode.trim() } : {}),
       })
       setLoading(false)
       setSubmitted(true)
@@ -172,6 +182,36 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
             onChange={e => set('orderId', e.target.value)}
           />
           {errors.orderId && <p className={errorClass}>{errors.orderId}</p>}
+        </div>
+      )}
+
+      {/* Claim Code */}
+      {showClaimCode && (
+        <div>
+          <label className={labelClass}>Claim Code *</label>
+          <input
+            className={inputClass}
+            type="text"
+            placeholder="e.g. CLM1-A2B3"
+            value={form.claimCode}
+            onChange={e => set('claimCode', e.target.value)}
+          />
+          {errors.claimCode && <p className={errorClass}>{errors.claimCode}</p>}
+        </div>
+      )}
+
+      {/* Campaign Code */}
+      {showCampaignCode && (
+        <div>
+          <label className={labelClass}>Campaign Code *</label>
+          <input
+            className={inputClass}
+            type="text"
+            placeholder="e.g. CMP-001"
+            value={form.campaignCode}
+            onChange={e => set('campaignCode', e.target.value)}
+          />
+          {errors.campaignCode && <p className={errorClass}>{errors.campaignCode}</p>}
         </div>
       )}
 

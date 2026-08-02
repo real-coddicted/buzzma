@@ -44,4 +44,12 @@ class ClaimReviewMapperTest {
         ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED,
         mapper.toResponse(model).getClaimReviewStatus());
   }
+
+  @Test
+  void testToResponseMapsAccountNameFromClaim() {
+    final Claim claim = Claim.builder().accountName("Profile A").build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals("Profile A", mapper.toResponse(model).getAccountName());
+  }
 }

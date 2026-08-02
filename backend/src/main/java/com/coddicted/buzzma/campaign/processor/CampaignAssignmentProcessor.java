@@ -21,6 +21,7 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
+import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.HashSet;
@@ -106,7 +107,7 @@ public class CampaignAssignmentProcessor {
   public Page<AssignmentSummaryResponseDto> getAssignmentSummaries(
       final UUID assigneeId, final CampaignAssignmentStatus status, final Pageable pageable) {
     return this.campaignAssignmentService
-        .listAssignmentSummaries(assigneeId, status, pageable)
+        .listAssignmentSummaries(assigneeId, status, DateTimeUtils.getAsianTodayDate(), pageable)
         .map(this.assignmentMapper::toSummaryResponse);
   }
 

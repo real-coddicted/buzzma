@@ -3,6 +3,8 @@ package com.coddicted.buzzma.report.excel;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,9 +20,11 @@ public final class ClaimReviewReportColumns {
           new ExcelColumn<>("Brand", ClaimReviewResponseDto::getBrandName),
           new ExcelColumn<>("Mediator", ClaimReviewResponseDto::getDealOwnerName),
           new ExcelColumn<>("Buyer", ClaimReviewResponseDto::getBuyerName),
+          new ExcelColumn<>("Profile Name", ClaimReviewResponseDto::getAccountName),
           new ExcelColumn<>("Platform", dto -> dto.getPlatform().getDisplayName()),
           new ExcelColumn<>("Order ID", ClaimReviewResponseDto::getEcommerceOrderId),
           new ExcelColumn<>("Order Date", ClaimReviewReportColumns::formatOrderDate),
+          new ExcelColumn<>("Order Amount", ClaimReviewReportColumns::formatOrderAmount),
           new ExcelColumn<>("Claim Code", ClaimReviewResponseDto::getClaimCode),
           new ExcelColumn<>("Claim Status", dto -> dto.getClaimStatus().getDisplayName()),
           new ExcelColumn<>("Match Score", ClaimReviewResponseDto::getMatchScore),
@@ -36,5 +40,12 @@ public final class ClaimReviewReportColumns {
 
   private static String formatOrderDate(final ClaimReviewResponseDto dto) {
     return dto.getOrderDate() > 0 ? DateTimeUtils.toLocalDate(dto.getOrderDate()).toString() : null;
+  }
+
+  private static BigDecimal formatOrderAmount(final ClaimReviewResponseDto dto) {
+    return dto.getAmountPaise() != null
+        ? new BigDecimal(dto.getAmountPaise())
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+        : null;
   }
 }

@@ -18,7 +18,7 @@ public interface CampaignAssignmentService {
       UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
 
   Page<AssignmentSummaryView> listAssignmentSummaries(
-      UUID assigneeId, CampaignAssignmentStatus status, Pageable pageable);
+      UUID assigneeId, CampaignAssignmentStatus status, int today, Pageable pageable);
 
   List<CampaignAssignment> create(List<CampaignAssignment> assignees);
 

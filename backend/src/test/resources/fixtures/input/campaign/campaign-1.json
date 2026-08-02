@@ -11,5 +11,13 @@
   "createdAt": "2024-01-01T00:00:00Z",
   "updatedAt": "2024-01-01T00:00:00Z",
   "createdBy": "44444444-4444-4444-4444-444444444444",
-  "updatedBy": "44444444-4444-4444-4444-444444444444"
+  "updatedBy": "44444444-4444-4444-4444-444444444444",
+  "product": {
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "name": "Test Product",
+    "brandName": "Test Brand",
+    "imageUrl": "https://example.com/image.jpg",
+    "productLink": "https://example.com/product",
+    "pricePaise": 99900
+  }
 }

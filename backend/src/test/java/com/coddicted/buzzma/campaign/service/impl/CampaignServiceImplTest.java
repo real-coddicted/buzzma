@@ -96,6 +96,26 @@ class CampaignServiceImplTest {
   }
 
   @Test
+  void testGetByCodeWhenFound() {
+    when(this.mockCampaignRepository.findByCodeAndIsDeletedFalse("CMP-001"))
+        .thenReturn(Optional.of(CAMPAIGN_1));
+
+    final Campaign result = this.campaignService.getByCode("CMP-001");
+
+    assertEquals(CAMPAIGN_1, result);
+  }
+
+  @Test
+  void testGetByCodeWhenNotFound() {
+    when(this.mockCampaignRepository.findByCodeAndIsDeletedFalse("CMP-001"))
+        .thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(NotFoundException.class, () -> this.campaignService.getByCode("CMP-001"));
+    assertEquals("Campaign not found: CMP-001", ex.getMessage());
+  }
+
+  @Test
   void testCreate() {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
         .thenReturn(GENERATED_CODE);
@@ -184,6 +204,21 @@ class CampaignServiceImplTest {
                 this.campaignService.action(CAMPAIGN_ID_1, CAMPAIGN_ACTION_PUBLISH, NON_OWNER_ID));
     assertEquals(
         "Only the campaign owner can perform this action on the campaign", ex.getMessage());
+  }
+
+  @Test
+  void testActionPublishWithPastEndDateThrows() {
+    final Campaign campaignWithPastEndDate = CAMPAIGN_1.toBuilder().endDate(20200101).build();
+    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1))
+        .thenReturn(Optional.of(campaignWithPastEndDate));
+    when(this.mockCampaignAssignmentRepository.findByCampaignId(CAMPAIGN_ID_1))
+        .thenReturn(List.of(ASSIGNMENT_1));
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> this.campaignService.action(CAMPAIGN_ID_1, CAMPAIGN_ACTION_PUBLISH, OWNER_ID));
+    assertEquals("Campaign end date cannot be in the past", ex.getMessage());
   }
 
   @Test
@@ -381,6 +416,8 @@ class CampaignServiceImplTest {
     assertNull(savedCopy.getCreatedAt());
     assertNull(savedCopy.getUpdatedAt());
     assertNull(savedCopy.getAssignmentsDraft());
+    assertNotSame(CAMPAIGN_1.getProduct(), savedCopy.getProduct());
+    assertNull(savedCopy.getProduct().getId());
     verifyNoInteractions(this.mockCampaignAssignmentService);
   }
 

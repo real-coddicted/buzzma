@@ -44,11 +44,20 @@ public class Ticket implements Auditable {
   @Column(name = "raised_by", nullable = false)
   private UUID raisedBy;
 
+  @Column(name = "title", length = 255)
+  private String title;
+
   @Column(name = "description", nullable = false, columnDefinition = "TEXT")
   private String description;
 
   @Column(name = "order_id")
   private String orderId;
+
+  @Column(name = "claim_code")
+  private String claimCode;
+
+  @Column(name = "campaign_code")
+  private String campaignCode;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 100)

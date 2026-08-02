@@ -33,6 +33,21 @@ function reviewStatusFromClaimReviewStatus(status: ClaimReviewStatus): ReviewSta
   }
 }
 
+function claimReviewStatusFromReviewStatus(status: ReviewStatus): ClaimReviewStatus {
+  switch (status) {
+    case 'approved':
+      return 'CLAIM_REVIEW_STATUS_APPROVED'
+    case 'rejected':
+      return 'CLAIM_REVIEW_STATUS_REJECTED'
+    case 'in-review':
+      return 'CLAIM_REVIEW_STATUS_PROOF_REQUESTED'
+    case 'objected':
+      return 'CLAIM_REVIEW_STATUS_OBJECTED'
+    default:
+      return 'CLAIM_REVIEW_STATUS_PENDING'
+  }
+}
+
 function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
   const status = dto.status ?? 'CREATED'
   return {
@@ -130,13 +145,26 @@ export async function fetchScreenshotUrl(storageKey: string): Promise<string> {
 export interface ClaimReviewServerFilter {
   campaignIds?: Set<string>
   mediatorIds?: Set<string>
+  brands?: Set<string>
+  platforms?: Set<Platform>
+  reviewStatuses?: Set<ReviewStatus>
+}
+
+function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
+  return {
+    campaignIds: filter?.campaignIds && filter.campaignIds.size > 0 ? [...filter.campaignIds] : null,
+    mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
+    brands: filter?.brands && filter.brands.size > 0 ? [...filter.brands] : null,
+    platforms: filter?.platforms && filter.platforms.size > 0 ? [...filter.platforms] : null,
+    reviewStatuses:
+      filter?.reviewStatuses && filter.reviewStatuses.size > 0
+        ? [...filter.reviewStatuses].map(claimReviewStatusFromReviewStatus)
+        : null,
+  }
 }
 
 export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page = 0, size = 50): Promise<ClaimReviewItem[]> {
-  const body = {
-    campaignIds: filter?.campaignIds && filter.campaignIds.size > 0 ? [...filter.campaignIds] : null,
-    mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
-  }
+  const body = claimReviewFilterBody(filter)
   const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -148,10 +176,7 @@ export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page
 
 /** POST /reports/claim-review/excel — downloads the claim review report as an .xlsx file for the given filters. */
 export async function downloadClaimReviewReport(filter?: ClaimReviewServerFilter): Promise<void> {
-  const body = {
-    campaignIds: filter?.campaignIds && filter.campaignIds.size > 0 ? [...filter.campaignIds] : null,
-    mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
-  }
+  const body = claimReviewFilterBody(filter)
   const res = await fetchWithAuth(`${API_BASE}/reports/claim-review/excel`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

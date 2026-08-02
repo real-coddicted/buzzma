@@ -91,7 +91,7 @@ class ClaimRepositorySearchTest {
   void findClaimsToReviewForMediatorScopesByMediatorOnly() {
     final Page<ClaimReviewModel> result =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, null, null, PageRequest.of(0, 20));
+            this.mediator1Id, null, null, null, null, null, PageRequest.of(0, 20));
 
     assertEquals(1, result.getTotalElements());
     assertEquals(this.claim1Id, result.getContent().get(0).getClaim().getId());
@@ -101,12 +101,24 @@ class ClaimRepositorySearchTest {
   void findClaimsToReviewForMediatorAppliesCampaignIdsFilter() {
     final Page<ClaimReviewModel> matching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, List.of(this.campaignAId), null, PageRequest.of(0, 20));
+            this.mediator1Id,
+            List.of(this.campaignAId),
+            null,
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertEquals(1, matching.getTotalElements());
 
     final Page<ClaimReviewModel> nonMatching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, List.of(this.campaignBId), null, PageRequest.of(0, 20));
+            this.mediator1Id,
+            List.of(this.campaignBId),
+            null,
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertTrue(nonMatching.getContent().isEmpty());
   }
 
@@ -114,20 +126,92 @@ class ClaimRepositorySearchTest {
   void findClaimsToReviewForMediatorAppliesClaimStatusFilter() {
     final Page<ClaimReviewModel> matching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, null, List.of(ClaimStatus.UNDER_REVIEW), PageRequest.of(0, 20));
+            this.mediator1Id,
+            null,
+            List.of(ClaimStatus.UNDER_REVIEW),
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertEquals(1, matching.getTotalElements());
 
     final Page<ClaimReviewModel> nonMatching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, null, List.of(ClaimStatus.APPROVED), PageRequest.of(0, 20));
+            this.mediator1Id,
+            null,
+            List.of(ClaimStatus.APPROVED),
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertTrue(nonMatching.getContent().isEmpty());
+  }
+
+  @Test
+  void findClaimsToReviewForMediatorAppliesBrandPlatformAndReviewStatusFilters() {
+    final Campaign campaignC = saveCampaign("Other Brand", Platform.PLATFORM_FLIPKART);
+    final Deal dealC = saveDeal(campaignC, this.mediator1Id);
+    final BuzzmaUser buyer3 = saveUser("Buyer Three", UserRole.ROLE_BUYER);
+    final Claim claim3 =
+        saveClaim(
+            campaignC.getId(),
+            dealC.getId(),
+            buyer3.getId(),
+            ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED);
+
+    final Page<ClaimReviewModel> brandMatch =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id, null, null, List.of("Test brand"), null, null, PageRequest.of(0, 20));
+    assertEquals(1, brandMatch.getTotalElements());
+    assertEquals(this.claim1Id, brandMatch.getContent().get(0).getClaim().getId());
+
+    final Page<ClaimReviewModel> platformMatch =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id,
+            null,
+            null,
+            null,
+            List.of(Platform.PLATFORM_FLIPKART),
+            null,
+            PageRequest.of(0, 20));
+    assertEquals(1, platformMatch.getTotalElements());
+    assertEquals(claim3.getId(), platformMatch.getContent().get(0).getClaim().getId());
+
+    final Page<ClaimReviewModel> reviewStatusMatch =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id,
+            null,
+            null,
+            null,
+            null,
+            List.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED),
+            PageRequest.of(0, 20));
+    assertEquals(1, reviewStatusMatch.getTotalElements());
+    assertEquals(claim3.getId(), reviewStatusMatch.getContent().get(0).getClaim().getId());
+
+    final Page<ClaimReviewModel> noMatch =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id,
+            null,
+            null,
+            List.of("Nonexistent Brand"),
+            null,
+            null,
+            PageRequest.of(0, 20));
+    assertTrue(noMatch.getContent().isEmpty());
   }
 
   @Test
   void findClaimsToReviewForCampaignsScopesByCampaignsOnly() {
     final Page<ClaimReviewModel> result =
         this.claimRepository.findClaimsToReviewForCampaigns(
-            List.of(this.campaignAId, this.campaignBId), null, null, PageRequest.of(0, 20));
+            List.of(this.campaignAId, this.campaignBId),
+            null,
+            null,
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
 
     assertEquals(2, result.getTotalElements());
   }
@@ -138,6 +222,9 @@ class ClaimRepositorySearchTest {
         this.claimRepository.findClaimsToReviewForCampaigns(
             List.of(this.campaignAId, this.campaignBId),
             List.of(this.mediator1Id),
+            null,
+            null,
+            null,
             null,
             PageRequest.of(0, 20));
 
@@ -152,6 +239,9 @@ class ClaimRepositorySearchTest {
             List.of(this.campaignAId, this.campaignBId),
             null,
             List.of(ClaimStatus.UNDER_REVIEW),
+            null,
+            null,
+            null,
             PageRequest.of(0, 20));
     assertEquals(2, matching.getTotalElements());
 
@@ -160,8 +250,59 @@ class ClaimRepositorySearchTest {
             List.of(this.campaignAId, this.campaignBId),
             null,
             List.of(ClaimStatus.APPROVED),
+            null,
+            null,
+            null,
             PageRequest.of(0, 20));
     assertTrue(nonMatching.getContent().isEmpty());
+  }
+
+  @Test
+  void findClaimsToReviewForCampaignsAppliesBrandPlatformAndReviewStatusFilters() {
+    final Campaign campaignC = saveCampaign("Other Brand", Platform.PLATFORM_FLIPKART);
+    final Deal dealC = saveDeal(campaignC, this.mediator2Id);
+    final BuzzmaUser buyer3 = saveUser("Buyer Three", UserRole.ROLE_BUYER);
+    final Claim claim3 =
+        saveClaim(
+            campaignC.getId(),
+            dealC.getId(),
+            buyer3.getId(),
+            ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED);
+
+    final Page<ClaimReviewModel> brandMatch =
+        this.claimRepository.findClaimsToReviewForCampaigns(
+            List.of(this.campaignAId, this.campaignBId, campaignC.getId()),
+            null,
+            null,
+            List.of("Other Brand"),
+            null,
+            null,
+            PageRequest.of(0, 20));
+    assertEquals(1, brandMatch.getTotalElements());
+    assertEquals(claim3.getId(), brandMatch.getContent().get(0).getClaim().getId());
+
+    final Page<ClaimReviewModel> platformMatch =
+        this.claimRepository.findClaimsToReviewForCampaigns(
+            List.of(this.campaignAId, this.campaignBId, campaignC.getId()),
+            null,
+            null,
+            null,
+            List.of(Platform.PLATFORM_AMAZON),
+            null,
+            PageRequest.of(0, 20));
+    assertEquals(2, platformMatch.getTotalElements());
+
+    final Page<ClaimReviewModel> reviewStatusMatch =
+        this.claimRepository.findClaimsToReviewForCampaigns(
+            List.of(this.campaignAId, this.campaignBId, campaignC.getId()),
+            null,
+            null,
+            null,
+            null,
+            List.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED),
+            PageRequest.of(0, 20));
+    assertEquals(1, reviewStatusMatch.getTotalElements());
+    assertEquals(claim3.getId(), reviewStatusMatch.getContent().get(0).getClaim().getId());
   }
 
   private final AtomicInteger mobileSequence = new AtomicInteger(0);
@@ -173,11 +314,15 @@ class ClaimRepositorySearchTest {
   }
 
   private Campaign saveCampaign() {
+    return saveCampaign("Test brand", Platform.PLATFORM_AMAZON);
+  }
+
+  private Campaign saveCampaign(final String brandName, final Platform platform) {
     final Product product =
         this.productRepository.save(
             Product.builder()
                 .name("Test product")
-                .brandName("Test brand")
+                .brandName(brandName)
                 .imageUrl(url("https://example.com/image.png"))
                 .productLink(url("https://example.com/product"))
                 .pricePaise(BigInteger.valueOf(10000))
@@ -189,7 +334,7 @@ class ClaimRepositorySearchTest {
                 .ownerId(UUID.randomUUID())
                 .totalSlots(10)
                 .product(product)
-                .platform(Platform.PLATFORM_AMAZON)
+                .platform(platform)
                 .type(CampaignType.CAMPAIGN_TYPE_REVIEW)
                 .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
                 .openToAll(false)
@@ -222,13 +367,21 @@ class ClaimRepositorySearchTest {
   }
 
   private Claim saveClaim(final UUID campaignId, final UUID dealId, final UUID buyerId) {
+    return saveClaim(campaignId, dealId, buyerId, ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING);
+  }
+
+  private Claim saveClaim(
+      final UUID campaignId,
+      final UUID dealId,
+      final UUID buyerId,
+      final ClaimReviewStatus reviewStatus) {
     return this.claimRepository.save(
         Claim.builder()
             .campaignId(campaignId)
             .dealId(dealId)
             .ownerId(buyerId)
             .status(ClaimStatus.UNDER_REVIEW)
-            .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING)
+            .reviewStatus(reviewStatus)
             .platform(Platform.PLATFORM_AMAZON)
             .currentStep(CampaignStepType.REVIEW)
             .isDeleted(false)

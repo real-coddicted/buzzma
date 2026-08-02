@@ -75,6 +75,13 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   }
 
   @Override
+  public Campaign getByCode(final String code) {
+    return this.campaignRepository
+        .findByCodeAndIsDeletedFalse(code)
+        .orElseThrow(() -> new NotFoundException("Campaign not found: " + code));
+  }
+
+  @Override
   @Transactional
   public Campaign create(final Campaign campaign) {
     return this.campaignRepository.save(
@@ -135,9 +142,9 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
             .updatedAt(null)
             .createdBy(requesterId)
             .updatedBy(requesterId)
+            .product(src.getProduct().toBuilder().id(null).build())
             .build();
     final Campaign saved = this.campaignRepository.save(copy);
-    // Todo: Copy Product
     this.campaignEventPublisher.publishCampaignCreatedEvent(saved.getId(), requesterId);
     return saved;
   }
@@ -282,6 +289,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
         throw new BusinessRuleViolationException(
             "Campaign must have at least one assignment before publishing");
       }
+      DateTimeUtils.validateEndDateNotInPast(campaign.getEndDate());
       this.stateMachine.transition(campaign, target);
       assignments.forEach(
           a -> a.setStatus(CampaignAssignmentStatus.CAMPAIGN_ASSIGNMENT_STATUS_LOCKED));

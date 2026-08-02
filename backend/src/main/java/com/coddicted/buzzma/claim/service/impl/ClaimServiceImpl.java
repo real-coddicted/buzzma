@@ -27,6 +27,7 @@ import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
@@ -261,6 +262,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional(readOnly = true)
+  public Claim getByCode(final String code) {
+    return this.claimRepository
+        .findByCodeAndIsDeletedFalse(code)
+        .orElseThrow(() -> new NotFoundException("Claim not found: " + code));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Claim> listByOwner(final UUID ownerId) {
     return this.claimRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
   }
@@ -278,9 +287,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final UUID mediatorId,
       final Collection<UUID> campaignIds,
       final Collection<ClaimStatus> claimStatuses,
+      final Collection<String> brands,
+      final Collection<Platform> platforms,
+      final Collection<ClaimReviewStatus> reviewStatuses,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForMediator(
-        mediatorId, campaignIds, claimStatuses, pageable);
+        mediatorId, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
   }
 
   @Override
@@ -289,9 +301,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Collection<UUID> campaignIds,
       final Collection<UUID> mediatorIds,
       final Collection<ClaimStatus> claimStatuses,
+      final Collection<String> brands,
+      final Collection<Platform> platforms,
+      final Collection<ClaimReviewStatus> reviewStatuses,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForCampaigns(
-        campaignIds, mediatorIds, claimStatuses, pageable);
+        campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
   }
 
   @Override

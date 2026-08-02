@@ -28,6 +28,14 @@ export function TicketInfo({ ticket }: Props) {
       </div>
 
       <dl className="space-y-3">
+        {ticket.title && (
+          <Row label="Title">
+            <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">
+              {ticket.title}
+            </span>
+          </Row>
+        )}
+
         <Row label="Category">
           <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">
             {ticket.categoryDisplayName}
@@ -42,6 +50,22 @@ export function TicketInfo({ ticket }: Props) {
           <Row label="Order ID">
             <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
               {ticket.orderId}
+            </span>
+          </Row>
+        )}
+
+        {ticket.claimCode && (
+          <Row label="Claim Code">
+            <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
+              {ticket.claimCode}
+            </span>
+          </Row>
+        )}
+
+        {ticket.campaignCode && (
+          <Row label="Campaign Code">
+            <span className="font-mono text-[11px] text-neon-cyan bg-neon-cyan/10 border border-neon-cyan/25 rounded px-1.5 py-0.5">
+              {ticket.campaignCode}
             </span>
           </Row>
         )}

@@ -30,6 +30,7 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
@@ -39,6 +40,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -421,6 +423,26 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testGetByCode() {
+    when(this.mockClaimRepository.findByCodeAndIsDeletedFalse(CLAIM_CODE))
+        .thenReturn(Optional.of(CLAIM_1));
+
+    final Claim result = this.claimService.getByCode(CLAIM_CODE);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
+  void testGetByCodeWhenNotFound() {
+    when(this.mockClaimRepository.findByCodeAndIsDeletedFalse(CLAIM_CODE))
+        .thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(NotFoundException.class, () -> this.claimService.getByCode(CLAIM_CODE));
+    assertEquals("Claim not found: " + CLAIM_CODE, ex.getMessage());
+  }
+
+  @Test
   @Disabled
   // Todo: fix test case
   void testGetByIdWhenNotOwner() {
@@ -458,16 +480,20 @@ class ClaimServiceImplTest {
   void testFindClaimsToReviewForMediator() {
     final List<UUID> campaignIds = List.of(DEAL_ID);
     final List<ClaimStatus> claimStatuses = List.of(UNDER_REVIEW);
+    final List<String> brands = List.of("Nike");
+    final List<Platform> platforms = List.of(Platform.PLATFORM_AMAZON);
+    final List<ClaimReviewStatus> reviewStatuses =
+        List.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED);
     final Pageable pageable = Pageable.ofSize(10);
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimRepository.findClaimsToReviewForMediator(
-            OWNER_ID, campaignIds, claimStatuses, pageable))
+            OWNER_ID, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimService.findClaimsToReviewForMediator(
-            OWNER_ID, campaignIds, claimStatuses, pageable);
+            OWNER_ID, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
 
     assertEquals(expected, result);
   }
@@ -477,16 +503,20 @@ class ClaimServiceImplTest {
     final List<UUID> campaignIds = List.of(DEAL_ID);
     final List<UUID> mediatorIds = List.of(OWNER_ID);
     final List<ClaimStatus> claimStatuses = List.of(UNDER_REVIEW);
+    final List<String> brands = List.of("Nike");
+    final List<Platform> platforms = List.of(Platform.PLATFORM_AMAZON);
+    final List<ClaimReviewStatus> reviewStatuses =
+        List.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED);
     final Pageable pageable = Pageable.ofSize(10);
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimRepository.findClaimsToReviewForCampaigns(
-            campaignIds, mediatorIds, claimStatuses, pageable))
+            campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimService.findClaimsToReviewForCampaigns(
-            campaignIds, mediatorIds, claimStatuses, pageable);
+            campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
 
     assertEquals(expected, result);
   }

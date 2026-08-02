@@ -9,6 +9,8 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.support.entity.Ticket;
 import com.coddicted.buzzma.support.entity.TicketAction;
+import com.coddicted.buzzma.support.entity.TicketCategory;
+import com.coddicted.buzzma.support.entity.TicketCategoryCode;
 import com.coddicted.buzzma.support.entity.TicketSubCategory;
 import com.coddicted.buzzma.support.entity.TicketSubCategoryMetadata;
 import com.coddicted.buzzma.support.notification.TicketEventPublisher;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class TicketServiceImpl extends BaseCrudService implements TicketService {
@@ -65,6 +68,19 @@ public class TicketServiceImpl extends BaseCrudService implements TicketService 
         throw new BusinessRuleViolationException(
             "order id is required for sub-category: " + ticketSubCategory.getCode());
       }
+    }
+
+    final TicketCategory ticketCategory =
+        this.ticketCategoryService.getById(ticket.getCategoryId());
+    if (TicketCategoryCode.CLAIM.equals(ticketCategory.getCode())
+        && !StringUtils.hasText(ticket.getClaimCode())) {
+      throw new BusinessRuleViolationException(
+          "claim code is required for category: " + ticketCategory.getCode());
+    }
+    if (TicketCategoryCode.CAMPAIGN.equals(ticketCategory.getCode())
+        && !StringUtils.hasText(ticket.getCampaignCode())) {
+      throw new BusinessRuleViolationException(
+          "campaign code is required for category: " + ticketCategory.getCode());
     }
 
     final String code =

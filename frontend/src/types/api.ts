@@ -1341,6 +1341,8 @@ export interface components {
             description: string;
             orderId?: string;
             dealId?: string;
+            claimCode?: string;
+            campaignCode?: string;
         };
         TicketResponseDto: {
             /** Format: uuid */
@@ -1351,12 +1353,16 @@ export interface components {
             raisedByName?: string;
             /** Format: uuid */
             categoryId?: string;
+            categoryName?: string;
             /** Format: uuid */
             subCategoryId?: string;
+            subCategoryName?: string;
             title?: string;
             description?: string;
             orderId?: string;
             dealId?: string;
+            claimCode?: string;
+            campaignCode?: string;
             /** @enum {string} */
             status?: "TICKET_STATUS_IN_PROGRESS" | "TICKET_STATUS_WAITING_FOR_USER_ACTION" | "TICKET_STATUS_RESOLVED" | "TICKET_STATUS_CLOSED";
             /** Format: uuid */
@@ -1427,6 +1433,9 @@ export interface components {
             campaignIds?: string[];
             mediatorIds?: string[];
             claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            brands?: string[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+            reviewStatuses?: ("CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED")[];
         };
         InviteRequestDto: {
             /** Format: int32 */
@@ -1727,9 +1736,9 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
@@ -1992,6 +2001,8 @@ export interface components {
             code?: string;
             requiresOrderId?: boolean;
             requiresDealId?: boolean;
+            requiresClaimCode?: boolean;
+            requiresCampaignCode?: boolean;
             subCategories?: components["schemas"]["TicketSubCategoryResponseDto"][];
         };
         TicketSubCategoryResponseDto: {
@@ -2107,6 +2118,7 @@ export interface components {
             /** Format: int32 */
             slotLimit?: number;
             dealCode?: string;
+            campaignCode?: string;
         };
         PagedAssignmentsResponseDto: {
             items?: components["schemas"]["AssignmentSummaryResponseDto"][];
@@ -2122,6 +2134,7 @@ export interface components {
             id?: string;
             /** Format: uuid */
             campaignId?: string;
+            campaignCode?: string;
             /** Format: uuid */
             ownerId?: string;
             productName?: string;

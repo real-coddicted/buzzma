@@ -36,6 +36,9 @@ public class ReportServiceImpl implements ReportService {
                 filter != null ? filter.getCampaignIds() : null,
                 filter != null ? filter.getMediatorIds() : null,
                 filter != null ? filter.getClaimStatuses() : null,
+                filter != null ? filter.getBrands() : null,
+                filter != null ? filter.getPlatforms() : null,
+                filter != null ? filter.getReviewStatuses() : null,
                 Pageable.unpaged())
             .getContent();
     return this.excelReportWriter.write(

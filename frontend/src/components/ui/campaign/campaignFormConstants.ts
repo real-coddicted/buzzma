@@ -51,6 +51,8 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
   if (!form.endDate) e.endDate = 'Required'
   if (form.startDate && form.endDate && form.endDate < form.startDate)
     e.endDate = 'End date must be after start date'
+  if (form.endDate && form.endDate < new Date().toISOString().slice(0, 10))
+    e.endDate = 'End date cannot be in the past'
 
   const orig = parseFloat(form.originalPriceRupees)
   if (isNaN(orig) || orig < 0) e.originalPriceRupees = 'Enter a valid amount'
