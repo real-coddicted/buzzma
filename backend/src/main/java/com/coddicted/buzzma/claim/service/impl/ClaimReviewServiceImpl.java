@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.service.impl;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
@@ -10,6 +11,7 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -44,6 +46,9 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final Set<UUID> campaignIdsFilter,
       final Set<UUID> mediatorIdsFilter,
       final Set<ClaimStatus> claimStatusFilter,
+      final Set<String> brandsFilter,
+      final Set<Platform> platformsFilter,
+      final Set<ClaimReviewStatus> reviewStatusesFilter,
       final Pageable pageable) {
     // updatedAt-descending ordering is a business rule enforced in the repository queries
     // themselves, so any client-supplied sort is stripped here to avoid a conflicting ORDER BY.
@@ -61,6 +66,9 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
           requester.getId(),
           emptyToNull(campaignIdsFilter),
           emptyToNull(claimStatusFilter),
+          emptyToNull(brandsFilter),
+          emptyToNull(platformsFilter),
+          emptyToNull(reviewStatusesFilter),
           unsortedPageable);
     }
 
@@ -76,6 +84,9 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
         campaignIds,
         emptyToNull(mediatorIdsFilter),
         emptyToNull(claimStatusFilter),
+        emptyToNull(brandsFilter),
+        emptyToNull(platformsFilter),
+        emptyToNull(reviewStatusesFilter),
         unsortedPageable);
   }
 

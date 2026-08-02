@@ -179,6 +179,9 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
       await downloadClaimReviewReport({
         campaignIds: appliedFilters.campaignIds,
         mediatorIds: appliedFilters.mediatorIds,
+        brands: appliedFilters.brands,
+        platforms: appliedFilters.platforms,
+        reviewStatuses: appliedFilters.reviewStatuses,
       })
     } catch (err) {
       console.error('Failed to download claim review report', err)

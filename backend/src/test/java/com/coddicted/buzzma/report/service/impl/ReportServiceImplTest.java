@@ -46,7 +46,12 @@ class ReportServiceImplTest {
         BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_AGENCY).build();
     final UUID campaignId = UUID.randomUUID();
     final ClaimReviewFilterRequestDto filter =
-        ClaimReviewFilterRequestDto.builder().campaignIds(Set.of(campaignId)).build();
+        ClaimReviewFilterRequestDto.builder()
+            .campaignIds(Set.of(campaignId))
+            .brands(Set.of("Acme"))
+            .platforms(Set.of(Platform.PLATFORM_AMAZON))
+            .reviewStatuses(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED))
+            .build();
     final ClaimReviewResponseDto row =
         ClaimReviewResponseDto.builder()
             .campaignName("Summer Sale")
@@ -70,14 +75,28 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(agency), eq(Set.of(campaignId)), isNull(), isNull(), any(Pageable.class)))
+            eq(agency),
+            eq(Set.of(campaignId)),
+            isNull(),
+            isNull(),
+            eq(Set.of("Acme")),
+            eq(Set.of(Platform.PLATFORM_AMAZON)),
+            eq(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)),
+            any(Pageable.class)))
         .thenReturn(pageOf(row));
 
     final byte[] bytes = serviceWithMock.generateClaimReviewReport(agency, filter);
 
     verify(claimReviewProcessor)
         .listClaimReviews(
-            eq(agency), eq(Set.of(campaignId)), isNull(), isNull(), eq(Pageable.unpaged()));
+            eq(agency),
+            eq(Set.of(campaignId)),
+            isNull(),
+            isNull(),
+            eq(Set.of("Acme")),
+            eq(Set.of(Platform.PLATFORM_AMAZON)),
+            eq(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)),
+            eq(Pageable.unpaged()));
 
     try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
       final Sheet sheet = workbook.getSheet("Claim Review");
@@ -115,13 +134,28 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(mediator), isNull(), isNull(), isNull(), any(Pageable.class)))
+            eq(mediator),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            any(Pageable.class)))
         .thenReturn(Page.empty());
 
     serviceWithMock.generateClaimReviewReport(mediator, null);
 
     verify(claimReviewProcessor)
-        .listClaimReviews(eq(mediator), isNull(), isNull(), isNull(), eq(Pageable.unpaged()));
+        .listClaimReviews(
+            eq(mediator),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(Pageable.unpaged()));
   }
 
   private static Page<ClaimReviewResponseDto> pageOf(final ClaimReviewResponseDto row) {

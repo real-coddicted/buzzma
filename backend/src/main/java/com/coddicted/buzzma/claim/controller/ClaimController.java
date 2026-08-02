@@ -12,6 +12,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
@@ -23,6 +24,7 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
@@ -270,8 +272,19 @@ public class ClaimController {
     final Set<UUID> campaignIds = request != null ? request.getCampaignIds() : null;
     final Set<UUID> mediatorIds = request != null ? request.getMediatorIds() : null;
     final Set<ClaimStatus> claimStatuses = request != null ? request.getClaimStatuses() : null;
+    final Set<String> brands = request != null ? request.getBrands() : null;
+    final Set<Platform> platforms = request != null ? request.getPlatforms() : null;
+    final Set<ClaimReviewStatus> reviewStatuses =
+        request != null ? request.getReviewStatuses() : null;
     return this.claimReviewProcessor.listClaimReviews(
-        requester, campaignIds, mediatorIds, claimStatuses, pageable);
+        requester,
+        campaignIds,
+        mediatorIds,
+        claimStatuses,
+        brands,
+        platforms,
+        reviewStatuses,
+        pageable);
   }
 
   @GetMapping("/{id}")

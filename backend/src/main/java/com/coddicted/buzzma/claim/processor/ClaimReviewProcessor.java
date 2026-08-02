@@ -1,10 +1,12 @@
 package com.coddicted.buzzma.claim.processor;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -28,10 +30,20 @@ public class ClaimReviewProcessor {
       final Set<UUID> campaignIdsFilter,
       final Set<UUID> mediatorIdsFilter,
       final Set<ClaimStatus> claimStatusFilter,
+      final Set<String> brandsFilter,
+      final Set<Platform> platformsFilter,
+      final Set<ClaimReviewStatus> reviewStatusesFilter,
       final Pageable pageable) {
     return this.claimReviewService
         .getClaimReviews(
-            requester, campaignIdsFilter, mediatorIdsFilter, claimStatusFilter, pageable)
+            requester,
+            campaignIdsFilter,
+            mediatorIdsFilter,
+            claimStatusFilter,
+            brandsFilter,
+            platformsFilter,
+            reviewStatusesFilter,
+            pageable)
         .map(this.claimReviewMapper::toResponse);
   }
 }

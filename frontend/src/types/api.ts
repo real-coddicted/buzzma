@@ -1433,6 +1433,9 @@ export interface components {
             campaignIds?: string[];
             mediatorIds?: string[];
             claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            brands?: string[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+            reviewStatuses?: ("CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED")[];
         };
         InviteRequestDto: {
             /** Format: int32 */
@@ -1721,10 +1724,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */

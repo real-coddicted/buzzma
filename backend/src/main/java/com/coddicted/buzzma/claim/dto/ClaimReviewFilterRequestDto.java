@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.claim.dto;
 
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
@@ -20,4 +22,10 @@ public class ClaimReviewFilterRequestDto {
   @Nullable Set<UUID> mediatorIds;
 
   @Nullable Set<ClaimStatus> claimStatuses;
+
+  @Nullable Set<String> brands;
+
+  @Nullable Set<Platform> platforms;
+
+  @Nullable Set<ClaimReviewStatus> reviewStatuses;
 }

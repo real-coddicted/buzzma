@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
@@ -64,12 +65,18 @@ public interface ClaimService {
       UUID mediatorId,
       Collection<UUID> campaignIds,
       Collection<ClaimStatus> claimStatuses,
+      Collection<String> brands,
+      Collection<Platform> platforms,
+      Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
       Collection<UUID> campaignIds,
       Collection<UUID> mediatorIds,
       Collection<ClaimStatus> claimStatuses,
+      Collection<String> brands,
+      Collection<Platform> platforms,
+      Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   ClaimWithDeal reviewScreenshot(

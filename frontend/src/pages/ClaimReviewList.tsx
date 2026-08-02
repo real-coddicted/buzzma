@@ -18,7 +18,13 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchClaimsToReview({ campaignIds: appliedFilters.campaignIds, mediatorIds: appliedFilters.mediatorIds })
+    fetchClaimsToReview({
+      campaignIds: appliedFilters.campaignIds,
+      mediatorIds: appliedFilters.mediatorIds,
+      brands: appliedFilters.brands,
+      platforms: appliedFilters.platforms,
+      reviewStatuses: appliedFilters.reviewStatuses,
+    })
       .then(data => { if (!cancelled) setClaims(data) })
       .catch(err => { if (!cancelled) setError((err as Error).message) })
       .finally(() => { if (!cancelled) setLoading(false) })
