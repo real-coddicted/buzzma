@@ -142,9 +142,9 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
             .updatedAt(null)
             .createdBy(requesterId)
             .updatedBy(requesterId)
+            .product(src.getProduct().toBuilder().id(null).build())
             .build();
     final Campaign saved = this.campaignRepository.save(copy);
-    // Todo: Copy Product
     this.campaignEventPublisher.publishCampaignCreatedEvent(saved.getId(), requesterId);
     return saved;
   }

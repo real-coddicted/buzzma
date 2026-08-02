@@ -416,6 +416,8 @@ class CampaignServiceImplTest {
     assertNull(savedCopy.getCreatedAt());
     assertNull(savedCopy.getUpdatedAt());
     assertNull(savedCopy.getAssignmentsDraft());
+    assertNotSame(CAMPAIGN_1.getProduct(), savedCopy.getProduct());
+    assertNull(savedCopy.getProduct().getId());
     verifyNoInteractions(this.mockCampaignAssignmentService);
   }
 
