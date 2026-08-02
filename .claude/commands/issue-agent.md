@@ -1,52 +1,87 @@
 # Buzzma Issue Automation Agent
 
-You are the Buzzma Issue Automation Agent. Your job is to process Gitea issues tagged for AI automation: analyze required code changes, post a plan for human approval, and once approved, implement the changes and raise a PR.
+You are the Buzzma Issue Automation Agent. Your job is to process Gitea issues: analyze required code changes, post a plan for human approval, and once approved, implement the changes and raise a PR.
 
 Work through each issue **one at a time** and **sequentially**. Do not start the next issue until the current one is fully resolved or deliberately skipped.
 
 ---
 
-## Step 1 — Setup (do this once at the start of every run)
+## Input Mode — Read $ARGUMENTS First
 
-1. Read `.claude/agent-config.json` — all settings references below come from this file.
-2. Resolve the effective `assignee` using this priority order (stop at the first that succeeds):  
-   a. Check the `ISSUE_AGENT_ASSIGNEE` environment variable — if set and non-empty, use it. (Set this in `.claude/settings.local.json` under `"env"` to configure it per-developer without touching version-controlled files.)  
-   b. Call `mcp__gitea__get_me` — use the `login` field of the response as the assignee.  
-   c. Use `agent-config.json` `assignee` field if it is non-null.
-   Store the resolved value as `{assignee}` for use throughout this run. If all three sources fail or return null, abort with an error.
-3. Resolve the numeric repo ID:
-   - `GET {gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}` — use the `id` field.
-   - Store as `{repoId}`.
-4. Fetch the list of authorized approvers:
-   - Use `mcp__gitea__search_org_teams` to find the team named `{gitea.approvalTeam}` in org `{gitea.org}`. Get its numeric ID.
-   - Then call the Gitea REST API to get its members:
-     `GET {gitea.baseUrl}/api/v1/teams/{teamId}/members`
-     (use curl via Bash, passing the Gitea token from the environment if needed)
-   - Store the list of usernames as `authorizedApprovers`.
-5. Print a brief startup summary: resolved assignee, repo ID, how many authorized approvers found, what batch size will be used.
+Before anything else, inspect `$ARGUMENTS`:
+
+- **Targeted mode** (non-empty): `$ARGUMENTS` contains one or more issue references separated by spaces or commas. Parse each as either a full Gitea URL (e.g. `https://gitea.local.coddicted.com/coddicted/buzzma/issues/123`) or a bare number (`123` or `#123`). Extract the numeric issue IDs. Skip Step 2 entirely — fetch each issue directly in Step 1 below.
+  - In targeted mode the `ai/automate` label is **not required** on the issue. All other routing in Steps 3–7 applies unchanged.
+
+- **Batch mode** (empty `$ARGUMENTS`): Proceed through Step 2 as normal. Only issues bearing the `ai/automate` label are processed.
+
+Store the mode as `{inputMode}` = `"targeted"` or `"batch"`, and the list of issues to process as `{issueList}`.
 
 ---
 
-## Step 2 — Fetch Issue Batch
+## Step 1 — Setup (do this once at the start of every run)
 
-Use curl via Bash to call the cross-repo issue search endpoint, which correctly resolves org-level labels (the per-repo issues API does not):
+Use curl with `Authorization: token $GITEA_TOKEN` for all Gitea API calls throughout this skill. Example header: `-H "Authorization: token $GITEA_TOKEN"`.
 
+1. Read `.claude/agent-config.json` — all settings references below come from this file.
+2. Resolve the effective `assignee` using this priority order (stop at the first that succeeds):
+   a. Check the `ISSUE_AGENT_ASSIGNEE` environment variable — if set and non-empty, use it.
+   b. Call `GET {gitea.baseUrl}/api/v1/user` (curl) — use the `login` field.
+   c. Use `agent-config.json` `assignee` field if non-null.
+   Abort with an error if all three fail.
+3. Resolve the numeric repo ID:
+   ```bash
+   curl -s -H "Authorization: token $GITEA_TOKEN" \
+     "{gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}"
+   ```
+   Use the `id` field. Store as `{repoId}`.
+4. Fetch the list of authorized approvers:
+   ```bash
+   # Find the team ID
+   curl -s -H "Authorization: token $GITEA_TOKEN" \
+     "{gitea.baseUrl}/api/v1/orgs/{gitea.org}/teams?limit=50"
+   ```
+   Find the entry whose `name` matches `{gitea.approvalTeam}`. Note its `id`.
+   ```bash
+   # Get team members
+   curl -s -H "Authorization: token $GITEA_TOKEN" \
+     "{gitea.baseUrl}/api/v1/teams/{teamId}/members"
+   ```
+   Store the list of `login` values as `authorizedApprovers`.
+5. **If targeted mode**: fetch each issue in `{issueList}`:
+   ```bash
+   curl -s -H "Authorization: token $GITEA_TOKEN" \
+     "{gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}/issues/{issueNumber}"
+   ```
+   Populate `{issueList}` with the fetched issue objects. Skip to Step 3.
+6. Print startup summary: mode, resolved assignee, repo ID, approver count, batch size (if batch mode).
+
+---
+
+## Step 2 — Fetch Issue Batch *(batch mode only)*
+
+Use curl to call the cross-repo issue search endpoint:
+
+```bash
+curl -s -H "Authorization: token $GITEA_TOKEN" \
+  "{gitea.baseUrl}/api/v1/repos/issues/search?labels={issueFilter.requiredLabel}&state={issueFilter.state}&priority_repo_id={repoId}"
 ```
-GET {gitea.baseUrl}/api/v1/repos/issues/search
-  ?labels={issueFilter.requiredLabel}
-  &state={issueFilter.state}
-  &priority_repo_id={repoId}
-```
 
-`priority_repo_id` ensures results from `{gitea.org}/{gitea.repo}` are ranked first before any other repos that may share the same label. After fetching, discard any results where `repository.full_name` is not `{gitea.org}/{gitea.repo}`, then take the first `{batch.size}` from the remaining list.
+`priority_repo_id` ranks results from `{gitea.org}/{gitea.repo}` first. After fetching, discard any results where `repository.full_name` is not `{gitea.org}/{gitea.repo}`, then take the first `{batch.size}`. Store as `{issueList}`.
 
-For each issue in the batch, run Steps 3–7 fully before moving to the next.
+For each issue in `{issueList}`, run Steps 3–7 fully before moving to the next.
 
 ---
 
 ## Step 3 — Route by State
 
-Read the issue's current labels and comments, then route:
+Fetch the current issue state:
+```bash
+curl -s -H "Authorization: token $GITEA_TOKEN" \
+  "{gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}/issues/{issueNumber}"
+```
+
+Read the issue's labels and route:
 
 ### Skip immediately if any of these are true:
 - Has `{labels.inProgress}` label → may be a stale crash; requires human to clear manually
@@ -64,14 +99,19 @@ Read the issue's current labels and comments, then route:
 
 ## Step 4 — Comment History Check (only if `ai/plan-posted` is set)
 
-1. Fetch all comments on the issue.
-2. Find the **last** comment whose body starts with `<!-- ai-automation type="plan"`. Note its position in the comment list.
-3. Check all comments posted **after** that plan comment:
-   - If any comment body contains `{approval.reanalysisKeyword}` → route to **ANALYZE** (re-analysis requested)
-   - Else if the issue has `{labels.approved}` label → route to **VERIFY APPROVAL** (Step 5)
-   - Else → **skip** this issue (awaiting human approval; print a one-line status and move on)
+Fetch all comments:
+```bash
+curl -s -H "Authorization: token $GITEA_TOKEN" \
+  "{gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}/issues/{issueNumber}/comments"
+```
 
-If no plan comment is found despite the `ai/plan-posted` label being present, treat it as if the label is absent and route to **ANALYZE**.
+1. Find the **last** comment whose body starts with `<!-- ai-automation type="plan"`. Note its position.
+2. Check all comments posted **after** that plan comment:
+   - If any body contains `{approval.reanalysisKeyword}` → route to **ANALYZE**
+   - Else if the issue has `{labels.approved}` label → route to **VERIFY APPROVAL** (Step 5)
+   - Else → **skip** (awaiting human approval; print a one-line status and move on)
+
+If no plan comment is found despite the label, treat it as absent and route to **ANALYZE**.
 
 ---
 
@@ -80,7 +120,7 @@ If no plan comment is found despite the `ai/plan-posted` label being present, tr
 Check both conditions:
 
 1. Issue has `{labels.approved}` label ✓
-2. At least one comment contains the text `{approval.commentKeyword}` AND was authored by a user in `authorizedApprovers` ✓
+2. At least one comment contains `{approval.commentKeyword}` AND was authored by a user in `authorizedApprovers` ✓
 
 **Both must be true.** If only the label is present without an authorized comment, post this and skip:
 
@@ -106,20 +146,31 @@ If both conditions are met → route to **IMPLEMENT** (Step 7).
 - Understand the current behavior and why the issue exists.
 - Identify every file that needs to change and exactly what must change in each.
 
+### 6b'. Identify uncovered use-cases and gaps
+After understanding the issue, think beyond what's explicitly described:
+- What **edge cases** could arise that the issue doesn't mention? (e.g. empty states, concurrent operations, permission boundaries, mobile vs. desktop, loading states)
+- Are there **related flows** that would be affected by the change even though they aren't mentioned?
+- Are there **implicit assumptions** in the issue that might not hold? (e.g. assuming a single user, a specific data shape, a certain order of operations)
+- Are there **configuration or environment differences** that could affect behavior?
+
+Document anything found here — it will appear in the Coverage Notes section of the plan.
+
 ### 6c. If you cannot form a plan without more information
 Post a clarification comment and stop processing this issue. It will be re-routed to ANALYZE after the human replies and comments `/reanalyse`.
 
+Use curl to post (see Hard Rules for escaping guidance):
 ```
 <!-- ai-automation type="clarification" -->
 ## Questions from Claude Automation
 
-{numbered list of specific questions}
+{numbered list of specific blocking questions}
 
 _Reply to these questions, then comment `/reanalyse` to trigger re-analysis._
 ```
 
 ### 6d. Post the change plan
 
+Post via curl (see Hard Rules):
 ```
 <!-- ai-automation type="plan" -->
 ## Change Plan
@@ -135,9 +186,18 @@ _Reply to these questions, then comment `/reanalyse` to trigger re-analysis._
 - Frontend changes: {Yes/No — brief description}
 - Test changes: {Yes/No — brief description}
 
+### Coverage Notes
+{List use-cases, edge cases, or related flows not explicitly addressed in the issue. Omit this section entirely if nothing found.}
+- ⚠️ **Uncovered case**: {description and why it matters or could break}
+- ℹ️ **FYI**: {potentially affected area or assumption worth validating}
+
+### Open Questions
+{Ambiguities or scope decisions the human should be aware of — not blockers, just flags. Omit if none.}
+- ❓ {question or decision point}
+
 ---
 **To approve:** add the `ai/approved` label **and** comment `/approved` on this issue (must be an [owners team](https://gitea.local.coddicted.com/org/coddicted/teams/owners) member).
-**To request re-analysis:** comment `/reanalyse` (e.g. after answering clarifying questions or revising requirements).
+**To request re-analysis:** comment `/reanalyse` (e.g. after answering questions or revising requirements).
 ```
 
 ---
@@ -207,7 +267,7 @@ Issue: {gitea.baseUrl}/{gitea.org}/{gitea.repo}/issues/{issueNumber}
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-After PR is created, post on the issue:
+After PR is created, post on the issue (via curl):
 ```
 <!-- ai-automation type="pr-link" -->
 ✅ Implementation complete. PR raised: {PR URL}
@@ -220,7 +280,7 @@ Set label `{labels.prRaised}`, remove `{labels.inProgress}`.
 **If any check failed — draft PR:**
 
 Use `mcp__gitea__pull_request_write` with `method: "create"` and `draft: true`:
-- Same title (`Issue#{N} - {issue title}`), `base`: `develop`, `head`: `{branch}`, `assignees`: [`{assignee}`]
+- Same title, `base`: `develop`, `head`: `{branch}`, `assignees`: [`{assignee}`]
 - Append this section to the body:
 ```
 ## ⚠️ Draft — Checks Failed
@@ -232,7 +292,7 @@ The following checks did not pass and require human review before this PR is rea
 Please fix the failing checks and mark this PR as ready when done.
 ```
 
-Post on the issue:
+Post on the issue (via curl):
 ```
 <!-- ai-automation type="failure" -->
 ⚠️ Implementation complete but one or more checks failed. A draft PR has been raised for review: {PR URL}
@@ -247,7 +307,7 @@ Set label `{labels.failed}`, remove `{labels.inProgress}`.
 
 ## Step 8 — Batch Summary
 
-After all issues in the batch are processed, print a Markdown table:
+After all issues are processed, print a Markdown table:
 
 | Issue | Title | Action Taken |
 |-------|-------|-------------|
@@ -258,7 +318,16 @@ After all issues in the batch are processed, print a Markdown table:
 ## Hard Rules
 
 - Every comment posted on Gitea **must** begin with `<!-- ai-automation type="..." -->` on line 1. Valid types: `plan`, `clarification`, `pr-link`, `failure`, `warning`.
+- **Post comments via curl**, not MCP, to avoid Gitea's `<`/`>` escaping bug in the MCP layer. Use:
+  ```bash
+  curl -s -X POST \
+    -H "Authorization: token $GITEA_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"body\": $(echo "$COMMENT_BODY" | jq -Rs .)}" \
+    "{gitea.baseUrl}/api/v1/repos/{gitea.org}/{gitea.repo}/issues/{issueNumber}/comments"
+  ```
+  Build `$COMMENT_BODY` as a shell variable first; pipe through `jq -Rs .` to JSON-encode it safely.
 - Never commit directly to `main` or `develop`.
 - Never add features, refactors, or changes outside the scope of the plan.
-- If a Gitea API call fails, post a `type="warning"` comment on the affected issue, skip it, and continue with the next issue in the batch.
+- If a Gitea API call fails, post a `type="warning"` comment on the affected issue, skip it, and continue with the next.
 - If the agent is already on a non-develop branch from a previous run, always return to develop before creating a new branch for a different issue.
