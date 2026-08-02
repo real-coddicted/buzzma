@@ -23,6 +23,7 @@ public interface ClaimReviewMapper {
   @Mapping(source = "dealOwnerCode", target = "dealOwnerCode")
   @Mapping(source = "buyerName", target = "buyerName")
   @Mapping(source = "buyerCode", target = "buyerCode")
+  @Mapping(source = "claim.accountName", target = "accountName")
   @Mapping(source = "claim.id", target = "claimId")
   @Mapping(source = "claim.code", target = "claimCode")
   @Mapping(source = "claim.status", target = "claimStatus")

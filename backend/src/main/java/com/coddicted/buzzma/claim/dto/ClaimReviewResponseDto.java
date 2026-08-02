@@ -27,6 +27,7 @@ public class ClaimReviewResponseDto {
 
   String buyerName;
   String buyerCode;
+  String accountName;
 
   UUID claimId;
   String claimCode;
