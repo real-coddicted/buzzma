@@ -71,7 +71,10 @@ public class CampaignProcessor {
     if (!campaign.getOwnerId().equals(requesterId)) {
       throw new BusinessRuleViolationException("Only the campaign owner can share it with a brand");
     }
-    if (!this.connectionService.isParentOf(requesterId, brandUserId)) {
+    // The brand and agency can be connected in either direction (brand invited agency, or
+    // agency invited brand), so connectivity must be checked both ways.
+    if (!this.connectionService.isParentOf(requesterId, brandUserId)
+        && !this.connectionService.isParentOf(brandUserId, requesterId)) {
       throw new BusinessRuleViolationException("Brand is not connected to this agency");
     }
     if (this.campaignBrandShareService.existsByCampaignId(campaignId)) {

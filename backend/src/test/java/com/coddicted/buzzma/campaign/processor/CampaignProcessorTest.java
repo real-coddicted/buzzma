@@ -175,6 +175,7 @@ class CampaignProcessorTest {
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
     when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(false);
+    when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(false);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -182,6 +183,32 @@ class CampaignProcessorTest {
             () ->
                 campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
     assertEquals("Brand is not connected to this agency", ex.getMessage());
+  }
+
+  @Test
+  void testShareCampaignWithBrandSucceedsWhenBrandInvitedAgency() {
+    final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
+    when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(false);
+    when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(true);
+    when(campaignBrandShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
+    final ArgumentCaptor<CampaignBrandShare> captor =
+        ArgumentCaptor.forClass(CampaignBrandShare.class);
+    when(campaignBrandShareService.create(captor.capture()))
+        .thenReturn(
+            CampaignBrandShare.builder()
+                .campaignId(CAMPAIGN_ID_1)
+                .brandUserId(ASSIGNEE_ID)
+                .sharedByUserId(REQUESTER_ID)
+                .createdAt(Instant.EPOCH)
+                .build());
+
+    final CampaignBrandShareResponseDto response =
+        campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID);
+
+    assertEquals(CAMPAIGN_ID_1, response.getCampaignId());
+    assertEquals(ASSIGNEE_ID, response.getBrandUserId());
+    assertEquals(REQUESTER_ID, captor.getValue().getSharedByUserId());
   }
 
   @Test
