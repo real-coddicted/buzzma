@@ -1,12 +1,14 @@
 package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignBrandShareResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
+import com.coddicted.buzzma.campaign.dto.ShareCampaignWithBrandRequestDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
@@ -93,6 +95,15 @@ public class CampaignController {
   public List<AssignableCampaignResponseDto> getAssignableCampaigns(
       @CurrentUserId final UUID requesterId, @RequestParam final UUID assigneeId) {
     return this.service.findAssignableCampaigns(requesterId, assigneeId);
+  }
+
+  @PostMapping("/{id}/brand-share")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public CampaignBrandShareResponseDto shareCampaignWithBrand(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @Valid @RequestBody final ShareCampaignWithBrandRequestDto request) {
+    return this.campaignProcessor.shareCampaignWithBrand(requesterId, id, request.getBrandUserId());
   }
 
   @GetMapping("/brands")

@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
-import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews } from '../api/claimApi'
+import {
+  fetchClaimsToReview,
+  submitClaimReview,
+  bulkApproveClaimReviews,
+  submitBrandClaimReview,
+  bulkSubmitBrandClaimReviews,
+} from '../api/claimApi'
+import { getCurrentUser } from '../api/client'
 import { type ClaimReviewFilters, emptyFilters } from '../components/ui/claim-review/filters/ClaimReviewFilterTypes'
 import type { ClaimReviewItem } from '../types'
 
@@ -14,6 +21,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [appliedFilters, setAppliedFilters] = useState<ClaimReviewFilters>(emptyFilters)
+  const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
 
   useEffect(() => {
     let cancelled = false
@@ -31,16 +39,29 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
     return () => { cancelled = true }
   }, [appliedFilters])
 
+  function mergeUpdated(id: string, updated: ClaimReviewItem) {
+    setClaims(prev => prev.map(c => (c.id === id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
+  }
+
   function handleApprove(row: ClaimReviewItem, amountApprovedPaise?: number) {
-    submitClaimReview(row.id, 'APPROVED', undefined, amountApprovedPaise)
-      .then(updated => {
-        setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
-      })
+    const request = isBrand
+      ? submitBrandClaimReview(row.id, 'APPROVED', amountApprovedPaise)
+      : submitClaimReview(row.id, 'APPROVED', undefined, amountApprovedPaise)
+    request.then(updated => mergeUpdated(row.id, updated)).catch(err => setError((err as Error).message))
+  }
+
+  function handleReject(row: ClaimReviewItem) {
+    submitBrandClaimReview(row.id, 'REJECTED')
+      .then(updated => mergeUpdated(row.id, updated))
       .catch(err => setError((err as Error).message))
   }
 
   function handleBulkApprove(selectedClaims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>): Promise<void> {
-    return bulkApproveClaimReviews(selectedClaims.map(c => ({ claimId: c.id, amountApprovedPaise: approvedAmountsPaise[c.id] })))
+    const items = selectedClaims.map(c => ({ claimId: c.id, amountApprovedPaise: approvedAmountsPaise[c.id] }))
+    const request = isBrand
+      ? bulkSubmitBrandClaimReviews(items.map(i => ({ ...i, decision: 'APPROVED' as const })))
+      : bulkApproveClaimReviews(items)
+    return request
       .then(updatedList => {
         const updatedById = new Map(updatedList.map(u => [u.id, u]))
         setClaims(prev => prev.map(c => {
@@ -66,6 +87,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
         onViewDetails={onViewDetails}
         onApprove={handleApprove}
         onBulkApprove={handleBulkApprove}
+        onReject={isBrand ? handleReject : undefined}
       />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>

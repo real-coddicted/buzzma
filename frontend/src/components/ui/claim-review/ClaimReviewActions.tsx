@@ -1,4 +1,4 @@
-import { IconEye, IconCheck } from '../icons'
+import { IconEye, IconCheck, IconX } from '../icons'
 import type { ClaimReviewItem } from '../../../types'
 
 interface ActionButtonProps {
@@ -29,9 +29,11 @@ function ActionButton({ title, colorClass, onClick, icon, disabled }: ActionButt
 interface ClaimReviewActionsProps {
   row: ClaimReviewItem
   onAction: (action: string, row: ClaimReviewItem) => void
+  showReject?: boolean
 }
 
-export function ClaimReviewActions({ row, onAction }: ClaimReviewActionsProps) {
+export function ClaimReviewActions({ row, onAction, showReject }: ClaimReviewActionsProps) {
+  const eligible = !!(row.isUnderReview || row.isUnderBrandReview)
   return (
     <div className="flex items-center justify-center gap-1">
       <ActionButton
@@ -45,8 +47,17 @@ export function ClaimReviewActions({ row, onAction }: ClaimReviewActionsProps) {
         colorClass="text-neon-green border-neon-green/30 bg-neon-green/10 hover:bg-neon-green/20"
         onClick={() => onAction('approve', row)}
         icon={<IconCheck size={13} />}
-        disabled={!row.isUnderReview}
+        disabled={!eligible}
       />
+      {showReject && (
+        <ActionButton
+          title="Reject"
+          colorClass="text-neon-red border-neon-red/30 bg-neon-red/10 hover:bg-neon-red/20"
+          onClick={() => onAction('reject', row)}
+          icon={<IconX size={13} />}
+          disabled={!eligible}
+        />
+      )}
     </div>
   )
 }

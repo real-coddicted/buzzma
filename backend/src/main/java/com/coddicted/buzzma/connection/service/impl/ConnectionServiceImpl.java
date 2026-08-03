@@ -37,7 +37,7 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
       Map.of(
           UserRole.ROLE_ADMIN, Set.of(UserRole.ROLE_BRAND, UserRole.ROLE_AGENCY),
           UserRole.ROLE_BRAND, Set.of(UserRole.ROLE_AGENCY),
-          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR),
+          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR, UserRole.ROLE_BRAND),
           UserRole.ROLE_MEDIATOR, Set.of(UserRole.ROLE_BUYER));
 
   private final ConnectionRepository connectionRepository;

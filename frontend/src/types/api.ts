@@ -1432,7 +1432,7 @@ export interface components {
         ClaimReviewFilterRequestDto: {
             campaignIds?: string[];
             mediatorIds?: string[];
-            claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            claimStatuses?: ("CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "UNDER_BRAND_REVIEW" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
             platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
             reviewStatuses?: ("CLAIM_REVIEW_STATUS_PENDING" | "CLAIM_REVIEW_STATUS_PROOF_REQUESTED" | "CLAIM_REVIEW_STATUS_OBJECTED" | "CLAIM_REVIEW_STATUS_APPROVED" | "CLAIM_REVIEW_STATUS_REJECTED")[];
@@ -1573,7 +1573,7 @@ export interface components {
             code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "UNDER_BRAND_REVIEW" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -1705,7 +1705,7 @@ export interface components {
             claimId?: string;
             claimCode?: string;
             /** @enum {string} */
-            claimStatus?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            claimStatus?: "CREATED" | "REDIRECTED" | "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "UNDER_BRAND_REVIEW" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
             mediatorVerified?: boolean;
             matchScore?: number;
@@ -1979,6 +1979,18 @@ export interface components {
             /** Format: uuid */
             mediatorId: string;
             campaigns: components["schemas"]["MediatorCampaignAssignmentItemDto"][];
+        };
+        ShareCampaignWithBrandRequestDto: {
+            /** Format: uuid */
+            brandUserId: string;
+        };
+        CampaignBrandShareResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            /** Format: uuid */
+            brandUserId?: string;
+            /** Format: date-time */
+            sharedAt?: string;
         };
         MediatorCampaignAssignmentItemDto: {
             /** Format: uuid */

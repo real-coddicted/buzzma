@@ -15,6 +15,7 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
@@ -30,6 +31,7 @@ import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -230,6 +232,47 @@ public class ClaimController {
         .toList();
   }
 
+  @PostMapping("/{id}/brandSubmitReview")
+  @PreAuthorize(UserRole.Expr.BRAND)
+  public ClaimResponseDto submitBrandClaimReview(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @Valid @RequestBody final ClaimReviewRequestDto request) {
+    final ClaimWithDeal result =
+        this.claimService.submitBrandClaimReview(
+            id, requesterId, request.getReviewerDecision(), request.getAmountApprovedPaise());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/bulkBrandSubmitReview")
+  @PreAuthorize(UserRole.Expr.BRAND)
+  public List<ClaimReviewResponseDto> bulkSubmitBrandClaimReview(
+      @CurrentUserId final UUID requesterId,
+      @Valid @RequestBody final List<@Valid ClaimReviewRequestDto> requests) {
+    final Map<UUID, BigInteger> approveAmounts = new HashMap<>();
+    final List<UUID> rejectClaimIds = new ArrayList<>();
+    for (final ClaimReviewRequestDto r : requests) {
+      if (r.getReviewerDecision() == ReviewerDecision.REJECTED) {
+        rejectClaimIds.add(r.getClaimId());
+      } else {
+        approveAmounts.put(r.getClaimId(), r.getAmountApprovedPaise());
+      }
+    }
+    if (!approveAmounts.isEmpty()) {
+      this.claimService.bulkApproveBrandClaimReviews(approveAmounts, requesterId);
+    }
+    if (!rejectClaimIds.isEmpty()) {
+      this.claimService.bulkRejectBrandClaimReviews(rejectClaimIds, requesterId);
+    }
+    final List<UUID> claimIds = requests.stream().map(ClaimReviewRequestDto::getClaimId).toList();
+    return this.claimService.findClaimReviewModels(claimIds).stream()
+        .map(this.claimReviewMapper::toResponse)
+        .toList();
+  }
+
   @PostMapping("/screenshots/review")
   @PreAuthorize(UserRole.Expr.AGENCY)
   public ClaimResponseDto reviewScreenshot(
@@ -264,7 +307,12 @@ public class ClaimController {
   }
 
   @PostMapping("/review")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
+  @PreAuthorize(
+      UserRole.Expr.AGENCY
+          + UserRole.Expr.OR
+          + UserRole.Expr.MEDIATOR
+          + UserRole.Expr.OR
+          + UserRole.Expr.BRAND)
   public Page<ClaimReviewResponseDto> listClaimsToReview(
       @CurrentUser final BuzzmaUser requester,
       @RequestBody(required = false) final ClaimReviewFilterRequestDto request,

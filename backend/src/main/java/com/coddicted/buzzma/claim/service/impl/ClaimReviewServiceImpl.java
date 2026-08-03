@@ -1,7 +1,9 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -32,11 +34,15 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
   private final ClaimService claimService;
   private final CampaignService campaignService;
+  private final CampaignBrandShareService campaignBrandShareService;
 
   public ClaimReviewServiceImpl(
-      final ClaimService claimService, final CampaignService campaignService) {
+      final ClaimService claimService,
+      final CampaignService campaignService,
+      final CampaignBrandShareService campaignBrandShareService) {
     this.claimService = claimService;
     this.campaignService = campaignService;
+    this.campaignBrandShareService = campaignBrandShareService;
   }
 
   @Override
@@ -73,8 +79,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     }
 
     // campaignIdsFilter only ever narrows within the agency's owned campaigns, never broadens it.
-    final Set<UUID> campaignIds =
-        intersect(getApplicableCampaignIds(requester.getId()), campaignIdsFilter);
+    final Set<UUID> campaignIds = intersect(getApplicableCampaignIds(requester), campaignIdsFilter);
     if (campaignIds.isEmpty()) {
       LOGGER.info("No applicable campaigns found for role {}", requester.getRole());
       return Page.empty(unsortedPageable);
@@ -90,11 +95,24 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
         unsortedPageable);
   }
 
-  private Set<UUID> getApplicableCampaignIds(final UUID requesterId) {
-    return this.campaignService.getByOwnerId(requesterId).stream()
-        .map(CampaignSummary::getCampaign)
-        .map(Campaign::getId)
-        .collect(Collectors.toSet());
+  private Set<UUID> getApplicableCampaignIds(final BuzzmaUser requester) {
+    final Set<UUID> ownedCampaignIds =
+        this.campaignService.getByOwnerId(requester.getId()).stream()
+            .map(CampaignSummary::getCampaign)
+            .map(Campaign::getId)
+            .collect(Collectors.toSet());
+    if (requester.getRole() != UserRole.ROLE_BRAND) {
+      return ownedCampaignIds;
+    }
+    // A brand also sees claims for campaigns an agency has shared with them, in addition to any
+    // campaigns they own directly.
+    final Set<UUID> sharedCampaignIds =
+        this.campaignBrandShareService.findByBrandUserId(requester.getId()).stream()
+            .map(CampaignBrandShare::getCampaignId)
+            .collect(Collectors.toSet());
+    final Set<UUID> applicable = new HashSet<>(ownedCampaignIds);
+    applicable.addAll(sharedCampaignIds);
+    return applicable;
   }
 
   private static Set<UUID> intersect(final Set<UUID> base, final Set<UUID> filter) {

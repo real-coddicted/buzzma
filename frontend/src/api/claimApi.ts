@@ -80,6 +80,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     currentStep: dto.currentStep ?? undefined,
     reviewerComments: dto.reviewerComments ?? undefined,
     isUnderReview: status === 'UNDER_REVIEW',
+    isUnderBrandReview: status === 'UNDER_BRAND_REVIEW',
     screenshots: (dto.screenshots ?? []).map(s => ({
       id: s.id ?? '',
       storageKey: s.storageKey ?? '',
@@ -115,6 +116,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     amountPaise: dto.amountPaise ?? undefined,
     amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
     isUnderReview: backendStatus === 'UNDER_REVIEW',
+    isUnderBrandReview: backendStatus === 'UNDER_BRAND_REVIEW',
   }
 }
 
@@ -433,6 +435,51 @@ export async function submitClaimReview(
     throw new Error(message)
   }
   return mapClaim((await res.json()) as ClaimResponseDto)
+}
+
+export async function submitBrandClaimReview(
+  claimId: string,
+  decision: 'APPROVED' | 'REJECTED',
+  amountApprovedPaise?: number
+): Promise<ClaimReviewItem> {
+  const res = await fetchWithAuth(`${API_BASE}/claims/${claimId}/brandSubmitReview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewerDecision: decision, amountApprovedPaise }),
+  })
+  if (!res.ok) {
+    let message = 'Failed to submit brand claim review.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  return mapClaim((await res.json()) as ClaimResponseDto)
+}
+
+export async function bulkSubmitBrandClaimReviews(
+  items: Array<{ claimId: string; decision: 'APPROVED' | 'REJECTED'; amountApprovedPaise?: number }>
+): Promise<ClaimReviewItem[]> {
+  const body = items.map(item => ({
+    claimId: item.claimId,
+    reviewerDecision: item.decision,
+    amountApprovedPaise: item.amountApprovedPaise,
+  }))
+  const res = await fetchWithAuth(`${API_BASE}/claims/bulkBrandSubmitReview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    let message = 'Failed to submit brand claim reviews.'
+    try {
+      const resBody = (await res.clone().json()) as Record<string, unknown>
+      if (typeof resBody['message'] === 'string') message = resBody['message']
+    } catch (e) { console.error('Failed to parse bulk brand review error response:', e) }
+    throw new Error(message)
+  }
+  return ((await res.json()) as ClaimReviewResponseDto[]).map(mapClaimReview)
 }
 
 export async function submitClaim(params: SubmitClaimParams): Promise<ClaimResponseDto> {

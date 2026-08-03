@@ -107,6 +107,14 @@ public interface ClaimService {
 
   List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
 
+  ClaimWithDeal submitBrandClaimReview(
+      UUID claimId, UUID brandUserId, ReviewerDecision decision, BigInteger amountPaise);
+
+  List<ClaimWithDeal> bulkApproveBrandClaimReviews(
+      Map<UUID, BigInteger> claimAmounts, UUID brandUserId);
+
+  List<ClaimWithDeal> bulkRejectBrandClaimReviews(Collection<UUID> claimIds, UUID brandUserId);
+
   List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);
 
   void updateClaimScore(UUID claimId);

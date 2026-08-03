@@ -1,9 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
+import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -61,6 +63,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
+  private final CampaignBrandShareService campaignBrandShareService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -72,7 +75,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService,
-      final ClaimReviewEventPublisher claimReviewEventPublisher) {
+      final ClaimReviewEventPublisher claimReviewEventPublisher,
+      final CampaignBrandShareService campaignBrandShareService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -83,6 +87,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
+    this.campaignBrandShareService = campaignBrandShareService;
   }
 
   @Override
@@ -501,6 +506,96 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return results;
   }
 
+  @Override
+  @Transactional
+  public ClaimWithDeal submitBrandClaimReview(
+      final UUID claimId,
+      final UUID brandUserId,
+      final ReviewerDecision decision,
+      final java.math.BigInteger amountPaise) {
+    if (decision == ReviewerDecision.VERIFIED) {
+      throw new BusinessRuleViolationException("VERIFIED decision is not allowed for brand review");
+    }
+    final Claim claim = loadAndVerifyBrandAccess(claimId, brandUserId);
+    final Claim updated =
+        decision == ReviewerDecision.APPROVED
+            ? approveBrandClaim(claim, brandUserId, amountPaise)
+            : rejectBrandClaim(claim, brandUserId);
+    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkApproveBrandClaimReviews(
+      final Map<UUID, java.math.BigInteger> claimAmounts, final UUID brandUserId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final Map.Entry<UUID, java.math.BigInteger> entry : claimAmounts.entrySet()) {
+      final Claim claim = loadAndVerifyBrandAccess(entry.getKey(), brandUserId);
+      final Claim updated = approveBrandClaim(claim, brandUserId, entry.getValue());
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkRejectBrandClaimReviews(
+      final Collection<UUID> claimIds, final UUID brandUserId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final UUID claimId : claimIds) {
+      final Claim claim = loadAndVerifyBrandAccess(claimId, brandUserId);
+      final Claim updated = rejectBrandClaim(claim, brandUserId);
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  private Claim approveBrandClaim(
+      final Claim claim, final UUID brandUserId, final java.math.BigInteger amountPaise) {
+    return this.claimRepository.save(
+        claim.toBuilder()
+            .status(ClaimStatus.APPROVED)
+            .brandReviewStatus(ReviewerDecision.APPROVED)
+            .brandReviewerId(brandUserId)
+            .brandApprovedAmountPaise(amountPaise)
+            .amountApprovedPaise(amountPaise)
+            .updatedAt(Instant.now())
+            .updatedBy(brandUserId)
+            .build());
+  }
+
+  private Claim rejectBrandClaim(final Claim claim, final UUID brandUserId) {
+    return this.claimRepository.save(
+        claim.toBuilder()
+            .status(ClaimStatus.REJECTED)
+            .brandReviewStatus(ReviewerDecision.REJECTED)
+            .brandReviewerId(brandUserId)
+            .updatedAt(Instant.now())
+            .updatedBy(brandUserId)
+            .build());
+  }
+
+  private Claim loadAndVerifyBrandAccess(final UUID claimId, final UUID brandUserId) {
+    final Claim claim =
+        this.claimRepository
+            .findByIdAndIsDeletedFalse(claimId)
+            .orElseThrow(() -> new NotFoundException("Claim not found: " + claimId));
+    final CampaignBrandShare share =
+        this.campaignBrandShareService
+            .findByCampaignId(claim.getCampaignId())
+            .orElseThrow(() -> new NotFoundException("Claim not found: " + claimId));
+    if (!share.getBrandUserId().equals(brandUserId)
+        || claim.getStatus() != ClaimStatus.UNDER_BRAND_REVIEW) {
+      LOGGER.warn(
+          "Brand {} is not authorized to review claim {} (status: {})",
+          brandUserId,
+          claimId,
+          claim.getStatus());
+      throw new NotFoundException("Claim not found: " + claimId);
+    }
+    return claim;
+  }
+
   private Claim approveClaimWithScreenshots(
       final Claim claim,
       final UUID reviewerId,
@@ -517,9 +612,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                         .updatedAt(Instant.now())
                         .updatedBy(reviewerId)
                         .build()));
+    final boolean pendingBrandReview =
+        this.campaignBrandShareService.existsByCampaignId(claim.getCampaignId());
     return this.claimRepository.save(
         claim.toBuilder()
-            .status(ClaimStatus.APPROVED)
+            .status(pendingBrandReview ? ClaimStatus.UNDER_BRAND_REVIEW : ClaimStatus.APPROVED)
             .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .reviewerComments(reviewerComments)
             .reviewerId(reviewerId)

@@ -102,6 +102,16 @@ public class Claim implements Auditable {
   @Column(name = "reviewer_id")
   private UUID reviewerId;
 
+  @Column(name = "brand_reviewer_id")
+  private UUID brandReviewerId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "brand_review_status", length = 50)
+  private ReviewerDecision brandReviewStatus;
+
+  @Column(name = "brand_approved_amount_paise")
+  private BigInteger brandApprovedAmountPaise;
+
   @Column(name = "created_by")
   private UUID createdBy;
 
