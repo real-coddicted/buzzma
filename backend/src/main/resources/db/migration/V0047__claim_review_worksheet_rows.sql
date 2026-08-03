@@ -1,0 +1,26 @@
+CREATE TABLE claim_review_worksheet_rows (
+    id                UUID        NOT NULL DEFAULT gen_random_uuid(),
+    worksheet_id      UUID        NOT NULL,
+    campaign          VARCHAR(500),
+    campaign_code     VARCHAR(500),
+    brand             VARCHAR(500),
+    mediator          VARCHAR(500),
+    buyer             VARCHAR(500),
+    profile_name      VARCHAR(500),
+    platform          VARCHAR(500),
+    order_id          VARCHAR(500),
+    order_date        VARCHAR(500),
+    order_amount      VARCHAR(500),
+    claim_code        VARCHAR(500),
+    claim_status      VARCHAR(500),
+    match_score       VARCHAR(500),
+    review_status     VARCHAR(500),
+    amount_approved   VARCHAR(500),
+    brand_review      VARCHAR(500),
+    remarks           TEXT,
+    processing_status VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    error_remarks     TEXT,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_worksheet_row_worksheet
+        FOREIGN KEY (worksheet_id) REFERENCES claim_review_worksheets(id)
+);
