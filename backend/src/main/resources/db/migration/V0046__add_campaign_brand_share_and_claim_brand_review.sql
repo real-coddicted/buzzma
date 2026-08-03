@@ -12,7 +12,6 @@ CREATE TABLE campaign_brand_shares (
     CONSTRAINT uq_campaign_brand_shares_campaign_id UNIQUE (campaign_id)
 );
 
-ALTER TABLE claims
-    ADD COLUMN brand_reviewer_id UUID,
-    ADD COLUMN brand_review_status VARCHAR(50),
-    ADD COLUMN brand_approved_amount_paise NUMERIC;
+ALTER TABLE claims ADD COLUMN brand_reviewer_id UUID;
+ALTER TABLE claims ADD COLUMN brand_review_status VARCHAR(50);
+ALTER TABLE claims ADD COLUMN brand_approved_amount_paise NUMERIC;
