@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
@@ -424,6 +425,42 @@ class ClaimServiceImplTest {
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.claimService.getById(CLAIM_ID, OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
+  void testGetByIdWhenBrandShareGrantsAccess() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockCampaignService.getById(CAMPAIGN_ID))
+        .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+        .thenReturn(
+            Optional.of(
+                CampaignBrandShare.builder()
+                    .campaignId(CAMPAIGN_ID)
+                    .brandUserId(BRAND_USER_ID)
+                    .build()));
+
+    final Claim result = this.claimService.getById(CLAIM_ID, BRAND_USER_ID);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
+  void testGetByIdWhenNotOwnerAndNoBrandShare() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockCampaignService.getById(CAMPAIGN_ID))
+        .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+        .thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class, () -> this.claimService.getById(CLAIM_ID, NON_OWNER_ID));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 

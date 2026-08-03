@@ -734,7 +734,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     if (requesterId.equals(claim.getOwnerId())
         || requesterId.equals(this.campaignService.getById(claim.getCampaignId()).getOwnerId())
-        || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())) {
+        || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())
+        || this.campaignBrandShareService
+            .findByCampaignId(claim.getCampaignId())
+            .map(share -> requesterId.equals(share.getBrandUserId()))
+            .orElse(false)) {
       return claim;
     }
 
