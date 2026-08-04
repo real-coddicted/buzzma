@@ -35,10 +35,9 @@ interface ClaimReviewGridProps {
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
   onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
-  onReject?: (claim: ClaimReviewItem) => void
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove, onReject }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -196,10 +195,8 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     setApprovedAmounts(prev => {
       const updates: Record<string, string> = {}
       for (const claim of claims) {
-        if (claim.id in prev) continue
-        const amountPaise = claim.amountApprovedPaise ?? claim.amountPaise
-        if (amountPaise != null) {
-          updates[claim.id] = paiseToRupees(amountPaise).toFixed(2)
+        if (claim.amountApprovedPaise != null && !(claim.id in prev)) {
+          updates[claim.id] = paiseToRupees(claim.amountApprovedPaise).toFixed(2)
         }
       }
       return Object.keys(updates).length ? { ...prev, ...updates } : prev
@@ -216,11 +213,11 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     [filtered, selectedIds]
   )
   const selectableRows = useMemo(
-    () => filtered.filter(r => r.isUnderBrandReview || (r.reviewStatus !== 'approved' && r.reviewStatus !== 'rejected' && r.reviewStatus !== 'objected')),
+    () => filtered.filter(r => r.reviewStatus !== 'approved' && r.reviewStatus !== 'rejected' && r.reviewStatus !== 'objected'),
     [filtered]
   )
   const allSelected = selectableRows.length > 0 && selectableRows.every(r => selectedIds.has(r.id))
-  const allSelectedApprovable = selectedClaims.length > 0 && selectedClaims.every(r => r.isUnderReview || r.isUnderBrandReview)
+  const allSelectedApprovable = selectedClaims.length > 0 && selectedClaims.every(r => r.isUnderReview)
 
   function toggleRow(id: string) {
     setSelectedIds(prev => {
@@ -272,10 +269,6 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
         return
       }
       onApprove(row, rupeesToPaise(parseFloat(raw)))
-      return
-    }
-    if (action === 'reject') {
-      onReject?.(row)
       return
     }
   }
@@ -454,7 +447,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                       </div>
                     </td>
                     <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
-                      <ClaimReviewActions row={row} onAction={handleAction} showReject={!!onReject} />
+                      <ClaimReviewActions row={row} onAction={handleAction} />
                     </td>
                   </tr>
                 ))

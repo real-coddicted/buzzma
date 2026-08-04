@@ -108,7 +108,6 @@ export function ClaimProofRightPanel({
               isUnderReview={claim.isUnderReview ?? false}
               mediatorVerified={claim.mediatorVerified ?? false}
               initialAmountApprovedPaise={claim.amountApprovedPaise}
-              claimedAmountPaise={claim.amountPaise}
               onApprove={onApproveClaim}
               onVerified={onVerifiedClaim}
               onReject={onRejectClaim}

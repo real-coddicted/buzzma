@@ -19,7 +19,6 @@ import type { ConnectionSummary, ConnectionDirection } from '../api/connectionAp
 import { InviteModal } from '../components/ui/connections/InviteModal'
 import { RequestConnectionModal } from '../components/ui/connections/RequestConnectionModal'
 import { AssignCampaignsView } from '../components/ui/connections/AssignCampaignsView'
-import { ShareCampaignView } from '../components/ui/connections/ShareCampaignView'
 import { Toast } from '../components/ui/Toast'
 import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { getCurrentUser } from '../api/client'
@@ -188,10 +187,6 @@ export function Connections() {
     setSearchParams({ view: 'assign', id: connection.id })
   }
 
-  function handleShareCampaign(connection: Connection) {
-    setSearchParams({ view: 'share', id: connection.id })
-  }
-
   const filtered = useMemo(() => {
     return connections.filter(c => {
       const matchesSearch =
@@ -222,13 +217,6 @@ export function Connections() {
     const selected = connections.find(c => c.id === detailId)
     if (selected) {
       return <AssignCampaignsView connection={selected} onBack={() => setSearchParams({})} />
-    }
-  }
-
-  if (view === 'share' && detailId) {
-    const selected = connections.find(c => c.id === detailId)
-    if (selected) {
-      return <ShareCampaignView connection={selected} onBack={() => setSearchParams({})} />
     }
   }
 
@@ -291,7 +279,6 @@ export function Connections() {
         onRowClick={direction === 'child' ? handleViewConnection : undefined}
         showApprovalActions={direction === 'child'}
         onAssignCampaigns={currentRole === 'ROLE_AGENCY' && direction === 'child' ? handleAssignCampaigns : undefined}
-        onShareCampaign={currentRole === 'ROLE_AGENCY' && direction === 'parent' ? handleShareCampaign : undefined}
       />
     </div>
     </>

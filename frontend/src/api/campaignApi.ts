@@ -172,22 +172,6 @@ export async function fetchBrandNames(): Promise<string[]> {
   return (await res.json()) as string[]
 }
 
-/** POST /campaigns/{id}/brand-share — shares a campaign with a connected brand. Cannot be undone. */
-export async function shareCampaignWithBrand(campaignId: string, brandUserId: string): Promise<void> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns/${campaignId}/brand-share`, {
-    method: 'POST',
-    body: JSON.stringify({ brandUserId }),
-  })
-  if (!res.ok) {
-    let message = 'Failed to share campaign with brand.'
-    try {
-      const body = (await res.clone().json()) as Record<string, unknown>
-      if (typeof body['message'] === 'string') message = body['message']
-    } catch { /* ignore */ }
-    throw new Error(message)
-  }
-}
-
 export async function fetchCampaignById(id: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`)
   return res.json() as Promise<CampaignResponseDto>

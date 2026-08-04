@@ -13,7 +13,6 @@ export type ClaimStatus =
   | 'PROOF_REJECTED'
   | 'UNDER_REVIEW'
   | 'ADDITIONAL_PROOF_REQUESTED'
-  | 'UNDER_BRAND_REVIEW'
   | 'APPROVED'
   | 'REJECTED'
   | 'REWARD_PENDING'
@@ -67,5 +66,4 @@ export interface ClaimReviewItem {
   reviewerComments?: string
   screenshots?: ClaimScreenshotItem[]
   isUnderReview?: boolean
-  isUnderBrandReview?: boolean
 }
