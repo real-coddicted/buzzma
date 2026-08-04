@@ -7,6 +7,7 @@ import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +34,13 @@ public class ClaimReviewController {
 
   public ClaimReviewController(final ClaimReviewWorksheetService worksheetService) {
     this.worksheetService = worksheetService;
+  }
+
+  @GetMapping("/worksheets")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public ResponseEntity<List<ClaimReviewWorksheetResponseDto>> listWorkbooks(
+      @CurrentUser final BuzzmaUser currentUser) {
+    return ResponseEntity.ok(worksheetService.listWorkbooks(currentUser));
   }
 
   @PostMapping("/worksheets")
@@ -62,7 +70,7 @@ public class ClaimReviewController {
         .id(worksheet.getId())
         .originalFilename(worksheet.getOriginalFilename())
         .rowCount(worksheet.getRowCount())
-        .storageKey(worksheet.getStorageKey())
+        .rowsProcessed(0)
         .status(worksheet.getStatus())
         .createdAt(worksheet.getCreatedAt())
         .build();

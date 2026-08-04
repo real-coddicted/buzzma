@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
+import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
 import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
@@ -20,6 +21,7 @@ import com.coddicted.buzzma.shared.security.JwtService;
 import com.coddicted.buzzma.shared.security.TestSecurityConfig;
 import com.coddicted.buzzma.shared.security.WithBuzzmaUser;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +64,47 @@ class ClaimReviewControllerTest {
 
     sampleFile =
         new MockMultipartFile("file", "review.xlsx", "application/octet-stream", new byte[] {1, 2});
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void listWorkbooks_withAgencyRole_returns200WithList() throws Exception {
+    final ClaimReviewWorksheetResponseDto dto =
+        ClaimReviewWorksheetResponseDto.builder()
+            .id(sampleWorksheet.getId())
+            .originalFilename("review.xlsx")
+            .rowCount(5)
+            .rowsProcessed(3)
+            .status(WorksheetRowStatus.PENDING)
+            .createdAt(sampleWorksheet.getCreatedAt())
+            .build();
+    when(worksheetService.listWorkbooks(any())).thenReturn(List.of(dto));
+
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].rowCount").value(5))
+        .andExpect(jsonPath("$[0].rowsProcessed").value(3))
+        .andExpect(jsonPath("$[0].status").value("PENDING"));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void listWorkbooks_withBrandRole_returns200() throws Exception {
+    when(worksheetService.listWorkbooks(any())).thenReturn(List.of());
+
+    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void listWorkbooks_withMediatorRole_returns403() throws Exception {
+    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void listWorkbooks_unauthenticated_returns401() throws Exception {
+    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isUnauthorized());
   }
 
   @Test

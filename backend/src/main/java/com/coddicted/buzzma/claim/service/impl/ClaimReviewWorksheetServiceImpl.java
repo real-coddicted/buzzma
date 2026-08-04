@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.claim.config.ClaimReviewWorksheetProperties;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
+import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheetRow;
 import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
@@ -14,7 +15,9 @@ import com.coddicted.buzzma.report.excel.WorkbookUtils;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.http.HttpStatus;
@@ -81,6 +84,36 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
     persistRows(sheet, worksheet.getId());
 
     return worksheet;
+  }
+
+  @Override
+  public List<ClaimReviewWorksheetResponseDto> listWorkbooks(final BuzzmaUser currentUser) {
+    final List<ClaimReviewWorksheet> worksheets =
+        worksheetRepository.findByUploadedByOrderByCreatedAtDesc(currentUser.getId());
+    if (worksheets.isEmpty()) {
+      return List.of();
+    }
+
+    final List<UUID> ids = worksheets.stream().map(ClaimReviewWorksheet::getId).toList();
+    final Map<UUID, Long> processedCounts =
+        rowRepository
+            .countProcessedRowsGroupedByWorksheetId(
+                ids, List.of(WorksheetRowStatus.SUCCESS, WorksheetRowStatus.ERROR))
+            .stream()
+            .collect(Collectors.toMap(row -> (UUID) row[0], row -> (Long) row[1]));
+
+    return worksheets.stream()
+        .map(
+            ws ->
+                ClaimReviewWorksheetResponseDto.builder()
+                    .id(ws.getId())
+                    .originalFilename(ws.getOriginalFilename())
+                    .rowCount(ws.getRowCount())
+                    .rowsProcessed(processedCounts.getOrDefault(ws.getId(), 0L).intValue())
+                    .status(ws.getStatus())
+                    .createdAt(ws.getCreatedAt())
+                    .build())
+        .toList();
   }
 
   @Override

@@ -17,7 +17,7 @@ public class ClaimReviewWorksheetResponseDto {
   private UUID id;
   private String originalFilename;
   private int rowCount;
-  private String storageKey;
+  private int rowsProcessed;
   private WorksheetRowStatus status;
   private Instant createdAt;
 }
