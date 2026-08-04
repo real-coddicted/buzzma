@@ -322,6 +322,23 @@ class ConnectionServiceImplTest {
   }
 
   @Test
+  void testCreateConnectionFromInviteCodeSuccessForAgencyInvitingBrand() {
+    doReturn(INVITE_ACTIVE).when(this.mockInviteService).getByCode(INVITE_CODE);
+    doReturn(AGENCY_USER).when(this.mockUserService).getById(FROM_USER_ID);
+
+    this.connectionService.createConnection(INVITE_CODE, BRAND_USER);
+
+    verify(this.mockInviteService).isActive(INVITE_ACTIVE);
+    verify(this.mockInviteService).consume(INVITE_ACTIVE, TO_USER_ID);
+    final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
+    verify(this.mockConnectionRepository).save(captor.capture());
+    final Connection saved = captor.getValue();
+    assertEquals(FROM_USER_ID, saved.getFromUserId());
+    assertEquals(TO_USER_ID, saved.getToUserId());
+    assertEquals(ConnectionStatus.CONNECTION_STATUS_REQUESTED, saved.getStatus());
+  }
+
+  @Test
   void testCreateConnectionFromInviteCodeWhenRoleNotAllowed() {
     doReturn(INVITE_ACTIVE).when(this.mockInviteService).getByCode(INVITE_CODE);
     doReturn(MEDIATOR_USER).when(this.mockUserService).getById(FROM_USER_ID);

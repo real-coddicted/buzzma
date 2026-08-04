@@ -7,6 +7,8 @@ import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
+import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
+import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
@@ -93,6 +95,15 @@ public class CampaignController {
   public List<AssignableCampaignResponseDto> getAssignableCampaigns(
       @CurrentUserId final UUID requesterId, @RequestParam final UUID assigneeId) {
     return this.service.findAssignableCampaigns(requesterId, assigneeId);
+  }
+
+  @PostMapping("/{campaignId}/share")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public ShareCampaignResponseDto shareCampaign(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID campaignId,
+      @Valid @RequestBody final ShareCampaignRequestDto request) {
+    return this.campaignProcessor.shareCampaign(requesterId, campaignId, request.getToUserId());
   }
 
   @GetMapping("/brands")
