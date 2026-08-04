@@ -23,13 +23,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -79,7 +79,7 @@ class ClaimServiceImplTest {
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
   @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
-  @Mock private CampaignBrandShareService mockCampaignBrandShareService;
+  @Mock private CampaignShareService mockCampaignShareService;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -96,7 +96,7 @@ class ClaimServiceImplTest {
             this.mockExtractionService,
             this.mockCodeGenerationService,
             this.mockClaimReviewEventPublisher,
-            this.mockCampaignBrandShareService);
+            this.mockCampaignShareService);
   }
 
   @Test
@@ -435,13 +435,8 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CAMPAIGN_ID))
         .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
-        .thenReturn(
-            Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(CAMPAIGN_ID, BRAND_USER_ID))
+        .thenReturn(true);
 
     final Claim result = this.claimService.getById(CLAIM_ID, BRAND_USER_ID);
 
@@ -455,8 +450,8 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CAMPAIGN_ID))
         .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
-        .thenReturn(Optional.empty());
+    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(CAMPAIGN_ID, NON_OWNER_ID))
+        .thenReturn(false);
 
     final NotFoundException ex =
         assertThrows(
@@ -684,7 +679,7 @@ class ClaimServiceImplTest {
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignBrandShareService.existsByCampaignId(CAMPAIGN_ID)).thenReturn(true);
+    when(this.mockCampaignShareService.existsByCampaignId(CAMPAIGN_ID)).thenReturn(true);
 
     this.claimService.bulkApproveClaimReviews(Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID);
 
@@ -699,13 +694,10 @@ class ClaimServiceImplTest {
         CLAIM_1.toBuilder().status(ClaimStatus.UNDER_BRAND_REVIEW).build();
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(underBrandReview));
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+    when(this.mockCampaignShareService.findByCampaignId(CAMPAIGN_ID))
         .thenReturn(
             Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(CAMPAIGN_ID).toUserId(BRAND_USER_ID).build()));
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(underBrandReview);
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
@@ -721,7 +713,6 @@ class ClaimServiceImplTest {
     assertEquals(ClaimStatus.APPROVED, saved.getStatus());
     assertEquals(ReviewerDecision.APPROVED, saved.getBrandReviewStatus());
     assertEquals(BRAND_USER_ID, saved.getBrandReviewerId());
-    assertEquals(AMOUNT_APPROVED_PAISE, saved.getBrandApprovedAmountPaise());
     assertEquals(AMOUNT_APPROVED_PAISE, saved.getAmountApprovedPaise());
     assertEquals(REVIEWER_COMMENTS, saved.getBrandReviewerComment());
   }
@@ -732,13 +723,10 @@ class ClaimServiceImplTest {
         CLAIM_1.toBuilder().status(ClaimStatus.UNDER_BRAND_REVIEW).build();
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(underBrandReview));
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+    when(this.mockCampaignShareService.findByCampaignId(CAMPAIGN_ID))
         .thenReturn(
             Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(CAMPAIGN_ID).toUserId(BRAND_USER_ID).build()));
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -755,13 +743,10 @@ class ClaimServiceImplTest {
         CLAIM_1.toBuilder().status(ClaimStatus.UNDER_BRAND_REVIEW).build();
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(underBrandReview));
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+    when(this.mockCampaignShareService.findByCampaignId(CAMPAIGN_ID))
         .thenReturn(
             Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(CAMPAIGN_ID).toUserId(BRAND_USER_ID).build()));
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(underBrandReview);
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
@@ -782,13 +767,10 @@ class ClaimServiceImplTest {
         CLAIM_1.toBuilder().status(ClaimStatus.UNDER_BRAND_REVIEW).build();
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(underBrandReview));
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+    when(this.mockCampaignShareService.findByCampaignId(CAMPAIGN_ID))
         .thenReturn(
             Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(CAMPAIGN_ID).toUserId(BRAND_USER_ID).build()));
 
     final NotFoundException ex =
         assertThrows(
@@ -807,13 +789,10 @@ class ClaimServiceImplTest {
   void testSubmitBrandClaimReviewWhenClaimNotUnderBrandReviewThrowsNotFound() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
-    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+    when(this.mockCampaignShareService.findByCampaignId(CAMPAIGN_ID))
         .thenReturn(
             Optional.of(
-                CampaignBrandShare.builder()
-                    .campaignId(CAMPAIGN_ID)
-                    .brandUserId(BRAND_USER_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(CAMPAIGN_ID).toUserId(BRAND_USER_ID).build()));
 
     final NotFoundException ex =
         assertThrows(

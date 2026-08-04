@@ -109,9 +109,6 @@ public class Claim implements Auditable {
   @Column(name = "brand_review_status", length = 50)
   private ReviewerDecision brandReviewStatus;
 
-  @Column(name = "brand_approved_amount_paise")
-  private BigInteger brandApprovedAmountPaise;
-
   @Column(name = "brand_reviewer_comment", columnDefinition = "TEXT")
   private String brandReviewerComment;
 

@@ -18,25 +18,25 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "campaign_brand_shares")
+@Table(name = "campaign_shares")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class CampaignBrandShare implements Auditable {
+public class CampaignShare implements Auditable {
 
   @Id @GeneratedValue @UuidGenerator private UUID id;
 
   @Column(name = "campaign_id", nullable = false)
   private UUID campaignId;
 
-  @Column(name = "brand_user_id", nullable = false)
-  private UUID brandUserId;
+  @Column(name = "to_user_id", nullable = false)
+  private UUID toUserId;
 
-  @Column(name = "shared_by_user_id", nullable = false)
-  private UUID sharedByUserId;
+  @Column(name = "from_user_id", nullable = false)
+  private UUID fromUserId;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;

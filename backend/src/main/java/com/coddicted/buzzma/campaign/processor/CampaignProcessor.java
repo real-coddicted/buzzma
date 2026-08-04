@@ -2,21 +2,21 @@ package com.coddicted.buzzma.campaign.processor;
 
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
-import com.coddicted.buzzma.campaign.dto.CampaignBrandShareResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -41,7 +41,7 @@ public class CampaignProcessor {
   private final CampaignEventPublisher campaignEventPublisher;
   private final ConnectionService connectionService;
   private final UserService userService;
-  private final CampaignBrandShareService campaignBrandShareService;
+  private final CampaignShareService campaignShareService;
 
   public CampaignProcessor(
       final CampaignService service,
@@ -52,7 +52,7 @@ public class CampaignProcessor {
       final CampaignEventPublisher campaignEventPublisher,
       final ConnectionService connectionService,
       final UserService userService,
-      final CampaignBrandShareService campaignBrandShareService) {
+      final CampaignShareService campaignShareService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
@@ -61,38 +61,43 @@ public class CampaignProcessor {
     this.campaignEventPublisher = campaignEventPublisher;
     this.connectionService = connectionService;
     this.userService = userService;
-    this.campaignBrandShareService = campaignBrandShareService;
+    this.campaignShareService = campaignShareService;
   }
 
   @Transactional
-  public CampaignBrandShareResponseDto shareCampaignWithBrand(
-      final UUID requesterId, final UUID campaignId, final UUID brandUserId) {
+  public ShareCampaignResponseDto shareCampaign(
+      final UUID requesterId, final UUID campaignId, final UUID toUserId) {
+    // The end-to-end flow this supports:
+    // a. agency gives an invite code to the brand
+    // b. brand uses that invite code to register
+    // c. agency shares a campaign with the brand
     final Campaign campaign = this.service.getById(campaignId);
     if (!campaign.getOwnerId().equals(requesterId)) {
       throw new BusinessRuleViolationException("Only the campaign owner can share it with a brand");
     }
     // The brand and agency can be connected in either direction (brand invited agency, or
     // agency invited brand), so connectivity must be checked both ways.
-    if (!this.connectionService.isParentOf(requesterId, brandUserId)
-        && !this.connectionService.isParentOf(brandUserId, requesterId)) {
+    if (!this.connectionService.isParentOf(requesterId, toUserId)
+        && !this.connectionService.isParentOf(toUserId, requesterId)) {
       throw new BusinessRuleViolationException("Brand is not connected to this agency");
     }
-    if (this.campaignBrandShareService.existsByCampaignId(campaignId)) {
+    if (this.campaignShareService.existsByCampaignId(campaignId)) {
       throw new BusinessRuleViolationException("Campaign is already shared with a brand");
     }
-    final CampaignBrandShare saved =
-        this.campaignBrandShareService.create(
-            CampaignBrandShare.builder()
+    final CampaignShare saved =
+        this.campaignShareService.create(
+            CampaignShare.builder()
                 .campaignId(campaignId)
-                .brandUserId(brandUserId)
-                .sharedByUserId(requesterId)
+                .toUserId(toUserId)
+                .fromUserId(requesterId)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
                 .build());
-    return CampaignBrandShareResponseDto.builder()
+    return ShareCampaignResponseDto.builder()
         .campaignId(saved.getCampaignId())
-        .brandUserId(saved.getBrandUserId())
-        .sharedAt(saved.getCreatedAt())
+        .toUserId(saved.getToUserId())
+        .fromUserId(saved.getFromUserId())
+        .createdAt(saved.getCreatedAt())
         .build();
   }
 

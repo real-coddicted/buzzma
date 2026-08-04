@@ -10,10 +10,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
@@ -58,7 +58,7 @@ class ClaimReviewServiceImplTest {
 
   @Mock private ClaimService mockClaimService;
   @Mock private CampaignService mockCampaignService;
-  @Mock private CampaignBrandShareService mockCampaignBrandShareService;
+  @Mock private CampaignShareService mockCampaignShareService;
   @Captor ArgumentCaptor<Collection<UUID>> campaignIdsCaptor;
   @Captor ArgumentCaptor<Collection<UUID>> mediatorIdsCaptor;
   @Captor ArgumentCaptor<Collection<ClaimStatus>> claimStatusesCaptor;
@@ -72,7 +72,7 @@ class ClaimReviewServiceImplTest {
   void setUp() {
     this.claimReviewService =
         new ClaimReviewServiceImpl(
-            this.mockClaimService, this.mockCampaignService, this.mockCampaignBrandShareService);
+            this.mockClaimService, this.mockCampaignService, this.mockCampaignShareService);
   }
 
   @Test
@@ -435,13 +435,10 @@ class ClaimReviewServiceImplTest {
                 CampaignSummary.builder()
                     .campaign(Campaign.builder().id(OWNED_CAMPAIGN_ID).build())
                     .build()));
-    when(this.mockCampaignBrandShareService.findByBrandUserId(BRAND_ID))
+    when(this.mockCampaignShareService.findByToUserId(BRAND_ID))
         .thenReturn(
             List.of(
-                CampaignBrandShare.builder()
-                    .campaignId(SHARED_CAMPAIGN_ID)
-                    .brandUserId(BRAND_ID)
-                    .build()));
+                CampaignShare.builder().campaignId(SHARED_CAMPAIGN_ID).toUserId(BRAND_ID).build()));
 
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));

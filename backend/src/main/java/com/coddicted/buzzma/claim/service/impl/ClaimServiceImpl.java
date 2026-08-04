@@ -1,12 +1,12 @@
 package com.coddicted.buzzma.claim.service.impl;
 
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
@@ -34,6 +34,7 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +64,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
-  private final CampaignBrandShareService campaignBrandShareService;
+  private final CampaignShareService campaignShareService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -76,7 +77,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService,
       final ClaimReviewEventPublisher claimReviewEventPublisher,
-      final CampaignBrandShareService campaignBrandShareService) {
+      final CampaignShareService campaignShareService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -87,7 +88,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
-    this.campaignBrandShareService = campaignBrandShareService;
+    this.campaignShareService = campaignShareService;
   }
 
   @Override
@@ -457,7 +458,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final UserRole reviewerRole,
       final ReviewerDecision decision,
       final String reviewerComment,
-      final java.math.BigInteger amountApprovedPaise) {
+      final BigInteger amountApprovedPaise) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
 
@@ -496,9 +497,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Override
   @Transactional
   public List<ClaimWithDeal> bulkApproveClaimReviews(
-      final Map<UUID, java.math.BigInteger> claimAmounts, final UUID reviewerId) {
+      final Map<UUID, BigInteger> claimAmounts, final UUID reviewerId) {
     final List<ClaimWithDeal> results = new ArrayList<>();
-    for (final Map.Entry<UUID, java.math.BigInteger> entry : claimAmounts.entrySet()) {
+    for (final Map.Entry<UUID, BigInteger> entry : claimAmounts.entrySet()) {
       final Claim claim = loadAndVerifyOwnership(entry.getKey(), reviewerId);
       final Claim updated = approveClaimWithScreenshots(claim, reviewerId, entry.getValue(), null);
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
@@ -510,29 +511,29 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Transactional
   public ClaimWithDeal submitBrandClaimReview(
       final UUID claimId,
-      final UUID brandUserId,
+      final UUID toUserId,
       final ReviewerDecision decision,
-      final java.math.BigInteger amountPaise,
+      final BigInteger amountPaise,
       final String reviewerComment) {
     if (decision == ReviewerDecision.VERIFIED) {
       throw new BusinessRuleViolationException("VERIFIED decision is not allowed for brand review");
     }
-    final Claim claim = loadAndVerifyBrandAccess(claimId, brandUserId);
+    final Claim claim = loadAndVerifyBrandAccess(claimId, toUserId);
     final Claim updated =
         decision == ReviewerDecision.APPROVED
-            ? approveBrandClaim(claim, brandUserId, amountPaise, reviewerComment)
-            : rejectBrandClaim(claim, brandUserId, reviewerComment);
+            ? approveBrandClaim(claim, toUserId, amountPaise, reviewerComment)
+            : rejectBrandClaim(claim, toUserId, reviewerComment);
     return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
   }
 
   @Override
   @Transactional
   public List<ClaimWithDeal> bulkApproveBrandClaimReviews(
-      final Map<UUID, java.math.BigInteger> claimAmounts, final UUID brandUserId) {
+      final Map<UUID, BigInteger> claimAmounts, final UUID toUserId) {
     final List<ClaimWithDeal> results = new ArrayList<>();
-    for (final Map.Entry<UUID, java.math.BigInteger> entry : claimAmounts.entrySet()) {
-      final Claim claim = loadAndVerifyBrandAccess(entry.getKey(), brandUserId);
-      final Claim updated = approveBrandClaim(claim, brandUserId, entry.getValue(), null);
+    for (final Map.Entry<UUID, BigInteger> entry : claimAmounts.entrySet()) {
+      final Claim claim = loadAndVerifyBrandAccess(entry.getKey(), toUserId);
+      final Claim updated = approveBrandClaim(claim, toUserId, entry.getValue(), null);
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
     }
     return results;
@@ -541,11 +542,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Override
   @Transactional
   public List<ClaimWithDeal> bulkRejectBrandClaimReviews(
-      final Collection<UUID> claimIds, final UUID brandUserId) {
+      final Collection<UUID> claimIds, final UUID toUserId) {
     final List<ClaimWithDeal> results = new ArrayList<>();
     for (final UUID claimId : claimIds) {
-      final Claim claim = loadAndVerifyBrandAccess(claimId, brandUserId);
-      final Claim updated = rejectBrandClaim(claim, brandUserId, null);
+      final Claim claim = loadAndVerifyBrandAccess(claimId, toUserId);
+      final Claim updated = rejectBrandClaim(claim, toUserId, null);
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
     }
     return results;
@@ -553,8 +554,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   private Claim approveBrandClaim(
       final Claim claim,
-      final UUID brandUserId,
-      final java.math.BigInteger amountPaise,
+      final UUID toUserId,
+      final BigInteger amountPaise,
       final String reviewerComment) {
     if (amountPaise == null) {
       throw new BusinessRuleViolationException("Approved amount is required");
@@ -563,42 +564,41 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         claim.toBuilder()
             .status(ClaimStatus.APPROVED)
             .brandReviewStatus(ReviewerDecision.APPROVED)
-            .brandReviewerId(brandUserId)
-            .brandApprovedAmountPaise(amountPaise)
+            .brandReviewerId(toUserId)
             .amountApprovedPaise(amountPaise)
             .brandReviewerComment(reviewerComment)
             .updatedAt(Instant.now())
-            .updatedBy(brandUserId)
+            .updatedBy(toUserId)
             .build());
   }
 
   private Claim rejectBrandClaim(
-      final Claim claim, final UUID brandUserId, final String reviewerComment) {
+      final Claim claim, final UUID toUserId, final String reviewerComment) {
     return this.claimRepository.save(
         claim.toBuilder()
             .status(ClaimStatus.REJECTED)
             .brandReviewStatus(ReviewerDecision.REJECTED)
-            .brandReviewerId(brandUserId)
+            .brandReviewerId(toUserId)
             .brandReviewerComment(reviewerComment)
             .updatedAt(Instant.now())
-            .updatedBy(brandUserId)
+            .updatedBy(toUserId)
             .build());
   }
 
-  private Claim loadAndVerifyBrandAccess(final UUID claimId, final UUID brandUserId) {
+  private Claim loadAndVerifyBrandAccess(final UUID claimId, final UUID toUserId) {
     final Claim claim =
         this.claimRepository
             .findByIdAndIsDeletedFalse(claimId)
             .orElseThrow(() -> new NotFoundException("Claim not found: " + claimId));
-    final CampaignBrandShare share =
-        this.campaignBrandShareService
+    final CampaignShare share =
+        this.campaignShareService
             .findByCampaignId(claim.getCampaignId())
             .orElseThrow(() -> new NotFoundException("Claim not found: " + claimId));
-    if (!share.getBrandUserId().equals(brandUserId)
+    if (!share.getToUserId().equals(toUserId)
         || claim.getStatus() != ClaimStatus.UNDER_BRAND_REVIEW) {
       LOGGER.warn(
           "Brand {} is not authorized to review claim {} (status: {})",
-          brandUserId,
+          toUserId,
           claimId,
           claim.getStatus());
       throw new NotFoundException("Claim not found: " + claimId);
@@ -609,7 +609,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private Claim approveClaimWithScreenshots(
       final Claim claim,
       final UUID reviewerId,
-      final java.math.BigInteger amountApprovedPaise,
+      final BigInteger amountApprovedPaise,
       final String reviewerComments) {
     if (amountApprovedPaise == null) {
       throw new BusinessRuleViolationException("Approved amount is required");
@@ -625,11 +625,15 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                         .updatedAt(Instant.now())
                         .updatedBy(reviewerId)
                         .build()));
-    final boolean pendingBrandReview =
-        this.campaignBrandShareService.existsByCampaignId(claim.getCampaignId());
+    // Final approval always comes from the brand. If the campaign has been shared with a brand
+    // via the portal, route there for their sign-off before the claim is truly APPROVED. If not
+    // shared, brand approval instead happens out-of-band via the claim-review-worksheet
+    // (excel upload) flow, so agency approval is treated as final here.
+    final boolean campaignSharedWithBrand =
+        this.campaignShareService.existsByCampaignId(claim.getCampaignId());
     return this.claimRepository.save(
         claim.toBuilder()
-            .status(pendingBrandReview ? ClaimStatus.UNDER_BRAND_REVIEW : ClaimStatus.APPROVED)
+            .status(campaignSharedWithBrand ? ClaimStatus.UNDER_BRAND_REVIEW : ClaimStatus.APPROVED)
             .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .reviewerComments(reviewerComments)
             .reviewerId(reviewerId)
@@ -748,10 +752,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (requesterId.equals(claim.getOwnerId())
         || requesterId.equals(this.campaignService.getById(claim.getCampaignId()).getOwnerId())
         || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())
-        || this.campaignBrandShareService
-            .findByCampaignId(claim.getCampaignId())
-            .map(share -> requesterId.equals(share.getBrandUserId()))
-            .orElse(false)) {
+        || this.campaignShareService.existsByCampaignIdAndToUserId(
+            claim.getCampaignId(), requesterId)) {
       return claim;
     }
 

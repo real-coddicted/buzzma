@@ -9,6 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Builder
 @Jacksonized
-public class ShareCampaignWithBrandRequestDto {
-  @NotNull UUID brandUserId;
+public class ShareCampaignRequestDto {
+  @NotNull UUID toUserId;
 }

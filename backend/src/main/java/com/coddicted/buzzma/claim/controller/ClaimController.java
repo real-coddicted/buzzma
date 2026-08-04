@@ -232,15 +232,15 @@ public class ClaimController {
         .toList();
   }
 
-  @PostMapping("/{id}/brandSubmitReview")
+  @PostMapping("/{claimId}/brandSubmitReview")
   @PreAuthorize(UserRole.Expr.BRAND)
   public ClaimResponseDto submitBrandClaimReview(
       @CurrentUserId final UUID requesterId,
-      @PathVariable final UUID id,
+      @PathVariable final UUID claimId,
       @Valid @RequestBody final ClaimReviewRequestDto request) {
     final ClaimWithDeal result =
         this.claimService.submitBrandClaimReview(
-            id,
+            claimId,
             requesterId,
             request.getReviewerDecision(),
             request.getAmountApprovedPaise(),

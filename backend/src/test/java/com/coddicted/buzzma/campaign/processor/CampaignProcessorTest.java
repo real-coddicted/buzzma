@@ -15,19 +15,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.coddicted.buzzma.campaign.dto.CampaignBrandShareResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -53,7 +53,7 @@ class CampaignProcessorTest {
   @Mock private CampaignEventPublisher campaignEventPublisher;
   @Mock private ConnectionService connectionService;
   @Mock private UserService userService;
-  @Mock private CampaignBrandShareService campaignBrandShareService;
+  @Mock private CampaignShareService campaignShareService;
 
   private CampaignProcessor campaignProcessor;
 
@@ -69,7 +69,7 @@ class CampaignProcessorTest {
             campaignEventPublisher,
             connectionService,
             userService,
-            campaignBrandShareService);
+            campaignShareService);
   }
 
   @Test
@@ -131,31 +131,30 @@ class CampaignProcessorTest {
 
   @Test
   void testShareCampaignWithBrandSuccess() {
-    final UUID brandUserId = ASSIGNEE_ID;
+    final UUID toUserId = ASSIGNEE_ID;
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
-    when(connectionService.isParentOf(REQUESTER_ID, brandUserId)).thenReturn(true);
-    when(campaignBrandShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
+    when(connectionService.isParentOf(REQUESTER_ID, toUserId)).thenReturn(true);
+    when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
 
-    final CampaignBrandShare saved =
-        CampaignBrandShare.builder()
+    final CampaignShare saved =
+        CampaignShare.builder()
             .campaignId(CAMPAIGN_ID_1)
-            .brandUserId(brandUserId)
-            .sharedByUserId(REQUESTER_ID)
+            .toUserId(toUserId)
+            .fromUserId(REQUESTER_ID)
             .createdAt(Instant.EPOCH)
             .build();
-    final ArgumentCaptor<CampaignBrandShare> captor =
-        ArgumentCaptor.forClass(CampaignBrandShare.class);
-    when(campaignBrandShareService.create(captor.capture())).thenReturn(saved);
+    final ArgumentCaptor<CampaignShare> captor = ArgumentCaptor.forClass(CampaignShare.class);
+    when(campaignShareService.create(captor.capture())).thenReturn(saved);
 
-    final CampaignBrandShareResponseDto response =
-        campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, brandUserId);
+    final ShareCampaignResponseDto response =
+        campaignProcessor.shareCampaign(REQUESTER_ID, CAMPAIGN_ID_1, toUserId);
 
     assertEquals(CAMPAIGN_ID_1, captor.getValue().getCampaignId());
-    assertEquals(brandUserId, captor.getValue().getBrandUserId());
-    assertEquals(REQUESTER_ID, captor.getValue().getSharedByUserId());
+    assertEquals(toUserId, captor.getValue().getToUserId());
+    assertEquals(REQUESTER_ID, captor.getValue().getFromUserId());
     assertEquals(CAMPAIGN_ID_1, response.getCampaignId());
-    assertEquals(brandUserId, response.getBrandUserId());
+    assertEquals(toUserId, response.getToUserId());
   }
 
   @Test
@@ -165,8 +164,7 @@ class CampaignProcessorTest {
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
-            () ->
-                campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
+            () -> campaignProcessor.shareCampaign(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
     assertEquals("Only the campaign owner can share it with a brand", ex.getMessage());
   }
 
@@ -180,8 +178,7 @@ class CampaignProcessorTest {
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
-            () ->
-                campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
+            () -> campaignProcessor.shareCampaign(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
     assertEquals("Brand is not connected to this agency", ex.getMessage());
   }
 
@@ -191,24 +188,23 @@ class CampaignProcessorTest {
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
     when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(false);
     when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(true);
-    when(campaignBrandShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
-    final ArgumentCaptor<CampaignBrandShare> captor =
-        ArgumentCaptor.forClass(CampaignBrandShare.class);
-    when(campaignBrandShareService.create(captor.capture()))
+    when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
+    final ArgumentCaptor<CampaignShare> captor = ArgumentCaptor.forClass(CampaignShare.class);
+    when(campaignShareService.create(captor.capture()))
         .thenReturn(
-            CampaignBrandShare.builder()
+            CampaignShare.builder()
                 .campaignId(CAMPAIGN_ID_1)
-                .brandUserId(ASSIGNEE_ID)
-                .sharedByUserId(REQUESTER_ID)
+                .toUserId(ASSIGNEE_ID)
+                .fromUserId(REQUESTER_ID)
                 .createdAt(Instant.EPOCH)
                 .build());
 
-    final CampaignBrandShareResponseDto response =
-        campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID);
+    final ShareCampaignResponseDto response =
+        campaignProcessor.shareCampaign(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID);
 
     assertEquals(CAMPAIGN_ID_1, response.getCampaignId());
-    assertEquals(ASSIGNEE_ID, response.getBrandUserId());
-    assertEquals(REQUESTER_ID, captor.getValue().getSharedByUserId());
+    assertEquals(ASSIGNEE_ID, response.getToUserId());
+    assertEquals(REQUESTER_ID, captor.getValue().getFromUserId());
   }
 
   @Test
@@ -216,13 +212,12 @@ class CampaignProcessorTest {
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
     when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(true);
-    when(campaignBrandShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(true);
+    when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(true);
 
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
-            () ->
-                campaignProcessor.shareCampaignWithBrand(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
+            () -> campaignProcessor.shareCampaign(REQUESTER_ID, CAMPAIGN_ID_1, ASSIGNEE_ID));
     assertEquals("Campaign is already shared with a brand", ex.getMessage());
   }
 }

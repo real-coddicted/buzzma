@@ -1,10 +1,10 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.entity.CampaignBrandShare;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
-import com.coddicted.buzzma.campaign.service.CampaignBrandShareService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
@@ -34,15 +34,15 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
   private final ClaimService claimService;
   private final CampaignService campaignService;
-  private final CampaignBrandShareService campaignBrandShareService;
+  private final CampaignShareService campaignShareService;
 
   public ClaimReviewServiceImpl(
       final ClaimService claimService,
       final CampaignService campaignService,
-      final CampaignBrandShareService campaignBrandShareService) {
+      final CampaignShareService campaignShareService) {
     this.claimService = claimService;
     this.campaignService = campaignService;
-    this.campaignBrandShareService = campaignBrandShareService;
+    this.campaignShareService = campaignShareService;
   }
 
   @Override
@@ -107,8 +107,8 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     // A brand also sees claims for campaigns an agency has shared with them, in addition to any
     // campaigns they own directly.
     final Set<UUID> sharedCampaignIds =
-        this.campaignBrandShareService.findByBrandUserId(requester.getId()).stream()
-            .map(CampaignBrandShare::getCampaignId)
+        this.campaignShareService.findByToUserId(requester.getId()).stream()
+            .map(CampaignShare::getCampaignId)
             .collect(Collectors.toSet());
     final Set<UUID> applicable = new HashSet<>(ownedCampaignIds);
     applicable.addAll(sharedCampaignIds);

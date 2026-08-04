@@ -7,8 +7,9 @@ import lombok.Value;
 
 @Value
 @Builder
-public class CampaignBrandShareResponseDto {
+public class ShareCampaignResponseDto {
   UUID campaignId;
-  UUID brandUserId;
-  Instant sharedAt;
+  UUID toUserId;
+  UUID fromUserId;
+  Instant createdAt;
 }
