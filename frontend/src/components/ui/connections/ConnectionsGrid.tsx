@@ -31,6 +31,8 @@ interface ConnectionsGridProps {
   showApprovalActions?: boolean
   /** When provided, shows an "Assign Campaigns" button for connected rows. */
   onAssignCampaigns?: (connection: Connection) => void
+  /** When provided, shows a "Share Campaign" button for connected rows. */
+  onShareCampaign?: (connection: Connection) => void
 }
 
 const statusConfig: Record<ConnectionStatus, { label: string; classes: string }> = {
@@ -67,6 +69,7 @@ export function ConnectionsGrid({
   onRowClick,
   showApprovalActions = true,
   onAssignCampaigns,
+  onShareCampaign,
 }: ConnectionsGridProps) {
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -238,6 +241,17 @@ export function ConnectionsGrid({
                           >
                             <IconList size={11} />
                             Assign Campaigns
+                          </button>
+                        )}
+                        {c.status === 'connected' && onShareCampaign && (
+                          <button
+                            title="Share Campaign"
+                            disabled={busy}
+                            onClick={e => { e.stopPropagation(); onShareCampaign(c) }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-blue border border-neon-blue/30 bg-neon-blue/5 hover:bg-neon-blue/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <IconList size={11} />
+                            Share Campaign
                           </button>
                         )}
                         {c.status === 'connected' && (

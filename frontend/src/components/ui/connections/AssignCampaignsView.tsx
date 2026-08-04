@@ -10,9 +10,8 @@ import { fetchAssignableCampaigns, type AssignableCampaign } from '../../../api/
 import { assignToMediator } from '../../../api/assignmentApi'
 import { rupeesToPaise, paiseToRupees } from '../../../utils/currency'
 import { ProductThumbnail } from '../campaign/ProductThumbnail'
-import { PLATFORM_COLORS, TYPE_COLORS } from '../campaign/filters/chipColors'
-import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
-import type { Platform, CampaignType } from '../../../types'
+import { PlatformBadge, DealTypeBadge } from '../campaign/CampaignBadges'
+import { fmtDate } from '../../../utils/time'
 import type { Connection } from '../../../types/ConnectionTypes'
 
 interface Props {
@@ -25,38 +24,8 @@ interface RowState {
   commission: string
 }
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return 'TBD'
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const parts = iso.split('-')
-  if (parts.length !== 3) return iso
-  const [y, m, day] = parts
-  return `${months[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`
-}
-
 function formatRupees(paise: number): string {
   return `₹${paiseToRupees(paise).toLocaleString('en-IN')}`
-}
-
-function PlatformBadge({ platform }: { platform: string }) {
-  const colors = PLATFORM_COLORS[platform as Platform]
-  if (!colors) return <span className="text-ink-light-muted dark:text-ink-dark-muted">{platform}</span>
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', colors.base].join(' ')}>
-      {PLATFORM_LABELS[platform as Platform]}
-    </span>
-  )
-}
-
-function DealTypeBadge({ campaignType }: { campaignType: string | null }) {
-  if (!campaignType) return <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>
-  const colors = TYPE_COLORS[campaignType as CampaignType]
-  if (!colors) return <span className="text-ink-light-muted dark:text-ink-dark-muted">{campaignType}</span>
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', colors.base].join(' ')}>
-      {CAMPAIGN_TYPE_LABELS[campaignType as CampaignType]}
-    </span>
-  )
 }
 
 function SlotsBar({ available, total }: { available: number; total: number }) {

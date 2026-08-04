@@ -20,3 +20,12 @@ export function formatDateTime(iso: string): string {
     hour: '2-digit', minute: '2-digit',
   })
 }
+
+export function fmtDate(iso: string | null): string {
+  if (!iso) return 'TBD'
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const parts = iso.split('-')
+  if (parts.length !== 3) return iso
+  const [y, m, day] = parts
+  return `${months[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`
+}
