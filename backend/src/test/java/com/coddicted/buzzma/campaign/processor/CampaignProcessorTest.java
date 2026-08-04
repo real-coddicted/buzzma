@@ -134,7 +134,7 @@ class CampaignProcessorTest {
     final UUID toUserId = ASSIGNEE_ID;
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
-    when(connectionService.isParentOf(REQUESTER_ID, toUserId)).thenReturn(true);
+    when(connectionService.isParentOf(toUserId, REQUESTER_ID)).thenReturn(true);
     when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
 
     final CampaignShare saved =
@@ -172,7 +172,6 @@ class CampaignProcessorTest {
   void testShareCampaignWithBrandWhenNotConnectedThrows() {
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
-    when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(false);
     when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(false);
 
     final BusinessRuleViolationException ex =
@@ -186,7 +185,6 @@ class CampaignProcessorTest {
   void testShareCampaignWithBrandSucceedsWhenBrandInvitedAgency() {
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
-    when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(false);
     when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(true);
     when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(false);
     final ArgumentCaptor<CampaignShare> captor = ArgumentCaptor.forClass(CampaignShare.class);
@@ -211,7 +209,7 @@ class CampaignProcessorTest {
   void testShareCampaignWithBrandWhenAlreadySharedThrows() {
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(ownedCampaign);
-    when(connectionService.isParentOf(REQUESTER_ID, ASSIGNEE_ID)).thenReturn(true);
+    when(connectionService.isParentOf(ASSIGNEE_ID, REQUESTER_ID)).thenReturn(true);
     when(campaignShareService.existsByCampaignId(CAMPAIGN_ID_1)).thenReturn(true);
 
     final BusinessRuleViolationException ex =
