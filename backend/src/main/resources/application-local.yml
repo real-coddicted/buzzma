@@ -1,16 +1,7 @@
 spring:
-#  datasource:
-#    url: jdbc:h2:file:~/buzzmah-db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
-#    username: sa
-#    password:
-#    driver-class-name: org.h2.Driver
-#    hikari:
-#      data-source-properties: {}
-#  h2:
-#    console:
-#      enabled: true
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/buzzma}
+
+    url: ${DB_URL:jdbc:postgresql://127.0.0.1:5432/buzzma}
     username: ${DB_USERNAME:buzzma}
     password: ${DB_PASSWORD:buzzma}
     driver-class-name: org.postgresql.Driver
@@ -18,11 +9,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-#  flyway:
-#    baseline-on-migrate: false
-#    baseline-version: 1
-#    user: sa
-#    password:
+
   flyway:
     baseline-on-migrate: false
     baseline-version: 1

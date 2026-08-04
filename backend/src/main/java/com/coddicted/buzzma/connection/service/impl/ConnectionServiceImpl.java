@@ -37,7 +37,7 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
       Map.of(
           UserRole.ROLE_ADMIN, Set.of(UserRole.ROLE_BRAND, UserRole.ROLE_AGENCY),
           UserRole.ROLE_BRAND, Set.of(UserRole.ROLE_AGENCY),
-          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR),
+          UserRole.ROLE_AGENCY, Set.of(UserRole.ROLE_MEDIATOR, UserRole.ROLE_BRAND),
           UserRole.ROLE_MEDIATOR, Set.of(UserRole.ROLE_BUYER));
 
   private final ConnectionRepository connectionRepository;
@@ -164,19 +164,47 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
     final Invite invite = this.inviteService.getByCode(inviteCode);
     this.inviteService.isActive(invite);
     final UserRole requesterRole = requester.getRole();
-    this.isUserRoleAllowedToInvite(requesterRole, invite.getOwnerId());
+    final UserRole ownerRole = this.userService.getById(invite.getOwnerId()).getRole();
+    this.isUserRoleAllowedToInvite(requesterRole, ownerRole);
     final Connection connection =
         createConnection(
             Connection.builder()
-                .fromUserId(invite.getOwnerId())
-                .toUserId(requester.getId())
+                .fromUserId(
+                    getParentUserId(
+                        ownerRole, requesterRole, invite.getOwnerId(), requester.getId()))
+                .toUserId(
+                    getChildUserId(
+                        ownerRole, requesterRole, invite.getOwnerId(), requester.getId()))
                 .build());
     this.inviteService.consume(invite, requester.getId());
     return connection;
   }
 
-  private void isUserRoleAllowedToInvite(final UserRole requesterRole, final UUID inviteOwnerId) {
-    final UserRole ownerRole = this.userService.getById(inviteOwnerId).getRole();
+  /**
+   * A brand always becomes the parent of an agency it connects with, even when the agency owns the
+   * invite that was redeemed.
+   */
+  private UUID getParentUserId(
+      final UserRole ownerRole,
+      final UserRole requesterRole,
+      final UUID ownerId,
+      final UUID requesterId) {
+    return isAgencyInvitingBrand(ownerRole, requesterRole) ? requesterId : ownerId;
+  }
+
+  private UUID getChildUserId(
+      final UserRole ownerRole,
+      final UserRole requesterRole,
+      final UUID ownerId,
+      final UUID requesterId) {
+    return isAgencyInvitingBrand(ownerRole, requesterRole) ? ownerId : requesterId;
+  }
+
+  private boolean isAgencyInvitingBrand(final UserRole ownerRole, final UserRole requesterRole) {
+    return ownerRole == UserRole.ROLE_AGENCY && requesterRole == UserRole.ROLE_BRAND;
+  }
+
+  private void isUserRoleAllowedToInvite(final UserRole requesterRole, final UserRole ownerRole) {
     final Set<UserRole> allowed = ALLOWED_ROLES_BY_INVITER.getOrDefault(ownerRole, Set.of());
     if (!allowed.contains(requesterRole)) {
       LOGGER.warn(

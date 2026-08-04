@@ -65,11 +65,16 @@ public final class Fixtures {
 
   static final BuzzmaUser MEDIATOR_USER = BuzzmaUser.builder().role(UserRole.ROLE_MEDIATOR).build();
 
+  static final BuzzmaUser AGENCY_USER = BuzzmaUser.builder().role(UserRole.ROLE_AGENCY).build();
+
   static final BuzzmaUser BUYER_USER =
       BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_BUYER).build();
 
   static final BuzzmaUser BRAND_USER =
       BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_BRAND).build();
+
+  static final BuzzmaUser AGENCY_REQUESTER_USER =
+      BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_AGENCY).build();
 
   private Fixtures() {}
 }
