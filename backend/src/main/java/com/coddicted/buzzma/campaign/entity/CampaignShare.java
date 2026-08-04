@@ -32,11 +32,11 @@ public class CampaignShare implements Auditable {
   @Column(name = "campaign_id", nullable = false)
   private UUID campaignId;
 
-  @Column(name = "to_user_id", nullable = false)
-  private UUID toUserId;
-
   @Column(name = "from_user_id", nullable = false)
   private UUID fromUserId;
+
+  @Column(name = "to_user_id", nullable = false)
+  private UUID toUserId;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
