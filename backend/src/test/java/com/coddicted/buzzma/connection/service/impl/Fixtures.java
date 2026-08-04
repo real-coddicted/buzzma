@@ -73,5 +73,8 @@ public final class Fixtures {
   static final BuzzmaUser BRAND_USER =
       BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_BRAND).build();
 
+  static final BuzzmaUser AGENCY_REQUESTER_USER =
+      BuzzmaUser.builder().id(TO_USER_ID).role(UserRole.ROLE_AGENCY).build();
+
   private Fixtures() {}
 }
