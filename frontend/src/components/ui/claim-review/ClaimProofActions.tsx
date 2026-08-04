@@ -11,16 +11,18 @@ interface ClaimProofActionsProps {
   isUnderReview: boolean
   mediatorVerified?: boolean
   initialAmountApprovedPaise?: number
+  claimedAmountPaise?: number
   onApprove: (comment: string, amountApprovedPaise?: number) => void
   onVerified: () => void
   onReject: (comment: string) => void
 }
 
-export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, initialAmountApprovedPaise, onApprove, onVerified, onReject }: ClaimProofActionsProps) {
+export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, initialAmountApprovedPaise, claimedAmountPaise, onApprove, onVerified, onReject }: ClaimProofActionsProps) {
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('')
+  const initialAmountPaise = initialAmountApprovedPaise ?? claimedAmountPaise
   const [approvedAmountRupees, setApprovedAmountRupees] = useState(
-    initialAmountApprovedPaise != null ? paiseToRupees(initialAmountApprovedPaise).toFixed(2) : ''
+    initialAmountPaise != null ? paiseToRupees(initialAmountPaise).toFixed(2) : ''
   )
   const [amountError, setAmountError] = useState('')
   const [showRejectConfirm, setShowRejectConfirm] = useState(false)

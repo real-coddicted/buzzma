@@ -659,6 +659,21 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testBulkApproveClaimReviewsWhenAmountMissingThrows() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+
+    final Map<UUID, java.math.BigInteger> claimAmounts = new java.util.HashMap<>();
+    claimAmounts.put(CLAIM_ID, null);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> this.claimService.bulkApproveClaimReviews(claimAmounts, OWNER_ID));
+    assertEquals("Approved amount is required", ex.getMessage());
+  }
+
+  @Test
   void testBulkApproveClaimReviewsWhenCampaignSharedWithBrandSetsUnderBrandReview() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
@@ -704,6 +719,29 @@ class ClaimServiceImplTest {
     assertEquals(BRAND_USER_ID, saved.getBrandReviewerId());
     assertEquals(AMOUNT_APPROVED_PAISE, saved.getBrandApprovedAmountPaise());
     assertEquals(AMOUNT_APPROVED_PAISE, saved.getAmountApprovedPaise());
+  }
+
+  @Test
+  void testSubmitBrandClaimReviewApproveWhenAmountMissingThrows() {
+    final Claim underBrandReview =
+        CLAIM_1.toBuilder().status(ClaimStatus.UNDER_BRAND_REVIEW).build();
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(underBrandReview));
+    when(this.mockCampaignBrandShareService.findByCampaignId(CAMPAIGN_ID))
+        .thenReturn(
+            Optional.of(
+                CampaignBrandShare.builder()
+                    .campaignId(CAMPAIGN_ID)
+                    .brandUserId(BRAND_USER_ID)
+                    .build()));
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.submitBrandClaimReview(
+                    CLAIM_ID, BRAND_USER_ID, ReviewerDecision.APPROVED, null));
+    assertEquals("Approved amount is required", ex.getMessage());
   }
 
   @Test

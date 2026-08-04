@@ -196,8 +196,10 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     setApprovedAmounts(prev => {
       const updates: Record<string, string> = {}
       for (const claim of claims) {
-        if (claim.amountApprovedPaise != null && !(claim.id in prev)) {
-          updates[claim.id] = paiseToRupees(claim.amountApprovedPaise).toFixed(2)
+        if (claim.id in prev) continue
+        const amountPaise = claim.amountApprovedPaise ?? claim.amountPaise
+        if (amountPaise != null) {
+          updates[claim.id] = paiseToRupees(amountPaise).toFixed(2)
         }
       }
       return Object.keys(updates).length ? { ...prev, ...updates } : prev

@@ -552,6 +552,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   private Claim approveBrandClaim(
       final Claim claim, final UUID brandUserId, final java.math.BigInteger amountPaise) {
+    if (amountPaise == null) {
+      throw new BusinessRuleViolationException("Approved amount is required");
+    }
     return this.claimRepository.save(
         claim.toBuilder()
             .status(ClaimStatus.APPROVED)
@@ -601,6 +604,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final UUID reviewerId,
       final java.math.BigInteger amountApprovedPaise,
       final String reviewerComments) {
+    if (amountApprovedPaise == null) {
+      throw new BusinessRuleViolationException("Approved amount is required");
+    }
     this.claimScreenshotRepository
         .findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(claim.getId())
         .forEach(
