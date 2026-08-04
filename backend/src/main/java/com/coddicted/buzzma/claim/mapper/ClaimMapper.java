@@ -41,6 +41,7 @@ public interface ClaimMapper {
   @Mapping(source = "claim.platform", target = "platform")
   @Mapping(source = "claim.reviewerComments", target = "reviewerComments")
   @Mapping(source = "claim.reviewerId", target = "reviewerId")
+  @Mapping(source = "claim.brandReviewerComment", target = "brandReviewerComment")
   @Mapping(source = "claim.reviewStatus", target = "reviewStatus")
   @Mapping(source = "claim.createdAt", target = "createdAt")
   @Mapping(source = "claim.updatedAt", target = "updatedAt")

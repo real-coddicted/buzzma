@@ -1,0 +1,1 @@
+ALTER TABLE claims ADD COLUMN brand_reviewer_comment TEXT;

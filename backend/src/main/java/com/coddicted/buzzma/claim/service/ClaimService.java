@@ -108,7 +108,11 @@ public interface ClaimService {
   List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
 
   ClaimWithDeal submitBrandClaimReview(
-      UUID claimId, UUID brandUserId, ReviewerDecision decision, BigInteger amountPaise);
+      UUID claimId,
+      UUID brandUserId,
+      ReviewerDecision decision,
+      BigInteger amountPaise,
+      String reviewerComment);
 
   List<ClaimWithDeal> bulkApproveBrandClaimReviews(
       Map<UUID, BigInteger> claimAmounts, UUID brandUserId);

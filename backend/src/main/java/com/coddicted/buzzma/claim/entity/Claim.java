@@ -112,6 +112,9 @@ public class Claim implements Auditable {
   @Column(name = "brand_approved_amount_paise")
   private BigInteger brandApprovedAmountPaise;
 
+  @Column(name = "brand_reviewer_comment", columnDefinition = "TEXT")
+  private String brandReviewerComment;
+
   @Column(name = "created_by")
   private UUID createdBy;
 

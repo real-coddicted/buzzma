@@ -711,7 +711,11 @@ class ClaimServiceImplTest {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.submitBrandClaimReview(
-        CLAIM_ID, BRAND_USER_ID, ReviewerDecision.APPROVED, AMOUNT_APPROVED_PAISE);
+        CLAIM_ID,
+        BRAND_USER_ID,
+        ReviewerDecision.APPROVED,
+        AMOUNT_APPROVED_PAISE,
+        REVIEWER_COMMENTS);
 
     final Claim saved = claimCaptor.getValue();
     assertEquals(ClaimStatus.APPROVED, saved.getStatus());
@@ -719,6 +723,7 @@ class ClaimServiceImplTest {
     assertEquals(BRAND_USER_ID, saved.getBrandReviewerId());
     assertEquals(AMOUNT_APPROVED_PAISE, saved.getBrandApprovedAmountPaise());
     assertEquals(AMOUNT_APPROVED_PAISE, saved.getAmountApprovedPaise());
+    assertEquals(REVIEWER_COMMENTS, saved.getBrandReviewerComment());
   }
 
   @Test
@@ -740,7 +745,7 @@ class ClaimServiceImplTest {
             BusinessRuleViolationException.class,
             () ->
                 this.claimService.submitBrandClaimReview(
-                    CLAIM_ID, BRAND_USER_ID, ReviewerDecision.APPROVED, null));
+                    CLAIM_ID, BRAND_USER_ID, ReviewerDecision.APPROVED, null, null));
     assertEquals("Approved amount is required", ex.getMessage());
   }
 
@@ -762,12 +767,13 @@ class ClaimServiceImplTest {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.submitBrandClaimReview(
-        CLAIM_ID, BRAND_USER_ID, ReviewerDecision.REJECTED, null);
+        CLAIM_ID, BRAND_USER_ID, ReviewerDecision.REJECTED, null, REVIEWER_COMMENTS);
 
     final Claim saved = claimCaptor.getValue();
     assertEquals(ClaimStatus.REJECTED, saved.getStatus());
     assertEquals(ReviewerDecision.REJECTED, saved.getBrandReviewStatus());
     assertEquals(BRAND_USER_ID, saved.getBrandReviewerId());
+    assertEquals(REVIEWER_COMMENTS, saved.getBrandReviewerComment());
   }
 
   @Test
@@ -789,7 +795,11 @@ class ClaimServiceImplTest {
             NotFoundException.class,
             () ->
                 this.claimService.submitBrandClaimReview(
-                    CLAIM_ID, NON_OWNER_ID, ReviewerDecision.APPROVED, AMOUNT_APPROVED_PAISE));
+                    CLAIM_ID,
+                    NON_OWNER_ID,
+                    ReviewerDecision.APPROVED,
+                    AMOUNT_APPROVED_PAISE,
+                    null));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 
@@ -810,7 +820,11 @@ class ClaimServiceImplTest {
             NotFoundException.class,
             () ->
                 this.claimService.submitBrandClaimReview(
-                    CLAIM_ID, BRAND_USER_ID, ReviewerDecision.APPROVED, AMOUNT_APPROVED_PAISE));
+                    CLAIM_ID,
+                    BRAND_USER_ID,
+                    ReviewerDecision.APPROVED,
+                    AMOUNT_APPROVED_PAISE,
+                    null));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 

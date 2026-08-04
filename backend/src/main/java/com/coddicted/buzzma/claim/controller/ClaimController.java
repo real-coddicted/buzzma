@@ -240,7 +240,11 @@ public class ClaimController {
       @Valid @RequestBody final ClaimReviewRequestDto request) {
     final ClaimWithDeal result =
         this.claimService.submitBrandClaimReview(
-            id, requesterId, request.getReviewerDecision(), request.getAmountApprovedPaise());
+            id,
+            requesterId,
+            request.getReviewerDecision(),
+            request.getAmountApprovedPaise(),
+            request.getReviewerComment());
     final Claim claim = result.claim();
     final Deal deal = result.deal();
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());

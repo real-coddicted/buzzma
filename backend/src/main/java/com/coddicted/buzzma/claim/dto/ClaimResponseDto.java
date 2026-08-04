@@ -35,6 +35,7 @@ public class ClaimResponseDto {
   Integer score;
   String reviewerComments;
   UUID reviewerId;
+  String brandReviewerComment;
   ClaimReviewStatus reviewStatus;
   Platform platform;
   Instant createdAt;
