@@ -157,11 +157,11 @@ class ConnectionServiceImplTest {
   void testActionConnectionRequestWhenAccept() {
     doReturn(Optional.of(CONNECTION_REQUESTED))
         .when(this.mockConnectionRepository)
-        .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
+        .findById(CONNECTION_ID);
 
     final boolean result =
         this.connectionService.actionConnectionRequest(
-            FROM_USER_ID, TO_USER_ID, Action.ACTION_ACCEPT, FROM_USER_ID);
+            CONNECTION_ID, Action.ACTION_ACCEPT, FROM_USER_ID);
 
     assertTrue(result);
     final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
@@ -176,11 +176,11 @@ class ConnectionServiceImplTest {
   void testActionConnectionRequestWhenReject() {
     doReturn(Optional.of(CONNECTION_REQUESTED))
         .when(this.mockConnectionRepository)
-        .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
+        .findById(CONNECTION_ID);
 
     final boolean result =
         this.connectionService.actionConnectionRequest(
-            FROM_USER_ID, TO_USER_ID, Action.ACTION_REJECT, FROM_USER_ID);
+            CONNECTION_ID, Action.ACTION_REJECT, FROM_USER_ID);
 
     assertFalse(result);
     final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
@@ -191,33 +191,46 @@ class ConnectionServiceImplTest {
   }
 
   @Test
-  void testActionConnectionRequestWhenNotFound() {
-    doReturn(Optional.empty())
+  void testActionConnectionRequestWhenNotInviteOwnerThrows() {
+    doReturn(Optional.of(CONNECTION_REQUESTED))
         .when(this.mockConnectionRepository)
-        .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
-
-    final NotFoundException ex =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                this.connectionService.actionConnectionRequest(
-                    FROM_USER_ID, TO_USER_ID, Action.ACTION_ACCEPT, FROM_USER_ID));
-    assertEquals(
-        "Connection not found from " + FROM_USER_ID + " to " + TO_USER_ID, ex.getMessage());
-  }
-
-  @Test
-  void testActionConnectionRequestWhenNotPending() {
-    doReturn(Optional.of(CONNECTION_ACCEPTED))
-        .when(this.mockConnectionRepository)
-        .findByFromUserIdAndToUserIdAndIsDeletedFalse(FROM_USER_ID, TO_USER_ID);
+        .findById(CONNECTION_ID);
 
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
             () ->
                 this.connectionService.actionConnectionRequest(
-                    FROM_USER_ID, TO_USER_ID, Action.ACTION_ACCEPT, FROM_USER_ID));
+                    CONNECTION_ID, Action.ACTION_ACCEPT, TO_USER_ID));
+    assertEquals("Only the invite owner can action this connection request", ex.getMessage());
+    verifyNoInteractions(this.mockUserSettingsService);
+  }
+
+  @Test
+  void testActionConnectionRequestWhenNotFound() {
+    doReturn(Optional.empty()).when(this.mockConnectionRepository).findById(CONNECTION_ID);
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.connectionService.actionConnectionRequest(
+                    CONNECTION_ID, Action.ACTION_ACCEPT, FROM_USER_ID));
+    assertEquals("Connection not found: " + CONNECTION_ID, ex.getMessage());
+  }
+
+  @Test
+  void testActionConnectionRequestWhenNotPending() {
+    doReturn(Optional.of(CONNECTION_ACCEPTED))
+        .when(this.mockConnectionRepository)
+        .findById(CONNECTION_ID);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.connectionService.actionConnectionRequest(
+                    CONNECTION_ID, Action.ACTION_ACCEPT, FROM_USER_ID));
     assertEquals("Connection request is no longer pending", ex.getMessage());
   }
 
@@ -318,6 +331,7 @@ class ConnectionServiceImplTest {
     final Connection saved = captor.getValue();
     assertEquals(FROM_USER_ID, saved.getFromUserId());
     assertEquals(TO_USER_ID, saved.getToUserId());
+    assertEquals(FROM_USER_ID, saved.getInviteOwnerId());
     assertEquals(ConnectionStatus.CONNECTION_STATUS_REQUESTED, saved.getStatus());
   }
 
@@ -335,6 +349,7 @@ class ConnectionServiceImplTest {
     final Connection saved = captor.getValue();
     assertEquals(TO_USER_ID, saved.getFromUserId());
     assertEquals(FROM_USER_ID, saved.getToUserId());
+    assertEquals(FROM_USER_ID, saved.getInviteOwnerId());
     assertEquals(ConnectionStatus.CONNECTION_STATUS_REQUESTED, saved.getStatus());
   }
 
@@ -352,6 +367,7 @@ class ConnectionServiceImplTest {
     final Connection saved = captor.getValue();
     assertEquals(FROM_USER_ID, saved.getFromUserId());
     assertEquals(TO_USER_ID, saved.getToUserId());
+    assertEquals(FROM_USER_ID, saved.getInviteOwnerId());
     assertEquals(ConnectionStatus.CONNECTION_STATUS_REQUESTED, saved.getStatus());
   }
 

@@ -55,8 +55,7 @@ public class ConnectionController {
       @CurrentUserId final UUID requesterId,
       @PathVariable final Action action,
       @Valid @RequestBody final ConnectionRequestDto request) {
-    this.connectionService.actionConnectionRequest(
-        requesterId, request.getToUserId(), action, requesterId);
+    this.connectionService.actionConnectionRequest(request.getConnectionId(), action, requesterId);
   }
 
   @GetMapping("/child")

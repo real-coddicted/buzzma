@@ -24,6 +24,8 @@ public class ConnectionResponseDto {
 
   UUID toUserId;
 
+  UUID inviteOwnerId;
+
   String toUserName;
 
   UserRole toUserRole;

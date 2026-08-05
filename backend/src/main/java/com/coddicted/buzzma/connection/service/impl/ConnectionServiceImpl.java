@@ -111,21 +111,23 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
   @Override
   @Transactional
   public boolean actionConnectionRequest(
-      final UUID fromUserId, final UUID toUserId, final Action action, final UUID requesterId) {
-    final Connection connection =
-        this.connectionRepository
-            .findByFromUserIdAndToUserIdAndIsDeletedFalse(fromUserId, toUserId)
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "Connection not found from " + fromUserId + " to " + toUserId));
+      final UUID connectionId, final Action action, final UUID requesterId) {
+    final Connection connection = mustFind(this.connectionRepository, connectionId, "Connection");
+    if (!connection.getInviteOwnerId().equals(requesterId)) {
+      throw new BusinessRuleViolationException(
+          "Only the invite owner can action this connection request");
+    }
     validate(connection);
     final ConnectionStatus target = getConnectionStatus(action);
     this.connectionRepository.save(
         connection.toBuilder().status(target).updatedBy(requesterId).build());
     LOGGER.debug("Connection {} transitioned to {} by {}", connection.getId(), target, requesterId);
     if (action == Action.ACTION_ACCEPT) {
-      this.userSettingsService.setToDefault(toUserId, requesterId);
+      final UUID redeemerId =
+          connection.getInviteOwnerId().equals(connection.getFromUserId())
+              ? connection.getToUserId()
+              : connection.getFromUserId();
+      this.userSettingsService.setToDefault(redeemerId, requesterId);
     }
     return target == ConnectionStatus.CONNECTION_STATUS_ACCEPTED;
   }
@@ -175,6 +177,7 @@ public class ConnectionServiceImpl extends BaseCrudService implements Connection
                 .toUserId(
                     getChildUserId(
                         ownerRole, requesterRole, invite.getOwnerId(), requester.getId()))
+                .inviteOwnerId(invite.getOwnerId())
                 .build());
     this.inviteService.consume(invite, requester.getId());
     return connection;

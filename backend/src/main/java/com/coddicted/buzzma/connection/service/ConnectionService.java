@@ -21,7 +21,7 @@ public interface ConnectionService {
 
   Connection createConnection(Connection connection);
 
-  boolean actionConnectionRequest(UUID fromUserId, UUID toUserId, Action action, UUID requesterId);
+  boolean actionConnectionRequest(UUID connectionId, Action action, UUID requesterId);
 
   void delete(UUID id, UUID requesterId);
 

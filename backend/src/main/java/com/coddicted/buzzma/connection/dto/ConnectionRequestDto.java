@@ -11,5 +11,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class ConnectionRequestDto {
 
-  @NotNull UUID toUserId;
+  @NotNull UUID connectionId;
 }

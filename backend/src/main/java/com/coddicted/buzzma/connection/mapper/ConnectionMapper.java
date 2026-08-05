@@ -26,6 +26,7 @@ public interface ConnectionMapper {
   @Mapping(source = "connection.id", target = "id")
   @Mapping(source = "connection.fromUserId", target = "fromUserId")
   @Mapping(source = "connection.toUserId", target = "toUserId")
+  @Mapping(source = "connection.inviteOwnerId", target = "inviteOwnerId")
   @Mapping(source = "connection.status", target = "status")
   @Mapping(source = "connection.createdBy", target = "createdBy")
   @Mapping(source = "connection.updatedBy", target = "updatedBy")

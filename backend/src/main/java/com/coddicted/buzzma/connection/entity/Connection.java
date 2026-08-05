@@ -41,6 +41,12 @@ public class Connection implements Auditable {
   @Column(name = "to_user_id", nullable = false)
   private UUID toUserId;
 
+  /**
+   * The user who owned/gave out the invite code that created this connection; always the approver.
+   */
+  @Column(name = "invite_owner_id", nullable = false)
+  private UUID inviteOwnerId;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private ConnectionStatus status;
