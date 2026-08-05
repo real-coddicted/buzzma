@@ -16,6 +16,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ClaimRepository extends JpaRepository<Claim, UUID> {
@@ -30,6 +31,55 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
   boolean existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
       String ecommerceOrderId, Platform platform);
+
+  @Modifying
+  @Transactional
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+      UPDATE claims
+      SET accounting_status = 'PENDING'
+      WHERE accounting_status = 'IN_PROGRESS'
+        AND accounting_last_attempted_at < NOW() - (INTERVAL '1 minute' * :thresholdMinutes)
+      """)
+  int resetStaleInProgressClaims(@Param("thresholdMinutes") int thresholdMinutes);
+
+  @Modifying
+  @Transactional
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+      UPDATE claims
+      SET accounting_status      = 'PENDING',
+          accounting_retry_count = accounting_retry_count + 1
+      WHERE id = :claimId
+      """)
+  void resetAccountingForRetry(@Param("claimId") UUID claimId);
+
+  @Modifying
+  @Transactional
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+      UPDATE claims
+      SET accounting_status      = 'FAILED',
+          accounting_retry_count = accounting_retry_count + 1
+      WHERE id = :claimId
+      """)
+  void markAccountingFailed(@Param("claimId") UUID claimId);
+
+  @Modifying
+  @Transactional
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+      UPDATE claims SET accounting_status = 'COMPLETED' WHERE id = :claimId
+      """)
+  void markAccountingCompleted(@Param("claimId") UUID claimId);
 
   @Query(
       value =

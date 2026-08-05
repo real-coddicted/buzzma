@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.dto.AssignmentSummaryView;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,9 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
   List<CampaignAssignment> findByCampaignId(UUID campaignId);
 
   List<CampaignAssignment> findByCampaignIdAndIsDeletedFalse(UUID campaignId);
+
+  Optional<CampaignAssignment> findByCampaignIdAndAssignorIdAndAssigneeIdAndIsDeletedFalse(
+      UUID campaignId, UUID assignorId, UUID assigneeId);
 
   List<CampaignAssignment> findByAssignorId(UUID assignorId);
 

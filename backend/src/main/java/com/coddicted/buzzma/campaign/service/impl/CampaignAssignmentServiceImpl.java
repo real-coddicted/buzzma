@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -117,5 +118,22 @@ public class CampaignAssignmentServiceImpl extends BaseCrudService
   @Override
   public List<CampaignAssignment> getByCampaignId(final UUID campaignId) {
     return this.campaignAssignmentRepository.findByCampaignIdAndIsDeletedFalse(campaignId);
+  }
+
+  @Override
+  public CampaignAssignment getByCampaignIdAndAssignorIdAndAssigneeId(
+      final UUID campaignId, final UUID assignorId, final UUID assigneeId) {
+    return this.campaignAssignmentRepository
+        .findByCampaignIdAndAssignorIdAndAssigneeIdAndIsDeletedFalse(
+            campaignId, assignorId, assigneeId)
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "Campaign Assignment not found for campaignId: "
+                        + campaignId
+                        + ", assignorId: "
+                        + assignorId
+                        + ", assigneeId: "
+                        + assigneeId));
   }
 }

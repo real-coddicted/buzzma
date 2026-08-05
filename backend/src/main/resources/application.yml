@@ -85,6 +85,13 @@ app:
     auto-close:
       fixed-delay-ms: ${CAMPAIGN_AUTO_CLOSE_DELAY_MS:900000}
       batch-size: ${CAMPAIGN_AUTO_CLOSE_BATCH_SIZE:50}
+  claim:
+    accounting:
+      scheduler:
+        fixed-delay-ms: ${CLAIM_ACCOUNTING_SCHEDULER_DELAY_MS:300000}
+        batch-size: ${CLAIM_ACCOUNTING_SCHEDULER_BATCH_SIZE:50}
+        max-retries: ${CLAIM_ACCOUNTING_SCHEDULER_MAX_RETRIES:3}
+        stale-threshold-minutes: ${CLAIM_ACCOUNTING_SCHEDULER_STALE_THRESHOLD_MINUTES:30}
   storage:
     type: ${STORAGE_TYPE:garage}
     base-dir: ${STORAGE_BASE_DIR:./storage}

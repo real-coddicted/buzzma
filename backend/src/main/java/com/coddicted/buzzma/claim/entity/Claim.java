@@ -117,4 +117,16 @@ public class Claim implements Auditable {
   @Column(name = "is_deleted", nullable = false)
   @Builder.Default
   private Boolean isDeleted = false;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "accounting_status", nullable = false, length = 20)
+  @Builder.Default
+  private ClaimAccountingStatus accountingStatus = ClaimAccountingStatus.PENDING;
+
+  @Column(name = "accounting_retry_count", nullable = false)
+  @Builder.Default
+  private Integer accountingRetryCount = 0;
+
+  @Column(name = "accounting_last_attempted_at")
+  private Instant accountingLastAttemptedAt;
 }

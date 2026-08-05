@@ -35,5 +35,8 @@ public interface CampaignAssignmentService {
 
   CampaignAssignment getById(UUID campaignAssignmentId);
 
+  CampaignAssignment getByCampaignIdAndAssignorIdAndAssigneeId(
+      UUID campaignId, UUID assignorId, UUID assigneeId);
+
   List<CampaignAssignment> getByCampaignId(UUID campaignId);
 }
