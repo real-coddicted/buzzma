@@ -1,6 +1,6 @@
 import type { components, operations } from '../types/api'
 import type { Connection, ConnectionStatus } from '../types/ConnectionTypes'
-import { fetchWithAuth } from './client'
+import { fetchWithAuth, getCurrentUser } from './client'
 
 type ConnectionResponseDto = components['schemas']['ConnectionResponseDto']
 type ConnectionRequestDto = components['schemas']['ConnectionRequestDto']
@@ -74,6 +74,7 @@ function mapConnection(dto: ConnectionResponseDto, direction: ConnectionDirectio
     since: formatSince(dto.createdAt),
     avatar: (name.charAt(0) || '?').toUpperCase(),
     avatarColor: pickColor(otherUserId || name),
+    canApprove: !!dto.inviteOwnerId && dto.inviteOwnerId === getCurrentUser()?.id,
   }
 }
 
@@ -98,9 +99,9 @@ export async function fetchParentConnections(filter: ConnectionStatus | 'all'): 
   return data.map(dto => mapConnection(dto, 'parent'))
 }
 
-/** Accept or reject a pending connection request addressed to `toUserId`. */
-export async function actionConnection(toUserId: string, action: ConnectionAction): Promise<void> {
-  const body: ConnectionRequestDto = { toUserId }
+/** Accept or reject a pending connection request. Only the invite owner may call this. */
+export async function actionConnection(connectionId: string, action: ConnectionAction): Promise<void> {
+  const body: ConnectionRequestDto = { connectionId }
   await fetchWithAuth(`${API_BASE}/connections/action/${action}`, {
     method: 'POST',
     body: JSON.stringify(body),

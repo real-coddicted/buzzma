@@ -155,7 +155,7 @@ export function Connections() {
   // Accept applies immediately; reject and delete are destructive, so they
   // open a confirmation modal first and run only once the user confirms.
   const handleAccept = (c: Connection) =>
-    runAction(c, () => actionConnection(c.toUserId, 'ACTION_ACCEPT'), `Accepted connection with ${c.name}.`)
+    runAction(c, () => actionConnection(c.id, 'ACTION_ACCEPT'), `Accepted connection with ${c.name}.`)
 
   const handleReject = (c: Connection) => setConfirm({ connection: c, kind: 'reject' })
   const handleDelete = (c: Connection) => setConfirm({ connection: c, kind: 'delete' })
@@ -166,7 +166,7 @@ export function Connections() {
     if (kind === 'reject') {
       await runAction(
         connection,
-        () => actionConnection(connection.toUserId, 'ACTION_REJECT'),
+        () => actionConnection(connection.id, 'ACTION_REJECT'),
         `Rejected connection with ${connection.name}.`,
       )
     } else {
@@ -277,7 +277,6 @@ export function Connections() {
         onReject={handleReject}
         onDelete={handleDelete}
         onRowClick={direction === 'child' ? handleViewConnection : undefined}
-        showApprovalActions={direction === 'child'}
         onAssignCampaigns={currentRole === 'ROLE_AGENCY' && direction === 'child' ? handleAssignCampaigns : undefined}
       />
     </div>

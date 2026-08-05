@@ -532,6 +532,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claim-review/worksheets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listWorkbooks"];
+        put?: never;
+        post: operations["uploadWorksheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns": {
         parameters: {
             query?: never;
@@ -574,6 +590,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["action_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/{campaignId}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["shareCampaign"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1092,6 +1124,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claim-review/worksheets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["downloadWorksheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/step-config": {
         parameters: {
             query?: never;
@@ -1527,6 +1575,8 @@ export interface components {
             fromUserCode?: string;
             /** Format: uuid */
             toUserId?: string;
+            /** Format: uuid */
+            inviteOwnerId?: string;
             toUserName?: string;
             /** @enum {string} */
             toUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
@@ -1543,7 +1593,7 @@ export interface components {
         };
         ConnectionRequestDto: {
             /** Format: uuid */
-            toUserId: string;
+            connectionId: string;
         };
         ClaimRequestDto: {
             /** Format: uuid */
@@ -1701,6 +1751,7 @@ export interface components {
             dealOwnerCode?: string;
             buyerName?: string;
             buyerCode?: string;
+            accountName?: string;
             /** Format: uuid */
             claimId?: string;
             claimCode?: string;
@@ -1724,10 +1775,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -1758,6 +1809,19 @@ export interface components {
             ascending?: boolean;
             property?: string;
             ignoreCase?: boolean;
+        };
+        ClaimReviewWorksheetResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            originalFilename?: string;
+            /** Format: int32 */
+            rowCount?: number;
+            /** Format: int32 */
+            rowsProcessed?: number;
+            /** @enum {string} */
+            status?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
+            /** Format: date-time */
+            createdAt?: string;
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
@@ -1861,6 +1925,20 @@ export interface components {
             /** Format: uuid */
             updatedBy?: string;
             isDeleted?: boolean;
+        };
+        ShareCampaignRequestDto: {
+            /** Format: uuid */
+            toUserId: string;
+        };
+        ShareCampaignResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            /** Format: uuid */
+            toUserId?: string;
+            /** Format: uuid */
+            fromUserId?: string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         CampaignSearchRequestDto: {
             brands?: string[];
@@ -3174,6 +3252,53 @@ export interface operations {
             };
         };
     };
+    listWorkbooks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimReviewWorksheetResponseDto"][];
+                };
+            };
+        };
+    };
+    uploadWorksheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimReviewWorksheetResponseDto"];
+                };
+            };
+        };
+    };
     list_4: {
         parameters: {
             query?: {
@@ -3262,6 +3387,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CampaignResponseDto"];
+                };
+            };
+        };
+    };
+    shareCampaign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareCampaignRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ShareCampaignResponseDto"];
                 };
             };
         };
@@ -4046,6 +4197,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    downloadWorksheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };
