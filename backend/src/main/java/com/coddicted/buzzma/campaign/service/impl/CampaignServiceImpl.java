@@ -13,6 +13,7 @@ import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
+import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
@@ -247,6 +248,13 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
                     .totalSlots(v.getTotalSlots())
                     .build())
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ShareableCampaignView> findShareableCampaigns(final UUID ownerId) {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    return this.campaignRepository.findShareableCampaigns(ownerId, today);
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {

@@ -149,4 +149,34 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
       @Param("ownerId") UUID ownerId,
       @Param("assigneeId") UUID assigneeId,
       @Param("today") Integer today);
+
+  @Query(
+      value =
+          """
+          SELECT
+              c.id         AS campaignId,
+              c.title      AS campaignTitle,
+              c.code       AS code,
+              c.platform   AS platform,
+              c.type       AS campaignType,
+              p.brand_name AS productBrandName,
+              p.image_url  AS productImageUrl,
+              c.start_date AS startDate,
+              c.end_date   AS endDate,
+              c.campaign_price_paise AS campaignPricePaise,
+              cs.slots_available AS slotsAvailable,
+              cs.total_slots     AS totalSlots
+          FROM campaigns c
+          JOIN products p ON c.product_id = p.id
+          JOIN campaign_slots cs ON c.id = cs.campaign_id AND cs.is_deleted = false
+          WHERE c.owner_id = :ownerId
+            AND c.is_deleted = false
+            AND c.end_date >= :today
+            AND c.status IN ('CAMPAIGN_STATUS_PAUSED', 'CAMPAIGN_STATUS_ACTIVE')
+            AND c.id NOT IN (SELECT campaign_id FROM campaign_shares)
+          ORDER BY c.start_date ASC
+          """,
+      nativeQuery = true)
+  List<ShareableCampaignView> findShareableCampaigns(
+      @Param("ownerId") UUID ownerId, @Param("today") Integer today);
 }

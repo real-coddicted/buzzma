@@ -11,8 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
+import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
+import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -50,6 +53,7 @@ class CampaignControllerTest {
   @MockBean private CampaignTypeStepMapper campaignTypeStepMapper;
   @MockBean private CampaignProcessor campaignProcessor;
   @MockBean private CampaignTypeStepService campaignTypeStepService;
+  @MockBean private ShareableCampaignMapper shareableCampaignMapper;
 
   private static final String VALID_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/campaign/campaign-request.json");
@@ -325,5 +329,75 @@ class CampaignControllerTest {
     mockMvc
         .perform(get("/api/v1/campaigns/assignable").param("assigneeId", ASSIGNEE_ID.toString()))
         .andExpect(status().isUnauthorized());
+  }
+
+  // --- GET /api/v1/campaigns/shareable ---
+
+  private static final String REQUESTER_ID = "00000000-0000-0000-0000-000000000003";
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = REQUESTER_ID)
+  void testGetShareableCampaignsWithAgencyRoleReturns200() throws Exception {
+    when(campaignService.findShareableCampaigns(UUID.fromString(REQUESTER_ID)))
+        .thenReturn(List.of());
+    when(shareableCampaignMapper.toResponse(List.<ShareableCampaignView>of()))
+        .thenReturn(
+            List.of(
+                ShareableCampaignResponseDto.builder()
+                    .campaignId(CAMPAIGN_ID)
+                    .campaignTitle("Test Campaign")
+                    .startDate(20240801)
+                    .endDate(20241231)
+                    .campaignPricePaise(BigInteger.valueOf(100000))
+                    .slotsAvailable(10)
+                    .totalSlots(20)
+                    .build()));
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/shareable"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].campaignId").value(CAMPAIGN_ID.toString()))
+        .andExpect(jsonPath("$[0].campaignTitle").value("Test Campaign"))
+        .andExpect(jsonPath("$[0].startDate").value(20240801))
+        .andExpect(jsonPath("$[0].endDate").value(20241231))
+        .andExpect(jsonPath("$[0].slotsAvailable").value(10))
+        .andExpect(jsonPath("$[0].totalSlots").value(20));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = REQUESTER_ID)
+  void testGetShareableCampaignsReturnsEmptyListWhenNoneAvailable() throws Exception {
+    when(campaignService.findShareableCampaigns(UUID.fromString(REQUESTER_ID)))
+        .thenReturn(List.of());
+    when(shareableCampaignMapper.toResponse(List.<ShareableCampaignView>of()))
+        .thenReturn(List.of());
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/shareable"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isEmpty());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testGetShareableCampaignsWithBrandRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void testGetShareableCampaignsWithMediatorRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testGetShareableCampaignsWithBuyerRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testGetShareableCampaignsUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isUnauthorized());
   }
 }
