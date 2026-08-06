@@ -8,11 +8,10 @@ import { Toast } from '../Toast'
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { fetchAssignableCampaigns, type AssignableCampaign } from '../../../api/campaignApi'
 import { assignToMediator } from '../../../api/assignmentApi'
-import { rupeesToPaise, paiseToRupees } from '../../../utils/currency'
+import { rupeesToPaise, paiseToRupees, formatRupees as formatRupeeAmount } from '../../../utils/currency'
+import { formatShortDate } from '../../../utils/time'
 import { ProductThumbnail } from '../campaign/ProductThumbnail'
-import { PLATFORM_COLORS, TYPE_COLORS } from '../campaign/filters/chipColors'
-import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
-import type { Platform, CampaignType } from '../../../types'
+import { PlatformBadge, DealTypeBadge, SlotsBar } from '../campaign/CampaignBadges'
 import type { Connection } from '../../../types/ConnectionTypes'
 
 interface Props {
@@ -25,59 +24,10 @@ interface RowState {
   commission: string
 }
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return 'TBD'
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const parts = iso.split('-')
-  if (parts.length !== 3) return iso
-  const [y, m, day] = parts
-  return `${months[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`
-}
+const fmtDate = formatShortDate
 
 function formatRupees(paise: number): string {
-  return `₹${paiseToRupees(paise).toLocaleString('en-IN')}`
-}
-
-function PlatformBadge({ platform }: { platform: string }) {
-  const colors = PLATFORM_COLORS[platform as Platform]
-  if (!colors) return <span className="text-ink-light-muted dark:text-ink-dark-muted">{platform}</span>
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', colors.base].join(' ')}>
-      {PLATFORM_LABELS[platform as Platform]}
-    </span>
-  )
-}
-
-function DealTypeBadge({ campaignType }: { campaignType: string | null }) {
-  if (!campaignType) return <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>
-  const colors = TYPE_COLORS[campaignType as CampaignType]
-  if (!colors) return <span className="text-ink-light-muted dark:text-ink-dark-muted">{campaignType}</span>
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', colors.base].join(' ')}>
-      {CAMPAIGN_TYPE_LABELS[campaignType as CampaignType]}
-    </span>
-  )
-}
-
-function SlotsBar({ available, total }: { available: number; total: number }) {
-  const claimed = total - available
-  const pct = total > 0 ? Math.min(100, Math.round((claimed / total) * 100)) : 0
-  const color = pct >= 90 ? 'bg-neon-red' : pct >= 70 ? 'bg-neon-orange' : 'bg-neon-blue'
-  return (
-    <div className="space-y-1">
-      <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-        {claimed}/{total}
-      </span>
-      <div className="flex items-center gap-2">
-        <div className="w-20 h-1.5 rounded-full bg-surface-light-hover dark:bg-surface-dark-hover overflow-hidden">
-          <div className={['h-full rounded-full', color].join(' ')} style={{ width: `${pct}%` }} />
-        </div>
-        <span className={['text-[10px] font-semibold tabular-nums', pct >= 90 ? 'text-neon-red' : pct >= 70 ? 'text-neon-orange' : 'text-ink-light-muted dark:text-ink-dark-muted'].join(' ')}>
-          {pct}%
-        </span>
-      </div>
-    </div>
-  )
+  return `₹${formatRupeeAmount(paiseToRupees(paise))}`
 }
 
 export function AssignCampaignsView({ connection, onBack }: Props) {
@@ -266,7 +216,7 @@ export function AssignCampaignsView({ connection, onBack }: Props) {
                             <div className="text-ink-light-muted dark:text-ink-dark-muted">{fmtDate(c.endDate)}</div>
                           </td>
                           <td className="px-5 py-2.5">
-                            <SlotsBar available={c.slotsAvailable} total={c.totalSlots} />
+                            <SlotsBar claimed={c.totalSlots - c.slotsAvailable} total={c.totalSlots} />
                           </td>
                           <td className="px-5 py-2.5 text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
                             {formatRupees(c.campaignPricePaise)}

@@ -172,6 +172,17 @@ export async function fetchBrandNames(): Promise<string[]> {
   return (await res.json()) as string[]
 }
 
+type ShareCampaignRequestDto = components['schemas']['ShareCampaignRequestDto']
+
+/** POST /campaigns/{id}/share — shares a campaign with a connected brand. Cannot be undone. */
+export async function shareCampaignWithBrand(campaignId: string, toUserId: string): Promise<void> {
+  const body: ShareCampaignRequestDto = { toUserId }
+  await fetchWithAuth(`${API_BASE}/campaigns/${campaignId}/share`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
 export async function fetchCampaignById(id: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`)
   return res.json() as Promise<CampaignResponseDto>
@@ -299,6 +310,41 @@ export async function fetchAssignableCampaigns(assigneeId: string): Promise<Assi
     endDate: yyyymmddToIso(d.endDate),
     campaignPricePaise: d.campaignPricePaise ?? 0,
     slotId: d.slotId ?? '',
+    slotsAvailable: d.slotsAvailable ?? 0,
+    totalSlots: d.totalSlots ?? 0,
+  }))
+}
+
+export interface ShareableCampaign {
+  campaignId: string
+  campaignTitle: string
+  code: string
+  platform: string
+  campaignType: string | null
+  productBrandName: string
+  productImageUrl: string
+  startDate: string
+  endDate: string
+  campaignPricePaise: number
+  slotsAvailable: number
+  totalSlots: number
+}
+
+/** GET /campaigns/shareable — the requester's own campaigns eligible to be shared with a brand. */
+export async function fetchShareableCampaigns(): Promise<ShareableCampaign[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shareable`)
+  const data = await res.json() as components['schemas']['ShareableCampaignResponseDto'][]
+  return data.map(d => ({
+    campaignId: d.campaignId ?? '',
+    campaignTitle: d.campaignTitle ?? '',
+    code: d.code ?? '',
+    platform: d.platform ?? '',
+    campaignType: d.campaignType ?? null,
+    productBrandName: d.productBrandName ?? '',
+    productImageUrl: d.productImageUrl ?? '',
+    startDate: yyyymmddToIso(d.startDate),
+    endDate: yyyymmddToIso(d.endDate),
+    campaignPricePaise: d.campaignPricePaise ?? 0,
     slotsAvailable: d.slotsAvailable ?? 0,
     totalSlots: d.totalSlots ?? 0,
   }))

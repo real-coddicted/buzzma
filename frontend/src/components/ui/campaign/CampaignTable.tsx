@@ -7,55 +7,16 @@ import { CampaignFilterDrawer } from './CampaignFilterDrawer'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from './filters/CampaignFilterTypes'
 import { FilterChips, type FilterChip } from './filters/FilterChips'
 import { PLATFORM_COLORS, TYPE_COLORS, STATUS_COLORS } from './filters/chipColors'
-import type { Campaign, CampaignStatus, CampaignType, Platform } from '../../../types'
+import type { Campaign, CampaignStatus } from '../../../types'
 import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS } from '../../../constants/campaigns'
 import { ProductThumbnail } from './ProductThumbnail'
+import { PlatformBadge, DealTypeBadge, SlotsBar } from './CampaignBadges'
 import { Loading } from '../Loading'
 import { PaginationToolbar } from '../PaginationToolbar'
+import { formatShortDate as fmtDate } from '../../../utils/time'
 
 
 type SortKey = keyof Pick<Campaign, 'title' | 'totalSlots'>
-
-function PlatformBadge({ platform }: { platform: Platform }) {
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', PLATFORM_COLORS[platform].base].join(' ')}>
-      {PLATFORM_LABELS[platform]}
-    </span>
-  )
-}
-
-function DealTypeBadge({ campaignType }: { campaignType: CampaignType | null }) {
-  if (!campaignType) return <span className="text-ink-light-muted dark:text-ink-dark-muted">—</span>
-  return (
-    <span className={['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', TYPE_COLORS[campaignType].base].join(' ')}>
-      {CAMPAIGN_TYPE_LABELS[campaignType]}
-    </span>
-  )
-}
-
-function SlotsBar({ claimed, total }: { claimed: number; total: number }) {
-  const pct = total > 0 ? Math.min(100, Math.round((claimed / total) * 100)) : 0
-  const color = pct >= 90 ? 'bg-neon-red' : pct >= 70 ? 'bg-neon-orange' : 'bg-neon-blue'
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-20 h-1.5 rounded-full bg-surface-light-hover dark:bg-surface-dark-hover overflow-hidden">
-        <div className={['h-full rounded-full', color].join(' ')} style={{ width: `${pct}%` }} />
-      </div>
-      <span className={['text-[10px] font-semibold tabular-nums', pct >= 90 ? 'text-neon-red' : pct >= 70 ? 'text-neon-orange' : 'text-ink-light-muted dark:text-ink-dark-muted'].join(' ')}>
-        {pct}%
-      </span>
-    </div>
-  )
-}
-
-function fmtDate(d: string | null): string {
-  if (!d) return 'TBD'
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const parts = d.split('-')
-  if (parts.length !== 3) return d
-  const [y, m, day] = parts
-  return `${months[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`
-}
 
 interface Props {
   campaigns: Campaign[]
@@ -282,12 +243,7 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
                     <div className="text-ink-light-muted dark:text-ink-dark-muted">{fmtDate(c.endDate)}</div>
                   </td>
                   <td className="px-5 py-2.5">
-                    <div className="space-y-1">
-                      <span className="font-mono text-ink-light-secondary dark:text-ink-dark-secondary">
-                        {c.slotsClaimed}/{c.totalSlots ?? '—'}
-                      </span>
-                      <SlotsBar claimed={c.slotsClaimed} total={c.totalSlots ?? 0} />
-                    </div>
+                    <SlotsBar claimed={c.slotsClaimed} total={c.totalSlots ?? 0} />
                   </td>
                   <td className="px-5 py-2.5"><StatusBadge status={c.status} /></td>
                   <td className="px-5 py-2.5">
