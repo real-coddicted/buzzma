@@ -13,6 +13,7 @@ public enum ClaimStatus {
   PROOF_REJECTED("Proof Rejected"),
   UNDER_REVIEW("Under Review"),
   ADDITIONAL_PROOF_REQUESTED("Additional Proof Requested"),
+  UNDER_BRAND_REVIEW("Under Brand Review"),
   APPROVED("Approved"),
   REJECTED("Rejected"),
   REWARD_PENDING("Reward Pending"),

@@ -1,9 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
@@ -50,16 +52,19 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
   private final CampaignService campaignService;
   private final DealService dealService;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
+  private final CampaignShareService campaignShareService;
 
   public ClaimReviewServiceImpl(
       final ClaimService claimService,
       final CampaignService campaignService,
       final DealService dealService,
-      final ClaimReviewEventPublisher claimReviewEventPublisher) {
+      final ClaimReviewEventPublisher claimReviewEventPublisher,
+      final CampaignShareService campaignShareService) {
     this.claimService = claimService;
     this.campaignService = campaignService;
     this.dealService = dealService;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
+    this.campaignShareService = campaignShareService;
   }
 
   @Override
@@ -96,8 +101,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     }
 
     // campaignIdsFilter only ever narrows within the agency's owned campaigns, never broadens it.
-    final Set<UUID> campaignIds =
-        intersect(getApplicableCampaignIds(requester.getId()), campaignIdsFilter);
+    final Set<UUID> campaignIds = intersect(getApplicableCampaignIds(requester), campaignIdsFilter);
     if (campaignIds.isEmpty()) {
       LOGGER.info("No applicable campaigns found for role {}", requester.getRole());
       return Page.empty(unsortedPageable);
@@ -164,6 +168,11 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final String reviewerComment,
       final BigInteger amountApprovedPaise) {
 
+    if (reviewerRole == UserRole.ROLE_BRAND) {
+      return submitBrandClaimReview(
+          claimId, reviewerId, decision, reviewerComment, amountApprovedPaise);
+    }
+
     final Claim claim = this.claimService.getById(claimId, reviewerId);
 
     if (decision == ReviewerDecision.VERIFIED && reviewerRole != UserRole.ROLE_MEDIATOR) {
@@ -227,9 +236,13 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
                         .updatedAt(Instant.now())
                         .updatedBy(reviewerId)
                         .build()));
+    // If the campaign has been shared with a brand, the agency's approval isn't final — it routes
+    // to the brand for their own sign-off before the claim is truly APPROVED.
+    final boolean campaignSharedWithBrand =
+        this.campaignShareService.existsByCampaignId(claim.getCampaignId());
     return this.claimService.save(
         claim.toBuilder()
-            .status(ClaimStatus.APPROVED)
+            .status(campaignSharedWithBrand ? ClaimStatus.UNDER_BRAND_REVIEW : ClaimStatus.APPROVED)
             .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .reviewerComments(reviewerComments)
             .reviewerId(reviewerId)
@@ -239,17 +252,96 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
             .build());
   }
 
+  private ClaimWithDeal submitBrandClaimReview(
+      final UUID claimId,
+      final UUID brandUserId,
+      final ReviewerDecision decision,
+      final String reviewerComment,
+      final BigInteger amountApprovedPaise) {
+    if (decision == ReviewerDecision.VERIFIED) {
+      throw new BusinessRuleViolationException("VERIFIED decision is not allowed for brand review");
+    }
+    final Claim claim = loadAndVerifyBrandAccess(claimId, brandUserId);
+    final Claim updated =
+        decision == ReviewerDecision.APPROVED
+            ? approveBrandClaim(claim, brandUserId, amountApprovedPaise, reviewerComment)
+            : rejectBrandClaim(claim, brandUserId, reviewerComment);
+    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+  }
+
+  private Claim approveBrandClaim(
+      final Claim claim,
+      final UUID brandUserId,
+      final BigInteger amountApprovedPaise,
+      final String reviewerComment) {
+    if (amountApprovedPaise == null) {
+      throw new BusinessRuleViolationException("Approved amount is required");
+    }
+    return this.claimService.save(
+        claim.toBuilder()
+            .status(ClaimStatus.APPROVED)
+            .brandReviewStatus(ReviewerDecision.APPROVED)
+            .brandReviewerId(brandUserId)
+            .amountApprovedPaise(amountApprovedPaise)
+            .reviewerComments(reviewerComment)
+            .updatedAt(Instant.now())
+            .updatedBy(brandUserId)
+            .build());
+  }
+
+  private Claim rejectBrandClaim(
+      final Claim claim, final UUID brandUserId, final String reviewerComment) {
+    return this.claimService.save(
+        claim.toBuilder()
+            .status(ClaimStatus.REJECTED)
+            .brandReviewStatus(ReviewerDecision.REJECTED)
+            .brandReviewerId(brandUserId)
+            .reviewerComments(reviewerComment)
+            .updatedAt(Instant.now())
+            .updatedBy(brandUserId)
+            .build());
+  }
+
+  private Claim loadAndVerifyBrandAccess(final UUID claimId, final UUID brandUserId) {
+    // claimService.getById already grants view access to the brand a campaign was shared with
+    // (via CampaignShareService), so this only needs to additionally confirm the claim is
+    // actually pending that brand's review.
+    final Claim claim = this.claimService.getById(claimId, brandUserId);
+    if (claim.getStatus() != ClaimStatus.UNDER_BRAND_REVIEW) {
+      LOGGER.warn(
+          "Brand {} is not authorized to review claim {} (status: {})",
+          brandUserId,
+          claimId,
+          claim.getStatus());
+      throw new NotFoundException("Claim not found: " + claimId);
+    }
+    return claim;
+  }
+
   @Override
   @Transactional(readOnly = true)
   public List<ClaimReviewModel> findClaimReviewModels(final Collection<UUID> claimIds) {
     return this.claimService.findClaimReviewModels(claimIds);
   }
 
-  private Set<UUID> getApplicableCampaignIds(final UUID requesterId) {
-    return this.campaignService.getByOwnerId(requesterId).stream()
-        .map(CampaignSummary::getCampaign)
-        .map(Campaign::getId)
-        .collect(Collectors.toSet());
+  private Set<UUID> getApplicableCampaignIds(final BuzzmaUser requester) {
+    final Set<UUID> ownedCampaignIds =
+        this.campaignService.getByOwnerId(requester.getId()).stream()
+            .map(CampaignSummary::getCampaign)
+            .map(Campaign::getId)
+            .collect(Collectors.toSet());
+    if (requester.getRole() != UserRole.ROLE_BRAND) {
+      return ownedCampaignIds;
+    }
+    // A brand also sees claims for campaigns an agency has shared with them, in addition to any
+    // campaigns they own directly.
+    final Set<UUID> sharedCampaignIds =
+        this.campaignShareService.findByToUserId(requester.getId()).stream()
+            .map(CampaignShare::getCampaignId)
+            .collect(Collectors.toSet());
+    final Set<UUID> applicable = new HashSet<>(ownedCampaignIds);
+    applicable.addAll(sharedCampaignIds);
+    return applicable;
   }
 
   private static Set<UUID> intersect(final Set<UUID> base, final Set<UUID> filter) {

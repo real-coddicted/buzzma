@@ -268,7 +268,12 @@ public class ClaimController {
   }
 
   @PostMapping("/review")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
+  @PreAuthorize(
+      UserRole.Expr.AGENCY
+          + UserRole.Expr.OR
+          + UserRole.Expr.MEDIATOR
+          + UserRole.Expr.OR
+          + UserRole.Expr.BRAND)
   public Page<ClaimReviewResponseDto> listClaimsToReview(
       @CurrentUser final BuzzmaUser requester,
       @RequestBody(required = false) final ClaimReviewFilterRequestDto request,

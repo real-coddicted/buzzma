@@ -23,6 +23,7 @@ final class Fixtures {
   static final UUID DEAL_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
   static final UUID SLOT_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
   static final UUID SCREENSHOT_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
+  static final UUID BRAND_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
 
   static final BigInteger AMOUNT_APPROVED_PAISE = BigInteger.valueOf(10000L);
 

@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
@@ -56,6 +57,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
+  private final CampaignShareService campaignShareService;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -66,7 +68,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignTypeStepService campaignTypeStepService,
       final StorageService storageService,
       final ExtractionService extractionService,
-      final CodeGenerationService codeGenerationService) {
+      final CodeGenerationService codeGenerationService,
+      final CampaignShareService campaignShareService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -76,6 +79,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
+    this.campaignShareService = campaignShareService;
   }
 
   @Override
@@ -521,7 +525,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     if (requesterId.equals(claim.getOwnerId())
         || requesterId.equals(this.campaignService.getById(claim.getCampaignId()).getOwnerId())
-        || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())) {
+        || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())
+        || this.campaignShareService.existsByCampaignIdAndToUserId(
+            claim.getCampaignId(), requesterId)) {
       return claim;
     }
 

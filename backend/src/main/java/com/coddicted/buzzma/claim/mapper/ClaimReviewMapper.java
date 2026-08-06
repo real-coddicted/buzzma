@@ -39,6 +39,7 @@ public interface ClaimReviewMapper {
       source = "claim.reviewStatus",
       target = "claimReviewStatus",
       defaultExpression = "java(ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING)")
+  @Mapping(source = "claim.brandReviewStatus", target = "brandReviewStatus")
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "claim.orderDate", target = "orderDate")
   @Mapping(source = "campaign.product.brandName", target = "brandName")
