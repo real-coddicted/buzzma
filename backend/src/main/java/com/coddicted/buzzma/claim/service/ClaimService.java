@@ -4,13 +4,10 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
-import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
-import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -61,6 +58,25 @@ public interface ClaimService {
 
   List<ClaimScreenshot> listScreenshots(UUID claimId);
 
+  ClaimWithDeal updateScreenshot(
+      UUID claimId,
+      UUID requesterId,
+      UUID screenshotId,
+      ScreenshotType screenshotType,
+      byte[] screenshot,
+      String filename,
+      String contentType,
+      OrderUpdateFields orderFields,
+      String reviewUrl);
+
+  void updateClaimScore(UUID claimId);
+
+  Claim save(Claim claim);
+
+  ClaimScreenshot getScreenshotById(UUID screenshotId);
+
+  ClaimScreenshot saveScreenshot(ClaimScreenshot screenshot);
+
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
       UUID mediatorId,
       Collection<UUID> campaignIds,
@@ -79,35 +95,5 @@ public interface ClaimService {
       Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
-  ClaimWithDeal reviewScreenshot(
-      UUID screenshotId,
-      UUID claimId,
-      ScreenshotVerificationStatus action,
-      UUID reviewerId,
-      String reviewerComments);
-
-  ClaimWithDeal updateScreenshot(
-      UUID claimId,
-      UUID requesterId,
-      UUID screenshotId,
-      ScreenshotType screenshotType,
-      byte[] screenshot,
-      String filename,
-      String contentType,
-      OrderUpdateFields orderFields,
-      String reviewUrl);
-
-  ClaimWithDeal submitClaimReview(
-      UUID claimId,
-      UUID reviewerId,
-      UserRole reviewerRole,
-      ReviewerDecision decision,
-      String reviewerComment,
-      BigInteger amountApprovedPaise);
-
-  List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
-
   List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);
-
-  void updateClaimScore(UUID claimId);
 }

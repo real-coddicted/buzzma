@@ -1,26 +1,48 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import static com.coddicted.buzzma.claim.entity.ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.AMOUNT_APPROVED_PAISE;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.CLAIM_1;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.CLAIM_ID;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.DEAL_1;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.DEAL_ID;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.OWNER_ID;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.REVIEWER_COMMENTS;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_1;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
+import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
+import com.coddicted.buzzma.claim.model.ClaimWithDeal;
+import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.enums.Platform;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +74,8 @@ class ClaimReviewServiceImplTest {
 
   @Mock private ClaimService mockClaimService;
   @Mock private CampaignService mockCampaignService;
+  @Mock private DealService mockDealService;
+  @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
   @Captor ArgumentCaptor<Collection<UUID>> campaignIdsCaptor;
   @Captor ArgumentCaptor<Collection<UUID>> mediatorIdsCaptor;
   @Captor ArgumentCaptor<Collection<ClaimStatus>> claimStatusesCaptor;
@@ -64,7 +88,11 @@ class ClaimReviewServiceImplTest {
   @BeforeEach
   void setUp() {
     this.claimReviewService =
-        new ClaimReviewServiceImpl(this.mockClaimService, this.mockCampaignService);
+        new ClaimReviewServiceImpl(
+            this.mockClaimService,
+            this.mockCampaignService,
+            this.mockDealService,
+            this.mockClaimReviewEventPublisher);
   }
 
   @Test
@@ -414,5 +442,106 @@ class ClaimReviewServiceImplTest {
 
     assertTrue(result.getContent().isEmpty());
     verifyNoInteractions(this.mockClaimService);
+  }
+
+  @Test
+  void testReviewScreenshotRejected() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
+    final Claim rejectedClaim =
+        CLAIM_1.toBuilder()
+            .status(ClaimStatus.PROOF_REJECTED)
+            .reviewStatus(CLAIM_REVIEW_STATUS_OBJECTED)
+            .updatedBy(OWNER_ID)
+            .build();
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(rejectedClaim);
+
+    final ClaimWithDeal result =
+        this.claimReviewService.reviewScreenshot(
+            SCREENSHOT_ID,
+            CLAIM_ID,
+            SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+            OWNER_ID,
+            REVIEWER_COMMENTS);
+
+    assertEquals(rejectedClaim, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    assertEquals(ClaimStatus.PROOF_REJECTED, claimCaptor.getValue().getStatus());
+    assertEquals(CLAIM_REVIEW_STATUS_OBJECTED, claimCaptor.getValue().getReviewStatus());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimService).saveScreenshot(screenshotCaptor.capture());
+    assertEquals(
+        SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+        screenshotCaptor.getValue().getVerificationStatus());
+    assertEquals(REVIEWER_COMMENTS, screenshotCaptor.getValue().getReviewerComments());
+
+    verify(this.mockClaimReviewEventPublisher)
+        .publishScreenshotReviewedEvent(
+            rejectedClaim,
+            DEAL_1,
+            SCREENSHOT_TYPE_ORDER,
+            SCREENSHOT_VERIFICATION_STATUS_REJECTED,
+            OWNER_ID,
+            REVIEWER_COMMENTS);
+  }
+
+  @Test
+  void testReviewScreenshotVerifiedDoesNotPublishEvent() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
+
+    final ClaimWithDeal result =
+        this.claimReviewService.reviewScreenshot(
+            SCREENSHOT_ID, CLAIM_ID, SCREENSHOT_VERIFICATION_STATUS_VERIFIED, OWNER_ID, null);
+
+    assertEquals(CLAIM_1, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+  }
+
+  @Test
+  void testBulkApproveClaimReviews() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockClaimService.listScreenshots(CLAIM_ID)).thenReturn(List.of(SCREENSHOT_1));
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    final List<ClaimWithDeal> results =
+        this.claimReviewService.bulkApproveClaimReviews(
+            Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID);
+
+    assertEquals(1, results.size());
+    assertEquals(DEAL_1, results.get(0).deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(ClaimStatus.APPROVED, saved.getStatus());
+    assertEquals(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED, saved.getReviewStatus());
+    assertEquals(OWNER_ID, saved.getReviewerId());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimService).saveScreenshot(screenshotCaptor.capture());
+    assertEquals(
+        SCREENSHOT_VERIFICATION_STATUS_VERIFIED,
+        screenshotCaptor.getValue().getVerificationStatus());
+  }
+
+  @Test
+  void testBulkApproveClaimReviewsWhenClaimNotFound() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID))
+        .thenThrow(new NotFoundException("Claim not found: " + CLAIM_ID));
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimReviewService.bulkApproveClaimReviews(
+                    Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 }

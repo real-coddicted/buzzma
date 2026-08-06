@@ -20,6 +20,7 @@ import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
+import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -59,6 +60,7 @@ public class ClaimController {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClaimController.class);
 
   private final ClaimService claimService;
+  private final ClaimReviewService claimReviewService;
   private final DealService dealService;
   private final CampaignTypeStepService campaignTypeStepService;
   private final ClaimMapper claimMapper;
@@ -67,12 +69,14 @@ public class ClaimController {
 
   public ClaimController(
       final ClaimService claimService,
+      final ClaimReviewService claimReviewService,
       final DealService dealService,
       final CampaignTypeStepService campaignTypeStepService,
       final ClaimMapper claimMapper,
       final ClaimReviewMapper claimReviewMapper,
       final ClaimReviewProcessor claimReviewProcessor) {
     this.claimService = claimService;
+    this.claimReviewService = claimReviewService;
     this.dealService = dealService;
     this.campaignTypeStepService = campaignTypeStepService;
     this.claimMapper = claimMapper;
@@ -201,7 +205,7 @@ public class ClaimController {
       @PathVariable final UUID id,
       @Valid @RequestBody final ClaimReviewRequestDto request) {
     final ClaimWithDeal result =
-        this.claimService.submitClaimReview(
+        this.claimReviewService.submitClaimReview(
             id,
             requester.getId(),
             requester.getRole(),
@@ -223,9 +227,9 @@ public class ClaimController {
     for (final ClaimReviewRequestDto r : requests) {
       claimAmounts.put(r.getClaimId(), r.getAmountApprovedPaise());
     }
-    this.claimService.bulkApproveClaimReviews(claimAmounts, requester.getId());
+    this.claimReviewService.bulkApproveClaimReviews(claimAmounts, requester.getId());
     final List<UUID> claimIds = requests.stream().map(ClaimReviewRequestDto::getClaimId).toList();
-    return this.claimService.findClaimReviewModels(claimIds).stream()
+    return this.claimReviewService.findClaimReviewModels(claimIds).stream()
         .map(this.claimReviewMapper::toResponse)
         .toList();
   }
@@ -236,7 +240,7 @@ public class ClaimController {
       @CurrentUserId final UUID reviewerId,
       @Valid @RequestBody final ScreenshotReviewRequestDto request) {
     final ClaimWithDeal result =
-        this.claimService.reviewScreenshot(
+        this.claimReviewService.reviewScreenshot(
             request.getScreenshotId(),
             request.getClaimId(),
             request.getAction(),

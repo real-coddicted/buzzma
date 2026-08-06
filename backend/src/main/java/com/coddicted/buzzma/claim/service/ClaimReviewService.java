@@ -2,9 +2,17 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ReviewerDecision;
+import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
+import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.enums.Platform;
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -21,4 +29,23 @@ public interface ClaimReviewService {
       Set<Platform> platformsFilter,
       Set<ClaimReviewStatus> reviewStatusesFilter,
       Pageable pageable);
+
+  ClaimWithDeal reviewScreenshot(
+      UUID screenshotId,
+      UUID claimId,
+      ScreenshotVerificationStatus action,
+      UUID reviewerId,
+      String reviewerComments);
+
+  ClaimWithDeal submitClaimReview(
+      UUID claimId,
+      UUID reviewerId,
+      UserRole reviewerRole,
+      ReviewerDecision decision,
+      String reviewerComment,
+      BigInteger amountApprovedPaise);
+
+  List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
+
+  List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);
 }

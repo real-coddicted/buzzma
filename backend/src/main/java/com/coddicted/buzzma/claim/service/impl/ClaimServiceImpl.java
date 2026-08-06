@@ -12,19 +12,16 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
-import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
-import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -33,7 +30,6 @@ import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -60,7 +56,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
-  private final ClaimReviewEventPublisher claimReviewEventPublisher;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -71,8 +66,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignTypeStepService campaignTypeStepService,
       final StorageService storageService,
       final ExtractionService extractionService,
-      final CodeGenerationService codeGenerationService,
-      final ClaimReviewEventPublisher claimReviewEventPublisher) {
+      final CodeGenerationService codeGenerationService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -82,7 +76,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
-    this.claimReviewEventPublisher = claimReviewEventPublisher;
   }
 
   @Override
@@ -282,78 +275,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Page<ClaimReviewModel> findClaimsToReviewForMediator(
-      final UUID mediatorId,
-      final Collection<UUID> campaignIds,
-      final Collection<ClaimStatus> claimStatuses,
-      final Collection<String> brands,
-      final Collection<Platform> platforms,
-      final Collection<ClaimReviewStatus> reviewStatuses,
-      final Pageable pageable) {
-    return this.claimRepository.findClaimsToReviewForMediator(
-        mediatorId, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
-      final Collection<UUID> campaignIds,
-      final Collection<UUID> mediatorIds,
-      final Collection<ClaimStatus> claimStatuses,
-      final Collection<String> brands,
-      final Collection<Platform> platforms,
-      final Collection<ClaimReviewStatus> reviewStatuses,
-      final Pageable pageable) {
-    return this.claimRepository.findClaimsToReviewForCampaigns(
-        campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
-  }
-
-  @Override
-  @Transactional
-  public ClaimWithDeal reviewScreenshot(
-      final UUID screenshotId,
-      final UUID claimId,
-      final ScreenshotVerificationStatus action,
-      final UUID reviewerId,
-      final String reviewerComments) {
-
-    Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
-
-    final ClaimScreenshot screenshot =
-        this.claimScreenshotRepository
-            .findById(screenshotId)
-            .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
-
-    if (!claimId.equals(screenshot.getClaimId())) {
-      throw new NotFoundException("Screenshot not found: " + screenshotId);
-    }
-
-    this.claimScreenshotRepository.save(
-        screenshot.toBuilder()
-            .verificationStatus(action)
-            .reviewerComments(reviewerComments)
-            .updatedAt(Instant.now())
-            .updatedBy(reviewerId)
-            .build());
-
-    if (action == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED) {
-      claim =
-          this.claimRepository.save(
-              claim.toBuilder()
-                  .status(ClaimStatus.PROOF_REJECTED)
-                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED)
-                  .updatedBy(reviewerId)
-                  .build());
-      this.claimReviewEventPublisher.publishScreenshotReviewedEvent(
-          claim, deal, screenshot.getType(), action, reviewerId, reviewerComments);
-    }
-
-    return new ClaimWithDeal(claim, deal);
-  }
-
-  @Override
   @Transactional
   public ClaimWithDeal updateScreenshot(
       final UUID claimId,
@@ -446,99 +367,62 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
-  public ClaimWithDeal submitClaimReview(
-      final UUID claimId,
-      final UUID reviewerId,
-      final UserRole reviewerRole,
-      final ReviewerDecision decision,
-      final String reviewerComment,
-      final java.math.BigInteger amountApprovedPaise) {
-
-    final Claim claim = loadAndVerifyOwnership(claimId, reviewerId);
-
-    if (decision == ReviewerDecision.VERIFIED && reviewerRole != UserRole.ROLE_MEDIATOR) {
-      throw new BusinessRuleViolationException(
-          "VERIFIED decision is only allowed for MEDIATOR role");
-    }
-    if (reviewerRole == UserRole.ROLE_MEDIATOR && decision != ReviewerDecision.VERIFIED) {
-      throw new BusinessRuleViolationException("MEDIATOR can only submit VERIFIED decision");
-    }
-
-    final Claim updated;
-    if (reviewerRole == UserRole.ROLE_MEDIATOR) {
-      updated =
-          this.claimRepository.save(
-              claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
-    } else if (decision == ReviewerDecision.APPROVED) {
-      updated =
-          approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
-    } else {
-      updated =
-          this.claimRepository.save(
-              claim.toBuilder()
-                  .status(ClaimStatus.REJECTED)
-                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_REJECTED)
-                  .reviewerComments(reviewerComment)
-                  .reviewerId(reviewerId)
-                  .updatedAt(Instant.now())
-                  .updatedBy(reviewerId)
-                  .build());
-    }
-
-    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+  public void updateClaimScore(final UUID claimId) {
+    this.claimRepository.updateScoreFromScreenshots(claimId);
   }
 
   @Override
   @Transactional
-  public List<ClaimWithDeal> bulkApproveClaimReviews(
-      final Map<UUID, java.math.BigInteger> claimAmounts, final UUID reviewerId) {
-    final List<ClaimWithDeal> results = new ArrayList<>();
-    for (final Map.Entry<UUID, java.math.BigInteger> entry : claimAmounts.entrySet()) {
-      final Claim claim = loadAndVerifyOwnership(entry.getKey(), reviewerId);
-      final Claim updated = approveClaimWithScreenshots(claim, reviewerId, entry.getValue(), null);
-      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
-    }
-    return results;
+  public Claim save(final Claim claim) {
+    return this.claimRepository.save(claim);
   }
 
-  private Claim approveClaimWithScreenshots(
-      final Claim claim,
-      final UUID reviewerId,
-      final java.math.BigInteger amountApprovedPaise,
-      final String reviewerComments) {
-    this.claimScreenshotRepository
-        .findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(claim.getId())
-        .forEach(
-            s ->
-                this.claimScreenshotRepository.save(
-                    s.toBuilder()
-                        .verificationStatus(
-                            ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
-                        .updatedAt(Instant.now())
-                        .updatedBy(reviewerId)
-                        .build()));
-    return this.claimRepository.save(
-        claim.toBuilder()
-            .status(ClaimStatus.APPROVED)
-            .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
-            .reviewerComments(reviewerComments)
-            .reviewerId(reviewerId)
-            .amountApprovedPaise(amountApprovedPaise)
-            .updatedAt(Instant.now())
-            .updatedBy(reviewerId)
-            .build());
+  @Override
+  @Transactional(readOnly = true)
+  public ClaimScreenshot getScreenshotById(final UUID screenshotId) {
+    return this.claimScreenshotRepository
+        .findById(screenshotId)
+        .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
+  }
+
+  @Override
+  @Transactional
+  public ClaimScreenshot saveScreenshot(final ClaimScreenshot screenshot) {
+    return this.claimScreenshotRepository.save(screenshot);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ClaimReviewModel> findClaimsToReviewForMediator(
+      final UUID mediatorId,
+      final Collection<UUID> campaignIds,
+      final Collection<ClaimStatus> claimStatuses,
+      final Collection<String> brands,
+      final Collection<Platform> platforms,
+      final Collection<ClaimReviewStatus> reviewStatuses,
+      final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForMediator(
+        mediatorId, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
+      final Collection<UUID> campaignIds,
+      final Collection<UUID> mediatorIds,
+      final Collection<ClaimStatus> claimStatuses,
+      final Collection<String> brands,
+      final Collection<Platform> platforms,
+      final Collection<ClaimReviewStatus> reviewStatuses,
+      final Pageable pageable) {
+    return this.claimRepository.findClaimsToReviewForCampaigns(
+        campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<ClaimReviewModel> findClaimReviewModels(final Collection<UUID> claimIds) {
     return this.claimRepository.findClaimReviewModelsByIds(claimIds);
-  }
-
-  @Override
-  @Transactional
-  public void updateClaimScore(final UUID claimId) {
-    this.claimRepository.updateScoreFromScreenshots(claimId);
   }
 
   private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
