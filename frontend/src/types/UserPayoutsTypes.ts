@@ -5,12 +5,15 @@ export interface PayoutUser {
   role: 'Mediator' | 'Buyer'
   upiId: string
   oldestClaimDate: string
+  claimCount: number
+  totalAmount: number
 }
 
 export interface PayoutClaim {
   id: string
   campaign: string
   brand: string
+  platform: string
   approvedDate: string
   amount: number
 }

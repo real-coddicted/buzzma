@@ -5,11 +5,10 @@ import { PaginationToolbar } from '../PaginationToolbar'
 import { StatBanner } from '../my-payments/StatBanner'
 import { IconChevronRight } from '../icons'
 import { formatRupees } from '../../../utils/currency'
-import type { PayoutUser, PayoutClaim } from '../../../types/UserPayoutsTypes'
+import type { PayoutUser } from '../../../types/UserPayoutsTypes'
 
 interface Props {
   users: PayoutUser[]
-  claimsData: Record<string, PayoutClaim[]>
   page: number
   onPageChange: (p: number) => void
   onOpenDetail: (user: PayoutUser) => void
@@ -18,10 +17,10 @@ interface Props {
 
 const PAGE_SIZE = 5
 
-export function UserPayoutsList({ users, claimsData, page, onPageChange, onOpenDetail, onPayUser }: Props) {
-  const activeUsers = users.filter(u => (claimsData[u.id] ?? []).length > 0)
-  const totalPending = activeUsers.reduce((s, u) => s + (claimsData[u.id] ?? []).reduce((a, c) => a + c.amount, 0), 0)
-  const totalClaims  = activeUsers.reduce((s, u) => s + (claimsData[u.id] ?? []).length, 0)
+export function UserPayoutsList({ users, page, onPageChange, onOpenDetail, onPayUser }: Props) {
+  const activeUsers  = users.filter(u => u.claimCount > 0)
+  const totalPending = activeUsers.reduce((s, u) => s + u.totalAmount, 0)
+  const totalClaims  = activeUsers.reduce((s, u) => s + u.claimCount, 0)
   const totalPages   = Math.ceil(activeUsers.length / PAGE_SIZE)
   const paged        = activeUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
@@ -58,8 +57,6 @@ export function UserPayoutsList({ users, claimsData, page, onPageChange, onOpenD
         ) : (
           <ul>
             {paged.map((user, i) => {
-              const claims = claimsData[user.id] ?? []
-              const total  = claims.reduce((s, c) => s + c.amount, 0)
               const isLast = i === paged.length - 1
               return (
                 <li
@@ -83,7 +80,7 @@ export function UserPayoutsList({ users, claimsData, page, onPageChange, onOpenD
                         {user.role}
                       </Badge>
                       <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-                        {claims.length} claim{claims.length !== 1 ? 's' : ''} pending
+                        {user.claimCount} claim{user.claimCount !== 1 ? 's' : ''} pending
                       </span>
                     </div>
                   </div>
@@ -91,7 +88,7 @@ export function UserPayoutsList({ users, claimsData, page, onPageChange, onOpenD
                     Oldest: {user.oldestClaimDate}
                   </span>
                   <span className="text-sm font-semibold text-neon-orange flex-shrink-0">
-                    ₹{formatRupees(total)}
+                    ₹{formatRupees(user.totalAmount)}
                   </span>
                   <div className="flex-shrink-0" onClick={e => { e.stopPropagation(); onPayUser(user) }}>
                     <Button variant="primary" size="sm">Pay User</Button>

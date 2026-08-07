@@ -1,74 +1,110 @@
+import { fetchWithAuth } from './client'
+import { fetchUserById } from './userApi'
+import { fetchCampaignById } from './campaignApi'
+import { paiseToRupees } from '../utils/currency'
+import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
 import type { PaymentBatch, PaymentClaim, PendingAgency, PendingClaim } from '../types/MyPaymentsTypes'
 
-const MOCK_BATCHES: PaymentBatch[] = [
-  { id: 'b1', date: 'July 22, 2026', agencyName: 'Blinkit Agency', paymentMode: 'Bank Transfer', totalAmount: 12500, claimCount: 5 },
-  { id: 'b2', date: 'July 10, 2026', agencyName: 'Swiggy Partners', paymentMode: 'UPI', totalAmount: 8200, claimCount: 3 },
-  { id: 'b3', date: 'June 28, 2026', agencyName: 'Zepto Ads', paymentMode: 'Bank Transfer', totalAmount: 15000, claimCount: 6 },
-  { id: 'b4', date: 'June 15, 2026', agencyName: 'Blinkit Agency', paymentMode: 'UPI', totalAmount: 9800, claimCount: 4 },
-  { id: 'b5', date: 'May 30, 2026', agencyName: 'Myntra Influence', paymentMode: 'Bank Transfer', totalAmount: 11000, claimCount: 4 },
-  { id: 'b6', date: 'May 18, 2026', agencyName: 'Swiggy Partners', paymentMode: 'UPI', totalAmount: 6400, claimCount: 2 },
-  { id: 'b7', date: 'May 5, 2026', agencyName: 'Zepto Ads', paymentMode: 'Bank Transfer', totalAmount: 7200, claimCount: 3 },
-  { id: 'b8', date: 'April 22, 2026', agencyName: 'Amazon Connects', paymentMode: 'Bank Transfer', totalAmount: 4800, claimCount: 2 },
-  { id: 'b9', date: 'April 10, 2026', agencyName: 'Blinkit Agency', paymentMode: 'NEFT', totalAmount: 3900, claimCount: 2 },
-  { id: 'b10', date: 'March 28, 2026', agencyName: 'Myntra Influence', paymentMode: 'UPI', totalAmount: 2100, claimCount: 1 },
-  { id: 'b11', date: 'March 14, 2026', agencyName: 'Swiggy Partners', paymentMode: 'Bank Transfer', totalAmount: 1950, claimCount: 1 },
-  { id: 'b12', date: 'January 18, 2026', agencyName: 'Zepto Ads', paymentMode: 'UPI', totalAmount: 1381, claimCount: 1 },
-]
-
-const MOCK_CLAIMS: Record<string, PaymentClaim[]> = {
-  b1: [
-    { claimId: 'CLM-1042', campaignName: 'Summer Essentials Q3', brandName: 'Dove', transactionAmount: 2500, status: 'Paid' },
-    { claimId: 'CLM-1039', campaignName: 'Back to School', brandName: 'Classmate', transactionAmount: 3200, status: 'Paid' },
-    { claimId: 'CLM-1035', campaignName: 'Festival Ready', brandName: 'Haldirams', transactionAmount: 1800, status: 'Paid' },
-    { claimId: 'CLM-1031', campaignName: 'Summer Essentials Q3', brandName: 'Dove', transactionAmount: 2800, status: 'Paid' },
-    { claimId: 'CLM-1028', campaignName: 'Monsoon Fresh', brandName: 'Lifebuoy', transactionAmount: 2200, status: 'Paid' },
-  ],
-  b2: [
-    { claimId: 'CLM-1025', campaignName: 'Gourmet Week', brandName: 'Maggi', transactionAmount: 3100, status: 'Paid' },
-    { claimId: 'CLM-1022', campaignName: 'Gourmet Week', brandName: 'Maggi', transactionAmount: 2700, status: 'Paid' },
-    { claimId: 'CLM-1019', campaignName: 'Health Drive', brandName: 'Horlicks', transactionAmount: 2400, status: 'Paid' },
-  ],
+interface ReceivedPaymentDto {
+  paymentId: string
+  payerId: string
+  claimCount: number
+  totalAmountPaise: number
+  paidAt: string
+  paymentMethod: string | null
+  screenshotStorageKey: string | null
 }
 
-const MOCK_AGENCIES: PendingAgency[] = [
-  { id: 'a1', agencyName: 'Blinkit Agency', agencyInitials: 'BL', pendingClaimCount: 12, totalPendingAmount: 14800 },
-  { id: 'a2', agencyName: 'Swiggy Partners', agencyInitials: 'SW', pendingClaimCount: 8, totalPendingAmount: 9600 },
-  { id: 'a3', agencyName: 'Zepto Ads', agencyInitials: 'ZA', pendingClaimCount: 10, totalPendingAmount: 5200 },
-  { id: 'a4', agencyName: 'Myntra Influence', agencyInitials: 'MI', pendingClaimCount: 6, totalPendingAmount: 4800 },
-  { id: 'a5', agencyName: 'Amazon Connects', agencyInitials: 'AC', pendingClaimCount: 9, totalPendingAmount: 3600 },
-  { id: 'a6', agencyName: 'Flipkart Ads', agencyInitials: 'FA', pendingClaimCount: 4, totalPendingAmount: 1400 },
-  { id: 'a7', agencyName: 'Nykaa Creators', agencyInitials: 'NC', pendingClaimCount: 5, totalPendingAmount: 700 },
-  { id: 'a8', agencyName: 'Meesho Network', agencyInitials: 'MN', pendingClaimCount: 3, totalPendingAmount: 500 },
-]
-
-const MOCK_PENDING_CLAIMS: Record<string, PendingClaim[]> = {
-  a1: [
-    { claimId: 'CLM-1087', campaignName: 'Diwali Push', submittedDate: 'Jul 20, 2026', expectedAmount: 1800, status: 'Under Review' },
-    { claimId: 'CLM-1085', campaignName: 'Diwali Push', submittedDate: 'Jul 19, 2026', expectedAmount: 1200, status: 'Approved' },
-    { claimId: 'CLM-1080', campaignName: 'Monsoon Fresh', submittedDate: 'Jul 15, 2026', expectedAmount: 900, status: 'Under Review' },
-  ],
-  a2: [
-    { claimId: 'CLM-1076', campaignName: 'Gourmet Week', submittedDate: 'Jul 18, 2026', expectedAmount: 2100, status: 'Approved' },
-    { claimId: 'CLM-1071', campaignName: 'Gourmet Week', submittedDate: 'Jul 12, 2026', expectedAmount: 1500, status: 'Under Review' },
-  ],
+interface AwaitedPaymentDto {
+  counterpartyId: string
+  claimCount: number
+  totalAmountPaise: number
+  oldestClaimAt: string
 }
 
-function delay<T>(value: T, ms = 400): Promise<T> {
-  return new Promise(resolve => setTimeout(() => resolve(value), ms))
+interface ClaimAccountingSummaryDto {
+  id: string
+  claimId: string
+  campaignId: string
+  dealId: string
+  amountPaise: number
+  createdAt: string
 }
 
-export function fetchPaymentBatches(): Promise<PaymentBatch[]> {
-  return delay(MOCK_BATCHES)
+function paymentMethodLabel(method: string | null): string {
+  const m = PAYMENT_METHODS.find(pm => pm.value === (method ?? '').toLowerCase())
+  return m?.label ?? method ?? '—'
 }
 
-export function fetchPaymentClaims(batchId: string): Promise<PaymentClaim[]> {
-  return delay(MOCK_CLAIMS[batchId] ?? [])
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export function fetchPendingAgencies(): Promise<PendingAgency[]> {
-  return delay(MOCK_AGENCIES)
+function initials(name: string): string {
+  return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
 
-export function fetchPendingClaims(agencyId: string): Promise<PendingClaim[]> {
-  return delay(MOCK_PENDING_CLAIMS[agencyId] ?? [])
+export async function fetchPaymentBatches(): Promise<PaymentBatch[]> {
+  const res = await fetchWithAuth('/api/v1/my-payments/received')
+  const dtos: ReceivedPaymentDto[] = await res.json()
+
+  const uniquePayerIds = [...new Set(dtos.map(d => d.payerId))]
+  const users = await Promise.all(uniquePayerIds.map(id => fetchUserById(id).catch(() => null)))
+  const userMap = new Map(uniquePayerIds.map((id, i) => [id, users[i]]))
+
+  return dtos.map(d => ({
+    id: d.paymentId,
+    date: formatDate(d.paidAt),
+    agencyName: userMap.get(d.payerId)?.name ?? d.payerId.slice(0, 8),
+    paymentMode: paymentMethodLabel(d.paymentMethod),
+    totalAmount: paiseToRupees(d.totalAmountPaise),
+    claimCount: d.claimCount,
+    proofStorageKey: d.screenshotStorageKey ?? undefined,
+  }))
+}
+
+// No API exists for individual claims within a received payment batch yet.
+export async function fetchPaymentClaims(_batchId: string): Promise<PaymentClaim[]> {
+  return []
+}
+
+export async function fetchPendingAgencies(): Promise<PendingAgency[]> {
+  const res = await fetchWithAuth('/api/v1/my-payments/awaited')
+  const dtos: AwaitedPaymentDto[] = await res.json()
+
+  const uniqueIds = [...new Set(dtos.map(d => d.counterpartyId))]
+  const users = await Promise.all(uniqueIds.map(id => fetchUserById(id).catch(() => null)))
+  const userMap = new Map(uniqueIds.map((id, i) => [id, users[i]]))
+
+  return dtos.map(d => {
+    const name = userMap.get(d.counterpartyId)?.name ?? d.counterpartyId.slice(0, 8)
+    return {
+      id: d.counterpartyId,
+      agencyName: name,
+      agencyInitials: initials(name),
+      pendingClaimCount: d.claimCount,
+      totalPendingAmount: paiseToRupees(d.totalAmountPaise),
+    }
+  })
+}
+
+export async function fetchPendingClaims(agencyId: string): Promise<PendingClaim[]> {
+  const res = await fetchWithAuth(`/api/v1/my-payments/awaited/${agencyId}/claims`)
+  const dtos: ClaimAccountingSummaryDto[] = await res.json()
+
+  const uniqueCampaignIds = [...new Set(dtos.map(d => d.campaignId))]
+  const campaignNames = await Promise.all(
+    uniqueCampaignIds.map(id =>
+      fetchCampaignById(id).then(c => c.title ?? id.slice(0, 8)).catch(() => id.slice(0, 8))
+    )
+  )
+  const campaignMap = new Map(uniqueCampaignIds.map((id, i) => [id, campaignNames[i]]))
+
+  return dtos.map(d => ({
+    claimId: d.claimId,
+    campaignName: campaignMap.get(d.campaignId) ?? d.campaignId.slice(0, 8),
+    submittedDate: formatDate(d.createdAt),
+    expectedAmount: paiseToRupees(d.amountPaise),
+    status: 'Pending',
+  }))
 }

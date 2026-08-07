@@ -2,9 +2,11 @@ package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CommissionService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
@@ -35,18 +37,21 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
   private final DealService dealService;
   private final CampaignService campaignService;
   private final CampaignAssignmentService campaignAssignmentService;
+  private final CommissionService commissionService;
 
   public ClaimAccountingServiceImpl(
       final ClaimAccountingRepository claimAccountingRepository,
       final ClaimRepository claimRepository,
       final DealService dealService,
       final CampaignService campaignService,
-      CampaignAssignmentService campaignAssignmentService) {
+      final CampaignAssignmentService campaignAssignmentService,
+      final CommissionService commissionService) {
     this.claimAccountingRepository = claimAccountingRepository;
     this.claimRepository = claimRepository;
     this.dealService = dealService;
     this.campaignService = campaignService;
     this.campaignAssignmentService = campaignAssignmentService;
+    this.commissionService = commissionService;
   }
 
   @Override
@@ -89,9 +94,11 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
     final CampaignAssignment campaignAssignment =
         campaignAssignmentService.getByCampaignIdAndAssignorIdAndAssigneeId(
             campaign.getId(), campaign.getOwnerId(), deal.getOwnerId());
+    final Commission commission =
+        commissionService.getCommissionCharged(claim.getCampaignId(), deal.getOwnerId());
 
     final BigInteger mediatorReceivablePaise = computeMediatorReceivable(claim, campaignAssignment);
-    final BigInteger buyerReceivablePaise = computeBuyerReceivable(claim, deal);
+    final BigInteger buyerReceivablePaise = computeBuyerReceivable(claim, commission);
 
     final ClaimAccounting accounting =
         ClaimAccounting.builder()
@@ -124,9 +131,9 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
     return amountApproved.add(commissionOffered);
   }
 
-  private BigInteger computeBuyerReceivable(final Claim claim, Deal deal) {
+  private BigInteger computeBuyerReceivable(final Claim claim, Commission commission) {
     BigInteger amountApproved = claim.getAmountApprovedPaise();
-    BigInteger dealPrice = deal.getDealPricePaise();
-    return amountApproved.subtract(dealPrice);
+    BigInteger commissionCharged = commission.getCommissionPaise();
+    return amountApproved.subtract(commissionCharged);
   }
 }

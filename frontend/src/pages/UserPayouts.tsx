@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
 import { UserPayoutsList } from '../components/ui/user-payouts/UserPayoutsList'
 import { UserPayoutsDetail } from '../components/ui/user-payouts/UserPayoutsDetail'
 import { PaymentForm } from '../components/ui/user-payouts/PaymentForm'
-import { fetchPayoutUsers, fetchAllPayoutClaims, submitPayment } from '../api/userPayoutsApi'
+import { fetchPayoutUsers, fetchPayoutClaims, submitPayment } from '../api/userPayoutsApi'
 import type { PayoutUser, PayoutClaim, PaymentSubmission } from '../types/UserPayoutsTypes'
 
 type View   = 'list' | 'detail' | 'pay-form'
@@ -25,13 +25,26 @@ export function UserPayouts() {
   const [selectedClaims, setSelected] = useState<Set<string>>(new Set())
   const [listPage, setListPage]       = useState(1)
   const [loading, setLoading]         = useState(true)
+  const [detailLoading, setDetailLoading] = useState(false)
   const [toast, setToast]             = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
+  const loadedUserIds = useRef(new Set<string>())
+
   useEffect(() => {
-    Promise.all([fetchPayoutUsers(), fetchAllPayoutClaims()])
-      .then(([u, c]) => { setUsers(u); setClaimsData(c) })
+    fetchPayoutUsers()
+      .then(setUsers)
       .finally(() => setLoading(false))
   }, [])
+
+  // Lazy-load claims the first time we navigate to a specific user's detail or pay-form.
+  useEffect(() => {
+    if (!userId || loadedUserIds.current.has(userId)) return
+    loadedUserIds.current.add(userId)
+    setDetailLoading(true)
+    fetchPayoutClaims(userId)
+      .then(claims => setClaimsData(prev => ({ ...prev, [userId]: claims })))
+      .finally(() => setDetailLoading(false))
+  }, [userId])
 
   function openDetail(user: PayoutUser) {
     setSelected(new Set())
@@ -70,6 +83,18 @@ export function UserPayouts() {
 
     const remaining = currentClaims.filter(c => !paidIds.has(c.id))
     setClaimsData(prev => ({ ...prev, [userId]: remaining }))
+
+    // Keep user-level summary in sync so the list view reflects the payment.
+    const paidAmount = [...paidIds].reduce((s, id) => {
+      const c = currentClaims.find(x => x.id === id)
+      return s + (c?.amount ?? 0)
+    }, 0)
+    setUsers(prev => prev.map(u =>
+      u.id === userId
+        ? { ...u, claimCount: u.claimCount - paidIds.size, totalAmount: u.totalAmount - paidAmount }
+        : u,
+    ))
+
     setSelected(new Set())
 
     const count = paidIds.size
@@ -91,7 +116,7 @@ export function UserPayouts() {
     : currentClaims.filter(c => selectedClaims.has(c.id))
 
   const totalPages = Math.ceil(
-    users.filter(u => (claimsData[u.id] ?? []).length > 0).length / PAGE_SIZE
+    users.filter(u => u.claimCount > 0).length / PAGE_SIZE
   )
 
   return (
@@ -99,35 +124,37 @@ export function UserPayouts() {
       {view === 'list' && (
         <UserPayoutsList
           users={users}
-          claimsData={claimsData}
           page={listPage}
           onPageChange={p => setListPage(Math.max(1, Math.min(p, totalPages)))}
           onOpenDetail={openDetail}
           onPayUser={user => {
-            // set userId in params then open pay-form (all mode)
             setSearchParams({ view: 'pay-form', id: user.id, mode: 'all' })
           }}
         />
       )}
 
       {view === 'detail' && currentUser && (
-        <UserPayoutsDetail
-          user={currentUser}
-          claims={currentClaims}
-          selectedClaims={selectedClaims}
-          onToggleClaim={toggleClaim}
-          onToggleAll={toggleAllClaims}
-          onPayAll={() => openPayForm('all')}
-          onPaySelected={() => openPayForm('selected')}
-        />
+        detailLoading ? <Loading /> : (
+          <UserPayoutsDetail
+            user={currentUser}
+            claims={currentClaims}
+            selectedClaims={selectedClaims}
+            onToggleClaim={toggleClaim}
+            onToggleAll={toggleAllClaims}
+            onPayAll={() => openPayForm('all')}
+            onPaySelected={() => openPayForm('selected')}
+          />
+        )
       )}
 
       {view === 'pay-form' && currentUser && (
-        <PaymentForm
-          userName={currentUser.name}
-          claimsToPay={claimsToPay}
-          onSubmit={handleSubmit}
-        />
+        detailLoading ? <Loading /> : (
+          <PaymentForm
+            userName={currentUser.name}
+            claimsToPay={claimsToPay}
+            onSubmit={handleSubmit}
+          />
+        )
       )}
 
       {toast && (
