@@ -4,7 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PayoutController.class)
@@ -145,14 +145,24 @@ class PayoutControllerTest {
             .paidAt(Instant.parse("2025-06-01T00:00:00Z"))
             .build();
     when(payoutService.pay(
-            eq(CALLER_ID), eq(PAYEE_ID), eq(UserRole.ROLE_AGENCY), any(RecordPaymentRequest.class)))
+            eq(CALLER_ID),
+            eq(PAYEE_ID),
+            eq(UserRole.ROLE_AGENCY),
+            any(RecordPaymentRequest.class),
+            any(),
+            any(),
+            any()))
         .thenReturn(receipt);
+
+    final MockMultipartFile screenshot =
+        new MockMultipartFile("screenshot", "proof.png", "image/png", new byte[1]);
+    final MockMultipartFile requestPart =
+        new MockMultipartFile(
+            "request", "", "application/json", objectMapper.writeValueAsBytes(request));
 
     mockMvc
         .perform(
-            post("/api/v1/payouts/{payeeId}/pay", PAYEE_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+            multipart("/api/v1/payouts/{payeeId}/pay", PAYEE_ID).file(screenshot).file(requestPart))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.claimCount").value(5))
         .andExpect(jsonPath("$.paymentMethod").value("UPI"));
@@ -161,41 +171,54 @@ class PayoutControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
   void pay_buyerRole_returns403() throws Exception {
-    final RecordPaymentRequestDto request =
-        new RecordPaymentRequestDto(
-            PaymentMethod.UPI, Instant.parse("2025-06-01T00:00:00Z"), null, null, null);
+    final MockMultipartFile screenshot =
+        new MockMultipartFile("screenshot", "proof.png", "image/png", new byte[1]);
+    final MockMultipartFile requestPart =
+        new MockMultipartFile(
+            "request",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(
+                new RecordPaymentRequestDto(
+                    PaymentMethod.UPI, Instant.parse("2025-06-01T00:00:00Z"), null, null, null)));
 
     mockMvc
         .perform(
-            post("/api/v1/payouts/{payeeId}/pay", PAYEE_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+            multipart("/api/v1/payouts/{payeeId}/pay", PAYEE_ID).file(screenshot).file(requestPart))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void pay_unauthenticated_returns401() throws Exception {
-    final RecordPaymentRequestDto request =
-        new RecordPaymentRequestDto(
-            PaymentMethod.UPI, Instant.parse("2025-06-01T00:00:00Z"), null, null, null);
+    final MockMultipartFile screenshot =
+        new MockMultipartFile("screenshot", "proof.png", "image/png", new byte[1]);
+    final MockMultipartFile requestPart =
+        new MockMultipartFile(
+            "request",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(
+                new RecordPaymentRequestDto(
+                    PaymentMethod.UPI, Instant.parse("2025-06-01T00:00:00Z"), null, null, null)));
 
     mockMvc
         .perform(
-            post("/api/v1/payouts/{payeeId}/pay", PAYEE_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+            multipart("/api/v1/payouts/{payeeId}/pay", PAYEE_ID).file(screenshot).file(requestPart))
         .andExpect(status().isUnauthorized());
   }
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
   void pay_missingRequiredFields_returns400() throws Exception {
-    // Empty JSON body — fails @Valid because paymentMethod and paidAt are @NotNull
+    // Request part with empty JSON — fails @Valid because paymentMethod and paidAt are @NotNull
+    final MockMultipartFile screenshot =
+        new MockMultipartFile("screenshot", "proof.png", "image/png", new byte[1]);
+    final MockMultipartFile requestPart =
+        new MockMultipartFile("request", "", "application/json", "{}".getBytes());
+
     mockMvc
         .perform(
-            post("/api/v1/payouts/{payeeId}/pay", PAYEE_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
+            multipart("/api/v1/payouts/{payeeId}/pay", PAYEE_ID).file(screenshot).file(requestPart))
         .andExpect(status().isBadRequest());
   }
 }

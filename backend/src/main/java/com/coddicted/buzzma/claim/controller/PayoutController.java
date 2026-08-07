@@ -10,18 +10,23 @@ import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+// For User-payout page
 @RestController
 @RequestMapping("/api/v1/payouts")
 @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
@@ -52,14 +57,25 @@ public class PayoutController {
         .toList();
   }
 
-  @PostMapping("/{payeeId}/pay")
+  @PostMapping(value = "/{payeeId}/pay", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   public PaymentReceiptDto pay(
       @CurrentUser final BuzzmaUser currentUser,
       @PathVariable final UUID payeeId,
-      @Valid @RequestBody final RecordPaymentRequestDto request) {
-    return paymentMapper.toDto(
-        payoutService.pay(
-            currentUser.getId(), payeeId, currentUser.getRole(), paymentMapper.toModel(request)));
+      @RequestPart("request") @Valid final RecordPaymentRequestDto request,
+      @RequestPart("screenshot") final MultipartFile screenshot) {
+    try {
+      return paymentMapper.toDto(
+          payoutService.pay(
+              currentUser.getId(),
+              payeeId,
+              currentUser.getRole(),
+              paymentMapper.toModel(request),
+              screenshot.getBytes(),
+              screenshot.getOriginalFilename(),
+              screenshot.getContentType()));
+    } catch (IOException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to read screenshot file");
+    }
   }
 }

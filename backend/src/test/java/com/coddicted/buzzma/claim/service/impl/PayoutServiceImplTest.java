@@ -21,6 +21,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.storage.service.StorageService;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
@@ -49,6 +50,7 @@ class PayoutServiceImplTest {
 
   @Mock private ClaimAccountingRepository claimAccountingRepository;
   @Mock private PaymentRepository paymentRepository;
+  @Mock private StorageService storageService;
 
   private PayoutServiceImpl service;
 
@@ -56,7 +58,10 @@ class PayoutServiceImplTest {
   void setUp() {
     service =
         new PayoutServiceImpl(
-            claimAccountingRepository, paymentRepository, Mappers.getMapper(PaymentMapper.class));
+            claimAccountingRepository,
+            paymentRepository,
+            Mappers.getMapper(PaymentMapper.class),
+            storageService);
   }
 
   // ── listPending ───────────────────────────────────────────────────────────────────────────────
@@ -120,7 +125,7 @@ class PayoutServiceImplTest {
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .buyerReceivablePaise(BigInteger.valueOf(8000))
             .build();
-    when(claimAccountingRepository.findClaimsForMediatorPayout(AGENCY_ID, MEDIATOR_ID))
+    when(claimAccountingRepository.findClaimsPendingForMediatorPayout(AGENCY_ID, MEDIATOR_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -144,7 +149,7 @@ class PayoutServiceImplTest {
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .buyerReceivablePaise(BigInteger.valueOf(8000))
             .build();
-    when(claimAccountingRepository.findClaimsForBuyerPayout(MEDIATOR_ID, BUYER_ID))
+    when(claimAccountingRepository.findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -152,7 +157,7 @@ class PayoutServiceImplTest {
 
     assertEquals(1, result.size());
     assertEquals(BigInteger.valueOf(8000), result.get(0).getAmountPaise());
-    verify(claimAccountingRepository).findClaimsForBuyerPayout(MEDIATOR_ID, BUYER_ID);
+    verify(claimAccountingRepository).findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID);
   }
 
   @Test
@@ -188,6 +193,7 @@ class PayoutServiceImplTest {
             .paidAt(PAID_AT)
             .build();
     when(paymentRepository.saveAndFlush(any())).thenReturn(saved);
+    when(storageService.store(any(), any(), any(), any())).thenReturn("payments/proof.png");
 
     final RecordPaymentRequest request =
         RecordPaymentRequest.builder()
@@ -196,7 +202,14 @@ class PayoutServiceImplTest {
             .utrRef("UTR001")
             .build();
     final PaymentReceipt receipt =
-        service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request);
+        service.pay(
+            AGENCY_ID,
+            MEDIATOR_ID,
+            UserRole.ROLE_AGENCY,
+            request,
+            new byte[0],
+            "proof.png",
+            "image/png");
 
     assertEquals(PAYMENT_ID, receipt.getId());
     assertEquals(BigInteger.valueOf(10000), receipt.getAmountPaidPaise());
@@ -231,11 +244,19 @@ class PayoutServiceImplTest {
             .paidAt(PAID_AT)
             .build();
     when(paymentRepository.saveAndFlush(any())).thenReturn(saved);
+    when(storageService.store(any(), any(), any(), any())).thenReturn("payments/proof.png");
 
     final RecordPaymentRequest request =
         RecordPaymentRequest.builder().paymentMethod(PaymentMethod.BANK).paidAt(PAID_AT).build();
     final PaymentReceipt receipt =
-        service.pay(MEDIATOR_ID, BUYER_ID, UserRole.ROLE_MEDIATOR, request);
+        service.pay(
+            MEDIATOR_ID,
+            BUYER_ID,
+            UserRole.ROLE_MEDIATOR,
+            request,
+            new byte[0],
+            "proof.png",
+            "image/png");
 
     assertEquals(PAYMENT_ID, receipt.getId());
     assertEquals(BigInteger.valueOf(8000), receipt.getAmountPaidPaise());
@@ -269,6 +290,7 @@ class PayoutServiceImplTest {
                 .paymentMethod(PaymentMethod.UPI)
                 .paidAt(PAID_AT)
                 .build());
+    when(storageService.store(any(), any(), any(), any())).thenReturn("payments/proof.png");
 
     final RecordPaymentRequest request =
         RecordPaymentRequest.builder()
@@ -277,7 +299,14 @@ class PayoutServiceImplTest {
             .claimIds(List.of(CLAIM_ACCOUNTING_ID))
             .build();
     final PaymentReceipt receipt =
-        service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request);
+        service.pay(
+            AGENCY_ID,
+            MEDIATOR_ID,
+            UserRole.ROLE_AGENCY,
+            request,
+            new byte[0],
+            "proof.png",
+            "image/png");
 
     assertEquals(1, receipt.getClaimCount());
     verify(claimAccountingRepository).findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID));
@@ -293,7 +322,15 @@ class PayoutServiceImplTest {
     final ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request));
+            () ->
+                service.pay(
+                    AGENCY_ID,
+                    MEDIATOR_ID,
+                    UserRole.ROLE_AGENCY,
+                    request,
+                    new byte[0],
+                    "proof.png",
+                    "image/png"));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }
@@ -316,7 +353,15 @@ class PayoutServiceImplTest {
     final ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request));
+            () ->
+                service.pay(
+                    AGENCY_ID,
+                    MEDIATOR_ID,
+                    UserRole.ROLE_AGENCY,
+                    request,
+                    new byte[0],
+                    "proof.png",
+                    "image/png"));
 
     assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
   }
@@ -338,7 +383,15 @@ class PayoutServiceImplTest {
     final ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request));
+            () ->
+                service.pay(
+                    AGENCY_ID,
+                    MEDIATOR_ID,
+                    UserRole.ROLE_AGENCY,
+                    request,
+                    new byte[0],
+                    "proof.png",
+                    "image/png"));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }
@@ -364,7 +417,15 @@ class PayoutServiceImplTest {
     final ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> service.pay(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, request));
+            () ->
+                service.pay(
+                    AGENCY_ID,
+                    MEDIATOR_ID,
+                    UserRole.ROLE_AGENCY,
+                    request,
+                    new byte[0],
+                    "proof.png",
+                    "image/png"));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }

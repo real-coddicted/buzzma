@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+// For My-payments page
 @RestController
 @RequestMapping("/api/v1/my-payments")
 @PreAuthorize(UserRole.Expr.MEDIATOR + UserRole.Expr.OR + UserRole.Expr.BUYER)
@@ -47,11 +48,12 @@ public class MyPaymentsController {
         .toList();
   }
 
-  @GetMapping("/awaited/{agencyId}/claims")
-  @PreAuthorize(UserRole.Expr.MEDIATOR)
+  @GetMapping("/awaited/{counterpartyId}/claims")
   public List<ClaimAccountingSummaryDto> listAwaitedClaims(
-      @CurrentUser final BuzzmaUser currentUser, @PathVariable final UUID agencyId) {
-    return myPaymentsService.listAwaitedClaims(agencyId, currentUser.getId()).stream()
+      @CurrentUser final BuzzmaUser currentUser, @PathVariable final UUID counterpartyId) {
+    return myPaymentsService
+        .listAwaitedClaims(counterpartyId, currentUser.getId(), currentUser.getRole())
+        .stream()
         .map(paymentMapper::toDto)
         .toList();
   }

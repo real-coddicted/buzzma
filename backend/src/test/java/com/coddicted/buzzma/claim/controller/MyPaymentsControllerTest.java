@@ -122,7 +122,6 @@ class MyPaymentsControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR, id = CALLER_ID_STR)
   void listAwaitedClaims_mediatorRole_returns200WithMappedDtos() throws Exception {
-    final UUID agencyId = PAYER_ID;
     final ClaimAccountingSummary model =
         ClaimAccountingSummary.builder()
             .id(UUID.randomUUID())
@@ -132,34 +131,48 @@ class MyPaymentsControllerTest {
             .amountPaise(BigInteger.valueOf(10000))
             .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
             .build();
-    when(myPaymentsService.listAwaitedClaims(agencyId, CALLER_ID)).thenReturn(List.of(model));
+    when(myPaymentsService.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_MEDIATOR))
+        .thenReturn(List.of(model));
 
     mockMvc
-        .perform(get("/api/v1/my-payments/awaited/{agencyId}/claims", agencyId))
+        .perform(get("/api/v1/my-payments/awaited/{counterpartyId}/claims", PAYER_ID))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].amountPaise").value(10000));
   }
 
   @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
-  void listAwaitedClaims_buyerRole_returns403() throws Exception {
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER, id = CALLER_ID_STR)
+  void listAwaitedClaims_buyerRole_returns200WithMappedDtos() throws Exception {
+    final ClaimAccountingSummary model =
+        ClaimAccountingSummary.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .campaignId(UUID.randomUUID())
+            .dealId(UUID.randomUUID())
+            .amountPaise(BigInteger.valueOf(5000))
+            .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .build();
+    when(myPaymentsService.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_BUYER))
+        .thenReturn(List.of(model));
+
     mockMvc
-        .perform(get("/api/v1/my-payments/awaited/{agencyId}/claims", PAYER_ID))
-        .andExpect(status().isForbidden());
+        .perform(get("/api/v1/my-payments/awaited/{counterpartyId}/claims", PAYER_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].amountPaise").value(5000));
   }
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
   void listAwaitedClaims_agencyRole_returns403() throws Exception {
     mockMvc
-        .perform(get("/api/v1/my-payments/awaited/{agencyId}/claims", PAYER_ID))
+        .perform(get("/api/v1/my-payments/awaited/{counterpartyId}/claims", PAYER_ID))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void listAwaitedClaims_unauthenticated_returns401() throws Exception {
     mockMvc
-        .perform(get("/api/v1/my-payments/awaited/{agencyId}/claims", PAYER_ID))
+        .perform(get("/api/v1/my-payments/awaited/{counterpartyId}/claims", PAYER_ID))
         .andExpect(status().isUnauthorized());
   }
 }

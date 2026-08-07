@@ -63,7 +63,7 @@ public interface ClaimAccountingRepository extends JpaRepository<ClaimAccounting
             = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PENDING
       ORDER BY ca.createdAt ASC
       """)
-  List<ClaimAccounting> findClaimsForMediatorPayout(
+  List<ClaimAccounting> findClaimsPendingForMediatorPayout(
       @Param("agencyId") UUID agencyId, @Param("mediatorId") UUID mediatorId);
 
   @Query(
@@ -75,7 +75,7 @@ public interface ClaimAccountingRepository extends JpaRepository<ClaimAccounting
             = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PENDING
       ORDER BY ca.createdAt ASC
       """)
-  List<ClaimAccounting> findClaimsForBuyerPayout(
+  List<ClaimAccounting> findClaimsPendingForBuyerPayout(
       @Param("mediatorId") UUID mediatorId, @Param("buyerId") UUID buyerId);
 
   // ── Locking queries for pay action ───────────────────────────────────────

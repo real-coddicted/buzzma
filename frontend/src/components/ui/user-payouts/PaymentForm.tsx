@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Card } from '../Card'
 import { Button } from '../Button'
 import { RupeeInput } from '../RupeeInput'
+import { ScreenshotUpload } from '../deal/ScreenshotUpload'
 import { formatRupees } from '../../../utils/currency'
 import { PAYMENT_METHODS } from '../../../types/UserPayoutsTypes'
 import type { PayoutClaim, PaymentSubmission } from '../../../types/UserPayoutsTypes'
@@ -32,7 +33,6 @@ export function PaymentForm({ userName, claimsToPay, onSubmit }: Props) {
   const [utrRef, setUtrRef]             = useState('')
   const [notes, setNotes]               = useState('')
   const [submitting, setSubmitting]     = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit() {
     if (!screenshot) { alert('Please upload a payment screenshot.'); return }
@@ -91,36 +91,10 @@ export function PaymentForm({ userName, claimsToPay, onSubmit }: Props) {
         {/* Form */}
         <div className="px-4 py-4 flex flex-col gap-4">
           {/* Screenshot upload */}
-          <div>
-            <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-              Payment Screenshot <span className="text-neon-red">*</span>
-            </label>
-            {screenshot ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neon-green/5 border border-neon-green/30 text-sm">
-                <span>🖼️</span>
-                <span className="flex-1 min-w-0 truncate text-ink-light-primary dark:text-ink-dark-primary">{screenshot.name}</span>
-                <button
-                  onClick={() => { setScreenshot(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                  className="text-neon-red hover:opacity-75 text-xs ml-auto flex-shrink-0"
-                >
-                  Remove
-                </button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center gap-2 px-4 py-5 rounded-lg border-2 border-dashed border-surface-light-border dark:border-surface-dark-border hover:border-neon-blue/40 hover:bg-neon-blue/5 transition-colors cursor-pointer text-center">
-                <span className="text-2xl">📸</span>
-                <span className="text-sm text-ink-light-secondary dark:text-ink-dark-secondary">Click to upload screenshot</span>
-                <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">PNG, JPG up to 5 MB</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={e => setScreenshot(e.target.files?.[0] ?? null)}
-                />
-              </label>
-            )}
-          </div>
+          <ScreenshotUpload
+            label="Payment Screenshot"
+            onFileChange={file => setScreenshot(file)}
+          />
 
           {/* Amount paid */}
           <div>

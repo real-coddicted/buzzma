@@ -14,5 +14,12 @@ public interface PayoutService {
 
   List<ClaimAccountingSummary> listClaimsForPayee(UUID callerId, UUID payeeId, UserRole role);
 
-  PaymentReceipt pay(UUID callerId, UUID payeeId, UserRole role, RecordPaymentRequest request);
+  PaymentReceipt pay(
+      UUID callerId,
+      UUID payeeId,
+      UserRole role,
+      RecordPaymentRequest request,
+      byte[] screenshotBytes,
+      String screenshotFilename,
+      String screenshotContentType);
 }

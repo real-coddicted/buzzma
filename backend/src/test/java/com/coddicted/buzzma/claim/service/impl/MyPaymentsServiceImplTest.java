@@ -6,10 +6,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
 import com.coddicted.buzzma.claim.mapper.PaymentMapper;
 import com.coddicted.buzzma.claim.model.AwaitedPayment;
+import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
@@ -145,6 +147,62 @@ class MyPaymentsServiceImplTest {
         assertThrows(
             ResponseStatusException.class,
             () -> service.listAwaited(CALLER_ID, UserRole.ROLE_AGENCY));
+
+    assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+  }
+
+  // ── listAwaitedClaims ─────────────────────────────────────────────────────────────────────────
+
+  @Test
+  void listAwaitedClaims_mediatorRole_callsFindClaimsForMediatorPayoutAndMapsWithAgencyAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .campaignId(UUID.randomUUID())
+            .dealId(UUID.randomUUID())
+            .mediatorReceivablePaise(BigInteger.valueOf(10000))
+            .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .build();
+    when(claimAccountingRepository.findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID))
+        .thenReturn(List.of(ca));
+
+    final List<ClaimAccountingSummary> result =
+        service.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_MEDIATOR);
+
+    assertEquals(1, result.size());
+    assertEquals(BigInteger.valueOf(10000), result.get(0).getAmountPaise());
+    verify(claimAccountingRepository).findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID);
+  }
+
+  @Test
+  void listAwaitedClaims_buyerRole_callsFindClaimsForBuyerPayoutAndMapsWithMediatorAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .campaignId(UUID.randomUUID())
+            .dealId(UUID.randomUUID())
+            .buyerReceivablePaise(BigInteger.valueOf(5000))
+            .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .build();
+    when(claimAccountingRepository.findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID))
+        .thenReturn(List.of(ca));
+
+    final List<ClaimAccountingSummary> result =
+        service.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_BUYER);
+
+    assertEquals(1, result.size());
+    assertEquals(BigInteger.valueOf(5000), result.get(0).getAmountPaise());
+    verify(claimAccountingRepository).findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID);
+  }
+
+  @Test
+  void listAwaitedClaims_forbiddenRole_throwsForbidden() {
+    final ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> service.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_AGENCY));
 
     assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
   }

@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Badge } from '../Badge'
 import { IconChevronRight } from '../icons'
 import { formatRupees } from '../../../utils/currency'
+import { fetchScreenshotUrl } from '../../../api/claimApi'
 import type { PaymentBatch } from '../../../types/MyPaymentsTypes'
 
 interface BatchRowProps {
@@ -20,6 +22,30 @@ function ProofPlaceholderIcon() {
   )
 }
 
+function ProofThumbnail({ storageKey }: { storageKey?: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    setUrl(null)
+    if (!storageKey) return
+    let objectUrl: string | null = null
+    let cancelled = false
+    fetchScreenshotUrl(storageKey)
+      .then(u => { if (cancelled) return; objectUrl = u; setUrl(u) })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [storageKey])
+
+  return url ? (
+    <img src={url} alt="Payment proof" className="w-full h-full object-cover rounded-xl" />
+  ) : (
+    <ProofPlaceholderIcon />
+  )
+}
+
 export function BatchRow({ batch, isLast, onClick, onProofClick }: BatchRowProps) {
   return (
     <li
@@ -30,11 +56,11 @@ export function BatchRow({ batch, isLast, onClick, onProofClick }: BatchRowProps
       onClick={onClick}
     >
       <button
-        className="shrink-0 w-12 h-12 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover flex items-center justify-center hover:border-neon-blue/40 transition-colors"
+        className="shrink-0 w-12 h-12 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover flex items-center justify-center overflow-hidden hover:border-neon-blue/40 transition-colors"
         title="View payment proof"
         onClick={e => { e.stopPropagation(); onProofClick(batch) }}
       >
-        <ProofPlaceholderIcon />
+        <ProofThumbnail storageKey={batch.proofStorageKey} />
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-ink-light-primary dark:text-ink-dark-primary">{batch.date}</p>

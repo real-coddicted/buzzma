@@ -113,7 +113,7 @@ export async function fetchWithAuth(
       ...init,
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json',
+        ...(!(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init.headers,
       },

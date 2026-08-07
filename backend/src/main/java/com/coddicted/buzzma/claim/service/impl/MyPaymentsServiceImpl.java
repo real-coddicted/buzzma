@@ -71,10 +71,24 @@ public class MyPaymentsServiceImpl implements MyPaymentsService {
 
   @Override
   public List<ClaimAccountingSummary> listAwaitedClaims(
-      final UUID agencyId, final UUID mediatorId) {
-    return claimAccountingRepository.findClaimsForMediatorPayout(agencyId, mediatorId).stream()
-        .map(paymentMapper::toSummaryForAgency)
-        .toList();
+      final UUID counterpartyId, final UUID callerId, final UserRole role) {
+    return switch (role) {
+      case ROLE_MEDIATOR ->
+          claimAccountingRepository
+              .findClaimsPendingForMediatorPayout(counterpartyId, callerId)
+              .stream()
+              .map(paymentMapper::toSummaryForAgency)
+              .toList();
+      case ROLE_BUYER ->
+          claimAccountingRepository
+              .findClaimsPendingForBuyerPayout(counterpartyId, callerId)
+              .stream()
+              .map(paymentMapper::toSummaryForMediator)
+              .toList();
+      default ->
+          throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN, "Role not permitted for my-payments");
+    };
   }
 
   @Override

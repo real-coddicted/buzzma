@@ -98,14 +98,24 @@ export async function submitPayment(
     ? submission.paymentMethod.toUpperCase()
     : 'OTHER'
 
+  const formData = new FormData()
+  formData.append('screenshot', submission.screenshot)
+  formData.append(
+    'request',
+    new Blob(
+      [JSON.stringify({
+        paymentMethod: backendMethod,
+        paidAt: new Date().toISOString(),
+        utrRef: submission.utrRef ?? null,
+        notes: submission.notes ?? null,
+        claimIds: claimIds.length > 0 ? claimIds : null,
+      })],
+      { type: 'application/json' },
+    ),
+  )
+
   await fetchWithAuth(`/api/v1/payouts/${userId}/pay`, {
     method: 'POST',
-    body: JSON.stringify({
-      paymentMethod: backendMethod,
-      paidAt: new Date().toISOString(),
-      utrRef: submission.utrRef ?? null,
-      notes: submission.notes ?? null,
-      claimIds: claimIds.length > 0 ? claimIds : null,
-    }),
+    body: formData,
   })
 }

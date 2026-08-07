@@ -12,6 +12,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.service.PayoutService;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.storage.service.StorageService;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
@@ -27,14 +28,17 @@ public class PayoutServiceImpl implements PayoutService {
   private final ClaimAccountingRepository claimAccountingRepository;
   private final PaymentRepository paymentRepository;
   private final PaymentMapper paymentMapper;
+  private final StorageService storageService;
 
   public PayoutServiceImpl(
       final ClaimAccountingRepository claimAccountingRepository,
       final PaymentRepository paymentRepository,
-      final PaymentMapper paymentMapper) {
+      final PaymentMapper paymentMapper,
+      final StorageService storageService) {
     this.claimAccountingRepository = claimAccountingRepository;
     this.paymentRepository = paymentRepository;
     this.paymentMapper = paymentMapper;
+    this.storageService = storageService;
   }
 
   @Override
@@ -54,11 +58,11 @@ public class PayoutServiceImpl implements PayoutService {
       final UUID callerId, final UUID payeeId, final UserRole role) {
     return switch (role) {
       case ROLE_AGENCY ->
-          claimAccountingRepository.findClaimsForMediatorPayout(callerId, payeeId).stream()
+          claimAccountingRepository.findClaimsPendingForMediatorPayout(callerId, payeeId).stream()
               .map(paymentMapper::toSummaryForAgency)
               .toList();
       case ROLE_MEDIATOR ->
-          claimAccountingRepository.findClaimsForBuyerPayout(callerId, payeeId).stream()
+          claimAccountingRepository.findClaimsPendingForBuyerPayout(callerId, payeeId).stream()
               .map(paymentMapper::toSummaryForMediator)
               .toList();
       default ->
@@ -72,7 +76,10 @@ public class PayoutServiceImpl implements PayoutService {
       final UUID callerId,
       final UUID payeeId,
       final UserRole role,
-      final RecordPaymentRequest request) {
+      final RecordPaymentRequest request,
+      final byte[] screenshotBytes,
+      final String screenshotFilename,
+      final String screenshotContentType) {
     final List<ClaimAccounting> targets = resolveAndLockTargets(callerId, payeeId, role, request);
     if (targets.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No eligible pending claims found");
@@ -82,10 +89,15 @@ public class PayoutServiceImpl implements PayoutService {
     final BigInteger totalAmount = sumAmount(targets, role);
     final Instant now = Instant.now();
 
+    final String screenshotKey =
+        storageService.store(
+            "payments", screenshotFilename, screenshotContentType, screenshotBytes);
+
     final Payment payment =
         Payment.builder()
             .payerId(callerId)
             .payeeId(payeeId)
+            .screenshotStorageKey(screenshotKey)
             .amountPaidPaise(totalAmount)
             .paymentMethod(request.getPaymentMethod())
             .utrRef(request.getUtrRef())
