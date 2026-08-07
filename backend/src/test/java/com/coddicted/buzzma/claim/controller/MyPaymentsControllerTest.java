@@ -5,9 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.coddicted.buzzma.claim.dto.AwaitedPaymentDto;
-import com.coddicted.buzzma.claim.dto.ClaimAccountingSummaryDto;
-import com.coddicted.buzzma.claim.dto.ReceivedPaymentDto;
+import com.coddicted.buzzma.claim.mapper.PaymentMapperImpl;
+import com.coddicted.buzzma.claim.model.AwaitedPayment;
+import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.service.MyPaymentsService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -26,7 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MyPaymentsController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, PaymentMapperImpl.class})
 class MyPaymentsControllerTest {
 
   private static final String CALLER_ID_STR = "11111111-1111-1111-1111-111111111111";
@@ -42,8 +43,8 @@ class MyPaymentsControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR, id = CALLER_ID_STR)
   void listReceived_mediatorRole_returns200WithMappedDtos() throws Exception {
-    final ReceivedPaymentDto dto =
-        ReceivedPaymentDto.builder()
+    final ReceivedPayment model =
+        ReceivedPayment.builder()
             .paymentId(UUID.randomUUID())
             .payerId(PAYER_ID)
             .claimCount(3)
@@ -51,7 +52,7 @@ class MyPaymentsControllerTest {
             .paidAt(Instant.parse("2025-06-01T00:00:00Z"))
             .build();
     when(myPaymentsService.listReceived(CALLER_ID, UserRole.ROLE_MEDIATOR))
-        .thenReturn(List.of(dto));
+        .thenReturn(List.of(model));
 
     mockMvc
         .perform(get("/api/v1/my-payments/received"))
@@ -82,14 +83,15 @@ class MyPaymentsControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR, id = CALLER_ID_STR)
   void listAwaited_mediatorRole_returns200WithMappedDtos() throws Exception {
-    final AwaitedPaymentDto dto =
-        AwaitedPaymentDto.builder()
+    final AwaitedPayment model =
+        AwaitedPayment.builder()
             .counterpartyId(PAYER_ID)
             .claimCount(2)
             .totalAmountPaise(BigInteger.valueOf(20000))
             .oldestClaimAt(Instant.parse("2025-05-01T00:00:00Z"))
             .build();
-    when(myPaymentsService.listAwaited(CALLER_ID, UserRole.ROLE_MEDIATOR)).thenReturn(List.of(dto));
+    when(myPaymentsService.listAwaited(CALLER_ID, UserRole.ROLE_MEDIATOR))
+        .thenReturn(List.of(model));
 
     mockMvc
         .perform(get("/api/v1/my-payments/awaited"))
@@ -121,8 +123,8 @@ class MyPaymentsControllerTest {
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR, id = CALLER_ID_STR)
   void listAwaitedClaims_mediatorRole_returns200WithMappedDtos() throws Exception {
     final UUID agencyId = PAYER_ID;
-    final ClaimAccountingSummaryDto dto =
-        ClaimAccountingSummaryDto.builder()
+    final ClaimAccountingSummary model =
+        ClaimAccountingSummary.builder()
             .id(UUID.randomUUID())
             .claimId(UUID.randomUUID())
             .campaignId(UUID.randomUUID())
@@ -130,7 +132,7 @@ class MyPaymentsControllerTest {
             .amountPaise(BigInteger.valueOf(10000))
             .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
             .build();
-    when(myPaymentsService.listAwaitedClaims(agencyId, CALLER_ID)).thenReturn(List.of(dto));
+    when(myPaymentsService.listAwaitedClaims(agencyId, CALLER_ID)).thenReturn(List.of(model));
 
     mockMvc
         .perform(get("/api/v1/my-payments/awaited/{agencyId}/claims", agencyId))

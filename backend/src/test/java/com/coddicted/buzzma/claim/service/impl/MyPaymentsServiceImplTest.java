@@ -6,11 +6,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.coddicted.buzzma.claim.dto.AwaitedPaymentDto;
-import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
-import com.coddicted.buzzma.claim.dto.ReceivedPaymentDto;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
+import com.coddicted.buzzma.claim.mapper.PaymentMapper;
+import com.coddicted.buzzma.claim.model.AwaitedPayment;
+import com.coddicted.buzzma.claim.model.PaymentReceipt;
+import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -45,13 +47,15 @@ class MyPaymentsServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    service = new MyPaymentsServiceImpl(claimAccountingRepository, paymentRepository);
+    service =
+        new MyPaymentsServiceImpl(
+            claimAccountingRepository, paymentRepository, Mappers.getMapper(PaymentMapper.class));
   }
 
-  // ── listReceived ─────────────────────────────────────────────────────────
+  // ── listReceived ──────────────────────────────────────────────────────────────────────────────
 
   @Test
-  void listReceived_mediatorRole_callsFindReceivedByMediatorAndMapsDtos() {
+  void listReceived_mediatorRole_callsFindReceivedByMediatorAndMapsModels() {
     final ReceivedPaymentProjection proj = mock(ReceivedPaymentProjection.class);
     when(proj.getPaymentId()).thenReturn(PAYMENT_ID);
     when(proj.getPayerId()).thenReturn(PAYER_ID);
@@ -60,7 +64,7 @@ class MyPaymentsServiceImplTest {
     when(proj.getPaidAt()).thenReturn(PAID_AT);
     when(claimAccountingRepository.findReceivedByMediator(CALLER_ID)).thenReturn(List.of(proj));
 
-    final List<ReceivedPaymentDto> result = service.listReceived(CALLER_ID, UserRole.ROLE_MEDIATOR);
+    final List<ReceivedPayment> result = service.listReceived(CALLER_ID, UserRole.ROLE_MEDIATOR);
 
     assertEquals(1, result.size());
     assertEquals(PAYMENT_ID, result.get(0).getPaymentId());
@@ -72,7 +76,7 @@ class MyPaymentsServiceImplTest {
   }
 
   @Test
-  void listReceived_buyerRole_callsFindReceivedByBuyerAndMapsDtos() {
+  void listReceived_buyerRole_callsFindReceivedByBuyerAndMapsModels() {
     final ReceivedPaymentProjection proj = mock(ReceivedPaymentProjection.class);
     when(proj.getPaymentId()).thenReturn(PAYMENT_ID);
     when(proj.getPayerId()).thenReturn(PAYER_ID);
@@ -81,7 +85,7 @@ class MyPaymentsServiceImplTest {
     when(proj.getPaidAt()).thenReturn(PAID_AT);
     when(claimAccountingRepository.findReceivedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
 
-    final List<ReceivedPaymentDto> result = service.listReceived(CALLER_ID, UserRole.ROLE_BUYER);
+    final List<ReceivedPayment> result = service.listReceived(CALLER_ID, UserRole.ROLE_BUYER);
 
     assertEquals(1, result.size());
     assertEquals(PAYMENT_ID, result.get(0).getPaymentId());
@@ -98,10 +102,10 @@ class MyPaymentsServiceImplTest {
     assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
   }
 
-  // ── listAwaited ──────────────────────────────────────────────────────────
+  // ── listAwaited ──────────────────────────────────────────────────────────────────────────────
 
   @Test
-  void listAwaited_mediatorRole_callsFindAwaitedByMediatorAndMapsDtos() {
+  void listAwaited_mediatorRole_callsFindAwaitedByMediatorAndMapsModels() {
     final AwaitedPaymentProjection proj = mock(AwaitedPaymentProjection.class);
     when(proj.getCounterpartyId()).thenReturn(PAYER_ID);
     when(proj.getClaimCount()).thenReturn(2L);
@@ -109,7 +113,7 @@ class MyPaymentsServiceImplTest {
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
     when(claimAccountingRepository.findAwaitedByMediator(CALLER_ID)).thenReturn(List.of(proj));
 
-    final List<AwaitedPaymentDto> result = service.listAwaited(CALLER_ID, UserRole.ROLE_MEDIATOR);
+    final List<AwaitedPayment> result = service.listAwaited(CALLER_ID, UserRole.ROLE_MEDIATOR);
 
     assertEquals(1, result.size());
     assertEquals(PAYER_ID, result.get(0).getCounterpartyId());
@@ -120,7 +124,7 @@ class MyPaymentsServiceImplTest {
   }
 
   @Test
-  void listAwaited_buyerRole_callsFindAwaitedByBuyerAndMapsDtos() {
+  void listAwaited_buyerRole_callsFindAwaitedByBuyerAndMapsModels() {
     final AwaitedPaymentProjection proj = mock(AwaitedPaymentProjection.class);
     when(proj.getCounterpartyId()).thenReturn(PAYER_ID);
     when(proj.getClaimCount()).thenReturn(1L);
@@ -128,7 +132,7 @@ class MyPaymentsServiceImplTest {
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
     when(claimAccountingRepository.findAwaitedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
 
-    final List<AwaitedPaymentDto> result = service.listAwaited(CALLER_ID, UserRole.ROLE_BUYER);
+    final List<AwaitedPayment> result = service.listAwaited(CALLER_ID, UserRole.ROLE_BUYER);
 
     assertEquals(1, result.size());
     assertEquals(PAYER_ID, result.get(0).getCounterpartyId());
@@ -145,7 +149,7 @@ class MyPaymentsServiceImplTest {
     assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
   }
 
-  // ── getReceipt ───────────────────────────────────────────────────────────
+  // ── getReceipt ────────────────────────────────────────────────────────────────────────────────
 
   @Test
   void getReceipt_callerIsPayer_returnsReceiptWithClaimCount() {
@@ -163,7 +167,7 @@ class MyPaymentsServiceImplTest {
     when(claimAccountingRepository.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(3L);
     when(claimAccountingRepository.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(2L);
 
-    final PaymentReceiptDto receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
+    final PaymentReceipt receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
 
     assertEquals(PAYMENT_ID, receipt.getId());
     assertEquals(CALLER_ID, receipt.getPayerId());
@@ -188,7 +192,7 @@ class MyPaymentsServiceImplTest {
     when(claimAccountingRepository.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(1L);
     when(claimAccountingRepository.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(0L);
 
-    final PaymentReceiptDto receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
+    final PaymentReceipt receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
 
     assertEquals(PAYER_ID, receipt.getPayerId());
     assertEquals(CALLER_ID, receipt.getPayeeId());

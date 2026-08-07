@@ -1,16 +1,20 @@
 package com.coddicted.buzzma.claim.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.coddicted.buzzma.claim.dto.ClaimAccountingSummaryDto;
-import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
-import com.coddicted.buzzma.claim.dto.PendingPayoutDto;
 import com.coddicted.buzzma.claim.dto.RecordPaymentRequestDto;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
+import com.coddicted.buzzma.claim.mapper.PaymentMapperImpl;
+import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.PaymentReceipt;
+import com.coddicted.buzzma.claim.model.PendingPayout;
+import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
 import com.coddicted.buzzma.claim.service.PayoutService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -31,7 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PayoutController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, PaymentMapperImpl.class})
 class PayoutControllerTest {
 
   private static final String CALLER_ID_STR = "11111111-1111-1111-1111-111111111111";
@@ -45,19 +49,19 @@ class PayoutControllerTest {
   @MockBean private UsersRepository usersRepository;
   @MockBean private PayoutService payoutService;
 
-  // ── listPending ──────────────────────────────────────────────────────────
+  // ── listPending ───────────────────────────────────────────────────────────────────────────────
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
   void listPending_agencyRole_returns200() throws Exception {
-    final PendingPayoutDto dto =
-        PendingPayoutDto.builder()
+    final PendingPayout model =
+        PendingPayout.builder()
             .payeeId(PAYEE_ID)
             .claimCount(4)
             .totalAmountPaise(BigInteger.valueOf(40000))
             .oldestClaimAt(Instant.parse("2025-04-01T00:00:00Z"))
             .build();
-    when(payoutService.listPending(CALLER_ID, UserRole.ROLE_AGENCY)).thenReturn(List.of(dto));
+    when(payoutService.listPending(CALLER_ID, UserRole.ROLE_AGENCY)).thenReturn(List.of(model));
 
     mockMvc
         .perform(get("/api/v1/payouts/pending"))
@@ -85,19 +89,19 @@ class PayoutControllerTest {
     mockMvc.perform(get("/api/v1/payouts/pending")).andExpect(status().isUnauthorized());
   }
 
-  // ── listClaims ───────────────────────────────────────────────────────────
+  // ── listClaims ────────────────────────────────────────────────────────────────────────────────
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
   void listClaims_agencyRole_returns200() throws Exception {
-    final ClaimAccountingSummaryDto dto =
-        ClaimAccountingSummaryDto.builder()
+    final ClaimAccountingSummary model =
+        ClaimAccountingSummary.builder()
             .id(UUID.randomUUID())
             .claimId(UUID.randomUUID())
             .amountPaise(BigInteger.valueOf(10000))
             .build();
     when(payoutService.listClaimsForPayee(CALLER_ID, PAYEE_ID, UserRole.ROLE_AGENCY))
-        .thenReturn(List.of(dto));
+        .thenReturn(List.of(model));
 
     mockMvc
         .perform(get("/api/v1/payouts/{payeeId}/claims", PAYEE_ID))
@@ -122,7 +126,7 @@ class PayoutControllerTest {
         .andExpect(status().isForbidden());
   }
 
-  // ── pay ──────────────────────────────────────────────────────────────────
+  // ── pay ───────────────────────────────────────────────────────────────────────────────────────
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
@@ -130,8 +134,8 @@ class PayoutControllerTest {
     final RecordPaymentRequestDto request =
         new RecordPaymentRequestDto(
             PaymentMethod.UPI, Instant.parse("2025-06-01T00:00:00Z"), "UTR12345", null, null);
-    final PaymentReceiptDto receipt =
-        PaymentReceiptDto.builder()
+    final PaymentReceipt receipt =
+        PaymentReceipt.builder()
             .id(UUID.randomUUID())
             .payerId(CALLER_ID)
             .payeeId(PAYEE_ID)
@@ -140,7 +144,9 @@ class PayoutControllerTest {
             .paymentMethod(PaymentMethod.UPI)
             .paidAt(Instant.parse("2025-06-01T00:00:00Z"))
             .build();
-    when(payoutService.pay(CALLER_ID, PAYEE_ID, UserRole.ROLE_AGENCY, request)).thenReturn(receipt);
+    when(payoutService.pay(
+            eq(CALLER_ID), eq(PAYEE_ID), eq(UserRole.ROLE_AGENCY), any(RecordPaymentRequest.class)))
+        .thenReturn(receipt);
 
     mockMvc
         .perform(

@@ -5,8 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
+import com.coddicted.buzzma.claim.mapper.PaymentMapperImpl;
+import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.service.MyPaymentsService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -26,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(PaymentController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, PaymentMapperImpl.class})
 class PaymentControllerTest {
 
   private static final String CALLER_ID_STR = "11111111-1111-1111-1111-111111111111";
@@ -44,8 +45,8 @@ class PaymentControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR, id = CALLER_ID_STR)
   void getReceipt_authenticated_returns200WithReceiptData() throws Exception {
-    final PaymentReceiptDto receipt =
-        PaymentReceiptDto.builder()
+    final PaymentReceipt receipt =
+        PaymentReceipt.builder()
             .id(PAYMENT_ID)
             .payerId(PAYER_ID)
             .payeeId(PAYEE_ID)

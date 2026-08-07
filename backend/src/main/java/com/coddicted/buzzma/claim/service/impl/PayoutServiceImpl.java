@@ -1,15 +1,15 @@
 package com.coddicted.buzzma.claim.service.impl;
 
-import com.coddicted.buzzma.claim.dto.ClaimAccountingSummaryDto;
-import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
-import com.coddicted.buzzma.claim.dto.PendingPayoutDto;
-import com.coddicted.buzzma.claim.dto.RecordPaymentRequestDto;
 import com.coddicted.buzzma.claim.entity.AccountingPaymentStatus;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
+import com.coddicted.buzzma.claim.mapper.PaymentMapper;
+import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.PaymentReceipt;
+import com.coddicted.buzzma.claim.model.PendingPayout;
+import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
 import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.PaymentRepository;
-import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.service.PayoutService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import java.math.BigInteger;
@@ -26,59 +26,53 @@ public class PayoutServiceImpl implements PayoutService {
 
   private final ClaimAccountingRepository claimAccountingRepository;
   private final PaymentRepository paymentRepository;
+  private final PaymentMapper paymentMapper;
 
   public PayoutServiceImpl(
       final ClaimAccountingRepository claimAccountingRepository,
-      final PaymentRepository paymentRepository) {
+      final PaymentRepository paymentRepository,
+      final PaymentMapper paymentMapper) {
     this.claimAccountingRepository = claimAccountingRepository;
     this.paymentRepository = paymentRepository;
+    this.paymentMapper = paymentMapper;
   }
 
   @Override
-  public List<PendingPayoutDto> listPending(final UUID callerId, final UserRole role) {
-    final List<PendingPayoutProjection> rows =
-        switch (role) {
-          case ROLE_AGENCY -> claimAccountingRepository.findPendingByAgency(callerId);
-          case ROLE_MEDIATOR -> claimAccountingRepository.findPendingByMediator(callerId);
-          default ->
-              throw new ResponseStatusException(
-                  HttpStatus.FORBIDDEN, "Role not permitted for payouts");
-        };
-    return rows.stream()
-        .map(
-            p ->
-                PendingPayoutDto.builder()
-                    .payeeId(p.getPayeeId())
-                    .claimCount(p.getClaimCount())
-                    .totalAmountPaise(p.getTotalAmountPaise())
-                    .oldestClaimAt(p.getOldestClaimAt())
-                    .build())
-        .toList();
+  public List<PendingPayout> listPending(final UUID callerId, final UserRole role) {
+    return switch (role) {
+      case ROLE_AGENCY ->
+          paymentMapper.toPendingPayouts(claimAccountingRepository.findPendingByAgency(callerId));
+      case ROLE_MEDIATOR ->
+          paymentMapper.toPendingPayouts(claimAccountingRepository.findPendingByMediator(callerId));
+      default ->
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+    };
   }
 
   @Override
-  public List<ClaimAccountingSummaryDto> listClaimsForPayee(
+  public List<ClaimAccountingSummary> listClaimsForPayee(
       final UUID callerId, final UUID payeeId, final UserRole role) {
-    final List<ClaimAccounting> rows =
-        switch (role) {
-          case ROLE_AGENCY ->
-              claimAccountingRepository.findClaimsForMediatorPayout(callerId, payeeId);
-          case ROLE_MEDIATOR ->
-              claimAccountingRepository.findClaimsForBuyerPayout(callerId, payeeId);
-          default ->
-              throw new ResponseStatusException(
-                  HttpStatus.FORBIDDEN, "Role not permitted for payouts");
-        };
-    return rows.stream().map(ca -> toSummaryDto(ca, role)).toList();
+    return switch (role) {
+      case ROLE_AGENCY ->
+          claimAccountingRepository.findClaimsForMediatorPayout(callerId, payeeId).stream()
+              .map(paymentMapper::toSummaryForAgency)
+              .toList();
+      case ROLE_MEDIATOR ->
+          claimAccountingRepository.findClaimsForBuyerPayout(callerId, payeeId).stream()
+              .map(paymentMapper::toSummaryForMediator)
+              .toList();
+      default ->
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+    };
   }
 
   @Override
   @Transactional
-  public PaymentReceiptDto pay(
+  public PaymentReceipt pay(
       final UUID callerId,
       final UUID payeeId,
       final UserRole role,
-      final RecordPaymentRequestDto request) {
+      final RecordPaymentRequest request) {
     final List<ClaimAccounting> targets = resolveAndLockTargets(callerId, payeeId, role, request);
     if (targets.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No eligible pending claims found");
@@ -111,25 +105,14 @@ public class PayoutServiceImpl implements PayoutService {
           ids, saved.getId(), request.getPaidAt(), now, callerId);
     }
 
-    return PaymentReceiptDto.builder()
-        .id(saved.getId())
-        .payerId(saved.getPayerId())
-        .payeeId(saved.getPayeeId())
-        .amountPaidPaise(saved.getAmountPaidPaise())
-        .claimCount(targets.size())
-        .paymentMethod(saved.getPaymentMethod())
-        .utrRef(saved.getUtrRef())
-        .notes(saved.getNotes())
-        .screenshotStorageKey(saved.getScreenshotStorageKey())
-        .paidAt(saved.getPaidAt())
-        .build();
+    return paymentMapper.toReceipt(saved, targets.size());
   }
 
   private List<ClaimAccounting> resolveAndLockTargets(
       final UUID callerId,
       final UUID payeeId,
       final UserRole role,
-      final RecordPaymentRequestDto request) {
+      final RecordPaymentRequest request) {
     final boolean isPartial = request.getClaimIds() != null && !request.getClaimIds().isEmpty();
     if (isPartial) {
       final List<ClaimAccounting> locked =
@@ -188,20 +171,5 @@ public class PayoutServiceImpl implements PayoutService {
                     ? ca.getMediatorReceivablePaise()
                     : ca.getBuyerReceivablePaise())
         .reduce(BigInteger.ZERO, BigInteger::add);
-  }
-
-  private ClaimAccountingSummaryDto toSummaryDto(final ClaimAccounting ca, final UserRole role) {
-    final BigInteger amount =
-        role == UserRole.ROLE_AGENCY
-            ? ca.getMediatorReceivablePaise()
-            : ca.getBuyerReceivablePaise();
-    return ClaimAccountingSummaryDto.builder()
-        .id(ca.getId())
-        .claimId(ca.getClaimId())
-        .campaignId(ca.getCampaignId())
-        .dealId(ca.getDealId())
-        .amountPaise(amount)
-        .createdAt(ca.getCreatedAt())
-        .build();
   }
 }

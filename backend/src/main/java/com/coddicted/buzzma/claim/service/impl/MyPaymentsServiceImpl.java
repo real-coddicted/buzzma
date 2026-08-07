@@ -1,10 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
-import com.coddicted.buzzma.claim.dto.AwaitedPaymentDto;
-import com.coddicted.buzzma.claim.dto.ClaimAccountingSummaryDto;
-import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
-import com.coddicted.buzzma.claim.dto.ReceivedPaymentDto;
 import com.coddicted.buzzma.claim.entity.Payment;
+import com.coddicted.buzzma.claim.mapper.PaymentMapper;
+import com.coddicted.buzzma.claim.model.AwaitedPayment;
+import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.PaymentReceipt;
+import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
@@ -23,16 +24,19 @@ public class MyPaymentsServiceImpl implements MyPaymentsService {
 
   private final ClaimAccountingRepository claimAccountingRepository;
   private final PaymentRepository paymentRepository;
+  private final PaymentMapper paymentMapper;
 
   public MyPaymentsServiceImpl(
       final ClaimAccountingRepository claimAccountingRepository,
-      final PaymentRepository paymentRepository) {
+      final PaymentRepository paymentRepository,
+      final PaymentMapper paymentMapper) {
     this.claimAccountingRepository = claimAccountingRepository;
     this.paymentRepository = paymentRepository;
+    this.paymentMapper = paymentMapper;
   }
 
   @Override
-  public List<ReceivedPaymentDto> listReceived(final UUID callerId, final UserRole role) {
+  public List<ReceivedPayment> listReceived(final UUID callerId, final UserRole role) {
     final List<ReceivedPaymentProjection> projections =
         switch (role) {
           case ROLE_MEDIATOR -> claimAccountingRepository.findReceivedByMediator(callerId);
@@ -41,58 +45,24 @@ public class MyPaymentsServiceImpl implements MyPaymentsService {
               throw new ResponseStatusException(
                   HttpStatus.FORBIDDEN, "Role not permitted for my-payments");
         };
-    return toReceivedDtos(projections);
-  }
-
-  private List<ReceivedPaymentDto> toReceivedDtos(
-      final List<ReceivedPaymentProjection> projections) {
-    final List<UUID> ids =
-        projections.stream().map(ReceivedPaymentProjection::getPaymentId).toList();
     final Map<UUID, Payment> paymentMap =
-        paymentRepository.findAllById(ids).stream()
+        paymentRepository
+            .findAllById(projections.stream().map(ReceivedPaymentProjection::getPaymentId).toList())
+            .stream()
             .collect(Collectors.toMap(Payment::getId, p -> p));
     return projections.stream()
-        .map(
-            p -> {
-              final Payment pmt = paymentMap.get(p.getPaymentId());
-              return ReceivedPaymentDto.builder()
-                  .paymentId(p.getPaymentId())
-                  .payerId(p.getPayerId())
-                  .claimCount(p.getClaimCount())
-                  .totalAmountPaise(p.getTotalAmountPaise())
-                  .paidAt(p.getPaidAt())
-                  .paymentMethod(pmt != null ? pmt.getPaymentMethod() : null)
-                  .screenshotStorageKey(pmt != null ? pmt.getScreenshotStorageKey() : null)
-                  .build();
-            })
+        .map(p -> paymentMapper.toReceivedPayment(p, paymentMap.get(p.getPaymentId())))
         .toList();
   }
 
   @Override
-  public List<AwaitedPaymentDto> listAwaited(final UUID callerId, final UserRole role) {
+  public List<AwaitedPayment> listAwaited(final UUID callerId, final UserRole role) {
     return switch (role) {
       case ROLE_MEDIATOR ->
-          claimAccountingRepository.findAwaitedByMediator(callerId).stream()
-              .map(
-                  p ->
-                      AwaitedPaymentDto.builder()
-                          .counterpartyId(p.getCounterpartyId())
-                          .claimCount(p.getClaimCount())
-                          .totalAmountPaise(p.getTotalAmountPaise())
-                          .oldestClaimAt(p.getOldestClaimAt())
-                          .build())
-              .toList();
+          paymentMapper.toAwaitedPayments(
+              claimAccountingRepository.findAwaitedByMediator(callerId));
       case ROLE_BUYER ->
-          claimAccountingRepository.findAwaitedByBuyer(callerId).stream()
-              .map(
-                  p ->
-                      AwaitedPaymentDto.builder()
-                          .counterpartyId(p.getCounterpartyId())
-                          .claimCount(p.getClaimCount())
-                          .totalAmountPaise(p.getTotalAmountPaise())
-                          .oldestClaimAt(p.getOldestClaimAt())
-                          .build())
-              .toList();
+          paymentMapper.toAwaitedPayments(claimAccountingRepository.findAwaitedByBuyer(callerId));
       default ->
           throw new ResponseStatusException(
               HttpStatus.FORBIDDEN, "Role not permitted for my-payments");
@@ -100,24 +70,15 @@ public class MyPaymentsServiceImpl implements MyPaymentsService {
   }
 
   @Override
-  public List<ClaimAccountingSummaryDto> listAwaitedClaims(
+  public List<ClaimAccountingSummary> listAwaitedClaims(
       final UUID agencyId, final UUID mediatorId) {
     return claimAccountingRepository.findClaimsForMediatorPayout(agencyId, mediatorId).stream()
-        .map(
-            ca ->
-                ClaimAccountingSummaryDto.builder()
-                    .id(ca.getId())
-                    .claimId(ca.getClaimId())
-                    .campaignId(ca.getCampaignId())
-                    .dealId(ca.getDealId())
-                    .amountPaise(ca.getMediatorReceivablePaise())
-                    .createdAt(ca.getCreatedAt())
-                    .build())
+        .map(paymentMapper::toSummaryForAgency)
         .toList();
   }
 
   @Override
-  public PaymentReceiptDto getReceipt(final UUID paymentId, final UUID callerId) {
+  public PaymentReceipt getReceipt(final UUID paymentId, final UUID callerId) {
     final Payment payment =
         paymentRepository
             .findById(paymentId)
@@ -132,17 +93,6 @@ public class MyPaymentsServiceImpl implements MyPaymentsService {
         claimAccountingRepository.countByMediatorPaymentId(paymentId)
             + claimAccountingRepository.countByBuyerPaymentId(paymentId);
 
-    return PaymentReceiptDto.builder()
-        .id(payment.getId())
-        .payerId(payment.getPayerId())
-        .payeeId(payment.getPayeeId())
-        .amountPaidPaise(payment.getAmountPaidPaise())
-        .claimCount(claimCount)
-        .paymentMethod(payment.getPaymentMethod())
-        .utrRef(payment.getUtrRef())
-        .notes(payment.getNotes())
-        .screenshotStorageKey(payment.getScreenshotStorageKey())
-        .paidAt(payment.getPaidAt())
-        .build();
+    return paymentMapper.toReceipt(payment, claimCount);
   }
 }
