@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.persistence;
 
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -95,7 +94,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
-            AND (:reviewStatuses IS NULL OR c.reviewStatus IN :reviewStatuses)
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -108,7 +106,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
-            AND (:reviewStatuses IS NULL OR c.reviewStatus IN :reviewStatuses)
           """)
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
       @Param("mediatorId") UUID mediatorId,
@@ -116,7 +113,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       @Param("brands") Collection<String> brands,
       @Param("platforms") Collection<Platform> platforms,
-      @Param("reviewStatuses") Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   @Query(
@@ -133,7 +129,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
-            AND (:reviewStatuses IS NULL OR c.reviewStatus IN :reviewStatuses)
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -146,7 +141,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
-            AND (:reviewStatuses IS NULL OR c.reviewStatus IN :reviewStatuses)
           """)
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
       @Param("campaignIds") Collection<UUID> campaignIds,
@@ -154,7 +148,6 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       @Param("brands") Collection<String> brands,
       @Param("platforms") Collection<Platform> platforms,
-      @Param("reviewStatuses") Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   @Query(

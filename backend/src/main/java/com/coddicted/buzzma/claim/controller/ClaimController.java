@@ -12,7 +12,6 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
@@ -278,17 +277,8 @@ public class ClaimController {
     final Set<ClaimStatus> claimStatuses = request != null ? request.getClaimStatuses() : null;
     final Set<String> brands = request != null ? request.getBrands() : null;
     final Set<Platform> platforms = request != null ? request.getPlatforms() : null;
-    final Set<ClaimReviewStatus> reviewStatuses =
-        request != null ? request.getReviewStatuses() : null;
     return this.claimReviewProcessor.listClaimReviews(
-        requester,
-        campaignIds,
-        mediatorIds,
-        claimStatuses,
-        brands,
-        platforms,
-        reviewStatuses,
-        pageable);
+        requester, campaignIds, mediatorIds, claimStatuses, brands, platforms, pageable);
   }
 
   @GetMapping("/{id}")

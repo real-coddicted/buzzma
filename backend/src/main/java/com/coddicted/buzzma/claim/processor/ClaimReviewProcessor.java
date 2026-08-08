@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.processor;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
@@ -32,7 +31,6 @@ public class ClaimReviewProcessor {
       final Set<ClaimStatus> claimStatusFilter,
       final Set<String> brandsFilter,
       final Set<Platform> platformsFilter,
-      final Set<ClaimReviewStatus> reviewStatusesFilter,
       final Pageable pageable) {
     return this.claimReviewService
         .getClaimReviews(
@@ -42,7 +40,6 @@ public class ClaimReviewProcessor {
             claimStatusFilter,
             brandsFilter,
             platformsFilter,
-            reviewStatusesFilter,
             pageable)
         .map(this.claimReviewMapper::toResponse);
   }

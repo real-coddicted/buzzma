@@ -1,11 +1,9 @@
 package com.coddicted.buzzma.report.excel;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.List;
 
 /** Column layout for the claim review Excel export. */
@@ -28,12 +26,6 @@ public final class ClaimReviewReportColumns {
           new ExcelColumn<>("Claim Code", ClaimReviewResponseDto::getClaimCode),
           new ExcelColumn<>("Claim Status", dto -> dto.getClaimStatus().getDisplayName()),
           new ExcelColumn<>("Match Score", ClaimReviewResponseDto::getMatchScore),
-          new ExcelColumn<>(
-              "Review Status",
-              dto -> dto.getClaimReviewStatus().getDisplayName(),
-              Arrays.stream(ClaimReviewStatus.values())
-                  .map(ClaimReviewStatus::getDisplayName)
-                  .toList()),
           new ExcelColumn<>("Amount Approved", dto -> null),
           new ExcelColumn<>("Brand Review", dto -> null, List.of("Approved", "Rejected")),
           new ExcelColumn<>("Remarks", dto -> null));

@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.mapper;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,8 +8,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
     componentModel = "spring",
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-    imports = ClaimReviewStatus.class)
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ClaimReviewMapper {
 
   @Mapping(source = "claim.id", target = "id")
@@ -35,10 +33,6 @@ public interface ClaimReviewMapper {
   @Mapping(source = "claim.score", target = "matchScore")
   @Mapping(source = "claim.amountPaise", target = "amountPaise")
   @Mapping(source = "claim.amountApprovedPaise", target = "amountApprovedPaise")
-  @Mapping(
-      source = "claim.reviewStatus",
-      target = "claimReviewStatus",
-      defaultExpression = "java(ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING)")
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "claim.orderDate", target = "orderDate")
   @Mapping(source = "campaign.product.brandName", target = "brandName")

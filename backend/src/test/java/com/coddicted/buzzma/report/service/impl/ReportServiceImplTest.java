@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -50,7 +49,6 @@ class ReportServiceImplTest {
             .campaignIds(Set.of(campaignId))
             .brands(Set.of("Acme"))
             .platforms(Set.of(Platform.PLATFORM_AMAZON))
-            .reviewStatuses(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED))
             .build();
     final ClaimReviewResponseDto row =
         ClaimReviewResponseDto.builder()
@@ -67,7 +65,6 @@ class ReportServiceImplTest {
             .orderDate(20260101)
             .amountPaise(BigInteger.valueOf(25050))
             .claimStatus(ClaimStatus.APPROVED)
-            .claimReviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .matchScore(BigInteger.valueOf(90))
             .mediatorVerified(true)
             .createdAt(Instant.parse("2026-01-01T10:00:00Z"))
@@ -83,7 +80,6 @@ class ReportServiceImplTest {
             isNull(),
             eq(Set.of("Acme")),
             eq(Set.of(Platform.PLATFORM_AMAZON)),
-            eq(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)),
             any(Pageable.class)))
         .thenReturn(pageOf(row));
 
@@ -97,7 +93,6 @@ class ReportServiceImplTest {
             isNull(),
             eq(Set.of("Acme")),
             eq(Set.of(Platform.PLATFORM_AMAZON)),
-            eq(Set.of(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)),
             eq(Pageable.unpaged()));
 
     try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
@@ -111,10 +106,9 @@ class ReportServiceImplTest {
       assertEquals("Order Date", header.getCell(8).getStringCellValue());
       assertEquals("Order Amount", header.getCell(9).getStringCellValue());
       assertEquals("Claim Status", header.getCell(11).getStringCellValue());
-      assertEquals("Review Status", header.getCell(13).getStringCellValue());
-      assertEquals("Amount Approved", header.getCell(14).getStringCellValue());
-      assertEquals("Brand Review", header.getCell(15).getStringCellValue());
-      assertEquals("Remarks", header.getCell(16).getStringCellValue());
+      assertEquals("Amount Approved", header.getCell(13).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(14).getStringCellValue());
+      assertEquals("Remarks", header.getCell(15).getStringCellValue());
 
       final Row dataRow = sheet.getRow(1);
       assertEquals("Summer Sale", dataRow.getCell(0).getStringCellValue());
@@ -126,10 +120,9 @@ class ReportServiceImplTest {
       assertEquals("2026-01-01", dataRow.getCell(8).getStringCellValue());
       assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
       assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
-      assertEquals("Approved", dataRow.getCell(13).getStringCellValue());
+      assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
-      assertEquals(CellType.BLANK, dataRow.getCell(16).getCellType());
     }
   }
 
@@ -140,28 +133,14 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(mediator),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            any(Pageable.class)))
+            eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(Page.empty());
 
     serviceWithMock.generateClaimReviewReport(mediator, null);
 
     verify(claimReviewProcessor)
         .listClaimReviews(
-            eq(mediator),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            isNull(),
-            eq(Pageable.unpaged()));
+            eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), eq(Pageable.unpaged()));
   }
 
   private static Page<ClaimReviewResponseDto> pageOf(final ClaimReviewResponseDto row) {

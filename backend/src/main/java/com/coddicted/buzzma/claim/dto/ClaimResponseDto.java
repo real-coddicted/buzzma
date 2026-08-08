@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.dto;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
@@ -35,7 +34,6 @@ public class ClaimResponseDto {
   Integer score;
   String reviewerComments;
   UUID reviewerId;
-  ClaimReviewStatus reviewStatus;
   Platform platform;
   Instant createdAt;
   Instant updatedAt;

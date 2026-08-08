@@ -6,7 +6,6 @@ import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
@@ -71,7 +70,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final Set<ClaimStatus> claimStatusFilter,
       final Set<String> brandsFilter,
       final Set<Platform> platformsFilter,
-      final Set<ClaimReviewStatus> reviewStatusesFilter,
       final Pageable pageable) {
     // updatedAt-descending ordering is a business rule enforced in the repository queries
     // themselves, so any client-supplied sort is stripped here to avoid a conflicting ORDER BY.
@@ -91,7 +89,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
           emptyToNull(claimStatusFilter),
           emptyToNull(brandsFilter),
           emptyToNull(platformsFilter),
-          emptyToNull(reviewStatusesFilter),
           unsortedPageable);
     }
 
@@ -109,7 +106,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
         emptyToNull(claimStatusFilter),
         emptyToNull(brandsFilter),
         emptyToNull(platformsFilter),
-        emptyToNull(reviewStatusesFilter),
         unsortedPageable);
   }
 
@@ -142,11 +138,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     if (action == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED) {
       claim =
           this.claimService.save(
-              claim.toBuilder()
-                  .status(ClaimStatus.PROOF_REJECTED)
-                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_OBJECTED)
-                  .updatedBy(reviewerId)
-                  .build());
+              claim.toBuilder().status(ClaimStatus.PROOF_REJECTED).updatedBy(reviewerId).build());
       this.claimReviewEventPublisher.publishScreenshotReviewedEvent(
           claim, deal, screenshot.getType(), action, reviewerId, reviewerComments);
     }
@@ -187,7 +179,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
           this.claimService.save(
               claim.toBuilder()
                   .status(ClaimStatus.REJECTED)
-                  .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_REJECTED)
                   .reviewerComments(reviewerComment)
                   .reviewerId(reviewerId)
                   .updatedAt(Instant.now())
@@ -230,7 +221,6 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     return this.claimService.save(
         claim.toBuilder()
             .status(ClaimStatus.APPROVED)
-            .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_APPROVED)
             .reviewerComments(reviewerComments)
             .reviewerId(reviewerId)
             .amountApprovedPaise(amountApprovedPaise)

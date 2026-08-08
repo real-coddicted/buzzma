@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.claim.dto;
 
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
@@ -36,8 +35,6 @@ public class ClaimReviewResponseDto {
 
   Boolean mediatorVerified;
   BigInteger matchScore;
-
-  ClaimReviewStatus claimReviewStatus;
 
   BigInteger amountPaise;
   BigInteger amountApprovedPaise;

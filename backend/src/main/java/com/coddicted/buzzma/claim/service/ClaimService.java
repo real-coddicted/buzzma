@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
@@ -83,7 +82,6 @@ public interface ClaimService {
       Collection<ClaimStatus> claimStatuses,
       Collection<String> brands,
       Collection<Platform> platforms,
-      Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
@@ -92,7 +90,6 @@ public interface ClaimService {
       Collection<ClaimStatus> claimStatuses,
       Collection<String> brands,
       Collection<Platform> platforms,
-      Collection<ClaimReviewStatus> reviewStatuses,
       Pageable pageable);
 
   List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);

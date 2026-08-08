@@ -41,7 +41,6 @@ public interface ClaimMapper {
   @Mapping(source = "claim.platform", target = "platform")
   @Mapping(source = "claim.reviewerComments", target = "reviewerComments")
   @Mapping(source = "claim.reviewerId", target = "reviewerId")
-  @Mapping(source = "claim.reviewStatus", target = "reviewStatus")
   @Mapping(source = "claim.createdAt", target = "createdAt")
   @Mapping(source = "claim.updatedAt", target = "updatedAt")
   ClaimResponseDto toResponse(
@@ -65,7 +64,6 @@ public interface ClaimMapper {
   @Mapping(target = "code", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "currentStep", ignore = true)
-  @Mapping(target = "reviewStatus", ignore = true)
   @Mapping(target = "reviewerId", ignore = true)
   @Mapping(target = "mediatorVerified", ignore = true)
   @Mapping(target = "score", ignore = true)

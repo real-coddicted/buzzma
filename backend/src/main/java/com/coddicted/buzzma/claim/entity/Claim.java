@@ -54,10 +54,6 @@ public class Claim implements Auditable {
   @Column(name = "status", nullable = false, length = 50)
   private ClaimStatus status;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "review_status", nullable = false, length = 50)
-  private ClaimReviewStatus reviewStatus;
-
   @Column(name = "ecommerce_order_id", length = 100)
   private String ecommerceOrderId;
 

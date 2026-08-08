@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.claim.service;
 
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
@@ -27,7 +26,6 @@ public interface ClaimReviewService {
       Set<ClaimStatus> claimStatusFilter,
       Set<String> brandsFilter,
       Set<Platform> platformsFilter,
-      Set<ClaimReviewStatus> reviewStatusesFilter,
       Pageable pageable);
 
   ClaimWithDeal reviewScreenshot(

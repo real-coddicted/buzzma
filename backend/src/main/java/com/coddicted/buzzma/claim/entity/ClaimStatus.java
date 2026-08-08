@@ -4,8 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum ClaimStatus {
-  CREATED("Created"),
-  REDIRECTED("Redirected"),
   ORDERED("Ordered"),
   RATING_SUBMITTED("Rating Submitted"),
   REVIEW_SUBMITTED("Review Submitted"),

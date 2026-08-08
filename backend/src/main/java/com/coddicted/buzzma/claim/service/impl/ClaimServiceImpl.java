@@ -9,7 +9,6 @@ import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
@@ -399,10 +398,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Collection<ClaimStatus> claimStatuses,
       final Collection<String> brands,
       final Collection<Platform> platforms,
-      final Collection<ClaimReviewStatus> reviewStatuses,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForMediator(
-        mediatorId, campaignIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
+        mediatorId, campaignIds, claimStatuses, brands, platforms, pageable);
   }
 
   @Override
@@ -413,10 +411,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Collection<ClaimStatus> claimStatuses,
       final Collection<String> brands,
       final Collection<Platform> platforms,
-      final Collection<ClaimReviewStatus> reviewStatuses,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForCampaigns(
-        campaignIds, mediatorIds, claimStatuses, brands, platforms, reviewStatuses, pageable);
+        campaignIds, mediatorIds, claimStatuses, brands, platforms, pageable);
   }
 
   @Override
@@ -452,11 +449,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       claimStatus = ClaimStatus.UNDER_REVIEW;
     }
 
-    return claim.toBuilder()
-        .status(claimStatus)
-        .reviewStatus(ClaimReviewStatus.CLAIM_REVIEW_STATUS_PENDING)
-        .updatedBy(requesterId)
-        .build();
+    return claim.toBuilder().status(claimStatus).updatedBy(requesterId).build();
   }
 
   private ClaimScreenshot saveScreenshot(

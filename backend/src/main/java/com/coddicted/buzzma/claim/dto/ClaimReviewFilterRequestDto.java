@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.claim.dto;
 
-import com.coddicted.buzzma.claim.entity.ClaimReviewStatus;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
@@ -26,6 +25,4 @@ public class ClaimReviewFilterRequestDto {
   @Nullable Set<String> brands;
 
   @Nullable Set<Platform> platforms;
-
-  @Nullable Set<ClaimReviewStatus> reviewStatuses;
 }
