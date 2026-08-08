@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { IconX } from '../icons'
 import { PlatformFilter } from '../campaign/filters/PlatformFilter'
 import { TypeaheadMultiSelect, type TypeaheadOption } from './filters/TypeaheadMultiSelect'
-import { ReviewStatusFilter } from './filters/ReviewStatusFilter'
+import { ClaimStatusFilter } from './filters/ClaimStatusFilter'
 import { type ClaimReviewFilters, emptyFilters, countActiveFilters } from './filters/ClaimReviewFilterTypes'
 
 interface Props {
@@ -75,9 +75,9 @@ export function ClaimReviewFilterDrawer({ open, onClose, filters, onApply, campa
             selected={draft.platforms}
             onChange={platforms => setDraft(d => ({ ...d, platforms }))}
           />
-          <ReviewStatusFilter
-            selected={draft.reviewStatuses}
-            onChange={reviewStatuses => setDraft(d => ({ ...d, reviewStatuses }))}
+          <ClaimStatusFilter
+            selected={draft.claimStatuses}
+            onChange={claimStatuses => setDraft(d => ({ ...d, claimStatuses }))}
           />
           {showMediatorFilter && (
             <TypeaheadMultiSelect

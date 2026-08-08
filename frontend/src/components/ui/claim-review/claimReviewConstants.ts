@@ -1,8 +1,6 @@
-import type { ClaimStatus, ReviewStatus, ApprovalMethod } from '../../../types'
+import type { ClaimStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
-  'CREATED':                    { label: 'Created',                    colorClass: 'text-neon-blue'   },
-  'REDIRECTED':                 { label: 'Redirected',                 colorClass: 'text-neon-blue'   },
   'ORDERED':                    { label: 'Ordered',                    colorClass: 'text-neon-blue'   },
   'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
   'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },
@@ -15,14 +13,6 @@ export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClas
   'REWARD_PENDING':             { label: 'Reward Pending',             colorClass: 'text-neon-yellow' },
   'COMPLETED':                  { label: 'Completed',                  colorClass: 'text-neon-green'  },
   'FAILED':                     { label: 'Failed',                     colorClass: 'text-neon-red'    },
-}
-
-export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; classes: string; activeClass: string }> = {
-  'pending':   { label: 'Pending',   classes: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', activeClass: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30' },
-  'in-review': { label: 'In Review', classes: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', activeClass: 'bg-neon-purple/10 text-neon-purple border-neon-purple/30' },
-  'objected':  { label: 'Objected',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
-  'approved':  { label: 'Approved',  classes: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  activeClass: 'bg-neon-green/10  text-neon-green  border-neon-green/30'  },
-  'rejected':  { label: 'Rejected',  classes: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    activeClass: 'bg-neon-red/10    text-neon-red    border-neon-red/30'    },
 }
 
 export const APPROVAL_METHOD_CONFIG: Record<ApprovalMethod, { label: string; classes: string }> = {
@@ -43,7 +33,6 @@ export const CLAIM_REVIEW_COLUMNS = [
   'Brand Name',
   'Mediator Name',
   'Claim Status',
-  'Review Status',
   'Match %',
   'Amount',
   'Actions',

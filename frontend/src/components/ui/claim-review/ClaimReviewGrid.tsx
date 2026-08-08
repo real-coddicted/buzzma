@@ -5,8 +5,7 @@ import { Card } from '../Card'
 import { ClaimReviewToolbar } from './ClaimReviewToolbar'
 import { ClaimReviewFilterDrawer } from './ClaimReviewFilterDrawer'
 import { ClaimReviewActions } from './ClaimReviewActions'
-import { CLAIM_REVIEW_COLUMNS, REVIEW_STATUS_CONFIG } from './claimReviewConstants'
-import { ReviewStatusCell } from './ReviewStatusCell'
+import { CLAIM_REVIEW_COLUMNS, CLAIM_STATUS_CONFIG } from './claimReviewConstants'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
 import { AlertModal } from '../AlertModal'
 import { ConfirmModal } from '../ConfirmModal'
@@ -20,7 +19,7 @@ import { fetchConnections } from '../../../api/connectionApi'
 import { downloadClaimReviewReport } from '../../../api/claimApi'
 import type { ClaimReviewItem } from '../../../types'
 import { PLATFORM_LABELS } from '../../../constants/campaigns'
-import { PLATFORM_COLORS } from '../campaign/filters/chipColors'
+import { PLATFORM_COLORS, CLAIM_STATUS_COLORS } from '../campaign/filters/chipColors'
 import { FilterChips, type FilterChip } from '../campaign/filters/FilterChips'
 import { type ClaimReviewFilters, emptyFilters, countActiveFilters, matchesFilters } from './filters/ClaimReviewFilterTypes'
 import type { TypeaheadOption } from './filters/TypeaheadMultiSelect'
@@ -134,15 +133,15 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
       })
     }
 
-    for (const s of f.reviewStatuses) {
+    for (const s of f.claimStatuses) {
       result.push({
-        key: `review-${s}`,
-        label: REVIEW_STATUS_CONFIG[s].label,
-        colorClass: REVIEW_STATUS_CONFIG[s].classes,
+        key: `claim-status-${s}`,
+        label: CLAIM_STATUS_CONFIG[s].label,
+        colorClass: CLAIM_STATUS_COLORS[s].base,
         onRemove: () => {
-          const next = new Set(f.reviewStatuses)
+          const next = new Set(f.claimStatuses)
           next.delete(s)
-          onApplyFilters({ ...f, reviewStatuses: next })
+          onApplyFilters({ ...f, claimStatuses: next })
         },
       })
     }
@@ -181,7 +180,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
         mediatorIds: appliedFilters.mediatorIds,
         brands: appliedFilters.brands,
         platforms: appliedFilters.platforms,
-        reviewStatuses: appliedFilters.reviewStatuses,
+        claimStatuses: appliedFilters.claimStatuses,
       })
     } catch (err) {
       console.error('Failed to download claim review report', err)
@@ -213,7 +212,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     [filtered, selectedIds]
   )
   const selectableRows = useMemo(
-    () => filtered.filter(r => r.reviewStatus !== 'approved' && r.reviewStatus !== 'rejected' && r.reviewStatus !== 'objected'),
+    () => filtered.filter(r => r.claimStatus !== 'APPROVED' && r.claimStatus !== 'REJECTED' && r.claimStatus !== 'PROOF_REJECTED'),
     [filtered]
   )
   const allSelected = selectableRows.length > 0 && selectableRows.every(r => selectedIds.has(r.id))
@@ -318,7 +317,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     key={col}
                     className={[
                       'px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted',
-                      col === 'Actions' || col === 'Claim Status' || col === 'Review Status' || col === 'Amount' ? 'text-center' : 'text-left',
+                      col === 'Actions' || col === 'Claim Status' || col === 'Amount' ? 'text-center' : 'text-left',
                     ].join(' ')}
                   >
                     {col}
@@ -357,7 +356,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                           type="checkbox"
                           checked={selectedIds.has(row.id)}
                           onChange={() => toggleRow(row.id)}
-                          disabled={row.reviewStatus === 'approved' || row.reviewStatus === 'rejected' || row.reviewStatus === 'objected'}
+                          disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED' || row.claimStatus === 'PROOF_REJECTED'}
                           className="w-4 h-4 accent-neon-blue cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         />
                       </td>
@@ -394,12 +393,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-center">
-                        <ClaimStatusBadge status={row.claimStatus} />
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex justify-center">
-                        <ReviewStatusCell status={row.reviewStatus} approvalMethod={row.approvalMethod} />
+                        <ClaimStatusBadge status={row.claimStatus} approvalMethod={row.approvalMethod} />
                       </div>
                     </td>
                     <td className="px-5 py-4">

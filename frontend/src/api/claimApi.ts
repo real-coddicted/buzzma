@@ -1,5 +1,5 @@
 import type { components } from '../types/api'
-import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus, ReviewStatus } from '../types/ClaimReviewTypes'
+import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus } from '../types/ClaimReviewTypes'
 import type { Platform } from '../types/CampaignTypes'
 import { fetchWithAuth, getAccessToken, throwIfUnauthorized } from './client'
 import { rupeesToPaise } from '../utils/currency'
@@ -10,7 +10,6 @@ const API_BASE = '/api/v1'
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type BackendClaimStatus = NonNullable<ClaimResponseDto['status']>
 type ClaimReviewResponseDto = components['schemas']['ClaimReviewResponseDto']
-type ClaimReviewStatus = NonNullable<ClaimReviewResponseDto['claimReviewStatus']>
 type PageClaimReviewResponseDto = components['schemas']['PageClaimReviewResponseDto']
 
 
@@ -18,38 +17,8 @@ function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
   return status
 }
 
-function reviewStatusFromClaimReviewStatus(status: ClaimReviewStatus): ReviewStatus {
-  switch (status) {
-    case 'CLAIM_REVIEW_STATUS_APPROVED':
-      return 'approved'
-    case 'CLAIM_REVIEW_STATUS_REJECTED':
-      return 'rejected'
-    case 'CLAIM_REVIEW_STATUS_PROOF_REQUESTED':
-      return 'in-review'
-    case 'CLAIM_REVIEW_STATUS_OBJECTED':
-      return 'objected'
-    default:
-      return 'pending'
-  }
-}
-
-function claimReviewStatusFromReviewStatus(status: ReviewStatus): ClaimReviewStatus {
-  switch (status) {
-    case 'approved':
-      return 'CLAIM_REVIEW_STATUS_APPROVED'
-    case 'rejected':
-      return 'CLAIM_REVIEW_STATUS_REJECTED'
-    case 'in-review':
-      return 'CLAIM_REVIEW_STATUS_PROOF_REQUESTED'
-    case 'objected':
-      return 'CLAIM_REVIEW_STATUS_OBJECTED'
-    default:
-      return 'CLAIM_REVIEW_STATUS_PENDING'
-  }
-}
-
 function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
-  const status = dto.status ?? 'CREATED'
+  const status = dto.status ?? 'ORDERED'
   return {
     id: dto.id ?? '',
     campaignId: '',
@@ -60,9 +29,6 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     mediatorName: '',
     buyerName: '',
     claimStatus: toClaimStatus(status),
-    reviewStatus: reviewStatusFromClaimReviewStatus(
-      dto.reviewStatus ?? 'CLAIM_REVIEW_STATUS_PENDING'
-    ),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: dto.score ?? 0,
@@ -93,7 +59,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
 }
 
 function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
-  const backendStatus = (dto.claimStatus ?? 'CREATED') as BackendClaimStatus
+  const backendStatus = (dto.claimStatus ?? 'ORDERED') as BackendClaimStatus
   return {
     id: dto.claimId ?? dto.id ?? '',
     campaignId: dto.campaignId ?? '',
@@ -104,9 +70,6 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     mediatorName: dto.dealOwnerName ?? '',
     buyerName: dto.buyerName ?? '',
     claimStatus: toClaimStatus(backendStatus),
-    reviewStatus: reviewStatusFromClaimReviewStatus(
-      dto.claimReviewStatus ?? 'CLAIM_REVIEW_STATUS_PENDING'
-    ),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
     matchPct: dto.matchScore ?? 0,
@@ -147,7 +110,7 @@ export interface ClaimReviewServerFilter {
   mediatorIds?: Set<string>
   brands?: Set<string>
   platforms?: Set<Platform>
-  reviewStatuses?: Set<ReviewStatus>
+  claimStatuses?: Set<ClaimStatus>
 }
 
 function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
@@ -156,10 +119,7 @@ function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
     mediatorIds: filter?.mediatorIds && filter.mediatorIds.size > 0 ? [...filter.mediatorIds] : null,
     brands: filter?.brands && filter.brands.size > 0 ? [...filter.brands] : null,
     platforms: filter?.platforms && filter.platforms.size > 0 ? [...filter.platforms] : null,
-    reviewStatuses:
-      filter?.reviewStatuses && filter.reviewStatuses.size > 0
-        ? [...filter.reviewStatuses].map(claimReviewStatusFromReviewStatus)
-        : null,
+    claimStatuses: filter?.claimStatuses && filter.claimStatuses.size > 0 ? [...filter.claimStatuses] : null,
   }
 }
 

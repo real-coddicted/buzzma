@@ -1,10 +1,10 @@
-import type { ClaimReviewItem, Platform, ReviewStatus } from '../../../../types'
+import type { ClaimReviewItem, Platform, ClaimStatus } from '../../../../types'
 
 export interface ClaimReviewFilters {
   campaignIds: Set<string>
   brands: Set<string>
   platforms: Set<Platform>
-  reviewStatuses: Set<ReviewStatus>
+  claimStatuses: Set<ClaimStatus>
   mediatorIds: Set<string>
 }
 
@@ -13,13 +13,13 @@ export function emptyFilters(): ClaimReviewFilters {
     campaignIds: new Set(),
     brands: new Set(),
     platforms: new Set(),
-    reviewStatuses: new Set(),
+    claimStatuses: new Set(),
     mediatorIds: new Set(),
   }
 }
 
 export function countActiveFilters(f: ClaimReviewFilters): number {
-  return f.campaignIds.size + f.brands.size + f.platforms.size + f.reviewStatuses.size + f.mediatorIds.size
+  return f.campaignIds.size + f.brands.size + f.platforms.size + f.claimStatuses.size + f.mediatorIds.size
 }
 
 export function matchesFilters(row: ClaimReviewItem, f: ClaimReviewFilters): boolean {
@@ -27,7 +27,7 @@ export function matchesFilters(row: ClaimReviewItem, f: ClaimReviewFilters): boo
     (f.campaignIds.size === 0 || f.campaignIds.has(row.campaignId)) &&
     (f.brands.size === 0 || f.brands.has(row.brandName)) &&
     (f.platforms.size === 0 || f.platforms.has(row.platform)) &&
-    (f.reviewStatuses.size === 0 || f.reviewStatuses.has(row.reviewStatus)) &&
+    (f.claimStatuses.size === 0 || f.claimStatuses.has(row.claimStatus)) &&
     (f.mediatorIds.size === 0 || f.mediatorIds.has(row.mediatorId))
   )
 }

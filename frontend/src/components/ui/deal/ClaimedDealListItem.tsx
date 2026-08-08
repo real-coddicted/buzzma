@@ -4,7 +4,7 @@ import type { StepperStep } from '../Stepper'
 import { fetchStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
-import { REVIEW_STATUS_CONFIG } from '../claim-review/claimReviewConstants'
+import { CLAIM_STATUS_CONFIG } from '../claim-review/claimReviewConstants'
 import { ProductThumbnail } from './ProductThumbnail'
 import { CopyableCode } from '../CopyableCode'
 import { Stepper } from '../Stepper'
@@ -29,8 +29,9 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
   }, [deal.dealType])
 
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, deal.screenshots ?? [])
-  const screenshotRejected = stepStatuses.includes('rejected') && deal.reviewStatus !== 'rejected'
-  const claimApproved = deal.reviewStatus === 'approved'
+  const screenshotRejected = stepStatuses.includes('rejected') && deal.claimStatus !== 'REJECTED'
+  const claimApproved = deal.claimStatus === 'APPROVED'
+  const showStatusBadge = deal.claimStatus && deal.claimStatus !== 'ORDERED'
 
   return (
     <div
@@ -72,9 +73,9 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
               ].join(' ')}>
                 {deal.dealTypeLabel}
               </span>
-              {deal.reviewStatus && deal.reviewStatus !== 'pending' && (
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${REVIEW_STATUS_CONFIG[deal.reviewStatus].classes}`}>
-                  {REVIEW_STATUS_CONFIG[deal.reviewStatus].label}
+              {showStatusBadge && deal.claimStatus && (
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border border-surface-light-border dark:border-surface-dark-border ${CLAIM_STATUS_CONFIG[deal.claimStatus].colorClass}`}>
+                  {CLAIM_STATUS_CONFIG[deal.claimStatus].label}
                 </span>
               )}
               {screenshotRejected && (
