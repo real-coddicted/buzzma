@@ -372,6 +372,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
+  public void markAccountingCompleted(final UUID claimId) {
+    this.claimRepository.markAccountingCompleted(claimId);
+  }
+
+  @Override
+  @Transactional
   public Claim save(final Claim claim) {
     return this.claimRepository.save(claim);
   }

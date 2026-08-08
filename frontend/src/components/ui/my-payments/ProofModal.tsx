@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react'
+import { fetchScreenshotUrl } from '../../../api/claimApi'
+import { Loading } from '../Loading'
+import { Toast } from '../Toast'
 import type { PaymentBatch } from '../../../types/MyPaymentsTypes'
 
 interface ProofModalProps {
@@ -6,6 +10,31 @@ interface ProofModalProps {
 }
 
 export function ProofModal({ batch, onClose }: ProofModalProps) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!batch.proofStorageKey) return
+    let objectUrl: string | null = null
+    let cancelled = false
+    setLoading(true)
+    fetchScreenshotUrl(batch.proofStorageKey)
+      .then(u => { if (cancelled) return; objectUrl = u; setUrl(u) })
+      .catch(() => { if (!cancelled) setError('Failed to load payment proof. Please try again.') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [batch.proofStorageKey])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
@@ -28,8 +57,10 @@ export function ProofModal({ batch, onClose }: ProofModalProps) {
           </button>
         </div>
         <div className="p-6 flex flex-col items-center justify-center gap-3 min-h-64 bg-surface-light-base dark:bg-surface-dark-base">
-          {batch.proofStorageKey ? (
-            <img src={batch.proofStorageKey} alt="Payment proof" className="max-w-full max-h-96 rounded-lg object-contain" />
+          {loading ? (
+            <Loading size={32} />
+          ) : url ? (
+            <img src={url} alt="Payment proof" className="max-w-full max-h-96 rounded-lg object-contain" />
           ) : (
             <>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-light-muted dark:text-ink-dark-muted">
@@ -38,11 +69,11 @@ export function ProofModal({ batch, onClose }: ProofModalProps) {
                 <polyline points="21 15 16 10 5 21" />
               </svg>
               <p className="text-sm text-ink-light-secondary dark:text-ink-dark-secondary">Screenshot proof of payment</p>
-              <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">(Real image loads from API)</p>
             </>
           )}
         </div>
       </div>
+      {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>
   )
 }

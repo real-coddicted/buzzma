@@ -1,6 +1,7 @@
 import { Card } from '../Card'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
+import { PlatformBadge } from '../campaign/CampaignBadges'
 import { formatRupees } from '../../../utils/currency'
 import type { PayoutUser, PayoutClaim } from '../../../types/UserPayoutsTypes'
 
@@ -120,7 +121,10 @@ export function UserPayoutsDetail({
                   className="w-4 h-4 accent-neon-blue cursor-pointer flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink-light-primary dark:text-ink-dark-primary">{claim.campaign}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-ink-light-primary dark:text-ink-dark-primary">{claim.campaign}</p>
+                    {claim.platform && <PlatformBadge platform={claim.platform} />}
+                  </div>
                   <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
                     {claim.brand}
                     <span className="mx-1.5">·</span>

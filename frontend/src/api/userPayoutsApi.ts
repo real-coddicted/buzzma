@@ -1,67 +1,121 @@
+import { fetchWithAuth } from './client'
+import { fetchUserById, fetchUserBanking } from './userApi'
+import { fetchCampaignById } from './campaignApi'
+import { paiseToRupees } from '../utils/currency'
 import type { PayoutClaim, PayoutUser, PaymentSubmission } from '../types/UserPayoutsTypes'
+import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
 
-const MOCK_USERS: PayoutUser[] = [
-  { id: 'u1', name: 'Rahul Mehta',  initials: 'RM', role: 'Mediator', upiId: 'rahul@oksbi',   oldestClaimDate: '14 Jun 2026' },
-  { id: 'u2', name: 'Priya Sharma', initials: 'PS', role: 'Mediator', upiId: 'priya@kotak',   oldestClaimDate: '21 Jun 2026' },
-  { id: 'u3', name: 'Amit Verma',   initials: 'AV', role: 'Buyer',    upiId: 'amit@ybl',      oldestClaimDate: '28 Jun 2026' },
-  { id: 'u4', name: 'Sunita Patel', initials: 'SP', role: 'Mediator', upiId: 'sunita@paytm',  oldestClaimDate: '02 Jul 2026' },
-  { id: 'u5', name: 'Deepak Kumar', initials: 'DK', role: 'Buyer',    upiId: 'deepak@upi',    oldestClaimDate: '08 Jul 2026' },
-  { id: 'u6', name: 'Kavitha Nair', initials: 'KN', role: 'Mediator', upiId: 'kavitha@oksbi', oldestClaimDate: '11 Jul 2026' },
-]
-
-const MOCK_CLAIMS: Record<string, PayoutClaim[]> = {
-  u1: [
-    { id: 'CLM-4501', campaign: 'Amazon Summer Sale',   brand: 'Amazon',   approvedDate: '14 Jun 2026', amount: 1800 },
-    { id: 'CLM-4523', campaign: 'Flipkart Big Days',    brand: 'Flipkart', approvedDate: '20 Jun 2026', amount: 1200 },
-    { id: 'CLM-4587', campaign: 'Amazon Prime Day',     brand: 'Amazon',   approvedDate: '25 Jun 2026', amount: 1250 },
-  ],
-  u2: [
-    { id: 'CLM-4610', campaign: 'Meesho Mega Sale',     brand: 'Meesho',   approvedDate: '21 Jun 2026', amount: 1400 },
-    { id: 'CLM-4634', campaign: 'Amazon Great Indian',  brand: 'Amazon',   approvedDate: '24 Jun 2026', amount: 1800 },
-    { id: 'CLM-4689', campaign: 'Myntra End of Reason', brand: 'Myntra',   approvedDate: '28 Jun 2026', amount: 1600 },
-    { id: 'CLM-4712', campaign: 'Flipkart BBD',         brand: 'Flipkart', approvedDate: '01 Jul 2026', amount: 1500 },
-    { id: 'CLM-4745', campaign: 'Nykaa Sale',           brand: 'Nykaa',    approvedDate: '05 Jul 2026', amount: 1500 },
-  ],
-  u3: [
-    { id: 'CLM-4820', campaign: 'Amazon Wardrobe',      brand: 'Amazon',   approvedDate: '28 Jun 2026', amount: 950  },
-    { id: 'CLM-4856', campaign: 'Ajio Finale Sale',     brand: 'Ajio',     approvedDate: '04 Jul 2026', amount: 1000 },
-  ],
-  u4: [
-    { id: 'CLM-4901', campaign: 'Amazon Sale',          brand: 'Amazon',   approvedDate: '02 Jul 2026', amount: 1400 },
-    { id: 'CLM-4923', campaign: 'Flipkart Mega',        brand: 'Flipkart', approvedDate: '07 Jul 2026', amount: 1400 },
-    { id: 'CLM-4967', campaign: 'Meesho Fashion',       brand: 'Meesho',   approvedDate: '10 Jul 2026', amount: 1400 },
-    { id: 'CLM-4998', campaign: 'Myntra Sale',          brand: 'Myntra',   approvedDate: '14 Jul 2026', amount: 1400 },
-  ],
-  u5: [
-    { id: 'CLM-5041', campaign: 'Amazon Back to School', brand: 'Amazon',  approvedDate: '08 Jul 2026', amount: 2100 },
-  ],
-  u6: [
-    { id: 'CLM-5102', campaign: 'Flipkart Electronics', brand: 'Flipkart', approvedDate: '11 Jul 2026', amount: 1200 },
-    { id: 'CLM-5134', campaign: 'Amazon Appliances',    brand: 'Amazon',   approvedDate: '16 Jul 2026', amount: 1100 },
-    { id: 'CLM-5167', campaign: 'Nykaa Beauty',        brand: 'Nykaa',    approvedDate: '19 Jul 2026', amount: 1100 },
-  ],
+interface PendingPayoutDto {
+  payeeId: string
+  claimCount: number
+  totalAmountPaise: number
+  oldestClaimAt: string
 }
 
-function delay<T>(value: T, ms = 400): Promise<T> {
-  return new Promise(resolve => setTimeout(() => resolve(value), ms))
+interface ClaimAccountingSummaryDto {
+  id: string
+  claimId: string
+  campaignId: string
+  dealId: string
+  amountPaise: number
+  createdAt: string
 }
 
-export function fetchPayoutUsers(): Promise<PayoutUser[]> {
-  return delay(MOCK_USERS)
+function initials(name: string): string {
+  return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
 
-export function fetchPayoutClaims(userId: string): Promise<PayoutClaim[]> {
-  return delay(MOCK_CLAIMS[userId] ?? [])
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export function fetchAllPayoutClaims(): Promise<Record<string, PayoutClaim[]>> {
-  return delay({ ...MOCK_CLAIMS })
+async function fetchClaimsForPayee(payeeId: string): Promise<ClaimAccountingSummaryDto[]> {
+  const res = await fetchWithAuth(`/api/v1/payouts/${payeeId}/claims`)
+  return res.json() as Promise<ClaimAccountingSummaryDto[]>
 }
 
-export function submitPayment(
-  _userId: string,
-  _claimIds: string[],
-  _submission: PaymentSubmission,
+async function enrichClaims(
+  dtos: ClaimAccountingSummaryDto[],
+  campaignCache: Map<string, { title: string; brand: string; platform: string }>,
+): Promise<PayoutClaim[]> {
+  const uncached = [...new Set(dtos.map(d => d.campaignId).filter(id => !campaignCache.has(id)))]
+  await Promise.all(
+    uncached.map(id =>
+      fetchCampaignById(id)
+        .then(c => campaignCache.set(id, { title: c.title ?? id.slice(0, 8), brand: c.productBrandName ?? '—', platform: c.platform ?? '' }))
+        .catch(() => campaignCache.set(id, { title: id.slice(0, 8), brand: '—', platform: '' })),
+    ),
+  )
+  return dtos.map(d => ({
+    id: d.id,
+    campaign: campaignCache.get(d.campaignId)?.title ?? d.campaignId.slice(0, 8),
+    brand: campaignCache.get(d.campaignId)?.brand ?? '—',
+    platform: campaignCache.get(d.campaignId)?.platform ?? '',
+    approvedDate: formatDate(d.createdAt),
+    amount: paiseToRupees(d.amountPaise),
+  }))
+}
+
+export async function fetchPayoutUsers(): Promise<PayoutUser[]> {
+  const res = await fetchWithAuth('/api/v1/payouts/pending')
+  const dtos: PendingPayoutDto[] = await res.json()
+
+  return Promise.all(
+    dtos.map(async d => {
+      const [user, banking] = await Promise.all([
+        fetchUserById(d.payeeId).catch(() => null),
+        fetchUserBanking(d.payeeId).catch(() => null),
+      ])
+      const name = user?.name ?? d.payeeId.slice(0, 8)
+      const role: 'Mediator' | 'Buyer' = user?.role === 'ROLE_MEDIATOR' ? 'Mediator' : 'Buyer'
+      return {
+        id: d.payeeId,
+        name,
+        initials: initials(name),
+        role,
+        upiId: banking?.upiId ?? '—',
+        oldestClaimDate: formatDate(d.oldestClaimAt),
+        claimCount: d.claimCount,
+        totalAmount: paiseToRupees(d.totalAmountPaise),
+      } satisfies PayoutUser
+    }),
+  )
+}
+
+export async function fetchPayoutClaims(userId: string): Promise<PayoutClaim[]> {
+  const dtos = await fetchClaimsForPayee(userId)
+  const cache = new Map<string, { title: string; brand: string; platform: string }>()
+  return enrichClaims(dtos, cache)
+}
+
+export async function submitPayment(
+  userId: string,
+  claimIds: string[],
+  submission: PaymentSubmission,
 ): Promise<void> {
-  return delay(undefined as void, 600)
+  const knownValues = new Set<string>(PAYMENT_METHODS.map(pm => pm.value))
+  const backendMethod = knownValues.has(submission.paymentMethod)
+    ? submission.paymentMethod.toUpperCase()
+    : 'OTHER'
+
+  const formData = new FormData()
+  formData.append('screenshot', submission.screenshot)
+  formData.append(
+    'request',
+    new Blob(
+      [JSON.stringify({
+        paymentMethod: backendMethod,
+        paidAt: new Date().toISOString(),
+        utrRef: submission.utrRef ?? null,
+        notes: submission.notes ?? null,
+        claimIds: claimIds.length > 0 ? claimIds : null,
+      })],
+      { type: 'application/json' },
+    ),
+  )
+
+  await fetchWithAuth(`/api/v1/payouts/${userId}/pay`, {
+    method: 'POST',
+    body: formData,
+  })
 }

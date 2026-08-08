@@ -276,6 +276,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payouts/{payeeId}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites": {
         parameters: {
             query?: never;
@@ -916,6 +932,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payouts/{payeeId}/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClaims"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payouts/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/{id}/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClaims_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications": {
         parameters: {
             query?: never;
@@ -940,6 +1020,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/my-payments/received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listReceived"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/my-payments/awaited": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAwaited"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/my-payments/awaited/{counterpartyId}/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAwaitedClaims"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1499,6 +1627,33 @@ export interface components {
             claimStatuses?: ("ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
             platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+        };
+        RecordPaymentRequestDto: {
+            /** @enum {string} */
+            paymentMethod: "UPI" | "BANK" | "NEFT" | "IMPS" | "RTGS" | "CASH" | "OTHER";
+            /** Format: date-time */
+            paidAt: string;
+            utrRef?: string;
+            notes?: string;
+            claimIds?: string[];
+        };
+        PaymentReceiptDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            payerId?: string;
+            /** Format: uuid */
+            payeeId?: string;
+            amountPaidPaise?: number;
+            /** Format: int64 */
+            claimCount?: number;
+            /** @enum {string} */
+            paymentMethod?: "UPI" | "BANK" | "NEFT" | "IMPS" | "RTGS" | "CASH" | "OTHER";
+            utrRef?: string;
+            notes?: string;
+            screenshotStorageKey?: string;
+            /** Format: date-time */
+            paidAt?: string;
         };
         InviteRequestDto: {
             /** Format: int32 */
@@ -2116,6 +2271,28 @@ export interface components {
             updatedAt?: string;
             isDeleted?: boolean;
         };
+        ClaimAccountingSummaryDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            claimId?: string;
+            /** Format: uuid */
+            campaignId?: string;
+            /** Format: uuid */
+            dealId?: string;
+            amountPaise?: number;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        PendingPayoutDto: {
+            /** Format: uuid */
+            payeeId?: string;
+            /** Format: int64 */
+            claimCount?: number;
+            totalAmountPaise?: number;
+            /** Format: date-time */
+            oldestClaimAt?: string;
+        };
         NotificationResponseDto: {
             /** Format: uuid */
             id?: string;
@@ -2138,6 +2315,29 @@ export interface components {
             page?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        ReceivedPaymentDto: {
+            /** Format: uuid */
+            paymentId?: string;
+            /** Format: uuid */
+            payerId?: string;
+            /** Format: int64 */
+            claimCount?: number;
+            totalAmountPaise?: number;
+            /** Format: date-time */
+            paidAt?: string;
+            /** @enum {string} */
+            paymentMethod?: "UPI" | "BANK" | "NEFT" | "IMPS" | "RTGS" | "CASH" | "OTHER";
+            screenshotStorageKey?: string;
+        };
+        AwaitedPaymentDto: {
+            /** Format: uuid */
+            counterpartyId?: string;
+            /** Format: int64 */
+            claimCount?: number;
+            totalAmountPaise?: number;
+            /** Format: date-time */
+            oldestClaimAt?: string;
         };
         CampaignOptionDto: {
             /** Format: uuid */
@@ -2824,6 +3024,36 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                };
+            };
+        };
+    };
+    pay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    request: components["schemas"]["RecordPaymentRequestDto"];
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentReceiptDto"];
                 };
             };
         };
@@ -3950,6 +4180,92 @@ export interface operations {
             };
         };
     };
+    listClaims: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimAccountingSummaryDto"][];
+                };
+            };
+        };
+    };
+    listPending: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PendingPayoutDto"][];
+                };
+            };
+        };
+    };
+    getReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentReceiptDto"];
+                };
+            };
+        };
+    };
+    listClaims_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimAccountingSummaryDto"][];
+                };
+            };
+        };
+    };
     list_2: {
         parameters: {
             query: {
@@ -3992,6 +4308,68 @@ export interface operations {
                     "*/*": {
                         [key: string]: number;
                     };
+                };
+            };
+        };
+    };
+    listReceived: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReceivedPaymentDto"][];
+                };
+            };
+        };
+    };
+    listAwaited: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AwaitedPaymentDto"][];
+                };
+            };
+        };
+    };
+    listAwaitedClaims: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                counterpartyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimAccountingSummaryDto"][];
                 };
             };
         };
