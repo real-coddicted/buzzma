@@ -12,8 +12,7 @@ function makeRow(overrides: Partial<ClaimReviewItem> = {}): ClaimReviewItem {
     mediatorId: 'med-1',
     mediatorName: 'Alice',
     buyerName: 'Bob',
-    claimStatus: 'CREATED',
-    reviewStatus: 'pending',
+    claimStatus: 'ORDERED',
     approvalMethod: 'manual',
     mediatorVerified: false,
     matchPct: 90,
@@ -36,7 +35,7 @@ describe('countActiveFilters', () => {
       campaignIds: new Set(['camp-1']),
       brands: new Set(['Nike', 'Adidas']),
       platforms: new Set<ClaimReviewItem['platform']>(['PLATFORM_AMAZON']),
-      reviewStatuses: new Set<ClaimReviewItem['reviewStatus']>([]),
+      claimStatuses: new Set<ClaimReviewItem['claimStatus']>([]),
       mediatorIds: new Set(['med-1']),
     }
     expect(countActiveFilters(f)).toBe(5)
@@ -66,10 +65,10 @@ describe('matchesFilters', () => {
     expect(matchesFilters(makeRow({ platform: 'PLATFORM_FLIPKART' }), f)).toBe(true)
   })
 
-  it('filters by review status', () => {
-    const f = { ...emptyFilters(), reviewStatuses: new Set<ClaimReviewItem['reviewStatus']>(['approved']) }
+  it('filters by claim status', () => {
+    const f = { ...emptyFilters(), claimStatuses: new Set<ClaimReviewItem['claimStatus']>(['APPROVED']) }
     expect(matchesFilters(makeRow(), f)).toBe(false)
-    expect(matchesFilters(makeRow({ reviewStatus: 'approved' }), f)).toBe(true)
+    expect(matchesFilters(makeRow({ claimStatus: 'APPROVED' }), f)).toBe(true)
   })
 
   it('filters by mediator id, not name', () => {

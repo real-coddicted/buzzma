@@ -23,7 +23,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
       mediatorIds: appliedFilters.mediatorIds,
       brands: appliedFilters.brands,
       platforms: appliedFilters.platforms,
-      reviewStatuses: appliedFilters.reviewStatuses,
+      claimStatuses: appliedFilters.claimStatuses,
     })
       .then(data => { if (!cancelled) setClaims(data) })
       .catch(err => { if (!cancelled) setError((err as Error).message) })

@@ -1,6 +1,5 @@
 import type { ClaimReviewItem } from '../../../types'
 import { ClaimStatusBadge } from './ClaimStatusBadge'
-import { ReviewStatusCell } from './ReviewStatusCell'
 import { IconInfo } from '../icons'
 import { formatRupees, paiseToRupees } from '../../../utils/currency'
 
@@ -49,9 +48,8 @@ export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
             ? <span className="text-neon-green">Yes</span>
             : <span className="text-ink-light-muted dark:text-ink-dark-muted">No</span>}
         </Row>
-        <Row label="Claim Status"><ClaimStatusBadge status={claim.claimStatus} /></Row>
-        <Row label="Review Status">
-          <ReviewStatusCell status={claim.reviewStatus} approvalMethod={claim.approvalMethod} />
+        <Row label="Claim Status">
+          <ClaimStatusBadge status={claim.claimStatus} approvalMethod={claim.approvalMethod} />
         </Row>
         <Row label="Match Score">
           <span className={

@@ -1,4 +1,4 @@
-import type { CampaignStatus, Platform, CampaignType } from '../../../../types'
+import type { CampaignStatus, Platform, CampaignType, ClaimStatus } from '../../../../types'
 
 export interface ChipColors {
   /** Always-visible color — matches Badge.tsx variantClasses (bg-X/10 text-X border-X/25) */
@@ -30,4 +30,19 @@ export const STATUS_COLORS: Record<CampaignStatus, ChipColors> = {
     base:     'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border-surface-light-border dark:border-surface-dark-border',
     selected: 'bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-primary   dark:text-ink-dark-primary   border-surface-light-border dark:border-surface-dark-border',
   },
+}
+
+export const CLAIM_STATUS_COLORS: Record<ClaimStatus, ChipColors> = {
+  ORDERED:                    { base: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/25',   selected: 'bg-neon-blue/20   text-neon-blue   border-neon-blue/50' },
+  RATING_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
+  REVIEW_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
+  PROOF_SUBMITTED:            { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
+  PROOF_REJECTED:             { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
+  UNDER_REVIEW:                { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
+  ADDITIONAL_PROOF_REQUESTED: { base: 'bg-neon-orange/10 text-neon-orange border-neon-orange/25', selected: 'bg-neon-orange/20 text-neon-orange border-neon-orange/50' },
+  APPROVED:                   { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },
+  REJECTED:                   { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
+  REWARD_PENDING:              { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
+  COMPLETED:                  { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },
+  FAILED:                     { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
 }

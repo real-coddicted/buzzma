@@ -1,7 +1,7 @@
 import type { Platform, CampaignType } from './CampaignTypes'
-import type { ReviewStatus } from './ClaimReviewTypes'
+import type { ClaimStatus } from './ClaimReviewTypes'
 
-export type { Platform, CampaignType, ReviewStatus }
+export type { Platform, CampaignType, ClaimStatus }
 
 export type DealStatus = 'explore' | 'claimed'
 
@@ -36,7 +36,7 @@ export interface Deal {
   currentStep?: number
   claimId?: string
   claimCode?: string
-  reviewStatus?: ReviewStatus
+  claimStatus?: ClaimStatus
   screenshots?: Array<{ type?: string; verificationStatus?: string }>
   amountApprovedPaise?: number
 }
