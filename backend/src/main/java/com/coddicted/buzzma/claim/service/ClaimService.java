@@ -71,6 +71,8 @@ public interface ClaimService {
 
   void updateClaimScore(UUID claimId);
 
+  void markAccountingCompleted(UUID claimId);
+
   Claim save(Claim claim);
 
   ClaimScreenshot getScreenshotById(UUID screenshotId);

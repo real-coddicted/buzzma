@@ -182,6 +182,32 @@ public interface ClaimAccountingRepository extends JpaRepository<ClaimAccounting
       """)
   List<ReceivedPaymentProjection> findReceivedByBuyer(@Param("buyerId") UUID buyerId);
 
+  // ── My Payments — received claims drill-down (no lock — read-only for display) ────────────
+
+  @Query(
+      """
+      SELECT ca FROM ClaimAccounting ca
+      WHERE ca.mediatorId = :mediatorId
+        AND ca.mediatorPaymentId = :paymentId
+        AND ca.mediatorPaymentStatus
+            = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+      ORDER BY ca.createdAt ASC
+      """)
+  List<ClaimAccounting> findClaimsByMediatorPaymentId(
+      @Param("mediatorId") UUID mediatorId, @Param("paymentId") UUID paymentId);
+
+  @Query(
+      """
+      SELECT ca FROM ClaimAccounting ca
+      WHERE ca.buyerId = :buyerId
+        AND ca.buyerPaymentId = :paymentId
+        AND ca.buyerPaymentStatus
+            = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+      ORDER BY ca.createdAt ASC
+      """)
+  List<ClaimAccounting> findClaimsByBuyerPaymentId(
+      @Param("buyerId") UUID buyerId, @Param("paymentId") UUID paymentId);
+
   // ── My Payments — awaited ─────────────────────────────────────────────────
 
   @Query(

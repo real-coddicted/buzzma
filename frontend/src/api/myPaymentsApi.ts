@@ -63,9 +63,24 @@ export async function fetchPaymentBatches(): Promise<PaymentBatch[]> {
   }))
 }
 
-// No API exists for individual claims within a received payment batch yet.
-export async function fetchPaymentClaims(_batchId: string): Promise<PaymentClaim[]> {
-  return []
+export async function fetchPaymentClaims(paymentId: string): Promise<PaymentClaim[]> {
+  const res = await fetchWithAuth(`/api/v1/payments/${paymentId}/claims`)
+  const dtos: ClaimAccountingSummaryDto[] = await res.json()
+
+  const uniqueCampaignIds = [...new Set(dtos.map(d => d.campaignId))]
+  const campaigns = await Promise.all(uniqueCampaignIds.map(id => fetchCampaignById(id).catch(() => null)))
+  const campaignMap = new Map(uniqueCampaignIds.map((id, i) => [id, campaigns[i]]))
+
+  return dtos.map(d => {
+    const campaign = campaignMap.get(d.campaignId)
+    return {
+      claimId: d.claimId,
+      campaignName: campaign?.title ?? d.campaignId.slice(0, 8),
+      brandName: campaign?.productBrandName ?? '—',
+      transactionAmount: paiseToRupees(d.amountPaise),
+      status: 'Paid',
+    }
+  })
 }
 
 export async function fetchPendingAgencies(): Promise<PendingAgency[]> {

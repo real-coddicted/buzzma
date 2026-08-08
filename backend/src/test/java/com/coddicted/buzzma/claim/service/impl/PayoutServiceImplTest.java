@@ -17,9 +17,9 @@ import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
-import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
-import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
+import com.coddicted.buzzma.claim.service.ClaimAccountingService;
+import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.math.BigInteger;
@@ -48,8 +48,8 @@ class PayoutServiceImplTest {
   private static final UUID CAMPAIGN_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
   private static final Instant PAID_AT = Instant.parse("2025-06-01T00:00:00Z");
 
-  @Mock private ClaimAccountingRepository claimAccountingRepository;
-  @Mock private PaymentRepository paymentRepository;
+  @Mock private ClaimAccountingService claimAccountingService;
+  @Mock private PaymentService paymentService;
   @Mock private StorageService storageService;
 
   private PayoutServiceImpl service;
@@ -58,8 +58,8 @@ class PayoutServiceImplTest {
   void setUp() {
     service =
         new PayoutServiceImpl(
-            claimAccountingRepository,
-            paymentRepository,
+            claimAccountingService,
+            paymentService,
             Mappers.getMapper(PaymentMapper.class),
             storageService);
   }
@@ -73,7 +73,7 @@ class PayoutServiceImplTest {
     when(proj.getClaimCount()).thenReturn(4L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(40000));
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findPendingByAgency(AGENCY_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findPendingByAgency(AGENCY_ID)).thenReturn(List.of(proj));
 
     final List<PendingPayout> result = service.listPending(AGENCY_ID, UserRole.ROLE_AGENCY);
 
@@ -82,7 +82,7 @@ class PayoutServiceImplTest {
     assertEquals(4, result.get(0).getClaimCount());
     assertEquals(BigInteger.valueOf(40000), result.get(0).getTotalAmountPaise());
     assertEquals(PAID_AT, result.get(0).getOldestClaimAt());
-    verify(claimAccountingRepository).findPendingByAgency(AGENCY_ID);
+    verify(claimAccountingService).findPendingByAgency(AGENCY_ID);
   }
 
   @Test
@@ -92,13 +92,13 @@ class PayoutServiceImplTest {
     when(proj.getClaimCount()).thenReturn(2L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(20000));
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findPendingByMediator(MEDIATOR_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findPendingByMediator(MEDIATOR_ID)).thenReturn(List.of(proj));
 
     final List<PendingPayout> result = service.listPending(MEDIATOR_ID, UserRole.ROLE_MEDIATOR);
 
     assertEquals(1, result.size());
     assertEquals(BUYER_ID, result.get(0).getPayeeId());
-    verify(claimAccountingRepository).findPendingByMediator(MEDIATOR_ID);
+    verify(claimAccountingService).findPendingByMediator(MEDIATOR_ID);
   }
 
   @Test
@@ -125,7 +125,7 @@ class PayoutServiceImplTest {
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .buyerReceivablePaise(BigInteger.valueOf(8000))
             .build();
-    when(claimAccountingRepository.findClaimsPendingForMediatorPayout(AGENCY_ID, MEDIATOR_ID))
+    when(claimAccountingService.findClaimsPendingForMediatorPayout(AGENCY_ID, MEDIATOR_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -149,7 +149,7 @@ class PayoutServiceImplTest {
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .buyerReceivablePaise(BigInteger.valueOf(8000))
             .build();
-    when(claimAccountingRepository.findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID))
+    when(claimAccountingService.findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -157,7 +157,7 @@ class PayoutServiceImplTest {
 
     assertEquals(1, result.size());
     assertEquals(BigInteger.valueOf(8000), result.get(0).getAmountPaise());
-    verify(claimAccountingRepository).findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID);
+    verify(claimAccountingService).findClaimsPendingForBuyerPayout(MEDIATOR_ID, BUYER_ID);
   }
 
   @Test
@@ -181,7 +181,7 @@ class PayoutServiceImplTest {
             .mediatorId(MEDIATOR_ID)
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .build();
-    when(claimAccountingRepository.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
+    when(claimAccountingService.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
         .thenReturn(List.of(ca));
     final Payment saved =
         Payment.builder()
@@ -192,7 +192,7 @@ class PayoutServiceImplTest {
             .paymentMethod(PaymentMethod.UPI)
             .paidAt(PAID_AT)
             .build();
-    when(paymentRepository.saveAndFlush(any())).thenReturn(saved);
+    when(paymentService.save(any())).thenReturn(saved);
     when(storageService.store(any(), any(), any(), any())).thenReturn("payments/proof.png");
 
     final RecordPaymentRequest request =
@@ -214,7 +214,7 @@ class PayoutServiceImplTest {
     assertEquals(PAYMENT_ID, receipt.getId());
     assertEquals(BigInteger.valueOf(10000), receipt.getAmountPaidPaise());
     assertEquals(1, receipt.getClaimCount());
-    verify(claimAccountingRepository)
+    verify(claimAccountingService)
         .markMediatorPaid(
             eq(List.of(CLAIM_ACCOUNTING_ID)),
             eq(PAYMENT_ID),
@@ -232,7 +232,7 @@ class PayoutServiceImplTest {
             .buyerId(BUYER_ID)
             .buyerReceivablePaise(BigInteger.valueOf(8000))
             .build();
-    when(claimAccountingRepository.findPendingByMediatorAndBuyerForUpdate(MEDIATOR_ID, BUYER_ID))
+    when(claimAccountingService.findPendingByMediatorAndBuyerForUpdate(MEDIATOR_ID, BUYER_ID))
         .thenReturn(List.of(ca));
     final Payment saved =
         Payment.builder()
@@ -243,7 +243,7 @@ class PayoutServiceImplTest {
             .paymentMethod(PaymentMethod.BANK)
             .paidAt(PAID_AT)
             .build();
-    when(paymentRepository.saveAndFlush(any())).thenReturn(saved);
+    when(paymentService.save(any())).thenReturn(saved);
     when(storageService.store(any(), any(), any(), any())).thenReturn("payments/proof.png");
 
     final RecordPaymentRequest request =
@@ -260,7 +260,7 @@ class PayoutServiceImplTest {
 
     assertEquals(PAYMENT_ID, receipt.getId());
     assertEquals(BigInteger.valueOf(8000), receipt.getAmountPaidPaise());
-    verify(claimAccountingRepository)
+    verify(claimAccountingService)
         .markBuyerPaid(
             eq(List.of(CLAIM_ACCOUNTING_ID)),
             eq(PAYMENT_ID),
@@ -278,9 +278,9 @@ class PayoutServiceImplTest {
             .mediatorId(MEDIATOR_ID)
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .build();
-    when(claimAccountingRepository.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID)))
+    when(claimAccountingService.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID)))
         .thenReturn(List.of(ca));
-    when(paymentRepository.saveAndFlush(any()))
+    when(paymentService.save(any()))
         .thenReturn(
             Payment.builder()
                 .id(PAYMENT_ID)
@@ -309,12 +309,12 @@ class PayoutServiceImplTest {
             "image/png");
 
     assertEquals(1, receipt.getClaimCount());
-    verify(claimAccountingRepository).findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID));
+    verify(claimAccountingService).findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID));
   }
 
   @Test
   void pay_noEligibleClaims_throwsBadRequest() {
-    when(claimAccountingRepository.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
+    when(claimAccountingService.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
         .thenReturn(List.of());
 
     final RecordPaymentRequest request =
@@ -345,7 +345,7 @@ class PayoutServiceImplTest {
             .mediatorPaymentStatus(AccountingPaymentStatus.PAID)
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .build();
-    when(claimAccountingRepository.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
+    when(claimAccountingService.findPendingByAgencyAndMediatorForUpdate(AGENCY_ID, MEDIATOR_ID))
         .thenReturn(List.of(ca));
 
     final RecordPaymentRequest request =
@@ -371,7 +371,7 @@ class PayoutServiceImplTest {
     final UUID missingId = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
     // Only 1 of the 2 requested claimIds is found
     final ClaimAccounting ca = ClaimAccounting.builder().id(CLAIM_ACCOUNTING_ID).build();
-    when(claimAccountingRepository.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID, missingId)))
+    when(claimAccountingService.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID, missingId)))
         .thenReturn(List.of(ca));
 
     final RecordPaymentRequest request =
@@ -405,7 +405,7 @@ class PayoutServiceImplTest {
             .agencyId(wrongAgencyId)
             .mediatorId(MEDIATOR_ID)
             .build();
-    when(claimAccountingRepository.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID)))
+    when(claimAccountingService.findByIdInForUpdate(List.of(CLAIM_ACCOUNTING_ID)))
         .thenReturn(List.of(ca));
 
     final RecordPaymentRequest request =

@@ -16,5 +16,7 @@ public interface MyPaymentsService {
 
   List<ClaimAccountingSummary> listAwaitedClaims(UUID counterpartyId, UUID callerId, UserRole role);
 
+  List<ClaimAccountingSummary> listReceivedClaims(UUID paymentId, UUID callerId, UserRole role);
+
   PaymentReceipt getReceipt(UUID paymentId, UUID callerId);
 }

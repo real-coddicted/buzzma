@@ -14,15 +14,15 @@ import com.coddicted.buzzma.claim.model.AwaitedPayment;
 import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.ReceivedPayment;
-import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
-import com.coddicted.buzzma.claim.persistence.PaymentRepository;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
+import com.coddicted.buzzma.claim.service.ClaimAccountingService;
+import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +42,8 @@ class MyPaymentsServiceImplTest {
   private static final UUID PAYMENT_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
   private static final Instant PAID_AT = Instant.parse("2025-06-01T00:00:00Z");
 
-  @Mock private ClaimAccountingRepository claimAccountingRepository;
-  @Mock private PaymentRepository paymentRepository;
+  @Mock private ClaimAccountingService claimAccountingService;
+  @Mock private PaymentService paymentService;
 
   private MyPaymentsServiceImpl service;
 
@@ -51,7 +51,7 @@ class MyPaymentsServiceImplTest {
   void setUp() {
     service =
         new MyPaymentsServiceImpl(
-            claimAccountingRepository, paymentRepository, Mappers.getMapper(PaymentMapper.class));
+            claimAccountingService, paymentService, Mappers.getMapper(PaymentMapper.class));
   }
 
   // ── listReceived ──────────────────────────────────────────────────────────────────────────────
@@ -64,7 +64,8 @@ class MyPaymentsServiceImplTest {
     when(proj.getClaimCount()).thenReturn(3L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(30000));
     when(proj.getPaidAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findReceivedByMediator(CALLER_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findReceivedByMediator(CALLER_ID)).thenReturn(List.of(proj));
+    when(paymentService.findAllByIdAsMap(List.of(PAYMENT_ID))).thenReturn(Map.of());
 
     final List<ReceivedPayment> result = service.listReceived(CALLER_ID, UserRole.ROLE_MEDIATOR);
 
@@ -74,7 +75,7 @@ class MyPaymentsServiceImplTest {
     assertEquals(3, result.get(0).getClaimCount());
     assertEquals(BigInteger.valueOf(30000), result.get(0).getTotalAmountPaise());
     assertEquals(PAID_AT, result.get(0).getPaidAt());
-    verify(claimAccountingRepository).findReceivedByMediator(CALLER_ID);
+    verify(claimAccountingService).findReceivedByMediator(CALLER_ID);
   }
 
   @Test
@@ -85,13 +86,14 @@ class MyPaymentsServiceImplTest {
     when(proj.getClaimCount()).thenReturn(1L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(10000));
     when(proj.getPaidAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findReceivedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findReceivedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
+    when(paymentService.findAllByIdAsMap(List.of(PAYMENT_ID))).thenReturn(Map.of());
 
     final List<ReceivedPayment> result = service.listReceived(CALLER_ID, UserRole.ROLE_BUYER);
 
     assertEquals(1, result.size());
     assertEquals(PAYMENT_ID, result.get(0).getPaymentId());
-    verify(claimAccountingRepository).findReceivedByBuyer(CALLER_ID);
+    verify(claimAccountingService).findReceivedByBuyer(CALLER_ID);
   }
 
   @Test
@@ -113,7 +115,7 @@ class MyPaymentsServiceImplTest {
     when(proj.getClaimCount()).thenReturn(2L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(20000));
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findAwaitedByMediator(CALLER_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findAwaitedByMediator(CALLER_ID)).thenReturn(List.of(proj));
 
     final List<AwaitedPayment> result = service.listAwaited(CALLER_ID, UserRole.ROLE_MEDIATOR);
 
@@ -122,7 +124,7 @@ class MyPaymentsServiceImplTest {
     assertEquals(2, result.get(0).getClaimCount());
     assertEquals(BigInteger.valueOf(20000), result.get(0).getTotalAmountPaise());
     assertEquals(PAID_AT, result.get(0).getOldestClaimAt());
-    verify(claimAccountingRepository).findAwaitedByMediator(CALLER_ID);
+    verify(claimAccountingService).findAwaitedByMediator(CALLER_ID);
   }
 
   @Test
@@ -132,13 +134,13 @@ class MyPaymentsServiceImplTest {
     when(proj.getClaimCount()).thenReturn(1L);
     when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(5000));
     when(proj.getOldestClaimAt()).thenReturn(PAID_AT);
-    when(claimAccountingRepository.findAwaitedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
+    when(claimAccountingService.findAwaitedByBuyer(CALLER_ID)).thenReturn(List.of(proj));
 
     final List<AwaitedPayment> result = service.listAwaited(CALLER_ID, UserRole.ROLE_BUYER);
 
     assertEquals(1, result.size());
     assertEquals(PAYER_ID, result.get(0).getCounterpartyId());
-    verify(claimAccountingRepository).findAwaitedByBuyer(CALLER_ID);
+    verify(claimAccountingService).findAwaitedByBuyer(CALLER_ID);
   }
 
   @Test
@@ -164,7 +166,7 @@ class MyPaymentsServiceImplTest {
             .mediatorReceivablePaise(BigInteger.valueOf(10000))
             .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
             .build();
-    when(claimAccountingRepository.findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID))
+    when(claimAccountingService.findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -172,7 +174,7 @@ class MyPaymentsServiceImplTest {
 
     assertEquals(1, result.size());
     assertEquals(BigInteger.valueOf(10000), result.get(0).getAmountPaise());
-    verify(claimAccountingRepository).findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID);
+    verify(claimAccountingService).findClaimsPendingForMediatorPayout(PAYER_ID, CALLER_ID);
   }
 
   @Test
@@ -186,7 +188,7 @@ class MyPaymentsServiceImplTest {
             .buyerReceivablePaise(BigInteger.valueOf(5000))
             .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
             .build();
-    when(claimAccountingRepository.findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID))
+    when(claimAccountingService.findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID))
         .thenReturn(List.of(ca));
 
     final List<ClaimAccountingSummary> result =
@@ -194,7 +196,7 @@ class MyPaymentsServiceImplTest {
 
     assertEquals(1, result.size());
     assertEquals(BigInteger.valueOf(5000), result.get(0).getAmountPaise());
-    verify(claimAccountingRepository).findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID);
+    verify(claimAccountingService).findClaimsPendingForBuyerPayout(PAYER_ID, CALLER_ID);
   }
 
   @Test
@@ -203,6 +205,62 @@ class MyPaymentsServiceImplTest {
         assertThrows(
             ResponseStatusException.class,
             () -> service.listAwaitedClaims(PAYER_ID, CALLER_ID, UserRole.ROLE_AGENCY));
+
+    assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+  }
+
+  // ── listReceivedClaims ────────────────────────────────────────────────────────────────────────
+
+  @Test
+  void listReceivedClaims_mediatorRole_callsFindClaimsByMediatorPaymentIdAndMapsWithAgencyAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .campaignId(UUID.randomUUID())
+            .dealId(UUID.randomUUID())
+            .mediatorReceivablePaise(BigInteger.valueOf(10000))
+            .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .build();
+    when(claimAccountingService.findClaimsByMediatorPaymentId(CALLER_ID, PAYMENT_ID))
+        .thenReturn(List.of(ca));
+
+    final List<ClaimAccountingSummary> result =
+        service.listReceivedClaims(PAYMENT_ID, CALLER_ID, UserRole.ROLE_MEDIATOR);
+
+    assertEquals(1, result.size());
+    assertEquals(BigInteger.valueOf(10000), result.get(0).getAmountPaise());
+    verify(claimAccountingService).findClaimsByMediatorPaymentId(CALLER_ID, PAYMENT_ID);
+  }
+
+  @Test
+  void listReceivedClaims_buyerRole_callsFindClaimsByBuyerPaymentIdAndMapsWithMediatorAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .campaignId(UUID.randomUUID())
+            .dealId(UUID.randomUUID())
+            .buyerReceivablePaise(BigInteger.valueOf(5000))
+            .createdAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .build();
+    when(claimAccountingService.findClaimsByBuyerPaymentId(CALLER_ID, PAYMENT_ID))
+        .thenReturn(List.of(ca));
+
+    final List<ClaimAccountingSummary> result =
+        service.listReceivedClaims(PAYMENT_ID, CALLER_ID, UserRole.ROLE_BUYER);
+
+    assertEquals(1, result.size());
+    assertEquals(BigInteger.valueOf(5000), result.get(0).getAmountPaise());
+    verify(claimAccountingService).findClaimsByBuyerPaymentId(CALLER_ID, PAYMENT_ID);
+  }
+
+  @Test
+  void listReceivedClaims_forbiddenRole_throwsForbidden() {
+    final ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> service.listReceivedClaims(PAYMENT_ID, CALLER_ID, UserRole.ROLE_AGENCY));
 
     assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
   }
@@ -221,9 +279,9 @@ class MyPaymentsServiceImplTest {
             .utrRef("UTR12345")
             .paidAt(PAID_AT)
             .build();
-    when(paymentRepository.findById(PAYMENT_ID)).thenReturn(Optional.of(payment));
-    when(claimAccountingRepository.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(3L);
-    when(claimAccountingRepository.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(2L);
+    when(paymentService.getById(PAYMENT_ID)).thenReturn(payment);
+    when(claimAccountingService.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(3L);
+    when(claimAccountingService.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(2L);
 
     final PaymentReceipt receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
 
@@ -246,9 +304,9 @@ class MyPaymentsServiceImplTest {
             .paymentMethod(PaymentMethod.BANK)
             .paidAt(PAID_AT)
             .build();
-    when(paymentRepository.findById(PAYMENT_ID)).thenReturn(Optional.of(payment));
-    when(claimAccountingRepository.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(1L);
-    when(claimAccountingRepository.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(0L);
+    when(paymentService.getById(PAYMENT_ID)).thenReturn(payment);
+    when(claimAccountingService.countByMediatorPaymentId(PAYMENT_ID)).thenReturn(1L);
+    when(claimAccountingService.countByBuyerPaymentId(PAYMENT_ID)).thenReturn(0L);
 
     final PaymentReceipt receipt = service.getReceipt(PAYMENT_ID, CALLER_ID);
 
@@ -259,7 +317,8 @@ class MyPaymentsServiceImplTest {
 
   @Test
   void getReceipt_paymentNotFound_throwsNotFound() {
-    when(paymentRepository.findById(PAYMENT_ID)).thenReturn(Optional.empty());
+    when(paymentService.getById(PAYMENT_ID))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
 
     final ResponseStatusException ex =
         assertThrows(
@@ -280,7 +339,7 @@ class MyPaymentsServiceImplTest {
             .paymentMethod(PaymentMethod.UPI)
             .paidAt(PAID_AT)
             .build();
-    when(paymentRepository.findById(PAYMENT_ID)).thenReturn(Optional.of(payment));
+    when(paymentService.getById(PAYMENT_ID)).thenReturn(payment);
 
     final ResponseStatusException ex =
         assertThrows(
