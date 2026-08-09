@@ -72,6 +72,8 @@ public class UsersController {
           + UserRole.Expr.AGENCY
           + UserRole.Expr.OR
           + UserRole.Expr.MEDIATOR
+          + UserRole.Expr.OR
+          + UserRole.Expr.BRAND
           + ")"
           + UserRole.Expr.AND
           + "@parentshipGuard.isParentOf(#id))"

@@ -148,6 +148,26 @@ class UsersControllerTest {
   }
 
   @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testGetByIdAsParentBrandReturnsUserSummary() throws Exception {
+    when(connectionService.isParentOf(any(), any())).thenReturn(true);
+    final BuzzmaUser user = BuzzmaUser.builder().id(TARGET_USER_ID).build();
+    when(userService.getById(TARGET_USER_ID)).thenReturn(user);
+    when(userMapper.toUserSummaryDto(user))
+        .thenReturn(UserSummaryDto.builder().id(TARGET_USER_ID).build());
+
+    mockMvc.perform(get("/api/v1/users/" + TARGET_USER_ID)).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testGetByIdAsNonParentBrandReturnsForbidden() throws Exception {
+    when(connectionService.isParentOf(any(), any())).thenReturn(false);
+
+    mockMvc.perform(get("/api/v1/users/" + TARGET_USER_ID)).andExpect(status().isForbidden());
+  }
+
+  @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
   void testGetByIdAsBuyerReturnsForbidden() throws Exception {
     mockMvc.perform(get("/api/v1/users/" + TARGET_USER_ID)).andExpect(status().isForbidden());
