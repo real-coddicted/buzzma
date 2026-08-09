@@ -5,6 +5,7 @@ import { IconCheck, IconX, IconCopyCheck } from '../icons'
 import { ReviewerCommentBox } from './ReviewerCommentBox'
 import { RupeeInput } from '../RupeeInput'
 import { paiseToRupees } from '../../../utils/currency'
+import { canReviewClaims } from './claimUtils'
 
 interface ClaimProofActionsProps {
   userRole: string | undefined
@@ -25,7 +26,7 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, i
   const [amountError, setAmountError] = useState('')
   const [showRejectConfirm, setShowRejectConfirm] = useState(false)
 
-  if (userRole !== 'ROLE_AGENCY' && userRole !== 'ROLE_MEDIATOR') return null
+  if (!canReviewClaims(userRole) && userRole !== 'ROLE_MEDIATOR') return null
 
   function handleRejectClick() {
     if (!comment.trim()) {
@@ -54,7 +55,7 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, i
   return (
     <>
       <div className="space-y-3">
-        {userRole === 'ROLE_AGENCY' && (
+        {canReviewClaims(userRole) && (
           <>
             <ReviewerCommentBox
               value={comment}
@@ -79,7 +80,7 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, i
         )}
 
         <div className="flex flex-wrap justify-end gap-2">
-          {userRole === 'ROLE_AGENCY' && (
+          {canReviewClaims(userRole) && (
             <>
               <Button
                 size="sm"

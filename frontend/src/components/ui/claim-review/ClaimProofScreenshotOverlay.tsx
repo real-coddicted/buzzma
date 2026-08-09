@@ -7,6 +7,7 @@ import { ClaimProofCompareTable } from './ClaimProofCompareTable'
 import { ReviewerCommentBox } from './ReviewerCommentBox'
 import { SCREENSHOT_TYPE_CONFIG } from './claimReviewConstants'
 import type { ClaimProofItem } from './ClaimProofGallery'
+import { canReviewClaims } from './claimUtils'
 
 interface Props {
   item: ClaimProofItem
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, hasPrev, hasNext, onPrev, onNext, onClose, onApprove, onReject }: Props) {
-  const isAgency = userRole === 'ROLE_AGENCY'
+  const canReview = canReviewClaims(userRole)
   const [fullImage, setFullImage] = useState(false)
   const [comment, setComment] = useState('')
 
@@ -142,7 +143,7 @@ export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, hasPre
             )}
           </div>
         )}
-        {isAgency && !isActioned && (
+        {canReview && !isActioned && (
           <div className="flex-shrink-0 border-t border-surface-light-border dark:border-surface-dark-border px-4 py-3 space-y-2">
             <div className="flex gap-3 items-stretch">
               {item.reviewerComments && (

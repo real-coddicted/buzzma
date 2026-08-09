@@ -1284,6 +1284,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getSharedCampaigns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/shareable": {
         parameters: {
             query?: never;
@@ -2369,6 +2385,30 @@ export interface components {
             label?: string;
             /** Format: int32 */
             stepOrder?: number;
+        };
+        SharedCampaignResponseDto: {
+            /** Format: uuid */
+            campaignId?: string;
+            code?: string;
+            title?: string;
+            platform?: string;
+            campaignType?: string;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
+            productBrandName?: string;
+            productName?: string;
+            productLink?: string;
+            productImageUrl?: string;
+            productPricePaise?: number;
+            sellerName?: string;
+            affiliateLinkAllowed?: boolean;
+            campaignPricePaise?: number;
+            termsAndConditions?: string;
+            /** Format: uuid */
+            campaignOwnerId?: string;
+            campaignOwnerName?: string;
         };
         ShareableCampaignResponseDto: {
             /** Format: uuid */
@@ -4649,6 +4689,26 @@ export interface operations {
                     "*/*": {
                         [key: string]: components["schemas"]["CampaignStepDto"][];
                     };
+                };
+            };
+        };
+    };
+    getSharedCampaigns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SharedCampaignResponseDto"][];
                 };
             };
         };

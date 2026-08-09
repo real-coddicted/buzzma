@@ -172,6 +172,13 @@ export async function fetchBrandNames(): Promise<string[]> {
   return (await res.json()) as string[]
 }
 
+/** GET /campaigns/shared — lightweight id+title+code list of campaigns shared with the current brand, for typeahead pickers. */
+export async function fetchSharedCampaignNames(): Promise<CampaignNameOption[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared`)
+  const data = await res.json() as components['schemas']['SharedCampaignResponseDto'][]
+  return data.map(d => ({ id: d.campaignId ?? '', title: d.title ?? '', code: d.code ?? '' }))
+}
+
 type ShareCampaignRequestDto = components['schemas']['ShareCampaignRequestDto']
 
 /** POST /campaigns/{id}/share — shares a campaign with a connected brand. Cannot be undone. */

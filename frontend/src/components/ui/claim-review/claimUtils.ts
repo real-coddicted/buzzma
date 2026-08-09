@@ -3,6 +3,11 @@ import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import type { Platform, Deal, ClaimReviewItem } from '../../../types'
 import type { ClaimProofItem } from './ClaimProofGallery'
 
+/** Agencies and brands can approve/reject claims; brands are scoped server-side to campaigns shared with them. */
+export function canReviewClaims(userRole: string | undefined): boolean {
+  return userRole === 'ROLE_AGENCY' || userRole === 'ROLE_BRAND'
+}
+
 export function formatExtractedValue(key: string, raw: string): string {
   if (key === 'platform') return PLATFORM_LABELS[raw as Platform] ?? raw
   if (key === 'amount') {

@@ -13,7 +13,7 @@ import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 import { IconCalendar } from '../icons'
 import { getCurrentUser } from '../../../api/client'
-import { fetchCampaignNames, fetchBrandNames } from '../../../api/campaignApi'
+import { fetchCampaignNames, fetchBrandNames, fetchSharedCampaignNames } from '../../../api/campaignApi'
 import { fetchPublishedCampaignNames, fetchPublishedBrandNames } from '../../../api/dealApi'
 import { fetchConnections } from '../../../api/connectionApi'
 import { downloadClaimReviewReport } from '../../../api/claimApi'
@@ -51,19 +51,20 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const [pendingBulkAmounts, setPendingBulkAmounts] = useState<Record<string, number>>({})
   const [bulkApproving, setBulkApproving] = useState(false)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
+  const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
   const columns = isMediator
     ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator Name' ? 'Buyer Name' : col)
     : CLAIM_REVIEW_COLUMNS
 
   useEffect(() => {
     if (!drawerOpen) return
-    (isMediator ? fetchPublishedCampaignNames() : fetchCampaignNames())
+    (isMediator ? fetchPublishedCampaignNames() : isBrand ? fetchSharedCampaignNames() : fetchCampaignNames())
       .then(list => setCampaignOptions(list.map(c => ({ value: c.id, label: c.code ? `${c.title} (${c.code})` : c.title }))))
       .catch(err => {
         console.error('Failed to load campaign filter options', err)
         setOptionsError('Failed to load campaign options for the filter.')
       })
-  }, [drawerOpen, isMediator])
+  }, [drawerOpen, isMediator, isBrand])
 
   useEffect(() => {
     if (!drawerOpen) return

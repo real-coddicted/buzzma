@@ -1,6 +1,7 @@
 import { IconCheck, IconX } from '../icons'
 import { SCREENSHOT_TYPE_CONFIG } from './claimReviewConstants'
 import type { ClaimProofItem } from './ClaimProofGallery'
+import { canReviewClaims } from './claimUtils'
 
 function scoreColor(score: number) {
   if (score >= 80) return 'text-neon-green'
@@ -32,7 +33,7 @@ export function ClaimProofThumbnailCard({
   onSelect, onOpenOverlay, onApprove, onOpenRejectOverlay,
 }: Props) {
   const sc = SCREENSHOT_TYPE_CONFIG[item.type ?? '']
-  const isAgency = userRole === 'ROLE_AGENCY'
+  const canReview = canReviewClaims(userRole)
   const isVerified = item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED'
   const isRejected = item.verificationStatus === 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
   const isActioned = isVerified || isRejected
@@ -112,7 +113,7 @@ export function ClaimProofThumbnailCard({
           </span>
         </div>
       )}
-      {isAgency && !isActioned && (
+      {canReview && !isActioned && (
         <div className="border-t border-surface-light-border dark:border-surface-dark-border px-2.5 py-2">
           <div className="flex gap-1.5">
             <button
