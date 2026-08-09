@@ -1,9 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -47,16 +49,19 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
   private final ClaimService claimService;
   private final CampaignService campaignService;
+  private final CampaignShareService campaignShareService;
   private final DealService dealService;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
 
   public ClaimReviewServiceImpl(
       final ClaimService claimService,
       final CampaignService campaignService,
+      final CampaignShareService campaignShareService,
       final DealService dealService,
       final ClaimReviewEventPublisher claimReviewEventPublisher) {
     this.claimService = claimService;
     this.campaignService = campaignService;
+    this.campaignShareService = campaignShareService;
     this.dealService = dealService;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
   }
@@ -236,10 +241,17 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
   }
 
   private Set<UUID> getApplicableCampaignIds(final UUID requesterId) {
-    return this.campaignService.getByOwnerId(requesterId).stream()
-        .map(CampaignSummary::getCampaign)
-        .map(Campaign::getId)
-        .collect(Collectors.toSet());
+    final Set<UUID> ownedCampaignIds =
+        this.campaignService.getByOwnerId(requesterId).stream()
+            .map(CampaignSummary::getCampaign)
+            .map(Campaign::getId)
+            .collect(Collectors.toSet());
+    final Set<UUID> sharedCampaignIds =
+        this.campaignShareService.findByToUserId(requesterId).stream()
+            .map(CampaignShare::getCampaignId)
+            .collect(Collectors.toSet());
+    ownedCampaignIds.addAll(sharedCampaignIds);
+    return ownedCampaignIds;
   }
 
   private static Set<UUID> intersect(final Set<UUID> base, final Set<UUID> filter) {

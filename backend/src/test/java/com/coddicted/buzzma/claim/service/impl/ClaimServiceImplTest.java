@@ -16,11 +16,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -53,6 +55,7 @@ class ClaimServiceImplTest {
   @Mock private ClaimRepository mockClaimRepository;
   @Mock private ClaimScreenshotRepository mockClaimScreenshotRepository;
   @Mock private CampaignService mockCampaignService;
+  @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private CampaignTypeStepService mockCampaignTypeStepService;
@@ -68,6 +71,7 @@ class ClaimServiceImplTest {
             this.mockClaimRepository,
             this.mockClaimScreenshotRepository,
             this.mockCampaignService,
+            this.mockCampaignShareService,
             this.mockDealService,
             this.mockCampaignSlotRepository,
             this.mockCampaignTypeStepService,
@@ -402,6 +406,39 @@ class ClaimServiceImplTest {
 
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.claimService.getById(CLAIM_ID, OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
+  void testGetByIdWhenCampaignSharedWithBrand() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(
+            CLAIM_1.getCampaignId(), NON_OWNER_ID))
+        .thenReturn(true);
+
+    final Claim result = this.claimService.getById(CLAIM_ID, NON_OWNER_ID);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
+  void testGetByIdWhenCampaignNotSharedWithBrand() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(
+            CLAIM_1.getCampaignId(), NON_OWNER_ID))
+        .thenReturn(false);
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class, () -> this.claimService.getById(CLAIM_ID, NON_OWNER_ID));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 

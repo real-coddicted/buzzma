@@ -10,10 +10,12 @@ import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.SharedCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
+import com.coddicted.buzzma.campaign.mapper.SharedCampaignMapper;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
@@ -53,6 +55,7 @@ public class CampaignController {
   private final CampaignProcessor campaignProcessor;
   private final CampaignTypeStepService campaignTypeStepService;
   private final ShareableCampaignMapper shareableCampaignMapper;
+  private final SharedCampaignMapper sharedCampaignMapper;
 
   public CampaignController(
       final CampaignService service,
@@ -60,13 +63,15 @@ public class CampaignController {
       final CampaignTypeStepMapper campaignTypeStepMapper,
       final CampaignProcessor campaignProcessor,
       final CampaignTypeStepService campaignTypeStepService,
-      final ShareableCampaignMapper shareableCampaignMapper) {
+      final ShareableCampaignMapper shareableCampaignMapper,
+      final SharedCampaignMapper sharedCampaignMapper) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.campaignTypeStepMapper = campaignTypeStepMapper;
     this.campaignProcessor = campaignProcessor;
     this.campaignTypeStepService = campaignTypeStepService;
     this.shareableCampaignMapper = shareableCampaignMapper;
+    this.sharedCampaignMapper = sharedCampaignMapper;
   }
 
   @GetMapping("/step-config")
@@ -108,6 +113,12 @@ public class CampaignController {
       @CurrentUserId final UUID requesterId) {
     return this.shareableCampaignMapper.toResponse(
         this.service.findShareableCampaigns(requesterId));
+  }
+
+  @GetMapping("/shared")
+  @PreAuthorize(UserRole.Expr.BRAND)
+  public List<SharedCampaignResponseDto> getSharedCampaigns(@CurrentUserId final UUID requesterId) {
+    return this.sharedCampaignMapper.toResponse(this.service.findSharedCampaigns(requesterId));
   }
 
   @PostMapping("/{campaignId}/share")

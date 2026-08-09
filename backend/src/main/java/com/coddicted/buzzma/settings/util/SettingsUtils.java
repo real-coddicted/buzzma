@@ -28,6 +28,7 @@ public final class SettingsUtils {
         .dashboardTabEnabled(false)
         .campaignsTabEnabled(true)
         .connectionsTabEnabled(true)
+        .claimReviewEnabled(true)
         .ticketsTabEnabled(true)
         .feedbackTabEnabled(true)
         .settingsTabEnabled(true)

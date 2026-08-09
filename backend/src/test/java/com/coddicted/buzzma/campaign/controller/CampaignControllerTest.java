@@ -12,10 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.SharedCampaignResponseDto;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
+import com.coddicted.buzzma.campaign.mapper.SharedCampaignMapper;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
+import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -54,6 +57,7 @@ class CampaignControllerTest {
   @MockBean private CampaignProcessor campaignProcessor;
   @MockBean private CampaignTypeStepService campaignTypeStepService;
   @MockBean private ShareableCampaignMapper shareableCampaignMapper;
+  @MockBean private SharedCampaignMapper sharedCampaignMapper;
 
   private static final String VALID_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/campaign/campaign-request.json");
@@ -399,5 +403,52 @@ class CampaignControllerTest {
   @Test
   void testGetShareableCampaignsUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isUnauthorized());
+  }
+
+  // --- GET /api/v1/campaigns/shared ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND, id = REQUESTER_ID)
+  void testGetSharedCampaignsWithBrandRoleReturns200() throws Exception {
+    when(campaignService.findSharedCampaigns(UUID.fromString(REQUESTER_ID))).thenReturn(List.of());
+    when(sharedCampaignMapper.toResponse(List.<SharedCampaignView>of()))
+        .thenReturn(
+            List.of(
+                SharedCampaignResponseDto.builder()
+                    .campaignId(CAMPAIGN_ID)
+                    .title("Test Campaign")
+                    .campaignOwnerId(UUID.fromString(REQUESTER_ID))
+                    .campaignOwnerName("Test Agency")
+                    .build()));
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/shared"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].campaignId").value(CAMPAIGN_ID.toString()))
+        .andExpect(jsonPath("$[0].title").value("Test Campaign"))
+        .andExpect(jsonPath("$[0].campaignOwnerName").value("Test Agency"));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetSharedCampaignsWithAgencyRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void testGetSharedCampaignsWithMediatorRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testGetSharedCampaignsWithBuyerRoleReturnsForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testGetSharedCampaignsUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isUnauthorized());
   }
 }

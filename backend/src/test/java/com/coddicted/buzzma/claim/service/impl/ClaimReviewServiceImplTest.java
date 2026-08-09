@@ -24,8 +24,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -69,9 +71,13 @@ class ClaimReviewServiceImplTest {
       UUID.fromString("55555555-5555-5555-5555-555555555555");
   private static final UUID NOT_OWNED_CAMPAIGN_ID =
       UUID.fromString("66666666-6666-6666-6666-666666666666");
+  private static final UUID BRAND_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
+  private static final UUID SHARED_CAMPAIGN_ID =
+      UUID.fromString("88888888-8888-8888-8888-888888888888");
 
   @Mock private ClaimService mockClaimService;
   @Mock private CampaignService mockCampaignService;
+  @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
   @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
   @Captor ArgumentCaptor<Collection<UUID>> campaignIdsCaptor;
@@ -88,6 +94,7 @@ class ClaimReviewServiceImplTest {
         new ClaimReviewServiceImpl(
             this.mockClaimService,
             this.mockCampaignService,
+            this.mockCampaignShareService,
             this.mockDealService,
             this.mockClaimReviewEventPublisher);
   }
@@ -247,6 +254,28 @@ class ClaimReviewServiceImplTest {
 
     assertSame(expected, result);
     assertEquals(Set.of(OWNED_CAMPAIGN_ID), Set.copyOf(campaignIdsCaptor.getValue()));
+  }
+
+  @Test
+  void testGetClaimReviewsForBrandIncludesSharedCampaigns() {
+    final BuzzmaUser brand = BuzzmaUser.builder().id(BRAND_ID).role(UserRole.ROLE_BRAND).build();
+    final Pageable requested = Pageable.ofSize(10);
+
+    when(this.mockCampaignService.getByOwnerId(BRAND_ID)).thenReturn(List.of());
+    when(this.mockCampaignShareService.findByToUserId(BRAND_ID))
+        .thenReturn(List.of(CampaignShare.builder().campaignId(SHARED_CAMPAIGN_ID).build()));
+
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    when(this.mockClaimService.findClaimsToReviewForCampaigns(
+            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), any()))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimReviewService.getClaimReviews(brand, null, null, null, null, null, requested);
+
+    assertSame(expected, result);
+    assertEquals(Set.of(SHARED_CAMPAIGN_ID), Set.copyOf(campaignIdsCaptor.getValue()));
   }
 
   @Test

@@ -14,6 +14,7 @@ import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
+import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
@@ -255,6 +256,12 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   public List<ShareableCampaignView> findShareableCampaigns(final UUID ownerId) {
     final int today = DateTimeUtils.getAsianTodayDate();
     return this.campaignRepository.findShareableCampaigns(ownerId, today);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SharedCampaignView> findSharedCampaigns(final UUID toUserId) {
+    return this.campaignRepository.findSharedCampaigns(toUserId);
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {

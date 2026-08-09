@@ -199,6 +199,12 @@ public class ClaimController {
   }
 
   @PostMapping("/{id}/submitReview")
+  @PreAuthorize(
+      UserRole.Expr.AGENCY
+          + UserRole.Expr.OR
+          + UserRole.Expr.BRAND
+          + UserRole.Expr.OR
+          + UserRole.Expr.MEDIATOR)
   public ClaimResponseDto submitClaimReview(
       @CurrentUser final BuzzmaUser requester,
       @PathVariable final UUID id,
@@ -218,7 +224,7 @@ public class ClaimController {
   }
 
   @PostMapping("/bulkSubmitReview")
-  @PreAuthorize(UserRole.Expr.AGENCY)
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public List<ClaimReviewResponseDto> bulkSubmitClaimReview(
       @CurrentUser final BuzzmaUser requester,
       @Valid @RequestBody final List<@Valid ClaimReviewRequestDto> requests) {
@@ -234,7 +240,7 @@ public class ClaimController {
   }
 
   @PostMapping("/screenshots/review")
-  @PreAuthorize(UserRole.Expr.AGENCY)
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public ClaimResponseDto reviewScreenshot(
       @CurrentUserId final UUID reviewerId,
       @Valid @RequestBody final ScreenshotReviewRequestDto request) {
@@ -267,7 +273,12 @@ public class ClaimController {
   }
 
   @PostMapping("/review")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
+  @PreAuthorize(
+      UserRole.Expr.AGENCY
+          + UserRole.Expr.OR
+          + UserRole.Expr.MEDIATOR
+          + UserRole.Expr.OR
+          + UserRole.Expr.BRAND)
   public Page<ClaimReviewResponseDto> listClaimsToReview(
       @CurrentUser final BuzzmaUser requester,
       @RequestBody(required = false) final ClaimReviewFilterRequestDto request,
