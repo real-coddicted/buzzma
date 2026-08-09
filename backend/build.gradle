@@ -132,7 +132,9 @@ tasks.named('test') {
   // Docker 25+ rejects docker-java's default API version; pin to a supported one.
   environment 'DOCKER_API_VERSION', '1.45'
   systemProperty 'api.version', '1.45'
-  // Recycle the forked test JVM periodically so Spring's ApplicationContext cache and
-  // Testcontainers instances don't accumulate unbounded across the whole suite.
-  forkEvery = 100
+  // Defensive: recycle the forked test JVM periodically so Spring's ApplicationContext
+  // cache and Testcontainers instances can't accumulate unbounded across the whole suite.
+  // Prompted by intermittent full-suite ApplicationContext-load failures (see #607) that
+  // could not be reliably reproduced afterward to confirm this as the actual fix.
+  forkEvery = 20
 }
