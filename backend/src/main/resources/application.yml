@@ -92,6 +92,13 @@ app:
         batch-size: ${CLAIM_ACCOUNTING_SCHEDULER_BATCH_SIZE:50}
         max-retries: ${CLAIM_ACCOUNTING_SCHEDULER_MAX_RETRIES:3}
         stale-threshold-minutes: ${CLAIM_ACCOUNTING_SCHEDULER_STALE_THRESHOLD_MINUTES:30}
+  claim-review:
+    worksheet:
+      scheduler:
+        fixed-delay-ms: ${CLAIM_REVIEW_WORKSHEET_SCHEDULER_DELAY_MS:60000}
+        batch-size: ${CLAIM_REVIEW_WORKSHEET_SCHEDULER_BATCH_SIZE:50}
+        max-retries: ${CLAIM_REVIEW_WORKSHEET_SCHEDULER_MAX_RETRIES:3}
+        stale-threshold-minutes: ${CLAIM_REVIEW_WORKSHEET_SCHEDULER_STALE_THRESHOLD_MINUTES:30}
   storage:
     type: ${STORAGE_TYPE:garage}
     base-dir: ${STORAGE_BASE_DIR:./storage}

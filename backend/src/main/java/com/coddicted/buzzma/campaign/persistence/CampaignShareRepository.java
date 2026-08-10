@@ -15,6 +15,4 @@ public interface CampaignShareRepository extends JpaRepository<CampaignShare, UU
   List<CampaignShare> findByToUserId(UUID toUserId);
 
   boolean existsByCampaignId(UUID campaignId);
-
-  boolean existsByCampaignIdAndToUserId(UUID campaignId, UUID toUserId);
 }

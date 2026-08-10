@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
@@ -416,9 +417,8 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
         .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(
-            CLAIM_1.getCampaignId(), NON_OWNER_ID))
-        .thenReturn(true);
+    when(this.mockCampaignShareService.findByCampaignId(CLAIM_1.getCampaignId()))
+        .thenReturn(Optional.of(CampaignShare.builder().toUserId(NON_OWNER_ID).build()));
 
     final Claim result = this.claimService.getById(CLAIM_ID, NON_OWNER_ID);
 
@@ -432,9 +432,8 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
         .thenReturn(Campaign.builder().ownerId(OWNER_ID).build());
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignShareService.existsByCampaignIdAndToUserId(
-            CLAIM_1.getCampaignId(), NON_OWNER_ID))
-        .thenReturn(false);
+    when(this.mockCampaignShareService.findByCampaignId(CLAIM_1.getCampaignId()))
+        .thenReturn(Optional.empty());
 
     final NotFoundException ex =
         assertThrows(

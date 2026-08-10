@@ -12,8 +12,10 @@ import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.report.excel.ClaimReviewReportColumns;
 import com.coddicted.buzzma.report.excel.WorkbookUtils;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -130,21 +132,61 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
   private void persistRows(final Sheet sheet, final UUID worksheetId) {
     final int batchSize = properties.getBatchSize();
     final List<ClaimReviewWorksheetRow> batch = new ArrayList<>(batchSize);
+    ClaimReviewWorksheetRow worksheetRow;
+    final Map<String, String> worksheetRowIdMap = new HashMap<>();
 
     for (int r = 1; r <= sheet.getLastRowNum(); r++) {
       final Row row = sheet.getRow(r);
       if (row == null || row.getLastCellNum() <= 0) {
         continue;
       }
-      batch.add(toRowEntity(row, worksheetId));
+      worksheetRow = toRowEntity(row, worksheetId);
+      checkForDuplicateRow(worksheetRowIdMap, worksheetRow, batch);
+      batch.add(worksheetRow);
       if (batch.size() == batchSize) {
-        rowRepository.saveAll(batch);
+        List<ClaimReviewWorksheetRow> savedRows = rowRepository.saveAll(batch);
+        savedRows.forEach(
+            savedRow ->
+                worksheetRowIdMap.put(savedRow.getClaimCode(), savedRow.getId().toString()));
         batch.clear();
       }
     }
     if (!batch.isEmpty()) {
       rowRepository.saveAll(batch);
     }
+  }
+
+  private void checkForDuplicateRow(
+      Map<String, String> worksheetRowNumberMap,
+      ClaimReviewWorksheetRow worksheetRow,
+      List<ClaimReviewWorksheetRow> batch) {
+    if (worksheetRowNumberMap.containsKey(worksheetRow.getClaimCode())) {
+      ClaimReviewWorksheetRow oldRow =
+          rowRepository.getReferenceById(
+              UUID.fromString(worksheetRowNumberMap.get(worksheetRow.getClaimCode())));
+      markRowForError(oldRow);
+      batch.add(oldRow);
+      markRowForError(worksheetRow);
+    }
+  }
+
+  @Override
+  public UUID getUploadedBy(final UUID worksheetId) {
+    return worksheetRepository
+        .findById(worksheetId)
+        .orElseThrow(() -> new NotFoundException("Worksheet not found: " + worksheetId))
+        .getUploadedBy();
+  }
+
+  @Override
+  @Transactional
+  public void updateStatus(final UUID worksheetId, final WorksheetRowStatus status) {
+    worksheetRepository.updateStatus(worksheetId, status);
+  }
+
+  private static void markRowForError(ClaimReviewWorksheetRow worksheetRow) {
+    worksheetRow.setProcessingStatus(WorksheetRowStatus.ERROR);
+    worksheetRow.setErrorRemarks("Duplicate worksheet entry");
   }
 
   private ClaimReviewWorksheetRow toRowEntity(final Row row, final UUID worksheetId) {

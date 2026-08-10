@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.service;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
+import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import java.util.List;
 import java.util.UUID;
@@ -15,4 +16,8 @@ public interface ClaimReviewWorksheetService {
   ClaimReviewWorksheetDownloadDto downloadWorksheet(UUID id);
 
   List<ClaimReviewWorksheetResponseDto> listWorkbooks(BuzzmaUser currentUser);
+
+  UUID getUploadedBy(UUID worksheetId);
+
+  void updateStatus(UUID worksheetId, WorksheetRowStatus status);
 }

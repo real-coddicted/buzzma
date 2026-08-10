@@ -525,8 +525,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (requesterId.equals(claim.getOwnerId())
         || requesterId.equals(this.campaignService.getById(claim.getCampaignId()).getOwnerId())
         || requesterId.equals(this.dealService.getById(claim.getDealId()).getOwnerId())
-        || this.campaignShareService.existsByCampaignIdAndToUserId(
-            claim.getCampaignId(), requesterId)) {
+        || isCampaignSharedWith(claim.getCampaignId(), requesterId)) {
       return claim;
     }
 
@@ -538,5 +537,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         claim.getCampaignId(),
         claim.getDealId());
     throw new NotFoundException("Claim not found: " + claimId);
+  }
+
+  private boolean isCampaignSharedWith(final UUID campaignId, final UUID userId) {
+    return this.campaignShareService
+        .findByCampaignId(campaignId)
+        .map(share -> share.getToUserId().equals(userId))
+        .orElse(false);
   }
 }

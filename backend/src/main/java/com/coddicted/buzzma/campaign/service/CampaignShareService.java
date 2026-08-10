@@ -14,6 +14,4 @@ public interface CampaignShareService {
   List<CampaignShare> findByToUserId(UUID toUserId);
 
   boolean existsByCampaignId(UUID campaignId);
-
-  boolean existsByCampaignIdAndToUserId(UUID campaignId, UUID toUserId);
 }

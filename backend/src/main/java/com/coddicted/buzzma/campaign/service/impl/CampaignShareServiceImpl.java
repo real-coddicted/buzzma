@@ -41,10 +41,4 @@ public class CampaignShareServiceImpl implements CampaignShareService {
   public boolean existsByCampaignId(final UUID campaignId) {
     return this.campaignShareRepository.existsByCampaignId(campaignId);
   }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean existsByCampaignIdAndToUserId(final UUID campaignId, final UUID toUserId) {
-    return this.campaignShareRepository.existsByCampaignIdAndToUserId(campaignId, toUserId);
-  }
 }
