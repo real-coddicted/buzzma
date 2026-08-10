@@ -14,9 +14,13 @@ import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
 import com.coddicted.buzzma.claim.mapper.PaymentMapper;
 import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.MadePayment;
+import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.PaymentService;
@@ -25,6 +29,7 @@ import com.coddicted.buzzma.storage.service.StorageService;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -428,5 +436,181 @@ class PayoutServiceImplTest {
                     "image/png"));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+  }
+
+  // ── listPaid ──────────────────────────────────────────────────────────────────────────────────
+
+  @Test
+  void listPaid_agencyRole_delegatesToFindPaidByAgencyAndMapsModels() {
+    final PaidPayoutProjection proj = mock(PaidPayoutProjection.class);
+    when(proj.getPayeeId()).thenReturn(MEDIATOR_ID);
+    when(proj.getClaimCount()).thenReturn(4L);
+    when(proj.getPaymentCount()).thenReturn(2L);
+    when(proj.getTotalAmountPaidPaise()).thenReturn(BigInteger.valueOf(40000));
+    when(proj.getLastPaidAt()).thenReturn(PAID_AT);
+    when(claimAccountingService.findPaidByAgency(AGENCY_ID, PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of(proj)));
+
+    final Page<PaidPayout> result = service.listPaid(AGENCY_ID, UserRole.ROLE_AGENCY, 0, 20);
+
+    assertEquals(1, result.getTotalElements());
+    assertEquals(MEDIATOR_ID, result.getContent().get(0).getPayeeId());
+    assertEquals(4, result.getContent().get(0).getClaimCount());
+    assertEquals(2, result.getContent().get(0).getPaymentCount());
+    assertEquals(BigInteger.valueOf(40000), result.getContent().get(0).getTotalAmountPaidPaise());
+    assertEquals(PAID_AT, result.getContent().get(0).getLastPaidAt());
+    verify(claimAccountingService).findPaidByAgency(AGENCY_ID, PageRequest.of(0, 20));
+  }
+
+  @Test
+  void listPaid_mediatorRole_delegatesToFindPaidByMediatorAndMapsModels() {
+    final PaidPayoutProjection proj = mock(PaidPayoutProjection.class);
+    when(proj.getPayeeId()).thenReturn(BUYER_ID);
+    when(proj.getClaimCount()).thenReturn(2L);
+    when(proj.getPaymentCount()).thenReturn(1L);
+    when(proj.getTotalAmountPaidPaise()).thenReturn(BigInteger.valueOf(8000));
+    when(proj.getLastPaidAt()).thenReturn(PAID_AT);
+    when(claimAccountingService.findPaidByMediator(MEDIATOR_ID, PageRequest.of(1, 5)))
+        .thenReturn(new PageImpl<>(List.of(proj)));
+
+    final Page<PaidPayout> result = service.listPaid(MEDIATOR_ID, UserRole.ROLE_MEDIATOR, 1, 5);
+
+    assertEquals(1, result.getTotalElements());
+    assertEquals(BUYER_ID, result.getContent().get(0).getPayeeId());
+    verify(claimAccountingService).findPaidByMediator(MEDIATOR_ID, PageRequest.of(1, 5));
+  }
+
+  @Test
+  void listPaid_forbiddenRole_throwsForbidden() {
+    final ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> service.listPaid(BUYER_ID, UserRole.ROLE_BUYER, 0, 20));
+
+    assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+  }
+
+  // ── listPayments ──────────────────────────────────────────────────────────────────────────────
+
+  @Test
+  void listPayments_agencyRole_delegatesAndEnrichesWithPaymentRow() {
+    final MadePaymentProjection proj = mock(MadePaymentProjection.class);
+    when(proj.getPaymentId()).thenReturn(PAYMENT_ID);
+    when(proj.getClaimCount()).thenReturn(3L);
+    when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(30000));
+    when(proj.getPaidAt()).thenReturn(PAID_AT);
+    when(claimAccountingService.findPaymentsPaidToMediator(
+            AGENCY_ID, MEDIATOR_ID, PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of(proj)));
+    final Payment payment =
+        Payment.builder()
+            .id(PAYMENT_ID)
+            .paymentMethod(PaymentMethod.UPI)
+            .screenshotStorageKey("payments/proof.png")
+            .build();
+    when(paymentService.findAllByIdAsMap(List.of(PAYMENT_ID)))
+        .thenReturn(Map.of(PAYMENT_ID, payment));
+
+    final Page<MadePayment> result =
+        service.listPayments(AGENCY_ID, MEDIATOR_ID, UserRole.ROLE_AGENCY, 0, 20);
+
+    assertEquals(1, result.getTotalElements());
+    assertEquals(PAYMENT_ID, result.getContent().get(0).getPaymentId());
+    assertEquals(3, result.getContent().get(0).getClaimCount());
+    assertEquals(BigInteger.valueOf(30000), result.getContent().get(0).getTotalAmountPaise());
+    assertEquals(PaymentMethod.UPI, result.getContent().get(0).getPaymentMethod());
+    assertEquals("payments/proof.png", result.getContent().get(0).getScreenshotStorageKey());
+  }
+
+  @Test
+  void listPayments_mediatorRole_delegatesToFindPaymentsPaidToBuyer() {
+    final MadePaymentProjection proj = mock(MadePaymentProjection.class);
+    when(proj.getPaymentId()).thenReturn(PAYMENT_ID);
+    when(proj.getClaimCount()).thenReturn(1L);
+    when(proj.getTotalAmountPaise()).thenReturn(BigInteger.valueOf(8000));
+    when(proj.getPaidAt()).thenReturn(PAID_AT);
+    when(claimAccountingService.findPaymentsPaidToBuyer(
+            MEDIATOR_ID, BUYER_ID, PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of(proj)));
+    when(paymentService.findAllByIdAsMap(List.of(PAYMENT_ID)))
+        .thenReturn(Map.of(PAYMENT_ID, Payment.builder().id(PAYMENT_ID).build()));
+
+    final Page<MadePayment> result =
+        service.listPayments(MEDIATOR_ID, BUYER_ID, UserRole.ROLE_MEDIATOR, 0, 20);
+
+    assertEquals(1, result.getTotalElements());
+    verify(claimAccountingService)
+        .findPaymentsPaidToBuyer(MEDIATOR_ID, BUYER_ID, PageRequest.of(0, 20));
+  }
+
+  @Test
+  void listPayments_forbiddenRole_throwsForbidden() {
+    final ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> service.listPayments(BUYER_ID, MEDIATOR_ID, UserRole.ROLE_BUYER, 0, 20));
+
+    assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+  }
+
+  // ── listClaimsForPayment ──────────────────────────────────────────────────────────────────────
+
+  @Test
+  void listClaimsForPayment_agencyRole_returnsMediatorReceivableAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(CLAIM_ACCOUNTING_ID)
+            .claimId(CLAIM_ID)
+            .campaignId(CAMPAIGN_ID)
+            .agencyId(AGENCY_ID)
+            .mediatorPaymentId(PAYMENT_ID)
+            .mediatorReceivablePaise(BigInteger.valueOf(10000))
+            .buyerReceivablePaise(BigInteger.valueOf(8000))
+            .build();
+    when(claimAccountingService.findClaimsPaidToMediatorByPayment(
+            AGENCY_ID, PAYMENT_ID, PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of(ca)));
+
+    final Page<ClaimAccountingSummary> result =
+        service.listClaimsForPayment(AGENCY_ID, PAYMENT_ID, UserRole.ROLE_AGENCY, 0, 20);
+
+    assertEquals(1, result.getTotalElements());
+    assertEquals(CLAIM_ACCOUNTING_ID, result.getContent().get(0).getId());
+    assertEquals(BigInteger.valueOf(10000), result.getContent().get(0).getAmountPaise());
+  }
+
+  @Test
+  void listClaimsForPayment_mediatorRole_returnsBuyerReceivableAmount() {
+    final ClaimAccounting ca =
+        ClaimAccounting.builder()
+            .id(CLAIM_ACCOUNTING_ID)
+            .claimId(CLAIM_ID)
+            .campaignId(CAMPAIGN_ID)
+            .mediatorId(MEDIATOR_ID)
+            .buyerPaymentId(PAYMENT_ID)
+            .mediatorReceivablePaise(BigInteger.valueOf(10000))
+            .buyerReceivablePaise(BigInteger.valueOf(8000))
+            .build();
+    when(claimAccountingService.findClaimsPaidToBuyerByPayment(
+            MEDIATOR_ID, PAYMENT_ID, PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of(ca)));
+
+    final Page<ClaimAccountingSummary> result =
+        service.listClaimsForPayment(MEDIATOR_ID, PAYMENT_ID, UserRole.ROLE_MEDIATOR, 0, 20);
+
+    assertEquals(1, result.getTotalElements());
+    assertEquals(BigInteger.valueOf(8000), result.getContent().get(0).getAmountPaise());
+    verify(claimAccountingService)
+        .findClaimsPaidToBuyerByPayment(MEDIATOR_ID, PAYMENT_ID, PageRequest.of(0, 20));
+  }
+
+  @Test
+  void listClaimsForPayment_forbiddenRole_throwsForbidden() {
+    final ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> service.listClaimsForPayment(BUYER_ID, PAYMENT_ID, UserRole.ROLE_BUYER, 0, 20));
+
+    assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
   }
 }

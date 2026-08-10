@@ -2,12 +2,16 @@ package com.coddicted.buzzma.claim.persistence;
 
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -245,4 +249,157 @@ public interface ClaimAccountingRepository extends JpaRepository<ClaimAccounting
   long countByMediatorPaymentId(UUID mediatorPaymentId);
 
   long countByBuyerPaymentId(UUID buyerPaymentId);
+
+  // ── Payouts — paid (payer-side history, paginated) ────────────────────────
+
+  @Query(
+      value =
+          """
+          SELECT ca.mediatorId AS payeeId,
+                 COUNT(ca) AS claimCount,
+                 COUNT(DISTINCT ca.mediatorPaymentId) AS paymentCount,
+                 SUM(ca.mediatorReceivablePaise) AS totalAmountPaidPaise,
+                 MAX(ca.mediatorPaidAt) AS lastPaidAt
+          FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          GROUP BY ca.mediatorId
+          ORDER BY MAX(ca.mediatorPaidAt) DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT ca.mediatorId)
+          FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<PaidPayoutProjection> findPaidByAgency(@Param("agencyId") UUID agencyId, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT ca.buyerId AS payeeId,
+                 COUNT(ca) AS claimCount,
+                 COUNT(DISTINCT ca.buyerPaymentId) AS paymentCount,
+                 SUM(ca.buyerReceivablePaise) AS totalAmountPaidPaise,
+                 MAX(ca.buyerPaidAt) AS lastPaidAt
+          FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          GROUP BY ca.buyerId
+          ORDER BY MAX(ca.buyerPaidAt) DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT ca.buyerId)
+          FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<PaidPayoutProjection> findPaidByMediator(
+      @Param("mediatorId") UUID mediatorId, Pageable pageable);
+
+  // ── Payouts — payments made to one payee (paginated) ───────────────────────
+
+  @Query(
+      value =
+          """
+          SELECT ca.mediatorPaymentId AS paymentId,
+                 COUNT(ca) AS claimCount,
+                 SUM(ca.mediatorReceivablePaise) AS totalAmountPaise,
+                 MAX(ca.mediatorPaidAt) AS paidAt
+          FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorId = :mediatorId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          GROUP BY ca.mediatorPaymentId
+          ORDER BY MAX(ca.mediatorPaidAt) DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT ca.mediatorPaymentId)
+          FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorId = :mediatorId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<MadePaymentProjection> findPaymentsPaidToMediator(
+      @Param("agencyId") UUID agencyId, @Param("mediatorId") UUID mediatorId, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT ca.buyerPaymentId AS paymentId,
+                 COUNT(ca) AS claimCount,
+                 SUM(ca.buyerReceivablePaise) AS totalAmountPaise,
+                 MAX(ca.buyerPaidAt) AS paidAt
+          FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerId = :buyerId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          GROUP BY ca.buyerPaymentId
+          ORDER BY MAX(ca.buyerPaidAt) DESC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(DISTINCT ca.buyerPaymentId)
+          FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerId = :buyerId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<MadePaymentProjection> findPaymentsPaidToBuyer(
+      @Param("mediatorId") UUID mediatorId, @Param("buyerId") UUID buyerId, Pageable pageable);
+
+  // ── Payouts — claims settled within one payment (paginated) ────────────────
+
+  @Query(
+      value =
+          """
+          SELECT ca FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorPaymentId = :paymentId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          ORDER BY ca.createdAt ASC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(ca) FROM ClaimAccounting ca
+          WHERE ca.agencyId = :agencyId
+            AND ca.mediatorPaymentId = :paymentId
+            AND ca.mediatorPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<ClaimAccounting> findClaimsPaidToMediatorByPayment(
+      @Param("agencyId") UUID agencyId, @Param("paymentId") UUID paymentId, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT ca FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerPaymentId = :paymentId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          ORDER BY ca.createdAt ASC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(ca) FROM ClaimAccounting ca
+          WHERE ca.mediatorId = :mediatorId
+            AND ca.buyerPaymentId = :paymentId
+            AND ca.buyerPaymentStatus
+                = com.coddicted.buzzma.claim.entity.AccountingPaymentStatus.PAID
+          """)
+  Page<ClaimAccounting> findClaimsPaidToBuyerByPayment(
+      @Param("mediatorId") UUID mediatorId, @Param("paymentId") UUID paymentId, Pageable pageable);
 }

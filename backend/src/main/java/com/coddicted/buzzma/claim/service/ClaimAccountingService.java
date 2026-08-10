@@ -3,11 +3,15 @@ package com.coddicted.buzzma.claim.service;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ClaimAccountingService {
 
@@ -64,4 +68,22 @@ public interface ClaimAccountingService {
   long countByMediatorPaymentId(UUID mediatorPaymentId);
 
   long countByBuyerPaymentId(UUID buyerPaymentId);
+
+  // ── Payouts — paid / made (payer-side history, paginated) ──────────────────
+
+  Page<PaidPayoutProjection> findPaidByAgency(UUID agencyId, Pageable pageable);
+
+  Page<PaidPayoutProjection> findPaidByMediator(UUID mediatorId, Pageable pageable);
+
+  Page<MadePaymentProjection> findPaymentsPaidToMediator(
+      UUID agencyId, UUID mediatorId, Pageable pageable);
+
+  Page<MadePaymentProjection> findPaymentsPaidToBuyer(
+      UUID mediatorId, UUID buyerId, Pageable pageable);
+
+  Page<ClaimAccounting> findClaimsPaidToMediatorByPayment(
+      UUID agencyId, UUID paymentId, Pageable pageable);
+
+  Page<ClaimAccounting> findClaimsPaidToBuyerByPayment(
+      UUID mediatorId, UUID paymentId, Pageable pageable);
 }

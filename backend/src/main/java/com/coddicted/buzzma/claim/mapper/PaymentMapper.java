@@ -2,6 +2,8 @@ package com.coddicted.buzzma.claim.mapper;
 
 import com.coddicted.buzzma.claim.dto.AwaitedPaymentDto;
 import com.coddicted.buzzma.claim.dto.ClaimAccountingSummaryDto;
+import com.coddicted.buzzma.claim.dto.MadePaymentDto;
+import com.coddicted.buzzma.claim.dto.PaidPayoutDto;
 import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
 import com.coddicted.buzzma.claim.dto.PendingPayoutDto;
 import com.coddicted.buzzma.claim.dto.ReceivedPaymentDto;
@@ -10,11 +12,15 @@ import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.model.AwaitedPayment;
 import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.MadePayment;
+import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import java.util.List;
@@ -64,6 +70,16 @@ public interface PaymentMapper {
   @Mapping(source = "claimCount", target = "claimCount")
   PaymentReceipt toReceipt(Payment payment, long claimCount);
 
+  PaidPayout toPaidPayout(PaidPayoutProjection projection);
+
+  @Mapping(source = "projection.paymentId", target = "paymentId")
+  @Mapping(source = "projection.claimCount", target = "claimCount")
+  @Mapping(source = "projection.totalAmountPaise", target = "totalAmountPaise")
+  @Mapping(source = "projection.paidAt", target = "paidAt")
+  @Mapping(source = "payment.paymentMethod", target = "paymentMethod")
+  @Mapping(source = "payment.screenshotStorageKey", target = "screenshotStorageKey")
+  MadePayment toMadePayment(MadePaymentProjection projection, Payment payment);
+
   // ── Model / DTO → DTO / model (controller layer) ────────────────────────────────────────────
 
   RecordPaymentRequest toModel(RecordPaymentRequestDto dto);
@@ -77,4 +93,8 @@ public interface PaymentMapper {
   PendingPayoutDto toDto(PendingPayout model);
 
   PaymentReceiptDto toDto(PaymentReceipt model);
+
+  PaidPayoutDto toDto(PaidPayout model);
+
+  MadePaymentDto toDto(MadePayment model);
 }

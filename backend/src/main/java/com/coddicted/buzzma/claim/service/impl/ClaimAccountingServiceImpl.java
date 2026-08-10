@@ -12,6 +12,8 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.persistence.ClaimAccountingRepository;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
@@ -26,6 +28,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -259,5 +263,48 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
   @Transactional(readOnly = true)
   public long countByBuyerPaymentId(final UUID buyerPaymentId) {
     return claimAccountingRepository.countByBuyerPaymentId(buyerPaymentId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<PaidPayoutProjection> findPaidByAgency(final UUID agencyId, final Pageable pageable) {
+    return claimAccountingRepository.findPaidByAgency(agencyId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<PaidPayoutProjection> findPaidByMediator(
+      final UUID mediatorId, final Pageable pageable) {
+    return claimAccountingRepository.findPaidByMediator(mediatorId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<MadePaymentProjection> findPaymentsPaidToMediator(
+      final UUID agencyId, final UUID mediatorId, final Pageable pageable) {
+    return claimAccountingRepository.findPaymentsPaidToMediator(agencyId, mediatorId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<MadePaymentProjection> findPaymentsPaidToBuyer(
+      final UUID mediatorId, final UUID buyerId, final Pageable pageable) {
+    return claimAccountingRepository.findPaymentsPaidToBuyer(mediatorId, buyerId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ClaimAccounting> findClaimsPaidToMediatorByPayment(
+      final UUID agencyId, final UUID paymentId, final Pageable pageable) {
+    return claimAccountingRepository.findClaimsPaidToMediatorByPayment(
+        agencyId, paymentId, pageable);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ClaimAccounting> findClaimsPaidToBuyerByPayment(
+      final UUID mediatorId, final UUID paymentId, final Pageable pageable) {
+    return claimAccountingRepository.findClaimsPaidToBuyerByPayment(
+        mediatorId, paymentId, pageable);
   }
 }

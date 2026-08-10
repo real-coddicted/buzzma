@@ -5,9 +5,12 @@ import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.mapper.PaymentMapper;
 import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.MadePayment;
+import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
+import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.claim.service.PayoutService;
@@ -16,7 +19,10 @@ import com.coddicted.buzzma.storage.service.StorageService;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -182,5 +188,69 @@ public class PayoutServiceImpl implements PayoutService {
                     ? ca.getMediatorReceivablePaise()
                     : ca.getBuyerReceivablePaise())
         .reduce(BigInteger.ZERO, BigInteger::add);
+  }
+
+  @Override
+  public Page<PaidPayout> listPaid(
+      final UUID callerId, final UserRole role, final int page, final int size) {
+    final PageRequest pageRequest = PageRequest.of(page, size);
+    return switch (role) {
+      case ROLE_AGENCY ->
+          claimAccountingService
+              .findPaidByAgency(callerId, pageRequest)
+              .map(paymentMapper::toPaidPayout);
+      case ROLE_MEDIATOR ->
+          claimAccountingService
+              .findPaidByMediator(callerId, pageRequest)
+              .map(paymentMapper::toPaidPayout);
+      default ->
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+    };
+  }
+
+  @Override
+  public Page<MadePayment> listPayments(
+      final UUID callerId,
+      final UUID payeeId,
+      final UserRole role,
+      final int page,
+      final int size) {
+    final PageRequest pageRequest = PageRequest.of(page, size);
+    final Page<MadePaymentProjection> projections =
+        switch (role) {
+          case ROLE_AGENCY ->
+              claimAccountingService.findPaymentsPaidToMediator(callerId, payeeId, pageRequest);
+          case ROLE_MEDIATOR ->
+              claimAccountingService.findPaymentsPaidToBuyer(callerId, payeeId, pageRequest);
+          default ->
+              throw new ResponseStatusException(
+                  HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+        };
+    final Map<UUID, Payment> paymentMap =
+        paymentService.findAllByIdAsMap(
+            projections.getContent().stream().map(MadePaymentProjection::getPaymentId).toList());
+    return projections.map(p -> paymentMapper.toMadePayment(p, paymentMap.get(p.getPaymentId())));
+  }
+
+  @Override
+  public Page<ClaimAccountingSummary> listClaimsForPayment(
+      final UUID callerId,
+      final UUID paymentId,
+      final UserRole role,
+      final int page,
+      final int size) {
+    final PageRequest pageRequest = PageRequest.of(page, size);
+    return switch (role) {
+      case ROLE_AGENCY ->
+          claimAccountingService
+              .findClaimsPaidToMediatorByPayment(callerId, paymentId, pageRequest)
+              .map(paymentMapper::toSummaryForAgency);
+      case ROLE_MEDIATOR ->
+          claimAccountingService
+              .findClaimsPaidToBuyerByPayment(callerId, paymentId, pageRequest)
+              .map(paymentMapper::toSummaryForMediator);
+      default ->
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+    };
   }
 }

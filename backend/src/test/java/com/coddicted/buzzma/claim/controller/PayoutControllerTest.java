@@ -12,6 +12,8 @@ import com.coddicted.buzzma.claim.dto.RecordPaymentRequestDto;
 import com.coddicted.buzzma.claim.entity.PaymentMethod;
 import com.coddicted.buzzma.claim.mapper.PaymentMapperImpl;
 import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
+import com.coddicted.buzzma.claim.model.MadePayment;
+import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
@@ -31,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -220,5 +223,116 @@ class PayoutControllerTest {
         .perform(
             multipart("/api/v1/payouts/{payeeId}/pay", PAYEE_ID).file(screenshot).file(requestPart))
         .andExpect(status().isBadRequest());
+  }
+
+  // ── listPaid ──────────────────────────────────────────────────────────────────────────────────
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
+  void listPaid_agencyRole_returns200() throws Exception {
+    final PaidPayout model =
+        PaidPayout.builder()
+            .payeeId(PAYEE_ID)
+            .claimCount(4)
+            .paymentCount(2)
+            .totalAmountPaidPaise(BigInteger.valueOf(40000))
+            .lastPaidAt(Instant.parse("2025-04-01T00:00:00Z"))
+            .build();
+    when(payoutService.listPaid(CALLER_ID, UserRole.ROLE_AGENCY, 0, 20))
+        .thenReturn(new PageImpl<>(List.of(model)));
+
+    mockMvc
+        .perform(get("/api/v1/payouts/paid"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].claimCount").value(4))
+        .andExpect(jsonPath("$.items[0].paymentCount").value(2))
+        .andExpect(jsonPath("$.items[0].totalAmountPaidPaise").value(40000))
+        .andExpect(jsonPath("$.total").value(1))
+        .andExpect(jsonPath("$.page").value(0));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
+  void listPaid_withPageAndSizeParams_passesThemToService() throws Exception {
+    when(payoutService.listPaid(CALLER_ID, UserRole.ROLE_AGENCY, 1, 5))
+        .thenReturn(new PageImpl<>(List.of()));
+
+    mockMvc
+        .perform(get("/api/v1/payouts/paid").param("page", "1").param("size", "5"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page").value(1));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void listPaid_buyerRole_returns403() throws Exception {
+    mockMvc.perform(get("/api/v1/payouts/paid")).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void listPaid_unauthenticated_returns401() throws Exception {
+    mockMvc.perform(get("/api/v1/payouts/paid")).andExpect(status().isUnauthorized());
+  }
+
+  // ── listPayments ──────────────────────────────────────────────────────────────────────────────
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
+  void listPayments_agencyRole_returns200() throws Exception {
+    final MadePayment model =
+        MadePayment.builder()
+            .paymentId(UUID.randomUUID())
+            .claimCount(3)
+            .totalAmountPaise(BigInteger.valueOf(30000))
+            .paidAt(Instant.parse("2025-05-01T00:00:00Z"))
+            .paymentMethod(PaymentMethod.UPI)
+            .screenshotStorageKey("payments/proof.png")
+            .build();
+    when(payoutService.listPayments(CALLER_ID, PAYEE_ID, UserRole.ROLE_AGENCY, 0, 20))
+        .thenReturn(new PageImpl<>(List.of(model)));
+
+    mockMvc
+        .perform(get("/api/v1/payouts/{payeeId}/payments", PAYEE_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].claimCount").value(3))
+        .andExpect(jsonPath("$.items[0].totalAmountPaise").value(30000))
+        .andExpect(jsonPath("$.items[0].paymentMethod").value("UPI"));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void listPayments_buyerRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/payouts/{payeeId}/payments", PAYEE_ID))
+        .andExpect(status().isForbidden());
+  }
+
+  // ── listClaimsForPayment ──────────────────────────────────────────────────────────────────────
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
+  void listClaimsForPayment_agencyRole_returns200() throws Exception {
+    final UUID paymentId = UUID.randomUUID();
+    final ClaimAccountingSummary model =
+        ClaimAccountingSummary.builder()
+            .id(UUID.randomUUID())
+            .claimId(UUID.randomUUID())
+            .amountPaise(BigInteger.valueOf(10000))
+            .build();
+    when(payoutService.listClaimsForPayment(CALLER_ID, paymentId, UserRole.ROLE_AGENCY, 0, 20))
+        .thenReturn(new PageImpl<>(List.of(model)));
+
+    mockMvc
+        .perform(get("/api/v1/payouts/payments/{paymentId}/claims", paymentId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].amountPaise").value(10000));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void listClaimsForPayment_buyerRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/payouts/payments/{paymentId}/claims", UUID.randomUUID()))
+        .andExpect(status().isForbidden());
   }
 }
