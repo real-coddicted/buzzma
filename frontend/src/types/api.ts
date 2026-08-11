@@ -932,6 +932,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payouts/{payeeId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payouts/{payeeId}/claims": {
         parameters: {
             query?: never;
@@ -956,6 +972,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listPending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payouts/payments/{paymentId}/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClaimsForPayment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payouts/paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPaid"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2287,6 +2335,27 @@ export interface components {
             updatedAt?: string;
             isDeleted?: boolean;
         };
+        MadePaymentDto: {
+            /** Format: uuid */
+            paymentId?: string;
+            /** Format: int64 */
+            claimCount?: number;
+            totalAmountPaise?: number;
+            /** Format: date-time */
+            paidAt?: string;
+            /** @enum {string} */
+            paymentMethod?: "UPI" | "BANK" | "NEFT" | "IMPS" | "RTGS" | "CASH" | "OTHER";
+            screenshotStorageKey?: string;
+        };
+        PagedMadePaymentsResponseDto: {
+            items?: components["schemas"]["MadePaymentDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         ClaimAccountingSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -2308,6 +2377,35 @@ export interface components {
             totalAmountPaise?: number;
             /** Format: date-time */
             oldestClaimAt?: string;
+        };
+        PagedClaimAccountingSummaryResponseDto: {
+            items?: components["schemas"]["ClaimAccountingSummaryDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PagedPaidPayoutsResponseDto: {
+            items?: components["schemas"]["PaidPayoutDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PaidPayoutDto: {
+            /** Format: uuid */
+            payeeId?: string;
+            /** Format: int64 */
+            claimCount?: number;
+            /** Format: int64 */
+            paymentCount?: number;
+            totalAmountPaidPaise?: number;
+            /** Format: date-time */
+            lastPaidAt?: string;
         };
         NotificationResponseDto: {
             /** Format: uuid */
@@ -4220,6 +4318,31 @@ export interface operations {
             };
         };
     };
+    listPayments: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                payeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedMadePaymentsResponseDto"];
+                };
+            };
+        };
+    };
     listClaims: {
         parameters: {
             query?: never;
@@ -4258,6 +4381,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PendingPayoutDto"][];
+                };
+            };
+        };
+    };
+    listClaimsForPayment: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedClaimAccountingSummaryResponseDto"];
+                };
+            };
+        };
+    };
+    listPaid: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedPaidPayoutsResponseDto"];
                 };
             };
         };

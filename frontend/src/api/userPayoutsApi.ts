@@ -2,8 +2,14 @@ import { fetchWithAuth } from './client'
 import { fetchUserById, fetchUserBanking } from './userApi'
 import { fetchCampaignById } from './campaignApi'
 import { paiseToRupees } from '../utils/currency'
-import type { PayoutClaim, PayoutUser, PaymentSubmission } from '../types/UserPayoutsTypes'
+import type { PayoutClaim, PayoutUser, PaymentSubmission, PaidPayee, MadePayment } from '../types/UserPayoutsTypes'
 import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
+
+export interface Paged<T> {
+  items: T[]
+  total: number
+  totalPages: number
+}
 
 interface PendingPayoutDto {
   payeeId: string
@@ -21,12 +27,34 @@ interface ClaimAccountingSummaryDto {
   createdAt: string
 }
 
+interface PaidPayoutDto {
+  payeeId: string
+  claimCount: number
+  paymentCount: number
+  totalAmountPaidPaise: number
+  lastPaidAt: string
+}
+
+interface MadePaymentDto {
+  paymentId: string
+  claimCount: number
+  totalAmountPaise: number
+  paidAt: string
+  paymentMethod: string | null
+  screenshotStorageKey: string | null
+}
+
 function initials(name: string): string {
   return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function paymentMethodLabel(method: string | null): string {
+  const m = PAYMENT_METHODS.find(pm => pm.value === (method ?? '').toLowerCase())
+  return m?.label ?? method ?? '—'
 }
 
 async function fetchClaimsForPayee(payeeId: string): Promise<ClaimAccountingSummaryDto[]> {
@@ -86,6 +114,57 @@ export async function fetchPayoutClaims(userId: string): Promise<PayoutClaim[]> 
   const dtos = await fetchClaimsForPayee(userId)
   const cache = new Map<string, { title: string; brand: string; platform: string }>()
   return enrichClaims(dtos, cache)
+}
+
+export async function fetchPaidPayees(page: number, size: number): Promise<Paged<PaidPayee>> {
+  const res = await fetchWithAuth(`/api/v1/payouts/paid?page=${page - 1}&size=${size}`)
+  const { items: dtos, total, totalPages }: { items: PaidPayoutDto[]; total: number; totalPages: number } =
+    await res.json()
+
+  const items = await Promise.all(
+    dtos.map(async d => {
+      const user = await fetchUserById(d.payeeId).catch(() => null)
+      const name = user?.name ?? d.payeeId.slice(0, 8)
+      const role: 'Mediator' | 'Buyer' = user?.role === 'ROLE_MEDIATOR' ? 'Mediator' : 'Buyer'
+      return {
+        id: d.payeeId,
+        name,
+        initials: initials(name),
+        role,
+        claimCount: d.claimCount,
+        paymentCount: d.paymentCount,
+        totalAmount: paiseToRupees(d.totalAmountPaidPaise),
+        lastPaidDate: formatDate(d.lastPaidAt),
+      } satisfies PaidPayee
+    }),
+  )
+  return { items, total, totalPages }
+}
+
+export async function fetchPaymentsForPayee(payeeId: string, page: number, size: number): Promise<Paged<MadePayment>> {
+  const res = await fetchWithAuth(`/api/v1/payouts/${payeeId}/payments?page=${page - 1}&size=${size}`)
+  const { items: dtos, total, totalPages }: { items: MadePaymentDto[]; total: number; totalPages: number } =
+    await res.json()
+
+  const items: MadePayment[] = dtos.map(d => ({
+    id: d.paymentId,
+    claimCount: d.claimCount,
+    totalAmount: paiseToRupees(d.totalAmountPaise),
+    paidAt: formatDate(d.paidAt),
+    paymentMethod: paymentMethodLabel(d.paymentMethod),
+    screenshotStorageKey: d.screenshotStorageKey ?? undefined,
+  }))
+  return { items, total, totalPages }
+}
+
+export async function fetchClaimsForPayment(paymentId: string, page: number, size: number): Promise<Paged<PayoutClaim>> {
+  const res = await fetchWithAuth(`/api/v1/payouts/payments/${paymentId}/claims?page=${page - 1}&size=${size}`)
+  const { items: dtos, total, totalPages }: { items: ClaimAccountingSummaryDto[]; total: number; totalPages: number } =
+    await res.json()
+
+  const cache = new Map<string, { title: string; brand: string; platform: string }>()
+  const items = await enrichClaims(dtos, cache)
+  return { items, total, totalPages }
 }
 
 export async function submitPayment(

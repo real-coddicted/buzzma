@@ -18,6 +18,26 @@ export interface PayoutClaim {
   amount: number
 }
 
+export interface PaidPayee {
+  id: string
+  name: string
+  initials: string
+  role: 'Mediator' | 'Buyer'
+  claimCount: number
+  paymentCount: number
+  totalAmount: number
+  lastPaidDate: string
+}
+
+export interface MadePayment {
+  id: string
+  claimCount: number
+  totalAmount: number
+  paidAt: string
+  paymentMethod: string
+  screenshotStorageKey?: string
+}
+
 export interface PaymentSubmission {
   screenshot: File
   amountPaid: number

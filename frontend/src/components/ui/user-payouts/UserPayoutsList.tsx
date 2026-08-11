@@ -26,13 +26,6 @@ export function UserPayoutsList({ users, page, onPageChange, onOpenDetail, onPay
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-ink-light-primary dark:text-ink-dark-primary">User Payouts</h1>
-        <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          Manage pending payouts to your downward network
-        </p>
-      </div>
-
       <StatBanner
         label="Total Payout Pending"
         amount={totalPending}

@@ -3,24 +3,24 @@ import { fetchScreenshotUrl } from '../../../api/claimApi'
 import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 import { ProofPlaceholder } from '../ProofThumbnail'
-import type { PaymentBatch } from '../../../types/MyPaymentsTypes'
+import type { MadePayment } from '../../../types/UserPayoutsTypes'
 
-interface ProofModalProps {
-  batch: PaymentBatch
+interface PayoutProofModalProps {
+  payment: MadePayment
   onClose: () => void
 }
 
-export function ProofModal({ batch, onClose }: ProofModalProps) {
+export function PayoutProofModal({ payment, onClose }: PayoutProofModalProps) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!batch.proofStorageKey) return
+    if (!payment.screenshotStorageKey) return
     let objectUrl: string | null = null
     let cancelled = false
     setLoading(true)
-    fetchScreenshotUrl(batch.proofStorageKey)
+    fetchScreenshotUrl(payment.screenshotStorageKey)
       .then(u => { if (cancelled) return; objectUrl = u; setUrl(u) })
       .catch(() => { if (!cancelled) setError('Failed to load payment proof. Please try again.') })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -28,7 +28,7 @@ export function ProofModal({ batch, onClose }: ProofModalProps) {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [batch.proofStorageKey])
+  }, [payment.screenshotStorageKey])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -48,7 +48,7 @@ export function ProofModal({ batch, onClose }: ProofModalProps) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-surface-light-border dark:border-surface-dark-border">
           <div>
             <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary">Payment Proof</p>
-            <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">{batch.date} · {batch.agencyName}</p>
+            <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">{payment.paidAt} · {payment.paymentMethod}</p>
           </div>
           <button
             onClick={onClose}
