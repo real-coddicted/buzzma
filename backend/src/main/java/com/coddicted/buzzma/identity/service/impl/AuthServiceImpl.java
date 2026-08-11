@@ -26,6 +26,7 @@ import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.exception.UnauthorizedException;
 import com.coddicted.buzzma.shared.security.JwtProperties;
 import com.coddicted.buzzma.shared.security.JwtService;
+import com.coddicted.buzzma.terms.service.TermsService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
   private final SecurityQuestionAnswerService securityQuestionAnswerService;
   private final ConnectionService connectionService;
   private final UserSettingsService userSettingsService;
+  private final TermsService termsService;
 
   public AuthServiceImpl(
       final JwtService jwtService,
@@ -60,7 +62,8 @@ public class AuthServiceImpl implements AuthService {
       final InviteService inviteService,
       final SecurityQuestionAnswerService securityQuestionAnswerService,
       final ConnectionService connectionService,
-      final UserSettingsService userSettingsService) {
+      final UserSettingsService userSettingsService,
+      final TermsService termsService) {
     this.jwtService = jwtService;
     this.jwtProperties = jwtProperties;
     this.refreshTokenService = refreshTokenService;
@@ -70,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
     this.securityQuestionAnswerService = securityQuestionAnswerService;
     this.connectionService = connectionService;
     this.userSettingsService = userSettingsService;
+    this.termsService = termsService;
   }
 
   @Override
@@ -115,6 +119,8 @@ public class AuthServiceImpl implements AuthService {
           });
       // create connection between inviter and new user, then consume invite
       this.connectionService.createConnection(inviteCode, savedUser);
+
+      this.termsService.recordAcceptance(savedUser.getId());
 
       // build and save userSettings with minimal pending-connection settings
       final UserSettings userSettings =

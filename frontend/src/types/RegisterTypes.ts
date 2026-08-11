@@ -14,6 +14,7 @@ export interface RegisterForm {
   securityAnswer1: string
   securityQuestion2: string
   securityAnswer2: string
+  termsAccepted: boolean
 }
 
 export interface RegisterResponse {

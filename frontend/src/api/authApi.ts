@@ -76,6 +76,7 @@ export async function registerUser(form: RegisterForm, captchaToken: string): Pr
     inviteCode: form.inviteCode.trim(),
     userRole: roleMap[form.registerAs],
     captchaToken,
+    termsAccepted: form.termsAccepted,
     ...(securityQuestionList.length > 0 ? { securityQuestionList } : {}),
   }
 

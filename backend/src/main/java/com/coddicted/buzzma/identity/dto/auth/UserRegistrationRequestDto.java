@@ -2,6 +2,7 @@ package com.coddicted.buzzma.identity.dto.auth;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -44,4 +45,7 @@ public class UserRegistrationRequestDto {
   @Nullable String bankAccountHolderName;
 
   String captchaToken;
+
+  @AssertTrue(message = "Terms and conditions must be accepted")
+  boolean termsAccepted;
 }

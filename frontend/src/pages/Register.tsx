@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { TurnstileWidget } from '../components/ui/TurnstileWidget'
+import { TermsLink } from '../components/ui/TermsLink'
 import { fetchSecurityQuestions, registerUser } from '../api/authApi'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
@@ -38,6 +39,7 @@ function buildInitialForm(qs: string[]): RegisterForm {
     securityAnswer1: '',
     securityQuestion2: qs[1] ?? '',
     securityAnswer2: '',
+    termsAccepted: false,
   }
 }
 
@@ -373,11 +375,22 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
               </div>
             </div>
 
+            {/* Terms and Conditions */}
+            <label className="flex items-start gap-2 text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
+              <input
+                type="checkbox"
+                checked={form.termsAccepted}
+                onChange={e => set('termsAccepted', e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>I have read and accept the <TermsLink /></span>
+            </label>
+
             {!captchaToken && (
               <TurnstileWidget siteKey={SITE_KEY} onVerify={setCaptchaToken} appearance='interaction-only' />
             )}
 
-            <Button type="submit" variant="green" size="lg" loading={submitting} disabled={!captchaToken} className="w-full mt-2">
+            <Button type="submit" variant="green" size="lg" loading={submitting} disabled={!captchaToken || !form.termsAccepted} className="w-full mt-2">
               Create Account
             </Button>
           </form>

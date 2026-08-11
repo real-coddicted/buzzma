@@ -85,4 +85,14 @@ class AuthControllerTest {
             post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void testRegisterWithTermsNotAcceptedReturnsBadRequest() throws Exception {
+    final String body = VALID_BODY.replace("\"termsAccepted\": true", "\"termsAccepted\": false");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
+  }
 }

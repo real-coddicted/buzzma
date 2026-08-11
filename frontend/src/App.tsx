@@ -16,9 +16,12 @@ import { Users } from './pages/Users'
 import { MyPayments } from './pages/MyPayments'
 import { UserPayouts } from './pages/UserPayouts'
 import { Auth } from './pages/Auth'
+import { TermsPage } from './pages/TermsPage'
+import { TermsReacceptDialog } from './components/ui/TermsReacceptDialog'
 import { fetchUnreadNotificationCount } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
+import { fetchTermsAcceptanceStatus } from './api/termsApi'
 import { initSSE } from './api/sseClient'
 import { useSSE } from './hooks/useSSE'
 import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
@@ -36,6 +39,7 @@ export default function App() {
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
+  const [mustReacceptTerms, setMustReacceptTerms] = useState(false)
 
   const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments','user-payouts']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
@@ -71,6 +75,13 @@ export default function App() {
   }, [isAuthenticated])
 
   useEffect(() => {
+    if (!isAuthenticated) return
+    fetchTermsAcceptanceStatus()
+      .then(status => setMustReacceptTerms(!!status.mustReaccept))
+      .catch(console.error)
+  }, [isAuthenticated])
+
+  useEffect(() => {
     if (!userSettings) return
     if (isTabDisabled(activePage, userSettings)) {
       navigate('/' + getFirstEnabledPage(userSettings), { replace: true })
@@ -86,8 +97,16 @@ export default function App() {
     fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
   })
 
+  if (location.pathname === '/terms') {
+    return <TermsPage />
+  }
+
   if (!isAuthenticated) {
     return <Auth onAuth={() => setIsAuthenticated(true)} />
+  }
+
+  if (mustReacceptTerms) {
+    return <TermsReacceptDialog onAccepted={() => setMustReacceptTerms(false)} />
   }
 
   return (

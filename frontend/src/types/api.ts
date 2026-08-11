@@ -2263,6 +2263,14 @@ export interface components {
             bankName?: string;
             bankAccountHolderName?: string;
             captchaToken?: string;
+            termsAccepted?: boolean;
+        };
+        TermsDto: {
+            content?: string;
+            version?: string;
+        };
+        TermsAcceptanceStatusDto: {
+            mustReaccept?: boolean;
         };
         PasswordUpdateRequestDto: {
             currentPassword: string;
