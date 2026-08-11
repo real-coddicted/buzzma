@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { Loading } from '../components/ui/Loading'
@@ -42,11 +42,20 @@ export function MyPayments() {
   const [awaitedPage, setAwaitedPage] = useState(1)
   const [proofBatch, setProofBatch] = useState<PaymentBatch | null>(null)
 
+  const loadedTabs = useRef(new Set<Tab>())
+
+  // Lazy-load the active tab's list the first time it's opened, so only one list API
+  // fires on initial load; the other fires only when the user switches to that tab.
   useEffect(() => {
-    Promise.all([fetchPaymentBatches(), fetchPendingAgencies()])
-      .then(([b, a]) => { setBatches(b); setAgencies(a) })
-      .finally(() => setListLoading(false))
-  }, [])
+    if (loadedTabs.current.has(tab)) return
+    loadedTabs.current.add(tab)
+    setListLoading(true)
+    if (tab === 'received') {
+      fetchPaymentBatches().then(setBatches).finally(() => setListLoading(false))
+    } else {
+      fetchPendingAgencies().then(setAgencies).finally(() => setListLoading(false))
+    }
+  }, [tab])
 
   useEffect(() => {
     if (view === 'batch' && detailId) {

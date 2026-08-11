@@ -1,5 +1,5 @@
 import { fetchWithAuth } from './client'
-import { fetchUserById, fetchUserBanking } from './userApi'
+import { fetchUsersByIds, type UserBriefDto } from './userApi'
 import { fetchCampaignById } from './campaignApi'
 import { paiseToRupees } from '../utils/currency'
 import type { PayoutClaim, PayoutUser, PaymentSubmission, PaidPayee, MadePayment } from '../types/UserPayoutsTypes'
@@ -84,30 +84,32 @@ async function enrichClaims(
   }))
 }
 
+function roleLabel(role: string | undefined): 'Mediator' | 'Buyer' {
+  return role === 'ROLE_MEDIATOR' ? 'Mediator' : 'Buyer'
+}
+
 export async function fetchPayoutUsers(): Promise<PayoutUser[]> {
   const res = await fetchWithAuth('/api/v1/payouts/pending')
   const dtos: PendingPayoutDto[] = await res.json()
 
-  return Promise.all(
-    dtos.map(async d => {
-      const [user, banking] = await Promise.all([
-        fetchUserById(d.payeeId).catch(() => null),
-        fetchUserBanking(d.payeeId).catch(() => null),
-      ])
-      const name = user?.name ?? d.payeeId.slice(0, 8)
-      const role: 'Mediator' | 'Buyer' = user?.role === 'ROLE_MEDIATOR' ? 'Mediator' : 'Buyer'
-      return {
-        id: d.payeeId,
-        name,
-        initials: initials(name),
-        role,
-        upiId: banking?.upiId ?? '—',
-        oldestClaimDate: formatDate(d.oldestClaimAt),
-        claimCount: d.claimCount,
-        totalAmount: paiseToRupees(d.totalAmountPaise),
-      } satisfies PayoutUser
-    }),
+  const usersById = new Map<string, UserBriefDto>(
+    (await fetchUsersByIds(dtos.map(d => d.payeeId))).map(u => [u.id, u]),
   )
+
+  return dtos.map(d => {
+    const user = usersById.get(d.payeeId)
+    const name = user?.name ?? d.payeeId.slice(0, 8)
+    return {
+      id: d.payeeId,
+      name,
+      initials: initials(name),
+      role: roleLabel(user?.role),
+      upiId: user?.upiId ?? '—',
+      oldestClaimDate: formatDate(d.oldestClaimAt),
+      claimCount: d.claimCount,
+      totalAmount: paiseToRupees(d.totalAmountPaise),
+    } satisfies PayoutUser
+  })
 }
 
 export async function fetchPayoutClaims(userId: string): Promise<PayoutClaim[]> {
@@ -121,23 +123,24 @@ export async function fetchPaidPayees(page: number, size: number): Promise<Paged
   const { items: dtos, total, totalPages }: { items: PaidPayoutDto[]; total: number; totalPages: number } =
     await res.json()
 
-  const items = await Promise.all(
-    dtos.map(async d => {
-      const user = await fetchUserById(d.payeeId).catch(() => null)
-      const name = user?.name ?? d.payeeId.slice(0, 8)
-      const role: 'Mediator' | 'Buyer' = user?.role === 'ROLE_MEDIATOR' ? 'Mediator' : 'Buyer'
-      return {
-        id: d.payeeId,
-        name,
-        initials: initials(name),
-        role,
-        claimCount: d.claimCount,
-        paymentCount: d.paymentCount,
-        totalAmount: paiseToRupees(d.totalAmountPaidPaise),
-        lastPaidDate: formatDate(d.lastPaidAt),
-      } satisfies PaidPayee
-    }),
+  const usersById = new Map<string, UserBriefDto>(
+    (await fetchUsersByIds(dtos.map(d => d.payeeId))).map(u => [u.id, u]),
   )
+
+  const items = dtos.map(d => {
+    const user = usersById.get(d.payeeId)
+    const name = user?.name ?? d.payeeId.slice(0, 8)
+    return {
+      id: d.payeeId,
+      name,
+      initials: initials(name),
+      role: roleLabel(user?.role),
+      claimCount: d.claimCount,
+      paymentCount: d.paymentCount,
+      totalAmount: paiseToRupees(d.totalAmountPaidPaise),
+      lastPaidDate: formatDate(d.lastPaidAt),
+    } satisfies PaidPayee
+  })
   return { items, total, totalPages }
 }
 

@@ -1,17 +1,21 @@
 package com.coddicted.buzzma.identity.controller;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UpiDetails;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
@@ -25,6 +29,10 @@ import com.coddicted.buzzma.shared.security.OwnershipGuard;
 import com.coddicted.buzzma.shared.security.ParentshipGuard;
 import com.coddicted.buzzma.shared.security.TestSecurityConfig;
 import com.coddicted.buzzma.shared.security.WithBuzzmaUser;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +60,9 @@ class UsersControllerTest {
 
   private static final UUID TARGET_USER_ID =
       UUID.fromString("44444444-4444-4444-4444-444444444444");
+
+  private static final String CALLER_ID_STR = "55555555-5555-5555-5555-555555555555";
+  private static final UUID CALLER_ID = UUID.fromString(CALLER_ID_STR);
 
   // --- POST /api/v1/users/me ---
 
@@ -111,6 +122,47 @@ class UsersControllerTest {
             post("/api/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\": \"new@example.com\"}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // --- POST /api/v1/users/batch ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = CALLER_ID_STR)
+  void testGetByIdsReturnsBriefInfoOnlyForConnectedUsers() throws Exception {
+    final UUID otherId = UUID.fromString("66666666-6666-6666-6666-666666666666");
+
+    final BuzzmaUser target =
+        BuzzmaUser.builder().id(TARGET_USER_ID).name("Target").role(UserRole.ROLE_MEDIATOR).build();
+    when(userService.getConnectedByIds(
+            argThat(ids -> new HashSet<>(ids).equals(Set.of(TARGET_USER_ID, otherId))),
+            eq(CALLER_ID)))
+        .thenReturn(List.of(target));
+    final UserBankingDetail bankingDetail =
+        UserBankingDetail.builder()
+            .userId(TARGET_USER_ID)
+            .upiDetails(UpiDetails.builder().upiId("target@upi").build())
+            .build();
+    when(userBankingDetailService.getByUserIds(Set.of(TARGET_USER_ID)))
+        .thenReturn(Map.of(TARGET_USER_ID, bankingDetail));
+
+    mockMvc
+        .perform(
+            post("/api/v1/users/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ids\": [\"" + TARGET_USER_ID + "\", \"" + otherId + "\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].id").value(TARGET_USER_ID.toString()));
+  }
+
+  @Test
+  void testGetByIdsUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ids\": [\"" + TARGET_USER_ID + "\"]}"))
         .andExpect(status().isUnauthorized());
   }
 

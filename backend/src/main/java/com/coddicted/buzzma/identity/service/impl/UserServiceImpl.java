@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.identity.service.impl;
 
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -76,6 +77,17 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Transactional(readOnly = true)
   public List<BuzzmaUser> getByIds(final List<UUID> ids) {
     return this.repository.findAllById(ids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<BuzzmaUser> getConnectedByIds(final List<UUID> ids, final UUID userId) {
+    return this.repository.findByIdInAndConnectedToUser(
+        ids,
+        userId,
+        List.of(
+            ConnectionStatus.CONNECTION_STATUS_ACCEPTED,
+            ConnectionStatus.CONNECTION_STATUS_REQUESTED));
   }
 
   @Override

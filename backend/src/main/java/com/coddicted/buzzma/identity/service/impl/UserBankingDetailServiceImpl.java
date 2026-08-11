@@ -8,8 +8,12 @@ import com.coddicted.buzzma.identity.persistence.UserBankingDetailRepository;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,16 @@ public class UserBankingDetailServiceImpl extends BaseCrudService
     return this.userBankingDetailRepository
         .findByUserIdAndIsDeletedFalse(userId)
         .orElseThrow(() -> new NotFoundException("Banking detail not found for user: " + userId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, UserBankingDetail> getByUserIds(final Collection<UUID> userIds) {
+    if (userIds.isEmpty()) {
+      return Map.of();
+    }
+    return this.userBankingDetailRepository.findByUserIdInAndIsDeletedFalse(userIds).stream()
+        .collect(Collectors.toMap(UserBankingDetail::getUserId, Function.identity()));
   }
 
   @Override

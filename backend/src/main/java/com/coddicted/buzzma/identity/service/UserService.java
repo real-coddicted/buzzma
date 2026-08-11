@@ -11,6 +11,9 @@ public interface UserService {
 
   List<BuzzmaUser> getByIds(List<UUID> ids);
 
+  /** Of {@code ids}, only those users directly connected (as parent or child) to {@code userId}. */
+  List<BuzzmaUser> getConnectedByIds(List<UUID> ids, UUID userId);
+
   // Todo: pass requesterId in write methods
   BuzzmaUser create(BuzzmaUser user);
 

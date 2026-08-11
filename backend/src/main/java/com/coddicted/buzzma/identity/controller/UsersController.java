@@ -2,6 +2,8 @@ package com.coddicted.buzzma.identity.controller;
 
 import com.coddicted.buzzma.identity.dto.UpdateProfileRequestDto;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
+import com.coddicted.buzzma.identity.dto.UserBatchRequestDto;
+import com.coddicted.buzzma.identity.dto.UserBriefDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
@@ -13,7 +15,12 @@ import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +71,40 @@ public class UsersController {
   public UserSummaryDto searchByMobile(@RequestParam @NotBlank final String mobile) {
     final BuzzmaUser user = this.userService.getByMobile(mobile);
     return this.userMapper.toUserSummaryDto(user);
+  }
+
+  /** Bulk lookup for display purposes, restricted to users connected to the caller. */
+  @PostMapping("/batch")
+  public List<UserBriefDto> getByIds(
+      @RequestBody final UserBatchRequestDto request, @CurrentUserId final UUID requesterId) {
+    final Set<UUID> requestedIds = request.getIds() == null ? Set.of() : request.getIds();
+    if (requestedIds.isEmpty()) {
+      return List.of();
+    }
+
+    final List<BuzzmaUser> connectedUsers =
+        this.userService.getConnectedByIds(new ArrayList<>(requestedIds), requesterId);
+    final Set<UUID> connectedIds =
+        connectedUsers.stream().map(BuzzmaUser::getId).collect(Collectors.toSet());
+    final Map<UUID, UserBankingDetail> bankingByUserId =
+        this.userBankingDetailService.getByUserIds(connectedIds);
+    return connectedUsers.stream()
+        .map(
+            user ->
+                UserBriefDto.builder()
+                    .id(user.getId())
+                    .name(user.getName())
+                    .role(user.getRole())
+                    .upiId(upiIdOf(bankingByUserId.get(user.getId())))
+                    .build())
+        .toList();
+  }
+
+  private String upiIdOf(final UserBankingDetail bankingDetail) {
+    if (bankingDetail == null || bankingDetail.getUpiDetails() == null) {
+      return null;
+    }
+    return bankingDetail.getUpiDetails().getUpiId();
   }
 
   @GetMapping("/{id}")

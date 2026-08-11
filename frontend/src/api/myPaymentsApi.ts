@@ -1,5 +1,5 @@
 import { fetchWithAuth } from './client'
-import { fetchUserById } from './userApi'
+import { fetchUsersByIds, type UserBriefDto } from './userApi'
 import { fetchCampaignById } from './campaignApi'
 import { paiseToRupees } from '../utils/currency'
 import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
@@ -48,14 +48,14 @@ export async function fetchPaymentBatches(): Promise<PaymentBatch[]> {
   const res = await fetchWithAuth('/api/v1/my-payments/received')
   const dtos: ReceivedPaymentDto[] = await res.json()
 
-  const uniquePayerIds = [...new Set(dtos.map(d => d.payerId))]
-  const users = await Promise.all(uniquePayerIds.map(id => fetchUserById(id).catch(() => null)))
-  const userMap = new Map(uniquePayerIds.map((id, i) => [id, users[i]]))
+  const usersById = new Map<string, UserBriefDto>(
+    (await fetchUsersByIds(dtos.map(d => d.payerId))).map(u => [u.id, u]),
+  )
 
   return dtos.map(d => ({
     id: d.paymentId,
     date: formatDate(d.paidAt),
-    agencyName: userMap.get(d.payerId)?.name ?? d.payerId.slice(0, 8),
+    agencyName: usersById.get(d.payerId)?.name ?? d.payerId.slice(0, 8),
     paymentMode: paymentMethodLabel(d.paymentMethod),
     totalAmount: paiseToRupees(d.totalAmountPaise),
     claimCount: d.claimCount,
@@ -87,12 +87,12 @@ export async function fetchPendingAgencies(): Promise<PendingAgency[]> {
   const res = await fetchWithAuth('/api/v1/my-payments/awaited')
   const dtos: AwaitedPaymentDto[] = await res.json()
 
-  const uniqueIds = [...new Set(dtos.map(d => d.counterpartyId))]
-  const users = await Promise.all(uniqueIds.map(id => fetchUserById(id).catch(() => null)))
-  const userMap = new Map(uniqueIds.map((id, i) => [id, users[i]]))
+  const usersById = new Map<string, UserBriefDto>(
+    (await fetchUsersByIds(dtos.map(d => d.counterpartyId))).map(u => [u.id, u]),
+  )
 
   return dtos.map(d => {
-    const name = userMap.get(d.counterpartyId)?.name ?? d.counterpartyId.slice(0, 8)
+    const name = usersById.get(d.counterpartyId)?.name ?? d.counterpartyId.slice(0, 8)
     return {
       id: d.counterpartyId,
       agencyName: name,

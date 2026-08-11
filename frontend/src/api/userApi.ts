@@ -37,6 +37,22 @@ export async function fetchUserBanking(userId: string): Promise<UserBankingDetai
   return res.json() as Promise<UserBankingDetailDto>
 }
 
+export interface UserBriefDto {
+  id: string
+  name: string
+  role: string
+  upiId: string | null
+}
+
+export async function fetchUsersByIds(ids: string[]): Promise<UserBriefDto[]> {
+  if (ids.length === 0) return []
+  const res = await fetchWithAuth('/api/v1/users/batch', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  })
+  return res.json() as Promise<UserBriefDto[]>
+}
+
 export async function upsertUserBanking(userId: string, data: UserBankingDetailDto): Promise<UserBankingDetailDto> {
   const res = await fetchWithAuth(`/api/v1/users/${userId}/banking`, {
     method: 'PUT',

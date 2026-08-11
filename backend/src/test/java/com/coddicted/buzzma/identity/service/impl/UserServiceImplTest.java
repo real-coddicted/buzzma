@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,6 +82,22 @@ class UserServiceImplTest {
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.update(EXPECTED_USER_2));
     assertEquals("Users not found: " + USER_ID, ex.getMessage());
+  }
+
+  @Test
+  void testGetConnectedByIds() {
+    when(this.mockUsersRepository.findByIdInAndConnectedToUser(
+            List.of(USER_ID),
+            REQUESTER_ID,
+            List.of(
+                ConnectionStatus.CONNECTION_STATUS_ACCEPTED,
+                ConnectionStatus.CONNECTION_STATUS_REQUESTED)))
+        .thenReturn(List.of(USER_2));
+
+    final List<BuzzmaUser> result =
+        this.userService.getConnectedByIds(List.of(USER_ID), REQUESTER_ID);
+
+    assertEquals(List.of(USER_2), result);
   }
 
   @Test
