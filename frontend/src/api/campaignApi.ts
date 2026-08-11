@@ -195,6 +195,22 @@ export async function fetchCampaignById(id: string): Promise<CampaignResponseDto
   return res.json() as Promise<CampaignResponseDto>
 }
 
+export interface CampaignBriefDto {
+  id: string
+  title: string
+  productBrandName: string | null
+  platform: string | null
+}
+
+export async function fetchCampaignsByIds(ids: string[]): Promise<CampaignBriefDto[]> {
+  if (ids.length === 0) return []
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/batch`, {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  })
+  return res.json() as Promise<CampaignBriefDto[]>
+}
+
 export async function copyCampaign(id: string): Promise<CampaignResponseDto> {
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}/copy`, { method: 'POST' })
   return res.json() as Promise<CampaignResponseDto>

@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.mapper;
 
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
@@ -85,6 +86,9 @@ public interface CampaignMapper {
   CampaignSummaryResponseDto toSummary(CampaignSummary summary);
 
   List<CampaignSummaryResponseDto> toSummaries(List<CampaignSummary> summaries);
+
+  @Mapping(source = "product.brandName", target = "productBrandName")
+  CampaignBriefDto toBrief(Campaign entity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "id", ignore = true)

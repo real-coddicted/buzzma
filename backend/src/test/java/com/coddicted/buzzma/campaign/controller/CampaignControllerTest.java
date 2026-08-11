@@ -10,9 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.SharedCampaignResponseDto;
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
@@ -30,6 +32,7 @@ import com.coddicted.buzzma.shared.security.WithBuzzmaUser;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,6 +218,49 @@ class CampaignControllerTest {
   @Test
   void testListUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc.perform(get("/api/v1/campaigns")).andExpect(status().isUnauthorized());
+  }
+
+  // --- POST /api/v1/campaigns/batch ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetByIdsReturnsBriefInfoForRequestedCampaigns() throws Exception {
+    final UUID campaignId = UUID.randomUUID();
+    final Campaign campaign = Campaign.builder().id(campaignId).title("Test Campaign").build();
+    when(campaignService.findCampaignsById(Set.of(campaignId))).thenReturn(Set.of(campaign));
+    when(campaignMapper.toBrief(campaign))
+        .thenReturn(CampaignBriefDto.builder().id(campaignId).title("Test Campaign").build());
+
+    mockMvc
+        .perform(
+            post("/api/v1/campaigns/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ids\": [\"" + campaignId + "\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(campaignId.toString()))
+        .andExpect(jsonPath("$[0].title").value("Test Campaign"));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetByIdsWithEmptyIdsReturnsEmptyListWithoutCallingService() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/campaigns/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ids\": []}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isEmpty());
+  }
+
+  @Test
+  void testGetByIdsUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/campaigns/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ids\": []}"))
+        .andExpect(status().isUnauthorized());
   }
 
   // --- DELETE /api/v1/campaigns/{id} ---

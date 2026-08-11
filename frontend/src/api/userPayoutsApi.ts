@@ -1,6 +1,6 @@
 import { fetchWithAuth } from './client'
 import { fetchUsersByIds, type UserBriefDto } from './userApi'
-import { fetchCampaignById } from './campaignApi'
+import { fetchCampaignsByIds } from './campaignApi'
 import { paiseToRupees } from '../utils/currency'
 import type { PayoutClaim, PayoutUser, PaymentSubmission, PaidPayee, MadePayment } from '../types/UserPayoutsTypes'
 import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
@@ -67,13 +67,12 @@ async function enrichClaims(
   campaignCache: Map<string, { title: string; brand: string; platform: string }>,
 ): Promise<PayoutClaim[]> {
   const uncached = [...new Set(dtos.map(d => d.campaignId).filter(id => !campaignCache.has(id)))]
-  await Promise.all(
-    uncached.map(id =>
-      fetchCampaignById(id)
-        .then(c => campaignCache.set(id, { title: c.title ?? id.slice(0, 8), brand: c.productBrandName ?? '—', platform: c.platform ?? '' }))
-        .catch(() => campaignCache.set(id, { title: id.slice(0, 8), brand: '—', platform: '' })),
-    ),
-  )
+  const campaigns = await fetchCampaignsByIds(uncached)
+  const campaignsById = new Map(campaigns.map(c => [c.id, c]))
+  for (const id of uncached) {
+    const c = campaignsById.get(id)
+    campaignCache.set(id, { title: c?.title ?? id.slice(0, 8), brand: c?.productBrandName ?? '—', platform: c?.platform ?? '' })
+  }
   return dtos.map(d => ({
     id: d.id,
     campaign: campaignCache.get(d.campaignId)?.title ?? d.campaignId.slice(0, 8),

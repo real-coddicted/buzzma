@@ -1,6 +1,6 @@
 import { fetchWithAuth } from './client'
 import { fetchUsersByIds, type UserBriefDto } from './userApi'
-import { fetchCampaignById } from './campaignApi'
+import { fetchCampaignsByIds } from './campaignApi'
 import { paiseToRupees } from '../utils/currency'
 import { PAYMENT_METHODS } from '../types/UserPayoutsTypes'
 import type { PaymentBatch, PaymentClaim, PendingAgency, PendingClaim } from '../types/MyPaymentsTypes'
@@ -68,8 +68,8 @@ export async function fetchPaymentClaims(paymentId: string): Promise<PaymentClai
   const dtos: ClaimAccountingSummaryDto[] = await res.json()
 
   const uniqueCampaignIds = [...new Set(dtos.map(d => d.campaignId))]
-  const campaigns = await Promise.all(uniqueCampaignIds.map(id => fetchCampaignById(id).catch(() => null)))
-  const campaignMap = new Map(uniqueCampaignIds.map((id, i) => [id, campaigns[i]]))
+  const campaigns = await fetchCampaignsByIds(uniqueCampaignIds)
+  const campaignMap = new Map(campaigns.map(c => [c.id, c]))
 
   return dtos.map(d => {
     const campaign = campaignMap.get(d.campaignId)
@@ -108,12 +108,8 @@ export async function fetchPendingClaims(agencyId: string): Promise<PendingClaim
   const dtos: ClaimAccountingSummaryDto[] = await res.json()
 
   const uniqueCampaignIds = [...new Set(dtos.map(d => d.campaignId))]
-  const campaignNames = await Promise.all(
-    uniqueCampaignIds.map(id =>
-      fetchCampaignById(id).then(c => c.title ?? id.slice(0, 8)).catch(() => id.slice(0, 8))
-    )
-  )
-  const campaignMap = new Map(uniqueCampaignIds.map((id, i) => [id, campaignNames[i]]))
+  const campaigns = await fetchCampaignsByIds(uniqueCampaignIds)
+  const campaignMap = new Map(campaigns.map(c => [c.id, c.title ?? c.id.slice(0, 8)]))
 
   return dtos.map(d => ({
     claimId: d.claimId,

@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.campaign.controller;
 
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignBatchRequestDto;
+import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
@@ -26,6 +28,7 @@ import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -98,6 +101,18 @@ public class CampaignController {
   @GetMapping("/{id}")
   public CampaignResponseDto getById(@PathVariable final UUID id) {
     return this.campaignProcessor.getById(id);
+  }
+
+  /** Bulk lookup for display purposes (e.g. campaign details on the payout claims list). */
+  @PostMapping("/batch")
+  public List<CampaignBriefDto> getByIds(@RequestBody final CampaignBatchRequestDto request) {
+    final Set<UUID> requestedIds = request.getIds() == null ? Set.of() : request.getIds();
+    if (requestedIds.isEmpty()) {
+      return List.of();
+    }
+    return this.service.findCampaignsById(requestedIds).stream()
+        .map(this.campaignMapper::toBrief)
+        .toList();
   }
 
   @GetMapping("/assignable")

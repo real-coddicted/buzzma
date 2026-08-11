@@ -1,5 +1,4 @@
 import type { Deal } from '../../../types/DealTypes'
-import { APP_NAME } from '../../../constants/app'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
@@ -96,14 +95,7 @@ export function DealInfo({ deal }: DealInfoProps) {
             {(deal.termsAndConditions
               ? deal.termsAndConditions.split('\n').map(t => t.trim()).filter(Boolean)
               : [
-                  'Purchase must be made through the specified platform using your registered account.',
-                  'The offered price is valid only for the duration of the campaign and may be withdrawn at any time.',
-                  'Only one claim per user per deal is permitted.',
-                  'Order ID must be submitted within 48 hours of purchase.',
-                  'Refunded, cancelled, or returned orders are not eligible for deal claims.',
-                  'Screenshot of the order confirmation may be required for verification.',
-                  `${APP_NAME} reserves the right to reject claims that do not meet the stated criteria.`,
-                  'Cashback or commission, if applicable, will be credited within 7–14 business days post verification.',
+                  'Standard terms and conditions apply. Please check with Agency for more details.',
                 ]
             ).map((term, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-ink-light-muted dark:text-ink-dark-muted leading-relaxed">
