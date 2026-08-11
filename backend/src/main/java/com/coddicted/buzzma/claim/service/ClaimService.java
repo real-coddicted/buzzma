@@ -55,6 +55,8 @@ public interface ClaimService {
 
   List<Claim> listByOwner(UUID ownerId);
 
+  Map<UUID, Claim> findAllByIdAsMap(Collection<UUID> claimIds);
+
   List<ClaimScreenshot> listScreenshots(UUID claimId);
 
   ClaimWithDeal updateScreenshot(

@@ -23,6 +23,7 @@ import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.storage.service.StorageService;
@@ -58,6 +59,7 @@ class PayoutServiceImplTest {
 
   @Mock private ClaimAccountingService claimAccountingService;
   @Mock private PaymentService paymentService;
+  @Mock private ClaimService claimService;
   @Mock private StorageService storageService;
 
   private PayoutServiceImpl service;
@@ -68,6 +70,7 @@ class PayoutServiceImplTest {
         new PayoutServiceImpl(
             claimAccountingService,
             paymentService,
+            claimService,
             Mappers.getMapper(PaymentMapper.class),
             storageService);
   }

@@ -8,6 +8,7 @@ import com.coddicted.buzzma.claim.dto.PaymentReceiptDto;
 import com.coddicted.buzzma.claim.dto.PendingPayoutDto;
 import com.coddicted.buzzma.claim.dto.ReceivedPaymentDto;
 import com.coddicted.buzzma.claim.dto.RecordPaymentRequestDto;
+import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.model.AwaitedPayment;
@@ -52,11 +53,23 @@ public interface PaymentMapper {
   @Mapping(source = "payment.screenshotStorageKey", target = "screenshotStorageKey")
   ReceivedPayment toReceivedPayment(ReceivedPaymentProjection projection, Payment payment);
 
-  @Mapping(source = "mediatorReceivablePaise", target = "amountPaise")
-  ClaimAccountingSummary toSummaryForAgency(ClaimAccounting ca);
+  @Mapping(source = "ca.id", target = "id")
+  @Mapping(source = "ca.campaignId", target = "campaignId")
+  @Mapping(source = "ca.dealId", target = "dealId")
+  @Mapping(source = "ca.createdAt", target = "createdAt")
+  @Mapping(source = "ca.mediatorReceivablePaise", target = "amountPaise")
+  @Mapping(source = "claim.code", target = "claimCode")
+  @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
+  ClaimAccountingSummary toSummaryForAgency(ClaimAccounting ca, Claim claim);
 
-  @Mapping(source = "buyerReceivablePaise", target = "amountPaise")
-  ClaimAccountingSummary toSummaryForMediator(ClaimAccounting ca);
+  @Mapping(source = "ca.id", target = "id")
+  @Mapping(source = "ca.campaignId", target = "campaignId")
+  @Mapping(source = "ca.dealId", target = "dealId")
+  @Mapping(source = "ca.createdAt", target = "createdAt")
+  @Mapping(source = "ca.buyerReceivablePaise", target = "amountPaise")
+  @Mapping(source = "claim.code", target = "claimCode")
+  @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
+  ClaimAccountingSummary toSummaryForMediator(ClaimAccounting ca, Claim claim);
 
   @Mapping(source = "payment.id", target = "id")
   @Mapping(source = "payment.payerId", target = "payerId")

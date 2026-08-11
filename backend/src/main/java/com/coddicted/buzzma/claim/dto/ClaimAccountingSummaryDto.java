@@ -18,6 +18,8 @@ public class ClaimAccountingSummaryDto {
   private UUID id;
 
   private UUID claimId;
+  private String claimCode;
+  private String ecommerceOrderId;
   private UUID campaignId;
   private UUID dealId;
   private BigInteger amountPaise;

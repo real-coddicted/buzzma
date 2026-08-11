@@ -3,6 +3,7 @@ import { Card } from '../Card'
 import { Button } from '../Button'
 import { RupeeInput } from '../RupeeInput'
 import { ScreenshotUpload } from '../deal/ScreenshotUpload'
+import { CopyableCode } from '../CopyableCode'
 import { formatRupees } from '../../../utils/currency'
 import { PAYMENT_METHODS } from '../../../types/UserPayoutsTypes'
 import type { PayoutClaim, PaymentSubmission } from '../../../types/UserPayoutsTypes'
@@ -74,9 +75,10 @@ export function PaymentForm({ userName, claimsToPay, onSubmit }: Props) {
           <div className="flex flex-col divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {claimsToPay.map(c => (
               <div key={c.id} className="flex items-center justify-between py-1.5">
-                <div className="min-w-0">
+                <div className="min-w-0 flex items-center gap-2">
                   <span className="text-xs text-ink-light-primary dark:text-ink-dark-primary font-medium">{c.campaign}</span>
-                  <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted ml-2 font-mono">{c.id}</span>
+                  <CopyableCode code={c.claimCode} />
+                  <span className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted font-mono">{c.ecommerceOrderId}</span>
                 </div>
                 <span className="text-xs font-semibold text-neon-orange ml-4 flex-shrink-0">₹{formatRupees(c.amount)}</span>
               </div>

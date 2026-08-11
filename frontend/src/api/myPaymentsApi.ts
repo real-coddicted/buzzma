@@ -25,6 +25,8 @@ interface AwaitedPaymentDto {
 interface ClaimAccountingSummaryDto {
   id: string
   claimId: string
+  claimCode: string
+  ecommerceOrderId: string
   campaignId: string
   dealId: string
   amountPaise: number
@@ -75,6 +77,8 @@ export async function fetchPaymentClaims(paymentId: string): Promise<PaymentClai
     const campaign = campaignMap.get(d.campaignId)
     return {
       claimId: d.claimId,
+      claimCode: d.claimCode,
+      ecommerceOrderId: d.ecommerceOrderId,
       campaignName: campaign?.title ?? d.campaignId.slice(0, 8),
       brandName: campaign?.productBrandName ?? '—',
       transactionAmount: paiseToRupees(d.amountPaise),
@@ -113,6 +117,8 @@ export async function fetchPendingClaims(agencyId: string): Promise<PendingClaim
 
   return dtos.map(d => ({
     claimId: d.claimId,
+    claimCode: d.claimCode,
+    ecommerceOrderId: d.ecommerceOrderId,
     campaignName: campaignMap.get(d.campaignId) ?? d.campaignId.slice(0, 8),
     submittedDate: formatDate(d.createdAt),
     expectedAmount: paiseToRupees(d.amountPaise),

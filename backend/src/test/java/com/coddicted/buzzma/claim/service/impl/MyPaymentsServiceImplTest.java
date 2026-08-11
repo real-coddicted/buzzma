@@ -17,6 +17,7 @@ import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import java.math.BigInteger;
@@ -44,6 +45,7 @@ class MyPaymentsServiceImplTest {
 
   @Mock private ClaimAccountingService claimAccountingService;
   @Mock private PaymentService paymentService;
+  @Mock private ClaimService claimService;
 
   private MyPaymentsServiceImpl service;
 
@@ -51,7 +53,10 @@ class MyPaymentsServiceImplTest {
   void setUp() {
     service =
         new MyPaymentsServiceImpl(
-            claimAccountingService, paymentService, Mappers.getMapper(PaymentMapper.class));
+            claimAccountingService,
+            paymentService,
+            claimService,
+            Mappers.getMapper(PaymentMapper.class));
   }
 
   // ── listReceived ──────────────────────────────────────────────────────────────────────────────

@@ -11,6 +11,8 @@ export interface PayoutUser {
 
 export interface PayoutClaim {
   id: string
+  claimCode: string
+  ecommerceOrderId: string
   campaign: string
   brand: string
   platform: string

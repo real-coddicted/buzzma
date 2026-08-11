@@ -1,5 +1,7 @@
 export interface PaymentClaim {
   claimId: string
+  claimCode: string
+  ecommerceOrderId: string
   campaignName: string
   brandName: string
   transactionAmount: number
@@ -18,6 +20,8 @@ export interface PaymentBatch {
 
 export interface PendingClaim {
   claimId: string
+  claimCode: string
+  ecommerceOrderId: string
   campaignName: string
   submittedDate: string
   expectedAmount: number

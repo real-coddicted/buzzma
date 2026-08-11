@@ -2,6 +2,7 @@ import { Card } from '../Card'
 import { Loading } from '../Loading'
 import { Badge } from '../Badge'
 import { BackButton } from '../BackButton'
+import { CopyableCode } from '../CopyableCode'
 import { formatRupees } from '../../../utils/currency'
 import type { PaymentBatch, PaymentClaim } from '../../../types/MyPaymentsTypes'
 
@@ -19,7 +20,7 @@ function ClaimsTable({ children }: { children: React.ReactNode }) {
         <thead>
           <tr className="border-b border-surface-light-border dark:border-surface-dark-border">
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">#</th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Claim ID</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Order ID</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Campaign</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Brand</th>
             <th className="px-4 py-2 text-right text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Amount</th>
@@ -36,7 +37,12 @@ function ClaimRow({ claim, isLast }: { claim: PaymentClaim; isLast: boolean }) {
   return (
     <tr className={!isLast ? 'border-b border-surface-light-border dark:border-surface-dark-border' : ''}>
       <td className="px-4 py-3 text-xs text-ink-light-muted dark:text-ink-dark-muted">·</td>
-      <td className="px-4 py-3 text-xs font-mono text-ink-light-secondary dark:text-ink-dark-secondary">{claim.claimId}</td>
+      <td className="px-4 py-3">
+        <div className="flex flex-col items-start gap-1">
+          <CopyableCode code={claim.claimCode} />
+          <span className="text-xs font-mono text-ink-light-secondary dark:text-ink-dark-secondary">{claim.ecommerceOrderId}</span>
+        </div>
+      </td>
       <td className="px-4 py-3 text-sm text-ink-light-primary dark:text-ink-dark-primary">{claim.campaignName}</td>
       <td className="px-4 py-3 text-sm text-ink-light-secondary dark:text-ink-dark-secondary">{claim.brandName}</td>
       <td className="px-4 py-3 text-sm font-semibold text-right text-neon-green">₹{formatRupees(claim.transactionAmount)}</td>

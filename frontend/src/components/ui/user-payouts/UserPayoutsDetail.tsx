@@ -2,6 +2,7 @@ import { Card } from '../Card'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { PlatformBadge } from '../campaign/CampaignBadges'
+import { CopyableCode } from '../CopyableCode'
 import { formatRupees } from '../../../utils/currency'
 import type { PayoutUser, PayoutClaim } from '../../../types/UserPayoutsTypes'
 
@@ -124,11 +125,14 @@ export function UserPayoutsDetail({
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-ink-light-primary dark:text-ink-dark-primary">{claim.campaign}</p>
                     {claim.platform && <PlatformBadge platform={claim.platform} />}
+                    <span onClick={e => e.stopPropagation()}>
+                      <CopyableCode code={claim.claimCode} />
+                    </span>
                   </div>
                   <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
                     {claim.brand}
                     <span className="mx-1.5">·</span>
-                    <span className="font-mono">{claim.id}</span>
+                    <span className="font-mono">{claim.ecommerceOrderId}</span>
                   </p>
                 </div>
                 <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted flex-shrink-0">

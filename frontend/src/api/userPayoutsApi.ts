@@ -21,6 +21,8 @@ interface PendingPayoutDto {
 interface ClaimAccountingSummaryDto {
   id: string
   claimId: string
+  claimCode: string
+  ecommerceOrderId: string
   campaignId: string
   dealId: string
   amountPaise: number
@@ -75,6 +77,8 @@ async function enrichClaims(
   }
   return dtos.map(d => ({
     id: d.id,
+    claimCode: d.claimCode,
+    ecommerceOrderId: d.ecommerceOrderId,
     campaign: campaignCache.get(d.campaignId)?.title ?? d.campaignId.slice(0, 8),
     brand: campaignCache.get(d.campaignId)?.brand ?? '—',
     platform: campaignCache.get(d.campaignId)?.platform ?? '',

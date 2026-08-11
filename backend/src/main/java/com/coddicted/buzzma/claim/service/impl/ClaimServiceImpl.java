@@ -35,6 +35,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -268,6 +270,13 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Transactional(readOnly = true)
   public List<Claim> listByOwner(final UUID ownerId) {
     return this.claimRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, Claim> findAllByIdAsMap(final Collection<UUID> claimIds) {
+    return this.claimRepository.findAllById(claimIds).stream()
+        .collect(Collectors.toMap(Claim::getId, Function.identity()));
   }
 
   @Override

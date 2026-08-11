@@ -2,6 +2,7 @@ import { Card } from '../Card'
 import { Loading } from '../Loading'
 import { Badge } from '../Badge'
 import { BackButton } from '../BackButton'
+import { CopyableCode } from '../CopyableCode'
 import { formatRupees } from '../../../utils/currency'
 import type { PendingAgency, PendingClaim } from '../../../types/MyPaymentsTypes'
 
@@ -19,7 +20,7 @@ function PendingClaimsTable({ children }: { children: React.ReactNode }) {
         <thead>
           <tr className="border-b border-surface-light-border dark:border-surface-dark-border">
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">#</th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Claim ID</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Order ID</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Campaign</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Submitted</th>
             <th className="px-4 py-2 text-right text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted">Expected</th>
@@ -36,7 +37,12 @@ function PendingClaimRow({ claim, isLast }: { claim: PendingClaim; isLast: boole
   return (
     <tr className={!isLast ? 'border-b border-surface-light-border dark:border-surface-dark-border' : ''}>
       <td className="px-4 py-3 text-xs text-ink-light-muted dark:text-ink-dark-muted">·</td>
-      <td className="px-4 py-3 text-xs font-mono text-ink-light-secondary dark:text-ink-dark-secondary">{claim.claimId}</td>
+      <td className="px-4 py-3">
+        <div className="flex flex-col items-start gap-1">
+          <CopyableCode code={claim.claimCode} />
+          <span className="text-xs font-mono text-ink-light-secondary dark:text-ink-dark-secondary">{claim.ecommerceOrderId}</span>
+        </div>
+      </td>
       <td className="px-4 py-3 text-sm text-ink-light-primary dark:text-ink-dark-primary">{claim.campaignName}</td>
       <td className="px-4 py-3 text-xs text-ink-light-muted dark:text-ink-dark-muted">{claim.submittedDate}</td>
       <td className="px-4 py-3 text-sm font-semibold text-right text-neon-orange">₹{formatRupees(claim.expectedAmount)}</td>

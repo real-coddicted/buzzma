@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.claim.entity.AccountingPaymentStatus;
+import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.Payment;
 import com.coddicted.buzzma.claim.mapper.PaymentMapper;
@@ -12,6 +13,7 @@ import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
 import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.PaymentService;
 import com.coddicted.buzzma.claim.service.PayoutService;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -33,16 +35,19 @@ public class PayoutServiceImpl implements PayoutService {
 
   private final ClaimAccountingService claimAccountingService;
   private final PaymentService paymentService;
+  private final ClaimService claimService;
   private final PaymentMapper paymentMapper;
   private final StorageService storageService;
 
   public PayoutServiceImpl(
       final ClaimAccountingService claimAccountingService,
       final PaymentService paymentService,
+      final ClaimService claimService,
       final PaymentMapper paymentMapper,
       final StorageService storageService) {
     this.claimAccountingService = claimAccountingService;
     this.paymentService = paymentService;
+    this.claimService = claimService;
     this.paymentMapper = paymentMapper;
     this.storageService = storageService;
   }
@@ -62,18 +67,28 @@ public class PayoutServiceImpl implements PayoutService {
   @Override
   public List<ClaimAccountingSummary> listClaimsForPayee(
       final UUID callerId, final UUID payeeId, final UserRole role) {
-    return switch (role) {
-      case ROLE_AGENCY ->
-          claimAccountingService.findClaimsPendingForMediatorPayout(callerId, payeeId).stream()
-              .map(paymentMapper::toSummaryForAgency)
-              .toList();
-      case ROLE_MEDIATOR ->
-          claimAccountingService.findClaimsPendingForBuyerPayout(callerId, payeeId).stream()
-              .map(paymentMapper::toSummaryForMediator)
-              .toList();
-      default ->
-          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
-    };
+    final List<ClaimAccounting> rows =
+        switch (role) {
+          case ROLE_AGENCY ->
+              claimAccountingService.findClaimsPendingForMediatorPayout(callerId, payeeId);
+          case ROLE_MEDIATOR ->
+              claimAccountingService.findClaimsPendingForBuyerPayout(callerId, payeeId);
+          default ->
+              throw new ResponseStatusException(
+                  HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+        };
+    final Map<UUID, Claim> claimsById = findClaimsFor(rows);
+    return role == UserRole.ROLE_AGENCY
+        ? rows.stream()
+            .map(ca -> paymentMapper.toSummaryForAgency(ca, claimsById.get(ca.getClaimId())))
+            .toList()
+        : rows.stream()
+            .map(ca -> paymentMapper.toSummaryForMediator(ca, claimsById.get(ca.getClaimId())))
+            .toList();
+  }
+
+  private Map<UUID, Claim> findClaimsFor(final List<ClaimAccounting> rows) {
+    return claimService.findAllByIdAsMap(rows.stream().map(ClaimAccounting::getClaimId).toList());
   }
 
   @Override
@@ -240,17 +255,23 @@ public class PayoutServiceImpl implements PayoutService {
       final int page,
       final int size) {
     final PageRequest pageRequest = PageRequest.of(page, size);
-    return switch (role) {
-      case ROLE_AGENCY ->
-          claimAccountingService
-              .findClaimsPaidToMediatorByPayment(callerId, paymentId, pageRequest)
-              .map(paymentMapper::toSummaryForAgency);
-      case ROLE_MEDIATOR ->
-          claimAccountingService
-              .findClaimsPaidToBuyerByPayment(callerId, paymentId, pageRequest)
-              .map(paymentMapper::toSummaryForMediator);
-      default ->
-          throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Role not permitted for payouts");
-    };
+    final Page<ClaimAccounting> rows =
+        switch (role) {
+          case ROLE_AGENCY ->
+              claimAccountingService.findClaimsPaidToMediatorByPayment(
+                  callerId, paymentId, pageRequest);
+          case ROLE_MEDIATOR ->
+              claimAccountingService.findClaimsPaidToBuyerByPayment(
+                  callerId, paymentId, pageRequest);
+          default ->
+              throw new ResponseStatusException(
+                  HttpStatus.FORBIDDEN, "Role not permitted for payouts");
+        };
+    final Map<UUID, Claim> claimsById =
+        claimService.findAllByIdAsMap(
+            rows.getContent().stream().map(ClaimAccounting::getClaimId).toList());
+    return role == UserRole.ROLE_AGENCY
+        ? rows.map(ca -> paymentMapper.toSummaryForAgency(ca, claimsById.get(ca.getClaimId())))
+        : rows.map(ca -> paymentMapper.toSummaryForMediator(ca, claimsById.get(ca.getClaimId())));
   }
 }

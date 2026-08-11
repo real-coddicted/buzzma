@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 public class ClaimAccountingSummary {
   private UUID id;
   private UUID claimId;
+  private String claimCode;
+  private String ecommerceOrderId;
   private UUID campaignId;
   private UUID dealId;
   private BigInteger amountPaise;
