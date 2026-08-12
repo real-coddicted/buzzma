@@ -1,4 +1,4 @@
-import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye, IconTrash } from '../icons'
+import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye, IconTrash, IconList } from '../icons'
 import type { Campaign } from '../../../types'
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   onResume: () => void
   onClose: () => void
   onDelete: () => void
+  onViewClaims: () => void
 }
 
 const btn = {
@@ -20,9 +21,10 @@ const btn = {
   close:  'p-1.5 rounded-lg text-neon-red    bg-neon-red/10    hover:bg-neon-red/20    transition-colors',
   copy:   'p-1.5 rounded-lg text-neon-cyan   bg-neon-cyan/10   hover:bg-neon-cyan/20   transition-colors',
   delete: 'p-1.5 rounded-lg text-neon-red    bg-neon-red/10    hover:bg-neon-red/20    transition-colors',
+  claims: 'p-1.5 rounded-lg text-neon-purple bg-neon-purple/10 hover:bg-neon-purple/20 transition-colors',
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims }: Props) {
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">
@@ -39,6 +41,11 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
         {(c.status === 'active' || c.status === 'paused' || c.status === 'closed' || c.status === 'completed') && (
           <button title="View" onClick={onView} className={btn.view}>
             <IconEye size={14} />
+          </button>
+        )}
+        {(c.status === 'active' || c.status === 'paused' || c.status === 'closed' || c.status === 'completed') && (
+          <button title="View Claims" onClick={onViewClaims} className={btn.claims}>
+            <IconList size={14} />
           </button>
         )}
         {c.status === 'active' && (

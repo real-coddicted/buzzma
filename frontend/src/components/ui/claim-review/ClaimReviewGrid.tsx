@@ -34,14 +34,15 @@ interface ClaimReviewGridProps {
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
   onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
+  initialCampaignOption?: TypeaheadOption
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove, initialCampaignOption }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [campaignOptions, setCampaignOptions] = useState<TypeaheadOption[]>([])
+  const [campaignOptions, setCampaignOptions] = useState<TypeaheadOption[]>(initialCampaignOption ? [initialCampaignOption] : [])
   const [brandOptions, setBrandOptions] = useState<TypeaheadOption[]>([])
   const [mediatorOptions, setMediatorOptions] = useState<TypeaheadOption[]>([])
   const [optionsError, setOptionsError] = useState<string | null>(null)

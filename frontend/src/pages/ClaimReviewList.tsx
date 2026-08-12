@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
 import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews } from '../api/claimApi'
@@ -10,10 +11,15 @@ interface ClaimReviewListProps {
 }
 
 export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
+  const [searchParams] = useSearchParams()
+  const seedCampaignId = searchParams.get('campaignId')
+  const seedCampaignName = searchParams.get('campaignName')
   const [claims, setClaims] = useState<ClaimReviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [appliedFilters, setAppliedFilters] = useState<ClaimReviewFilters>(emptyFilters)
+  const [appliedFilters, setAppliedFilters] = useState<ClaimReviewFilters>(() =>
+    seedCampaignId ? { ...emptyFilters(), campaignIds: new Set([seedCampaignId]) } : emptyFilters()
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -66,6 +72,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
         onViewDetails={onViewDetails}
         onApprove={handleApprove}
         onBulkApprove={handleBulkApprove}
+        initialCampaignOption={seedCampaignId && seedCampaignName ? { value: seedCampaignId, label: seedCampaignName } : undefined}
       />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}
     </div>

@@ -30,12 +30,13 @@ interface Props {
   onResume: (id: string) => void
   onClose: (id: string) => void
   onDelete: (id: string) => void
+  onViewClaims: (id: string, title: string) => void
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
 }
 
-export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, currentPage, totalPages, onPageChange }: Props) {
+export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims, currentPage, totalPages, onPageChange }: Props) {
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -256,6 +257,7 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
                       onResume={() => onResume(c.id)}
                       onClose={() => onClose(c.id)}
                       onDelete={() => onDelete(c.id)}
+                      onViewClaims={() => onViewClaims(c.id, c.title)}
                     />
                   </td>
                 </tr>

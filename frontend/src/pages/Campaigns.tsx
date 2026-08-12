@@ -151,6 +151,10 @@ export function Campaigns() {
     setSearchParams({ view: 'view', id })
   }
 
+  function handleViewClaims(id: string, title: string) {
+    navigate('/claim-review?campaignId=' + encodeURIComponent(id) + '&campaignName=' + encodeURIComponent(title))
+  }
+
   function handleRequestClose(id: string) {
     setConfirmCloseId(id)
   }
@@ -290,6 +294,7 @@ export function Campaigns() {
         onResume={handleResumeCampaign}
         onClose={handleRequestClose}
         onDelete={handleRequestDelete}
+        onViewClaims={handleViewClaims}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
