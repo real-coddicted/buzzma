@@ -31,7 +31,7 @@ export const CLAIM_REVIEW_COLUMNS = [
   'Order ID / Order Date',
   'Campaign / Platform',
   'Brand Name',
-  'Mediator Name',
+  'Mediator / Buyer Name',
   'Claim Status',
   'Match %',
   'Amount',

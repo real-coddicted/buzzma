@@ -52,8 +52,8 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const [bulkApproving, setBulkApproving] = useState(false)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
-  const columns = isMediator
-    ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator Name' ? 'Buyer Name' : col)
+  const columns = (isMediator || isBrand)
+    ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator / Buyer Name' ? 'Buyer Name' : col)
     : CLAIM_REVIEW_COLUMNS
 
   useEffect(() => {
@@ -390,7 +390,16 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                       {row.brandName || '—'}
                     </td>
                     <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
-                      {isMediator ? row.buyerName : row.mediatorName}
+                      {isMediator || isBrand ? (
+                        row.buyerName
+                      ) : (
+                        <div className="flex flex-col gap-1">
+                          <span>{row.mediatorName}</span>
+                          <div className="border-t border-surface-light-border dark:border-surface-dark-border pt-1">
+                            {row.buyerName}
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-center">
