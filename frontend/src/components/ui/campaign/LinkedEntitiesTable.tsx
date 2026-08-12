@@ -1,6 +1,7 @@
 import type { LinkedEntity } from '../../../types'
 import type { ConnectionOption } from '../../../hooks/useConnections'
 import { RupeeInput } from '../RupeeInput'
+import { IconInfo } from '../icons'
 
 interface Props {
   entities: LinkedEntity[]
@@ -8,14 +9,18 @@ interface Props {
   onChange: (entities: LinkedEntity[]) => void
   openToAll?: boolean
   readOnly?: boolean
+  totalSlots?: number
 }
 
-export function LinkedEntitiesTable({ entities, connections = [], onChange, openToAll, readOnly }: Props) {
+export function LinkedEntitiesTable({ entities, connections = [], onChange, openToAll, readOnly, totalSlots: totalSlotsProp }: Props) {
   const entityMap = new Map(entities.map(e => [e.id, e]))
   const rows = readOnly ? entities.map(e => ({ id: e.id, name: e.name })) : connections
 
-  const totalSlots = entities.reduce((sum, e) => sum + e.slotsAvailable, 0)
-  const totalCommission = entities.reduce((sum, e) => sum + e.slotsAvailable * e.commissionOffered, 0)
+  const totalSlots = openToAll ? (totalSlotsProp ?? 0) : entities.reduce((sum, e) => sum + e.slotsAvailable, 0)
+  const commissionVaries = openToAll && entities.some(e => e.commissionOffered !== entities[0]?.commissionOffered)
+  const totalCommission = openToAll
+    ? totalSlots * (entities[0]?.commissionOffered ?? 0)
+    : entities.reduce((sum, e) => sum + e.slotsAvailable * e.commissionOffered, 0)
 
   function handleToggle(conn: ConnectionOption) {
     if (entityMap.has(conn.id)) {
@@ -179,7 +184,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
           <div>
             <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wider font-semibold">Selected</p>
             <p className="text-sm font-bold text-ink-light-primary dark:text-ink-dark-primary mt-0.5">
-              {openToAll ? connections.length : entities.length}
+              {entities.length}
             </p>
           </div>
           <div>
@@ -188,7 +193,18 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
           </div>
           <div>
             <p className="text-[10px] text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wider font-semibold">Commission</p>
-            <p className="text-sm font-bold text-neon-green mt-0.5">₹{totalCommission.toLocaleString()}</p>
+            {commissionVaries ? (
+              <p className="flex items-center justify-center gap-1 text-sm font-bold text-neon-green mt-0.5">
+                <span
+                  title="Since commission offered varies across mediators, actual commission outflow will depend on orders placed & approved across mediators."
+                  className="cursor-help"
+                >
+                  <IconInfo size={15} className="text-ink-light-muted dark:text-ink-dark-muted" />
+                </span>
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-neon-green mt-0.5">₹{totalCommission.toLocaleString()}</p>
+            )}
           </div>
         </div>
       )}

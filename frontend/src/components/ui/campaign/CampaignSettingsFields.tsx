@@ -74,6 +74,7 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
         onChange={assignees => set('assignees', assignees)}
         openToAll={form.openToAll}
         readOnly={readOnly}
+        totalSlots={parseInt(form.totalSlots, 10) || 0}
       />
     </section>
   )
