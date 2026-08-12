@@ -1690,7 +1690,7 @@ export interface components {
             mediatorIds?: string[];
             claimStatuses?: ("ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO")[];
         };
         RecordPaymentRequestDto: {
             /** @enum {string} */
@@ -1771,7 +1771,7 @@ export interface components {
         };
         ExtractionResult: {
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             orderId?: string;
             orderDate?: string;
             productName?: string;
@@ -1835,7 +1835,7 @@ export interface components {
             /** Format: uuid */
             dealId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             orderId: string;
             amount: number;
             productName: string;
@@ -1878,7 +1878,7 @@ export interface components {
             /** Format: uuid */
             reviewerId?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1914,7 +1914,7 @@ export interface components {
             productUrl?: string;
             code?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             originalPricePaise?: number;
@@ -1934,7 +1934,7 @@ export interface components {
             /** Format: binary */
             screenshot: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             orderId?: string;
             amount?: number;
             productName?: string;
@@ -1995,7 +1995,7 @@ export interface components {
             amountPaise?: number;
             amountApprovedPaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** Format: int32 */
             orderDate?: number;
             brandName?: string;
@@ -2070,7 +2070,7 @@ export interface components {
             /** Format: uuid */
             ownerId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             productName: string;
             productImageUrl: string;
             productUrl: string;
@@ -2136,7 +2136,7 @@ export interface components {
             productLink?: string;
             productPricePaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             campaignPricePaise?: number;
             /** Format: int32 */
             returnWindowDays?: number;
@@ -2172,7 +2172,7 @@ export interface components {
         };
         CampaignSearchRequestDto: {
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO")[];
             types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT")[];
             statuses?: ("CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED")[];
             /** Format: int32 */
@@ -2196,7 +2196,7 @@ export interface components {
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** @enum {string} */
             type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** Format: int32 */
@@ -2562,7 +2562,7 @@ export interface components {
             productName?: string;
             productImageUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */
@@ -2596,7 +2596,7 @@ export interface components {
             productImageUrl?: string;
             productUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
             /** @enum {string} */

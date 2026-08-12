@@ -5,6 +5,7 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   PLATFORM_FLIPKART: 'Flipkart',
   PLATFORM_NYKAA: 'Nykaa',
   PLATFORM_MYNTRA: 'Myntra',
+  PLATFORM_MEESHO: 'Meesho',
 }
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {

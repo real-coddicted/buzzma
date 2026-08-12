@@ -86,4 +86,42 @@ class ExtractionResultValidatorTest {
         errors.stream().anyMatch(e -> "amount".equals(e.getField())),
         "Expected an amount validation error for non-positive value");
   }
+
+  @Test
+  void testValidateWhenMeeshoOrderIdIsValid() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_MEESHO)
+            .orderId("316168282897699392")
+            .orderDate("2026-04-19")
+            .productName("Product")
+            .amount(BigDecimal.valueOf(499))
+            .orderedBy("Customer")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().noneMatch(e -> "orderId".equals(e.getField())),
+        "Expected no orderId validation error for a valid 18-digit Meesho order ID");
+  }
+
+  @Test
+  void testValidateWhenMeeshoOrderIdIsInvalid() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_MEESHO)
+            .orderId("12345")
+            .orderDate("2026-04-19")
+            .productName("Product")
+            .amount(BigDecimal.valueOf(499))
+            .orderedBy("Customer")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().anyMatch(e -> "orderId".equals(e.getField())),
+        "Expected an orderId validation error for a non-18-digit Meesho order ID");
+  }
 }

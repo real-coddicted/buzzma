@@ -5,6 +5,7 @@ import type { ExtractionResponse } from '../../../api/extractionApi'
 import { submitClaim, updateOrderScreenshot } from '../../../api/claimApi'
 import type { components } from '../../../types/api'
 import { ScoreBadge } from '../../utils/ScoreBadge'
+import { PLATFORM_LABELS } from '../../../constants/campaigns'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ScoredValue = components['schemas']['ScoredValue']
@@ -188,10 +189,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             score={fieldScores.platform}
             options={[
               { value: '', label: 'Select platform' },
-              { value: 'PLATFORM_AMAZON', label: 'Amazon' },
-              { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
-              { value: 'PLATFORM_NYKAA', label: 'Nykaa' },
-              { value: 'PLATFORM_MYNTRA', label: 'Myntra' },
+              ...Object.entries(PLATFORM_LABELS).map(([value, label]) => ({ value, label })),
             ]}
           />
         )}

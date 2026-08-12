@@ -81,6 +81,7 @@ export type Platform =
   | 'PLATFORM_FLIPKART'
   | 'PLATFORM_NYKAA'
   | 'PLATFORM_MYNTRA'
+  | 'PLATFORM_MEESHO'
 
 export type CampaignType =
   | 'CAMPAIGN_TYPE_RATING'

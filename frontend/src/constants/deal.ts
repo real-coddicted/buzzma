@@ -1,12 +1,10 @@
 import type { Platform, CampaignType, DealTypeFilter, DealPlatformFilter } from '../types/DealTypes'
 import type { FilterOption } from '../components/ui/StatusFilterPills'
+import { PLATFORM_COLORS as CHIP_PLATFORM_COLORS } from '../components/ui/campaign/filters/chipColors'
 
-export const PLATFORM_COLORS: Record<Platform, string> = {
-  PLATFORM_AMAZON:   'text-neon-orange bg-neon-orange/10 border-neon-orange/25',
-  PLATFORM_FLIPKART: 'text-neon-blue   bg-neon-blue/10   border-neon-blue/25',
-  PLATFORM_NYKAA:    'text-neon-pink   bg-neon-pink/10   border-neon-pink/25',
-  PLATFORM_MYNTRA:   'text-neon-purple bg-neon-purple/10 border-neon-purple/25',
-}
+export const PLATFORM_COLORS: Record<Platform, string> = Object.fromEntries(
+  Object.entries(CHIP_PLATFORM_COLORS).map(([platform, colors]) => [platform, colors.base])
+) as Record<Platform, string>
 
 export const DEAL_TYPE_COLORS: Record<CampaignType, string> = {
   CAMPAIGN_TYPE_RATING:            'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/25',

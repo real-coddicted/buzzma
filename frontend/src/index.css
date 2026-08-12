@@ -13,6 +13,7 @@
     --neon-cyan:   8 145 178;
     --neon-blue:   59 130 246;
     --neon-purple: 124 58 237;
+    --neon-plum:   195 34 174;
   }
 
   .dark {
@@ -25,6 +26,7 @@
     --neon-cyan:   139 233 253;
     --neon-blue:   87 199 255;
     --neon-purple: 189 147 249;
+    --neon-plum:   239 108 221;
   }
 
   * {

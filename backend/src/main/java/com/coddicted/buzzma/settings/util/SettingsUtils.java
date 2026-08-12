@@ -26,7 +26,7 @@ public final class SettingsUtils {
   public static Settings getBrandSettings() {
     return Settings.builder()
         .dashboardTabEnabled(false)
-        .campaignsTabEnabled(true)
+        .campaignsTabEnabled(false)
         .connectionsTabEnabled(true)
         .claimReviewEnabled(true)
         .ticketsTabEnabled(true)

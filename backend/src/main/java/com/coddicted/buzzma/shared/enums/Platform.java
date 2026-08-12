@@ -10,7 +10,8 @@ public enum Platform {
   PLATFORM_AMAZON("Amazon"),
   PLATFORM_FLIPKART("Flipkart"),
   PLATFORM_NYKAA("Nykaa"),
-  PLATFORM_MYNTRA("Myntra");
+  PLATFORM_MYNTRA("Myntra"),
+  PLATFORM_MEESHO("Meesho");
 
   private final String displayName;
 

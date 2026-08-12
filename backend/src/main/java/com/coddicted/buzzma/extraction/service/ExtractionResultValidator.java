@@ -16,6 +16,8 @@ public class ExtractionResultValidator {
   private static final Pattern AMAZON_ORDER_ID = Pattern.compile("^\\d{3}-\\d{7}-\\d{7}$");
   private static final Pattern FLIPKART_ORDER_ID = Pattern.compile("^OD\\d{12,18}$");
   private static final Pattern MYNTRA_ORDER_ID = Pattern.compile("^\\d{8,20}$");
+  private static final Pattern NYKAA_ORDER_ID = Pattern.compile("^NYK-\\d{9}-\\d{7}$");
+  private static final Pattern MEESHO_ORDER_ID = Pattern.compile("^\\d{18}$");
 
   public List<ValidationError> validate(final ExtractionResult result) {
     final List<ValidationError> errors = new ArrayList<>();
@@ -62,6 +64,8 @@ public class ExtractionResultValidator {
           case PLATFORM_AMAZON -> AMAZON_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_FLIPKART -> FLIPKART_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_MYNTRA -> MYNTRA_ORDER_ID.matcher(orderId).matches();
+          case PLATFORM_NYKAA -> NYKAA_ORDER_ID.matcher(orderId).matches();
+          case PLATFORM_MEESHO -> MEESHO_ORDER_ID.matcher(orderId).matches();
           default -> true;
         };
     if (!valid) {

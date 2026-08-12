@@ -12,6 +12,7 @@ export const PLATFORM_COLORS: Record<Platform, ChipColors> = {
   PLATFORM_FLIPKART: { base: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/25',   selected: 'bg-neon-blue/20   text-neon-blue   border-neon-blue/50' },
   PLATFORM_NYKAA:    { base: 'bg-neon-pink/10   text-neon-pink   border-neon-pink/25',   selected: 'bg-neon-pink/20   text-neon-pink   border-neon-pink/50' },
   PLATFORM_MYNTRA:   { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
+  PLATFORM_MEESHO:   { base: 'bg-neon-plum/10   text-neon-plum   border-neon-plum/25',   selected: 'bg-neon-plum/20   text-neon-plum   border-neon-plum/50' },
 }
 
 export const TYPE_COLORS: Record<CampaignType, ChipColors> = {

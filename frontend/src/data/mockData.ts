@@ -5,7 +5,6 @@ import type {
   PerformanceBar,
   SecurityQuestion,
   UserDetails,
-  PlatformOption,
   DealTypeOption,
   ClaimReviewItem,
 } from '../types'
@@ -357,13 +356,6 @@ export const dealTypes: DealTypeOption[] = [
   { value: 'CAMPAIGN_TYPE_REVIEW',   label: 'Review'   },
   { value: 'CAMPAIGN_TYPE_DISCOUNT', label: 'Discount' },
   { value: 'CAMPAIGN_TYPE_ORDER',    label: 'Order'    },
-]
-
-export const platforms: PlatformOption[] = [
-  { value: 'PLATFORM_AMAZON',   label: 'Amazon'   },
-  { value: 'PLATFORM_FLIPKART', label: 'Flipkart' },
-  { value: 'PLATFORM_NYKAA',    label: 'Nykaa'    },
-  { value: 'PLATFORM_MYNTRA',   label: 'Myntra'   },
 ]
 
 
