@@ -6,6 +6,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.Commission;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.math.BigInteger;
 import java.util.Set;
@@ -84,6 +85,13 @@ final class Fixtures {
 
   static final Product PRODUCT_1 =
       FileUtils.loadResourceAsObject("/fixtures/input/campaign/product-1.json", Product.class);
+
+  static final BuzzmaUser OWNER_USER =
+      FileUtils.loadResourceAsObject(
+              "/fixtures/input/identity/buzzma-user-1.json", BuzzmaUser.class)
+          .toBuilder()
+          .id(OWNER_ID)
+          .build();
 
   private Fixtures() {}
 }

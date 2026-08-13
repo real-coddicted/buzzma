@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,18 +13,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
-import com.coddicted.buzzma.campaign.dto.SharedCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.SharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
-import com.coddicted.buzzma.campaign.mapper.SharedCampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.SharedCampaignSummaryMapper;
+import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
+import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
-import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -63,7 +64,6 @@ class CampaignControllerTest {
   @MockBean private CampaignProcessor campaignProcessor;
   @MockBean private CampaignTypeStepService campaignTypeStepService;
   @MockBean private ShareableCampaignMapper shareableCampaignMapper;
-  @MockBean private SharedCampaignMapper sharedCampaignMapper;
   @MockBean private SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
 
   private static final String VALID_BODY =
@@ -455,51 +455,56 @@ class CampaignControllerTest {
     mockMvc.perform(get("/api/v1/campaigns/shareable")).andExpect(status().isUnauthorized());
   }
 
-  // --- GET /api/v1/campaigns/shared ---
+  // --- POST /api/v1/campaigns/shared ---
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND, id = REQUESTER_ID)
   void testGetSharedCampaignsWithBrandRoleReturns200() throws Exception {
-    when(campaignService.findSharedCampaigns(UUID.fromString(REQUESTER_ID))).thenReturn(List.of());
-    when(sharedCampaignMapper.toResponse(List.<SharedCampaignView>of()))
+    when(campaignService.findSharedCampaigns(
+            eq(UUID.fromString(REQUESTER_ID)),
+            any(CampaignSearchCriteria.class),
+            any(PageRequest.class)))
+        .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 1));
+    when(campaignMapper.toSummaries(List.<CampaignSummary>of()))
         .thenReturn(
             List.of(
-                SharedCampaignResponseDto.builder()
+                CampaignSummaryResponseDto.builder()
                     .campaignId(CAMPAIGN_ID)
                     .title("Test Campaign")
-                    .campaignOwnerId(UUID.fromString(REQUESTER_ID))
                     .campaignOwnerName("Test Agency")
                     .build()));
 
     mockMvc
-        .perform(get("/api/v1/campaigns/shared"))
+        .perform(
+            post("/api/v1/campaigns/shared").contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].campaignId").value(CAMPAIGN_ID.toString()))
-        .andExpect(jsonPath("$[0].title").value("Test Campaign"))
-        .andExpect(jsonPath("$[0].campaignOwnerName").value("Test Agency"));
+        .andExpect(jsonPath("$.items[0].campaignId").value(CAMPAIGN_ID.toString()))
+        .andExpect(jsonPath("$.items[0].title").value("Test Campaign"))
+        .andExpect(jsonPath("$.items[0].campaignOwnerName").value("Test Agency"))
+        .andExpect(jsonPath("$.total").value(1));
   }
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
   void testGetSharedCampaignsWithAgencyRoleReturnsForbidden() throws Exception {
-    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+    mockMvc.perform(post("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
   }
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
   void testGetSharedCampaignsWithMediatorRoleReturnsForbidden() throws Exception {
-    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+    mockMvc.perform(post("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
   }
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
   void testGetSharedCampaignsWithBuyerRoleReturnsForbidden() throws Exception {
-    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
+    mockMvc.perform(post("/api/v1/campaigns/shared")).andExpect(status().isForbidden());
   }
 
   @Test
   void testGetSharedCampaignsUnauthenticatedReturnsUnauthorized() throws Exception {
-    mockMvc.perform(get("/api/v1/campaigns/shared")).andExpect(status().isUnauthorized());
+    mockMvc.perform(post("/api/v1/campaigns/shared")).andExpect(status().isUnauthorized());
   }
 
   // --- GET /api/v1/campaigns/shared-by-me ---
@@ -507,8 +512,9 @@ class CampaignControllerTest {
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = REQUESTER_ID)
   void testGetCampaignsSharedByMeWithAgencyRoleReturns200() throws Exception {
-    when(campaignService.findCampaignsSharedByOwner(UUID.fromString(REQUESTER_ID)))
-        .thenReturn(List.of());
+    when(campaignService.findCampaignsSharedByOwner(
+            eq(UUID.fromString(REQUESTER_ID)), any(PageRequest.class)))
+        .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 1));
     when(sharedCampaignSummaryMapper.toResponse(List.<SharedCampaignSummaryView>of()))
         .thenReturn(
             List.of(
@@ -523,8 +529,9 @@ class CampaignControllerTest {
     mockMvc
         .perform(get("/api/v1/campaigns/shared-by-me"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].campaignName").value("Test Campaign"))
-        .andExpect(jsonPath("$[0].sharedWithUserName").value("Test Brand"));
+        .andExpect(jsonPath("$.items[0].campaignName").value("Test Campaign"))
+        .andExpect(jsonPath("$.items[0].sharedWithUserName").value("Test Brand"))
+        .andExpect(jsonPath("$.total").value(1));
   }
 
   @Test

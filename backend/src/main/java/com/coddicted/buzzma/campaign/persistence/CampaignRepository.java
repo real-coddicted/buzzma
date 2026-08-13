@@ -172,7 +172,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
           WHERE c.owner_id = :ownerId
             AND c.is_deleted = false
             AND c.end_date >= :today
-            AND c.status IN ('CAMPAIGN_STATUS_PAUSED', 'CAMPAIGN_STATUS_ACTIVE')
+            AND c.status != 'CAMPAIGN_STATUS_DRAFT'
             AND c.id NOT IN (SELECT campaign_id FROM campaign_shares)
           GROUP BY c.id, p.id
           ORDER BY c.start_date ASC
@@ -184,35 +184,50 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
   @Query(
       value =
           """
-          SELECT
-              c.id                   AS campaignId,
-              c.code                 AS code,
-              c.title                AS title,
-              c.platform             AS platform,
-              c.type                 AS campaignType,
-              c.start_date           AS startDate,
-              c.end_date             AS endDate,
-              p.brand_name           AS productBrandName,
-              p.name                 AS productName,
-              p.product_link         AS productLink,
-              p.image_url            AS productImageUrl,
-              p.price_paise          AS productPricePaise,
-              c.seller_name          AS sellerName,
-              c.affiliate_link_allowed AS affiliateLinkAllowed,
-              c.campaign_price_paise AS campaignPricePaise,
-              c.terms_and_conditions AS termsAndConditions,
-              c.owner_id             AS campaignOwnerId,
-              u.name                 AS campaignOwnerName
-          FROM campaign_shares csh
-          JOIN campaigns c ON c.id = csh.campaign_id
-          JOIN products p ON c.product_id = p.id
-          JOIN users u ON u.id = c.owner_id
-          WHERE csh.to_user_id = :toUserId
-            AND c.is_deleted = false
-          ORDER BY c.start_date DESC
+          SELECT c FROM Campaign c
+            JOIN c.product p
+          WHERE c.id IN (SELECT csh.campaignId FROM CampaignShare csh WHERE csh.toUserId = :toUserId)
+            AND c.isDeleted = false
+            AND (:brands IS NULL OR LOWER(p.brandName) IN :brands)
+            AND (:platforms IS NULL OR c.platform IN :platforms)
+            AND (:types IS NULL OR c.type IN :types)
+            AND (:statuses IS NULL OR c.status IN :statuses)
+            AND (
+              ((:fromDate IS NULL OR c.startDate >= :fromDate)
+                AND (:toDate IS NULL OR c.startDate <= :toDate))
+              OR
+              ((:fromDate IS NULL OR c.endDate >= :fromDate)
+                AND (:toDate IS NULL OR c.endDate <= :toDate))
+            )
+          ORDER BY c.startDate DESC
           """,
-      nativeQuery = true)
-  List<SharedCampaignView> findSharedCampaigns(@Param("toUserId") UUID toUserId);
+      countQuery =
+          """
+          SELECT COUNT(c) FROM Campaign c
+            JOIN c.product p
+          WHERE c.id IN (SELECT csh.campaignId FROM CampaignShare csh WHERE csh.toUserId = :toUserId)
+            AND c.isDeleted = false
+            AND (:brands IS NULL OR LOWER(p.brandName) IN :brands)
+            AND (:platforms IS NULL OR c.platform IN :platforms)
+            AND (:types IS NULL OR c.type IN :types)
+            AND (:statuses IS NULL OR c.status IN :statuses)
+            AND (
+              ((:fromDate IS NULL OR c.startDate >= :fromDate)
+                AND (:toDate IS NULL OR c.startDate <= :toDate))
+              OR
+              ((:fromDate IS NULL OR c.endDate >= :fromDate)
+                AND (:toDate IS NULL OR c.endDate <= :toDate))
+            )
+          """)
+  Page<Campaign> findSharedCampaigns(
+      @Param("toUserId") UUID toUserId,
+      @Param("brands") List<String> brands,
+      @Param("platforms") List<Platform> platforms,
+      @Param("types") List<CampaignType> types,
+      @Param("statuses") List<CampaignStatus> statuses,
+      @Param("fromDate") Integer fromDate,
+      @Param("toDate") Integer toDate,
+      Pageable pageable);
 
   @Query(
       value =
@@ -231,6 +246,15 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
             AND c.is_deleted = false
           ORDER BY csh.created_at DESC
           """,
+      countQuery =
+          """
+          SELECT COUNT(*)
+          FROM campaign_shares csh
+          JOIN campaigns c ON c.id = csh.campaign_id
+          WHERE csh.from_user_id = :ownerId
+            AND c.is_deleted = false
+          """,
       nativeQuery = true)
-  List<SharedCampaignSummaryView> findCampaignsSharedByOwner(@Param("ownerId") UUID ownerId);
+  Page<SharedCampaignSummaryView> findCampaignsSharedByOwner(
+      @Param("ownerId") UUID ownerId, Pageable pageable);
 }

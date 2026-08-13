@@ -9,19 +9,18 @@ import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
+import com.coddicted.buzzma.campaign.dto.PagedSharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
-import com.coddicted.buzzma.campaign.dto.SharedCampaignResponseDto;
-import com.coddicted.buzzma.campaign.dto.SharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
-import com.coddicted.buzzma.campaign.mapper.SharedCampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.SharedCampaignSummaryMapper;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
@@ -60,7 +59,6 @@ public class CampaignController {
   private final CampaignProcessor campaignProcessor;
   private final CampaignTypeStepService campaignTypeStepService;
   private final ShareableCampaignMapper shareableCampaignMapper;
-  private final SharedCampaignMapper sharedCampaignMapper;
   private final SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
 
   public CampaignController(
@@ -70,7 +68,6 @@ public class CampaignController {
       final CampaignProcessor campaignProcessor,
       final CampaignTypeStepService campaignTypeStepService,
       final ShareableCampaignMapper shareableCampaignMapper,
-      final SharedCampaignMapper sharedCampaignMapper,
       final SharedCampaignSummaryMapper sharedCampaignSummaryMapper) {
     this.service = service;
     this.campaignMapper = campaignMapper;
@@ -78,7 +75,6 @@ public class CampaignController {
     this.campaignProcessor = campaignProcessor;
     this.campaignTypeStepService = campaignTypeStepService;
     this.shareableCampaignMapper = shareableCampaignMapper;
-    this.sharedCampaignMapper = sharedCampaignMapper;
     this.sharedCampaignSummaryMapper = sharedCampaignSummaryMapper;
   }
 
@@ -135,18 +131,49 @@ public class CampaignController {
         this.service.findShareableCampaigns(requesterId));
   }
 
-  @GetMapping("/shared")
+  @PostMapping("/shared")
   @PreAuthorize(UserRole.Expr.BRAND)
-  public List<SharedCampaignResponseDto> getSharedCampaigns(@CurrentUserId final UUID requesterId) {
-    return this.sharedCampaignMapper.toResponse(this.service.findSharedCampaigns(requesterId));
+  public PagedCampaignsResponseDto getSharedCampaigns(
+      @CurrentUserId final UUID requesterId,
+      @RequestBody(required = false) final CampaignSearchRequestDto request,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final CampaignSearchRequestDto req =
+        request != null ? request : CampaignSearchRequestDto.builder().build();
+    final Pageable pageable = PageRequest.of(page, size);
+    final CampaignSearchCriteria criteria =
+        new CampaignSearchCriteria(
+            req.getBrands(),
+            req.getPlatforms(),
+            req.getTypes(),
+            req.getStatuses(),
+            req.getFromDate(),
+            req.getToDate());
+    final Page<CampaignSummary> result =
+        this.service.findSharedCampaigns(requesterId, criteria, pageable);
+    return PagedCampaignsResponseDto.builder()
+        .items(this.campaignMapper.toSummaries(result.getContent()))
+        .total(result.getTotalElements())
+        .page(page)
+        .totalPages(result.getTotalPages())
+        .build();
   }
 
   @GetMapping("/shared-by-me")
   @PreAuthorize(UserRole.Expr.AGENCY)
-  public List<SharedCampaignViewResponseDto> getCampaignsSharedByMe(
-      @CurrentUserId final UUID requesterId) {
-    return this.sharedCampaignSummaryMapper.toResponse(
-        this.service.findCampaignsSharedByOwner(requesterId));
+  public PagedSharedCampaignViewResponseDto getCampaignsSharedByMe(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final Pageable pageable = PageRequest.of(page, size);
+    final Page<SharedCampaignSummaryView> result =
+        this.service.findCampaignsSharedByOwner(requesterId, pageable);
+    return PagedSharedCampaignViewResponseDto.builder()
+        .items(this.sharedCampaignSummaryMapper.toResponse(result.getContent()))
+        .total(result.getTotalElements())
+        .page(page)
+        .totalPages(result.getTotalPages())
+        .build();
   }
 
   @PostMapping("/{campaignId}/share")

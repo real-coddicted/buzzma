@@ -83,6 +83,7 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.type", target = "type")
   @Mapping(source = "campaign.totalSlots", target = "totalSlots")
   @Mapping(source = "slotsClaimed", target = "slotsClaimed")
+  @Mapping(source = "campaignOwnerName", target = "campaignOwnerName")
   CampaignSummaryResponseDto toSummary(CampaignSummary summary);
 
   List<CampaignSummaryResponseDto> toSummaries(List<CampaignSummary> summaries);

@@ -1,0 +1,24 @@
+{
+  "title": "Shared Test Campaign 2",
+  "code": "SHCAMP2",
+  "ownerId": "44444444-4444-4444-4444-444444444444",
+  "totalSlots": 8,
+  "platform": "PLATFORM_FLIPKART",
+  "type": "CAMPAIGN_TYPE_RATING",
+  "status": "CAMPAIGN_STATUS_ACTIVE",
+  "startDate": 20240201,
+  "endDate": 20990101,
+  "openToAll": false,
+  "deleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z",
+  "createdBy": "44444444-4444-4444-4444-444444444444",
+  "updatedBy": "44444444-4444-4444-4444-444444444444",
+  "product": {
+    "name": "Shared Test Product 2",
+    "brandName": "Test Brand",
+    "imageUrl": "https://example.com/image2.jpg",
+    "productLink": "https://example.com/product2",
+    "pricePaise": 79900
+  }
+}

@@ -15,4 +15,7 @@ import lombok.Setter;
 public class CampaignSummary {
   private Campaign campaign;
   private Integer slotsClaimed;
+
+  /** Populated only for campaigns shared with the requester; null otherwise. */
+  private String campaignOwnerName;
 }

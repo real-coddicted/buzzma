@@ -19,13 +19,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -52,16 +53,16 @@ class CampaignRepositorySharedByOwnerTest {
     final Campaign campaign = saveCampaign();
     saveShare(campaign.getId(), this.ownerId, brand.getId());
 
-    final List<SharedCampaignSummaryView> result =
-        this.campaignRepository.findCampaignsSharedByOwner(this.ownerId);
+    final Page<SharedCampaignSummaryView> result =
+        this.campaignRepository.findCampaignsSharedByOwner(this.ownerId, PageRequest.of(0, 20));
 
-    assertEquals(1, result.size());
-    assertEquals(campaign.getTitle(), result.get(0).getCampaignName());
-    assertEquals(campaign.getCode(), result.get(0).getCampaignCode());
-    assertEquals(brand.getId(), result.get(0).getSharedWithUserId());
-    assertEquals("Acme Brand", result.get(0).getSharedWithUserName());
-    assertEquals("AC-001", result.get(0).getSharedWithUserCode());
-    assertTrue(result.get(0).getSharedAt() != null);
+    assertEquals(1, result.getContent().size());
+    assertEquals(campaign.getTitle(), result.getContent().get(0).getCampaignName());
+    assertEquals(campaign.getCode(), result.getContent().get(0).getCampaignCode());
+    assertEquals(brand.getId(), result.getContent().get(0).getSharedWithUserId());
+    assertEquals("Acme Brand", result.getContent().get(0).getSharedWithUserName());
+    assertEquals("AC-001", result.getContent().get(0).getSharedWithUserCode());
+    assertTrue(result.getContent().get(0).getSharedAt() != null);
   }
 
   @Test
@@ -70,10 +71,10 @@ class CampaignRepositorySharedByOwnerTest {
     final Campaign campaign = saveCampaign();
     saveShare(campaign.getId(), UUID.randomUUID(), brand.getId());
 
-    final List<SharedCampaignSummaryView> result =
-        this.campaignRepository.findCampaignsSharedByOwner(this.ownerId);
+    final Page<SharedCampaignSummaryView> result =
+        this.campaignRepository.findCampaignsSharedByOwner(this.ownerId, PageRequest.of(0, 20));
 
-    assertEquals(0, result.size());
+    assertEquals(0, result.getContent().size());
   }
 
   private BuzzmaUser saveBrand(final String name, final String code) {

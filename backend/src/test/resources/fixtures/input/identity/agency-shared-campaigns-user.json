@@ -1,0 +1,8 @@
+{
+  "name": "Shared Campaigns Agency",
+  "code": "AG-100",
+  "mobile": "9000000010",
+  "role": "ROLE_AGENCY",
+  "status": "USER_STATUS_ACTIVE",
+  "isDeleted": false
+}

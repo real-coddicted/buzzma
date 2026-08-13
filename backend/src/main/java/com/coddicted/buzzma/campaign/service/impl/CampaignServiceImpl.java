@@ -15,10 +15,11 @@ import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
-import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.constants.WellKnownSystemActors;
@@ -52,6 +53,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   private final CampaignStateMachine stateMachine;
   private final CampaignEventPublisher campaignEventPublisher;
   private final CodeGenerationService codeGenerationService;
+  private final UserService userService;
 
   public CampaignServiceImpl(
       final CampaignRepository campaignRepository,
@@ -60,7 +62,8 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
       final CampaignSlotRepository campaignSlotRepository,
       final CampaignStateMachine stateMachine,
       final CampaignEventPublisher campaignEventPublisher,
-      final CodeGenerationService codeGenerationService) {
+      final CodeGenerationService codeGenerationService,
+      final UserService userService) {
     this.campaignRepository = campaignRepository;
     this.campaignAssignmentRepository = campaignAssignmentRepository;
     this.campaignAssignmentService = campaignAssignmentService;
@@ -68,6 +71,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
     this.stateMachine = stateMachine;
     this.campaignEventPublisher = campaignEventPublisher;
     this.codeGenerationService = codeGenerationService;
+    this.userService = userService;
   }
 
   @Override
@@ -261,14 +265,40 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
 
   @Override
   @Transactional(readOnly = true)
-  public List<SharedCampaignView> findSharedCampaigns(final UUID toUserId) {
-    return this.campaignRepository.findSharedCampaigns(toUserId);
+  public Page<CampaignSummary> findSharedCampaigns(
+      final UUID toUserId, final CampaignSearchCriteria criteria, final Pageable pageable) {
+    final Page<Campaign> campaigns =
+        this.campaignRepository.findSharedCampaigns(
+            toUserId,
+            CollectionUtils.isEmpty(criteria.brands())
+                ? null
+                : criteria.brands().stream().map(String::toLowerCase).toList(),
+            nullIfEmpty(criteria.platforms()),
+            nullIfEmpty(criteria.types()),
+            nullIfEmpty(criteria.statuses()),
+            criteria.fromDate(),
+            criteria.toDate(),
+            pageable);
+    final Map<UUID, CampaignSlot> slotsByCampaignId = loadSlotsByCampaignId(campaigns.getContent());
+    final Map<UUID, String> ownerNamesById = loadOwnerNames(campaigns.getContent());
+    return campaigns.map(
+        c ->
+            toCampaignSummary(c, slotsByCampaignId).toBuilder()
+                .campaignOwnerName(ownerNamesById.get(c.getOwnerId()))
+                .build());
+  }
+
+  private Map<UUID, String> loadOwnerNames(final List<Campaign> campaigns) {
+    final List<UUID> ownerIds = campaigns.stream().map(Campaign::getOwnerId).distinct().toList();
+    return this.userService.getByIds(ownerIds).stream()
+        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<SharedCampaignSummaryView> findCampaignsSharedByOwner(final UUID ownerId) {
-    return this.campaignRepository.findCampaignsSharedByOwner(ownerId);
+  public Page<SharedCampaignSummaryView> findCampaignsSharedByOwner(
+      final UUID ownerId, final Pageable pageable) {
+    return this.campaignRepository.findCampaignsSharedByOwner(ownerId, pageable);
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {

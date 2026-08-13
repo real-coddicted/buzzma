@@ -31,6 +31,7 @@ import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.constants.WellKnownSystemActors;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -61,6 +62,7 @@ class CampaignServiceImplTest {
   @Mock private CampaignStateMachine mockStateMachine;
   @Mock private CampaignEventPublisher mockCampaignEventPublisher;
   @Mock private CodeGenerationService mockCodeGenerationService;
+  @Mock private UserService mockUserService;
 
   private CampaignServiceImpl campaignService;
 
@@ -74,7 +76,8 @@ class CampaignServiceImplTest {
             this.mockCampaignSlotRepository,
             this.mockStateMachine,
             this.mockCampaignEventPublisher,
-            this.mockCodeGenerationService);
+            this.mockCodeGenerationService,
+            this.mockUserService);
   }
 
   @Test
@@ -514,5 +517,28 @@ class CampaignServiceImplTest {
     assertEquals(0, result.getTotalElements());
     verify(this.mockCampaignRepository)
         .search(OWNER_ID, null, null, null, null, null, null, pageable);
+  }
+
+  @Test
+  void testFindSharedCampaigns() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    final Page<Campaign> campaignPage = new PageImpl<>(List.of(CAMPAIGN_1), pageable, 1);
+    when(this.mockCampaignRepository.findSharedCampaigns(
+            REQUESTER_ID, null, null, null, null, null, null, pageable))
+        .thenReturn(campaignPage);
+    when(this.mockCampaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(
+            List.of(CAMPAIGN_ID_1)))
+        .thenReturn(List.of(SLOT_1));
+    when(this.mockUserService.getByIds(List.of(OWNER_ID))).thenReturn(List.of(OWNER_USER));
+
+    final Page<CampaignSummary> result =
+        this.campaignService.findSharedCampaigns(
+            REQUESTER_ID, new CampaignSearchCriteria(null, null, null, null, null, null), pageable);
+
+    assertEquals(1, result.getTotalElements());
+    final CampaignSummary summary = result.getContent().get(0);
+    assertEquals(CAMPAIGN_1, summary.getCampaign());
+    assertEquals(OWNER_USER.getName(), summary.getCampaignOwnerName());
+    assertEquals(SLOT_1.getTotalSlots() - SLOT_1.getSlotsAvailable(), summary.getSlotsClaimed());
   }
 }

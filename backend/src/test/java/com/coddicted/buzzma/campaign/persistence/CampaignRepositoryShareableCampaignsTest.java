@@ -71,7 +71,36 @@ class CampaignRepositoryShareableCampaignsTest {
     assertEquals(7, result.get(0).getSlotsAvailable());
   }
 
+  @Test
+  void includesNonDraftCampaignsRegardlessOfSpecificStatus() {
+    final Campaign closedCampaign = saveCampaign(CampaignStatus.CAMPAIGN_STATUS_CLOSED);
+    saveSlot(closedCampaign.getId(), 5, 5);
+
+    final List<ShareableCampaignView> result =
+        this.campaignRepository.findShareableCampaigns(
+            this.ownerId, DateTimeUtils.getAsianTodayDate());
+
+    assertEquals(1, result.size());
+    assertEquals(closedCampaign.getId(), result.get(0).getCampaignId());
+  }
+
+  @Test
+  void excludesDraftCampaigns() {
+    final Campaign draftCampaign = saveCampaign(CampaignStatus.CAMPAIGN_STATUS_DRAFT);
+    saveSlot(draftCampaign.getId(), 5, 5);
+
+    final List<ShareableCampaignView> result =
+        this.campaignRepository.findShareableCampaigns(
+            this.ownerId, DateTimeUtils.getAsianTodayDate());
+
+    assertEquals(0, result.size());
+  }
+
   private Campaign saveCampaign() {
+    return saveCampaign(CampaignStatus.CAMPAIGN_STATUS_ACTIVE);
+  }
+
+  private Campaign saveCampaign(final CampaignStatus status) {
     final Product product =
         Product.builder()
             .name("Test product")
@@ -88,7 +117,7 @@ class CampaignRepositoryShareableCampaignsTest {
             .product(product)
             .platform(Platform.PLATFORM_AMAZON)
             .type(CampaignType.CAMPAIGN_TYPE_REVIEW)
-            .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+            .status(status)
             .startDate(20240101)
             .endDate(20990101)
             .openToAll(false)
