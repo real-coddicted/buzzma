@@ -8,7 +8,7 @@ import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryC
 import { Loading } from '../components/ui/Loading'
 import { SharedCampaignsPage } from '../components/ui/campaign/SharedCampaignsPage'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto } from '../api/campaignApi'
 import { getCurrentUser } from '../api/client'
 import { yyyymmddToIso } from '../utils/time'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
@@ -63,6 +63,8 @@ export function Campaigns() {
   const showDetail = view === 'new' || view === 'edit' || view === 'view'
   const isViewMode = view === 'view'
   const currentRole = getCurrentUser()?.role
+  const isBrand = currentRole === 'ROLE_BRAND'
+  const fetchCampaignsPage = isBrand ? fetchSharedCampaigns : searchCampaigns
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,7 +81,7 @@ export function Campaigns() {
 
   const loadCampaigns = useCallback((page = 1) => {
     setLoading(true)
-    searchCampaigns(emptyFilters(), page - 1)
+    fetchCampaignsPage(emptyFilters(), page - 1)
       .then(result => {
         setCampaigns(result.items)
         setTotalPages(result.totalPages)
@@ -87,7 +89,7 @@ export function Campaigns() {
       })
       .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [fetchCampaignsPage])
 
   useEffect(() => { loadCampaigns() }, [loadCampaigns])
 
@@ -99,7 +101,7 @@ export function Campaigns() {
     }
     setLoading(true)
     try {
-      const result = await searchCampaigns(filters, page - 1)
+      const result = await fetchCampaignsPage(filters, page - 1)
       setCampaigns(result.items)
       setTotalPages(result.totalPages)
       setCurrentPage(page)
@@ -108,7 +110,7 @@ export function Campaigns() {
     } finally {
       setLoading(false)
     }
-  }, [loadCampaigns])
+  }, [loadCampaigns, fetchCampaignsPage])
 
   function handlePageChange(page: number) {
     if (countActiveFilters(appliedFilters) === 0) {
@@ -283,18 +285,22 @@ export function Campaigns() {
               Shared Campaigns
             </Button>
           )}
-          <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
-            New Campaign
-          </Button>
+          {!isBrand && (
+            <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
+              New Campaign
+            </Button>
+          )}
         </div>
       </div>
 
-      <CampaignSummaryCards
-        totalSpent={totalSpent}
-        totalConversions={totalConv}
-        activeCount={activeCnt}
-        total={campaigns.length}
-      />
+      {!isBrand && (
+        <CampaignSummaryCards
+          totalSpent={totalSpent}
+          totalConversions={totalConv}
+          activeCount={activeCnt}
+          total={campaigns.length}
+        />
+      )}
 
       <CampaignTable
         campaigns={campaigns}
@@ -312,6 +318,7 @@ export function Campaigns() {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
+        readOnly={isBrand}
       />
 
       {confirmPauseId && (

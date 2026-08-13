@@ -11,6 +11,8 @@ interface Props {
   onClose: () => void
   onDelete: () => void
   onViewClaims: () => void
+  /** When true, renders only the "View Claims" action (used for read-only viewers, e.g. a Brand viewing campaigns shared with them). */
+  readOnly?: boolean
 }
 
 const btn = {
@@ -24,7 +26,19 @@ const btn = {
   claims: 'p-1.5 rounded-lg text-neon-purple bg-neon-purple/10 hover:bg-neon-purple/20 transition-colors',
 }
 
-export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims }: Props) {
+export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims, readOnly = false }: Props) {
+  if (readOnly) {
+    return (
+      <div className="flex items-center justify-end gap-1">
+        {(c.status === 'active' || c.status === 'paused' || c.status === 'closed' || c.status === 'completed') && (
+          <button title="View Claims" onClick={onViewClaims} className={btn.claims}>
+            <IconList size={14} />
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center justify-end gap-1">
       <div className="flex items-center gap-1">

@@ -1,7 +1,7 @@
 import type { components } from '../types/api'
 import type { Campaign, CampaignRequestDto, CampaignStatus, CampaignType, Platform } from '../types'
 import { CAMPAIGN_STATUS_CONFIG } from '../types'
-import type { CampaignFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
+import { type CampaignFilters, emptyFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import { fetchWithAuth, getCurrentUser } from './client'
 import { rupeesToPaise } from '../utils/currency'
 import { yyyymmddToIso } from '../utils/time'
@@ -172,11 +172,48 @@ export async function fetchBrandNames(): Promise<string[]> {
   return (await res.json()) as string[]
 }
 
-/** GET /campaigns/shared — lightweight id+title+code list of campaigns shared with the current brand, for typeahead pickers. */
+/** POST /campaigns/shared — lightweight id+title+code list of campaigns shared with the current brand, for typeahead pickers. */
 export async function fetchSharedCampaignNames(): Promise<CampaignNameOption[]> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared`)
-  const data = await res.json() as components['schemas']['SharedCampaignResponseDto'][]
-  return data.map(d => ({ id: d.campaignId ?? '', title: d.title ?? '', code: d.code ?? '' }))
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared?page=0&size=1000`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+  const data = await res.json() as { items?: CampaignSummaryDto[] }
+  return (data.items ?? []).map(d => ({ id: d.campaignId ?? '', title: d.title ?? '', code: d.code ?? '' }))
+}
+
+/** POST /campaigns/shared — campaigns shared with the current brand, paginated and filterable. */
+export async function fetchSharedCampaigns(
+  filters: CampaignFilters = emptyFilters(),
+  page = 0,
+  size = 10,
+): Promise<PagedCampaigns> {
+  const brands = filters.brand
+    ? filters.brand.split(',').map(s => s.trim()).filter(Boolean)
+    : null
+  const platforms = filters.platforms.size > 0 ? [...filters.platforms] : null
+  const types = filters.types.size > 0 ? [...filters.types] : null
+  const statuses = filters.statuses.size > 0
+    ? [...filters.statuses].flatMap(s => CAMPAIGN_STATUS_CONFIG[s].backendStatuses)
+    : null
+  const body = {
+    brands,
+    platforms,
+    types,
+    statuses,
+    fromDate: filters.startDate ? isoToYYYYMMDD(filters.startDate) : null,
+    toDate: filters.endDate ? isoToYYYYMMDD(filters.endDate) : null,
+  }
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared?page=${page}&size=${size}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  const data = await res.json() as { items?: CampaignSummaryDto[]; total?: number; totalPages?: number }
+  return {
+    items:      (data.items ?? []).map(mapCampaignSummaryDto),
+    total:      data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
 }
 
 type ShareCampaignRequestDto = components['schemas']['ShareCampaignRequestDto']
@@ -382,16 +419,26 @@ export interface SharedByMeCampaign {
   sharedAt: string
 }
 
+export interface PagedSharedByMeCampaigns {
+  items: SharedByMeCampaign[]
+  total: number
+  totalPages: number
+}
+
 /** GET /campaigns/shared-by-me — campaigns the requester (agency) has already shared, with whom and when. */
-export async function fetchCampaignsSharedByMe(): Promise<SharedByMeCampaign[]> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared-by-me`)
-  const data = await res.json() as components['schemas']['SharedCampaignViewResponseDto'][]
-  return data.map(d => ({
-    campaignName: d.campaignName ?? '',
-    campaignCode: d.campaignCode ?? '',
-    sharedWithUserId: d.sharedWithUserId ?? '',
-    sharedWithUserName: d.sharedWithUserName ?? '',
-    sharedWithUserCode: d.sharedWithUserCode ?? '',
-    sharedAt: d.sharedAt ?? '',
-  }))
+export async function fetchCampaignsSharedByMe(page = 0, size = 20): Promise<PagedSharedByMeCampaigns> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared-by-me?page=${page}&size=${size}`)
+  const data = await res.json() as components['schemas']['PagedSharedCampaignViewResponseDto']
+  return {
+    items: (data.items ?? []).map(d => ({
+      campaignName: d.campaignName ?? '',
+      campaignCode: d.campaignCode ?? '',
+      sharedWithUserId: d.sharedWithUserId ?? '',
+      sharedWithUserName: d.sharedWithUserName ?? '',
+      sharedWithUserCode: d.sharedWithUserCode ?? '',
+      sharedAt: d.sharedAt ?? '',
+    })),
+    total: data.total ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
 }

@@ -660,6 +660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["getSharedCampaigns"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/search": {
         parameters: {
             query?: never;
@@ -1404,22 +1420,6 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getStepConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/campaigns/shared": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getSharedCampaigns"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2310,6 +2310,7 @@ export interface components {
             totalSlots?: number;
             /** Format: int32 */
             slotsClaimed?: number;
+            campaignOwnerName?: string;
         };
         PagedCampaignsResponseDto: {
             items?: components["schemas"]["CampaignSummaryResponseDto"][];
@@ -2612,29 +2613,14 @@ export interface components {
             /** Format: int32 */
             stepOrder?: number;
         };
-        SharedCampaignResponseDto: {
-            /** Format: uuid */
-            campaignId?: string;
-            code?: string;
-            title?: string;
-            platform?: string;
-            campaignType?: string;
+        PagedSharedCampaignViewResponseDto: {
+            items?: components["schemas"]["SharedCampaignViewResponseDto"][];
+            /** Format: int64 */
+            total?: number;
             /** Format: int32 */
-            startDate?: number;
+            page?: number;
             /** Format: int32 */
-            endDate?: number;
-            productBrandName?: string;
-            productName?: string;
-            productLink?: string;
-            productImageUrl?: string;
-            productPricePaise?: number;
-            sellerName?: string;
-            affiliateLinkAllowed?: boolean;
-            campaignPricePaise?: number;
-            termsAndConditions?: string;
-            /** Format: uuid */
-            campaignOwnerId?: string;
-            campaignOwnerName?: string;
+            totalPages?: number;
         };
         SharedCampaignViewResponseDto: {
             campaignName?: string;
@@ -3995,6 +3981,33 @@ export interface operations {
             };
         };
     };
+    getSharedCampaigns: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CampaignSearchRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PagedCampaignsResponseDto"];
+                };
+            };
+        };
+    };
     search: {
         parameters: {
             query?: {
@@ -5108,29 +5121,12 @@ export interface operations {
             };
         };
     };
-    getSharedCampaigns: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SharedCampaignResponseDto"][];
-                };
-            };
-        };
-    };
     getCampaignsSharedByMe: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5143,7 +5139,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["SharedCampaignViewResponseDto"][];
+                    "*/*": components["schemas"]["PagedSharedCampaignViewResponseDto"];
                 };
             };
         };

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card } from '../Card'
 import { Loading } from '../Loading'
+import { PaginationToolbar } from '../PaginationToolbar'
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { fetchCampaignsSharedByMe, type SharedByMeCampaign } from '../../../api/campaignApi'
 import { formatShortDate } from '../../../utils/time'
@@ -19,16 +20,21 @@ export function SharedCampaignsPage({ onBack }: Props) {
   const [campaigns, setCampaigns] = useState<SharedByMeCampaign[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages]   = useState(1)
 
-  const loadCampaigns = useCallback(() => {
+  const loadCampaigns = useCallback((page: number) => {
     setLoading(true)
-    fetchCampaignsSharedByMe()
-      .then(setCampaigns)
+    fetchCampaignsSharedByMe(page - 1)
+      .then(result => {
+        setCampaigns(result.items)
+        setTotalPages(result.totalPages)
+      })
       .catch(err => setError((err as Error).message))
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { loadCampaigns() }, [loadCampaigns])
+  useEffect(() => { loadCampaigns(currentPage) }, [loadCampaigns, currentPage])
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -84,6 +90,12 @@ export function SharedCampaignsPage({ onBack }: Props) {
             </table>
           </div>
         )}
+        <PaginationToolbar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          disabled={loading}
+        />
       </Card>
     </div>
   )

@@ -23,20 +23,22 @@ interface Props {
   loading?: boolean
   appliedFilters: CampaignFilters
   onApplyFilters: (f: CampaignFilters) => void
-  onEdit: (id: string) => void
-  onCopy: (id: string) => void
-  onView: (id: string) => void
-  onPause: (id: string) => void
-  onResume: (id: string) => void
-  onClose: (id: string) => void
-  onDelete: (id: string) => void
+  onEdit?: (id: string) => void
+  onCopy?: (id: string) => void
+  onView?: (id: string) => void
+  onPause?: (id: string) => void
+  onResume?: (id: string) => void
+  onClose?: (id: string) => void
+  onDelete?: (id: string) => void
   onViewClaims: (id: string, title: string) => void
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
+  /** When true, rows only show "View Claims" and search/sort works but Filters (server-side) and mutating actions are hidden. */
+  readOnly?: boolean
 }
 
-export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims, currentPage, totalPages, onPageChange }: Props) {
+export function CampaignTable({ campaigns, loading = false, appliedFilters, onApplyFilters, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims, currentPage, totalPages, onPageChange, readOnly = false }: Props) {
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey>('totalSlots')
@@ -250,14 +252,15 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
                   <td className="px-5 py-2.5">
                     <CampaignRowActions
                       campaign={c}
-                      onEdit={() => onEdit(c.id)}
-                      onCopy={() => onCopy(c.id)}
-                      onView={() => onView(c.id)}
-                      onPause={() => onPause(c.id)}
-                      onResume={() => onResume(c.id)}
-                      onClose={() => onClose(c.id)}
-                      onDelete={() => onDelete(c.id)}
+                      onEdit={() => onEdit?.(c.id)}
+                      onCopy={() => onCopy?.(c.id)}
+                      onView={() => onView?.(c.id)}
+                      onPause={() => onPause?.(c.id)}
+                      onResume={() => onResume?.(c.id)}
+                      onClose={() => onClose?.(c.id)}
+                      onDelete={() => onDelete?.(c.id)}
                       onViewClaims={() => onViewClaims(c.id, c.title)}
+                      readOnly={readOnly}
                     />
                   </td>
                 </tr>
