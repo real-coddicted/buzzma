@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
-import { IconPlus } from '../components/ui/icons'
+import { IconPlus, IconMegaphone } from '../components/ui/icons'
 import { NewCampaignPage } from '../components/ui/campaign/NewCampaignPage'
 import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
+import { SharedCampaignsPage } from '../components/ui/campaign/SharedCampaignsPage'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
 import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, type CampaignResponseDto } from '../api/campaignApi'
+import { getCurrentUser } from '../api/client'
 import { yyyymmddToIso } from '../utils/time'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
@@ -60,6 +62,7 @@ export function Campaigns() {
   const campaignId = searchParams.get('id')
   const showDetail = view === 'new' || view === 'edit' || view === 'view'
   const isViewMode = view === 'view'
+  const currentRole = getCurrentUser()?.role
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
@@ -262,6 +265,10 @@ export function Campaigns() {
     )
   }
 
+  if (view === 'shared') {
+    return <SharedCampaignsPage onBack={handleBack} />
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
@@ -270,9 +277,16 @@ export function Campaigns() {
             Campaigns
           </h1>
         </div>
-        <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
-          New Campaign
-        </Button>
+        <div className="flex items-center gap-2">
+          {currentRole === 'ROLE_AGENCY' && (
+            <Button variant="yellowSoft" size="md" leftIcon={<IconMegaphone size={14} />} onClick={() => setSearchParams({ view: 'shared' })}>
+              Shared Campaigns
+            </Button>
+          )}
+          <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
+            New Campaign
+          </Button>
+        </div>
       </div>
 
       <CampaignSummaryCards

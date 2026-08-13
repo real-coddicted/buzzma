@@ -23,10 +23,10 @@ export function formatDateTime(iso: string): string {
 
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-/** Formats a 'YYYY-MM-DD' date as 'Mon D, YYYY', e.g. for campaign start/end dates. */
+/** Formats a 'YYYY-MM-DD' date (or a full ISO date-time) as 'Mon D, YYYY'. */
 export function formatShortDate(iso: string | null): string {
   if (!iso) return 'TBD'
-  const parts = iso.split('-')
+  const parts = iso.split('T')[0].split('-')
   if (parts.length !== 3) return iso
   const [y, m, day] = parts
   return `${SHORT_MONTHS[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`

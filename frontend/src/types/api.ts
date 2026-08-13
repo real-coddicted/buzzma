@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["getByIds"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user-settings": {
         parameters: {
             query?: never;
@@ -238,6 +254,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/terms/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["accept"];
         delete?: never;
         options?: never;
         head?: never;
@@ -644,6 +676,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["getByIds_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/sign-out": {
         parameters: {
             query?: never;
@@ -908,6 +956,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/terms/acceptance-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAcceptanceStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1348,6 +1428,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/campaigns/shared-by-me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCampaignsSharedByMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/shareable": {
         parameters: {
             query?: never;
@@ -1587,6 +1683,17 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             updatedBy?: string;
+        };
+        UserBatchRequestDto: {
+            ids?: string[];
+        };
+        UserBriefDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** @enum {string} */
+            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            upiId?: string;
         };
         TicketRequestDto: {
             /** Format: uuid */
@@ -2213,6 +2320,17 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        CampaignBatchRequestDto: {
+            ids?: string[];
+        };
+        CampaignBriefDto: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            productBrandName?: string;
+            /** @enum {string} */
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+        };
         UserSignInRequestDto: {
             mobile: string;
             password?: string;
@@ -2264,13 +2382,6 @@ export interface components {
             bankAccountHolderName?: string;
             captchaToken?: string;
             termsAccepted?: boolean;
-        };
-        TermsDto: {
-            content?: string;
-            version?: string;
-        };
-        TermsAcceptanceStatusDto: {
-            mustReaccept?: boolean;
         };
         PasswordUpdateRequestDto: {
             currentPassword: string;
@@ -2329,6 +2440,13 @@ export interface components {
             name?: string;
             code?: string;
         };
+        TermsDto: {
+            content?: string;
+            version?: string;
+        };
+        TermsAcceptanceStatusDto: {
+            mustReaccept?: boolean;
+        };
         SecurityQuestion: {
             /** Format: uuid */
             id?: string;
@@ -2369,6 +2487,8 @@ export interface components {
             id?: string;
             /** Format: uuid */
             claimId?: string;
+            claimCode?: string;
+            ecommerceOrderId?: string;
             /** Format: uuid */
             campaignId?: string;
             /** Format: uuid */
@@ -2515,6 +2635,16 @@ export interface components {
             /** Format: uuid */
             campaignOwnerId?: string;
             campaignOwnerName?: string;
+        };
+        SharedCampaignViewResponseDto: {
+            campaignName?: string;
+            campaignCode?: string;
+            /** Format: uuid */
+            sharedWithUserId?: string;
+            sharedWithUserName?: string;
+            sharedWithUserCode?: string;
+            /** Format: date-time */
+            sharedAt?: string;
         };
         ShareableCampaignResponseDto: {
             /** Format: uuid */
@@ -2889,6 +3019,30 @@ export interface operations {
             };
         };
     };
+    getByIds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserBatchRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserBriefDto"][];
+                };
+            };
+        };
+    };
     get: {
         parameters: {
             query?: never;
@@ -3123,6 +3277,24 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["TicketResponseDto"];
                 };
+            };
+        };
+    };
+    accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3850,6 +4022,30 @@ export interface operations {
             };
         };
     };
+    getByIds_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignBatchRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignBriefDto"][];
+                };
+            };
+        };
+    };
     signOut: {
         parameters: {
             query?: never;
@@ -4302,6 +4498,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TicketCategoryResponseDto"][];
+                };
+            };
+        };
+    };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TermsDto"];
+                };
+            };
+        };
+    };
+    getAcceptanceStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TermsAcceptanceStatusDto"];
                 };
             };
         };
@@ -4888,6 +5124,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SharedCampaignResponseDto"][];
+                };
+            };
+        };
+    };
+    getCampaignsSharedByMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SharedCampaignViewResponseDto"][];
                 };
             };
         };

@@ -372,3 +372,26 @@ export async function fetchShareableCampaigns(): Promise<ShareableCampaign[]> {
     totalSlots: d.totalSlots ?? 0,
   }))
 }
+
+export interface SharedByMeCampaign {
+  campaignName: string
+  campaignCode: string
+  sharedWithUserId: string
+  sharedWithUserName: string
+  sharedWithUserCode: string
+  sharedAt: string
+}
+
+/** GET /campaigns/shared-by-me — campaigns the requester (agency) has already shared, with whom and when. */
+export async function fetchCampaignsSharedByMe(): Promise<SharedByMeCampaign[]> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/shared-by-me`)
+  const data = await res.json() as components['schemas']['SharedCampaignViewResponseDto'][]
+  return data.map(d => ({
+    campaignName: d.campaignName ?? '',
+    campaignCode: d.campaignCode ?? '',
+    sharedWithUserId: d.sharedWithUserId ?? '',
+    sharedWithUserName: d.sharedWithUserName ?? '',
+    sharedWithUserCode: d.sharedWithUserCode ?? '',
+    sharedAt: d.sharedAt ?? '',
+  }))
+}
