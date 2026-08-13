@@ -213,4 +213,24 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
           """,
       nativeQuery = true)
   List<SharedCampaignView> findSharedCampaigns(@Param("toUserId") UUID toUserId);
+
+  @Query(
+      value =
+          """
+          SELECT
+              c.title      AS campaignName,
+              c.code       AS campaignCode,
+              u.id         AS sharedWithUserId,
+              u.name       AS sharedWithUserName,
+              u.code       AS sharedWithUserCode,
+              csh.created_at AS sharedAt
+          FROM campaign_shares csh
+          JOIN campaigns c ON c.id = csh.campaign_id
+          JOIN users u ON u.id = csh.to_user_id
+          WHERE csh.from_user_id = :ownerId
+            AND c.is_deleted = false
+          ORDER BY csh.created_at DESC
+          """,
+      nativeQuery = true)
+  List<SharedCampaignSummaryView> findCampaignsSharedByOwner(@Param("ownerId") UUID ownerId);
 }

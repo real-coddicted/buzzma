@@ -7,6 +7,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
+import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import java.util.List;
 import java.util.Set;
@@ -49,4 +50,6 @@ public interface CampaignService {
   List<ShareableCampaignView> findShareableCampaigns(UUID ownerId);
 
   List<SharedCampaignView> findSharedCampaigns(UUID toUserId);
+
+  List<SharedCampaignSummaryView> findCampaignsSharedByOwner(UUID ownerId);
 }

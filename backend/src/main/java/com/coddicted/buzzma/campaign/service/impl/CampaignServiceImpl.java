@@ -14,6 +14,7 @@ import com.coddicted.buzzma.campaign.persistence.CampaignAssignmentRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignRepository;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
+import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignView;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
@@ -262,6 +263,12 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   @Transactional(readOnly = true)
   public List<SharedCampaignView> findSharedCampaigns(final UUID toUserId) {
     return this.campaignRepository.findSharedCampaigns(toUserId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SharedCampaignSummaryView> findCampaignsSharedByOwner(final UUID ownerId) {
+    return this.campaignRepository.findCampaignsSharedByOwner(ownerId);
   }
 
   private Map<UUID, CampaignSlot> loadSlotsByCampaignId(final List<Campaign> campaigns) {
