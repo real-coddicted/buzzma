@@ -3,6 +3,7 @@ package com.coddicted.buzzma.scoring.service.impl;
 import static com.coddicted.buzzma.scoring.entity.ScoringJobStatus.SCORING_JOB_STATUS_COMPLETED;
 import static com.coddicted.buzzma.scoring.entity.ScoringJobStatus.SCORING_JOB_STATUS_FAILED;
 import static com.coddicted.buzzma.scoring.entity.ScoringJobStatus.SCORING_JOB_STATUS_PENDING;
+import static com.coddicted.buzzma.scoring.entity.ScoringJobStatus.SCORING_JOB_STATUS_PROCESSING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,11 +42,15 @@ class ScoringJobServiceImplTest {
     when(this.mockJobRepository.save(any(ScoringJob.class))).thenAnswer(inv -> inv.getArgument(0));
   }
 
+  /**
+   * The batch-claim step (ScoringJobServiceImpl#claimBatchForProcessing) already flipped the job to
+   * PROCESSING and incremented attemptCount atomically before processJob ever sees it.
+   */
   private ScoringJob job(final int attemptCount) {
     return ScoringJob.builder()
         .id(UUID.randomUUID())
         .claimScreenshotId(SCREENSHOT_ID)
-        .status(SCORING_JOB_STATUS_PENDING)
+        .status(SCORING_JOB_STATUS_PROCESSING)
         .attemptCount(attemptCount)
         .build();
   }
@@ -54,7 +59,7 @@ class ScoringJobServiceImplTest {
   void testProcessJob_success() {
     doNothing().when(this.mockClaimScreenshotService).processScoring(any(ScoringJob.class));
 
-    final ScoringJob result = this.service.processJob(job(0));
+    final ScoringJob result = this.service.processJob(job(1));
 
     assertEquals(SCORING_JOB_STATUS_COMPLETED, result.getStatus());
     assertEquals(1, result.getAttemptCount());
@@ -67,7 +72,7 @@ class ScoringJobServiceImplTest {
         .when(this.mockClaimScreenshotService)
         .processScoring(any(ScoringJob.class));
 
-    final ScoringJob result = this.service.processJob(job(2));
+    final ScoringJob result = this.service.processJob(job(3));
 
     assertEquals(SCORING_JOB_STATUS_FAILED, result.getStatus());
     assertEquals(3, result.getAttemptCount());
@@ -80,20 +85,20 @@ class ScoringJobServiceImplTest {
         .when(this.mockClaimScreenshotService)
         .processScoring(any(ScoringJob.class));
 
-    final ScoringJob result = this.service.processJob(job(0));
+    final ScoringJob result = this.service.processJob(job(1));
 
     assertEquals(SCORING_JOB_STATUS_PENDING, result.getStatus());
     assertEquals(1, result.getAttemptCount());
   }
 
   @Test
-  void testProcessJob_marksProcessingBeforeDelegating() {
+  void testProcessJob_savesFinalStateOnce() {
     doNothing().when(this.mockClaimScreenshotService).processScoring(any(ScoringJob.class));
 
-    this.service.processJob(job(0));
+    this.service.processJob(job(1));
 
     final ArgumentCaptor<ScoringJob> captor = ArgumentCaptor.forClass(ScoringJob.class);
     verify(this.mockJobRepository, atLeastOnce()).save(captor.capture());
-    assertEquals(1, captor.getAllValues().get(0).getAttemptCount());
+    assertEquals(SCORING_JOB_STATUS_COMPLETED, captor.getValue().getStatus());
   }
 }

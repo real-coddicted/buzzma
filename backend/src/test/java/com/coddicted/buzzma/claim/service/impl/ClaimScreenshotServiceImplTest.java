@@ -24,6 +24,7 @@ import com.coddicted.buzzma.claim.client.ScoreDatasetKeys;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
+import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.processor.ChainedScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
@@ -78,6 +79,7 @@ class ClaimScreenshotServiceImplTest {
   private static final String STORAGE_KEY = "claims/screenshot.jpg";
 
   @Mock private ClaimScreenshotRepository mockScreenshotRepository;
+  @Mock private ClaimRepository mockClaimRepository;
   @Mock private GeminiClient mockGeminiClient;
   @Mock private StorageService mockStorageService;
   @Mock private CampaignService mockCampaignService;
@@ -138,6 +140,7 @@ class ClaimScreenshotServiceImplTest {
             processor,
             scorer,
             this.mockScreenshotRepository,
+            this.mockClaimRepository,
             geminiClientProxy,
             new ExtractionResultValidator(),
             this.mockCampaignService,
@@ -156,6 +159,7 @@ class ClaimScreenshotServiceImplTest {
             .accountName("john.doe")
             .build();
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(claim);
+    when(this.mockClaimRepository.findByIdForUpdate(CLAIM_ID)).thenReturn(Optional.of(claim));
 
     final Campaign campaign =
         Campaign.builder()
@@ -273,6 +277,8 @@ class ClaimScreenshotServiceImplTest {
     assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
     assertEquals(100, details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
     assertNull(details.get("orderId").getScore());
+
+    verify(this.mockClaimRepository).findByIdForUpdate(CLAIM_ID);
   }
 
   @Test

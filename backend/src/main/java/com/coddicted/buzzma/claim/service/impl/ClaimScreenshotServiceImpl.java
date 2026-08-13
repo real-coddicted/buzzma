@@ -6,6 +6,7 @@ import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.client.GeminiClientProxy;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
+import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
@@ -38,6 +39,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   private final ClaimScreenshotProcessor processor;
   private final ClaimScreenshotScorer scorer;
   private final ClaimScreenshotRepository screenshotRepository;
+  private final ClaimRepository claimRepository;
   private final GeminiClientProxy geminiClientProxy;
   private final ExtractionResultValidator validator;
   private final CampaignService campaignService;
@@ -47,6 +49,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       @Qualifier("ClaimScreenshotProcessor") final ClaimScreenshotProcessor processor,
       @Qualifier("ClaimScreenshotScorer") final ClaimScreenshotScorer scorer,
       final ClaimScreenshotRepository screenshotRepository,
+      final ClaimRepository claimRepository,
       final GeminiClientProxy geminiClientProxy,
       final ExtractionResultValidator validator,
       final CampaignService campaignService,
@@ -54,6 +57,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     this.processor = processor;
     this.scorer = scorer;
     this.screenshotRepository = screenshotRepository;
+    this.claimRepository = claimRepository;
     this.geminiClientProxy = geminiClientProxy;
     this.validator = validator;
     this.campaignService = campaignService;
@@ -121,6 +125,12 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .findById(claimScreenshotId)
             .orElseThrow(
                 () -> new NotFoundException("ClaimScreenshot not found: " + claimScreenshotId));
+    // Serializes concurrent scoring of screenshots belonging to the same claim (across threads
+    // and horizontally-scaled instances) so the score-aggregation UPDATE in scorer.score() never
+    // races with another screenshot's aggregation for the same claim.
+    this.claimRepository
+        .findByIdForUpdate(screenshot.getClaimId())
+        .orElseThrow(() -> new NotFoundException("Claim not found: " + screenshot.getClaimId()));
     this.scorer.score(job, screenshot);
   }
 

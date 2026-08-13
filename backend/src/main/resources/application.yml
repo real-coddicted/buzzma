@@ -81,6 +81,7 @@ app:
       fixed-delay-ms: ${SCORING_SCHEDULER_DELAY_MS:30000}
       batch-size: ${SCORING_SCHEDULER_BATCH_SIZE:5}
       thread-pool-size: ${SCORING_SCHEDULER_THREAD_POOL_SIZE:5}
+      stale-threshold-minutes: ${SCORING_SCHEDULER_STALE_THRESHOLD_MINUTES:30}
   campaign:
     auto-close:
       fixed-delay-ms: ${CAMPAIGN_AUTO_CLOSE_DELAY_MS:900000}
