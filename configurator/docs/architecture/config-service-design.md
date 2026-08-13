@@ -617,10 +617,18 @@ change:
    single-key), including the `poll_interval_seconds` field and the
    thundering-herd response cache. Write endpoints second, including
    optimistic concurrency and the authenticated `updated_by` requirement.
-3. **Java SDK / Spring Boot Starter.** Single-namespace happy path first
-   (fetch, cache, atomic swap, poll), then the fallback chain (disk
-   snapshot, caller defaults, bounded startup timeout), then multi-namespace
-   support, then the Actuator/Micrometer observability layer.
+3. **Java SDK / Spring Boot Starter. ✅ Done** — lives at `config-sdk-java/`,
+   a **sibling Gradle module** to `configurator/`, not a subproject of it.
+   This was a deliberate repo-layout decision: the SDK's own SemVer,
+   independent of the Config API service's release cycle (see above), is
+   easier to hold onto as two separate Gradle builds than as one
+   multi-project build fighting Gradle's shared-version defaults. It also
+   sets the pattern the eventual Python SDK (§8) will follow — a sibling
+   directory, not nested under either the service or the Java SDK. A
+   contract-test job (SDK tests running against a real Config API service)
+   was explicitly deferred to Phase 5 rather than substituted with
+   same-repo build proximity — see `config-sdk-java/CLAUDE.md` for what's
+   implemented and what's still open.
 4. **Pilot integration.** Wire the starter into one real consuming
    service end-to-end before rolling out broadly.
 5. **Contract docs for future SDKs** (§8) — worth doing once the Java SDK's
