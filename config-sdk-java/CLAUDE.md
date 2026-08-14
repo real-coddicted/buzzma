@@ -43,13 +43,13 @@ for the full phase table). Implemented:
 - Autoconfiguration is entirely inert unless `config-sdk.api-url` is set —
   having this starter on the classpath is never itself a source of failure.
 
+- Publishing to Gitea's built-in Maven package registry — see "Publishing"
+  below.
+
 Not yet built (deferred, see design doc §9):
 - Contract-test job (SDK vs. a real running Config API service) — deferred to
   Phase 5, when the OpenAPI/behavioral-contract docs get written.
 - Pilot integration into a real consuming service — that's Phase 4.
-- Publishing to an internal Maven/Gradle repo — `build.gradle` has a
-  `maven-publish` block with the publication defined, but no repository
-  target configured yet (none exists in this repo currently).
 
 ---
 
@@ -108,6 +108,61 @@ Not yet built (deferred, see design doc §9):
   than swapping in an equivalent copy. `NamespaceConfigTest` /
   `ConfigPollerTest` assert cache map identity (`isSameAs`) is preserved
   across a no-op poll — don't "simplify" this into an unconditional rebuild.
+
+---
+
+## Publishing
+
+`build.gradle`'s `publishing.repositories` has two targets:
+
+- **`mavenLocal()`** — always available, no credentials needed. Run
+  `./gradlew publishToMavenLocal` to install a build into `~/.m2/repository`
+  for local iteration against a consuming module before a real release.
+- **`giteaPackages`** — Gitea's built-in Maven package registry, same
+  instance already used for this repo's Docker images
+  (`gitea.local.coddicted.com`), at
+  `/api/packages/<owner>/maven`. Requires `PACKAGE_REGISTRY_TOKEN` (a Gitea
+  access token with package write scope) in the environment — named without
+  a `GITEA_` prefix since that prefix is reserved for Gitea's own
+  injected secrets/variables and can't be used for user-defined ones.
+  Without it, only the `giteaPackages` target fails — `publishToMavenLocal`
+  is unaffected. CI (`.gitea/workflows/ci-config-sdk.yml`) runs
+  `./gradlew publishAllPublicationsToGiteaPackagesRepository` on tag pushes
+  matching `v*.*.*` only — plain branch pushes just run `check`.
+
+**Consuming from the Gitea registry** (once a version is actually tagged and
+published) requires the consuming module's own `build.gradle` to add the
+same repository (with read credentials) and declare the dependency:
+
+```groovy
+repositories {
+  maven {
+    url = uri("https://gitea.local.coddicted.com/api/packages/coddicted/maven")
+    credentials(HttpHeaderCredentials) {
+      name = 'Authorization'
+      value = "token ${System.getenv('PACKAGE_REGISTRY_TOKEN')}"
+    }
+    authentication { header(HttpHeaderAuthentication) }
+  }
+}
+dependencies {
+  implementation 'com.coddicted.buzzma:buzzma-config-sdk:0.1.0'
+}
+```
+
+This is Phase 4 work (pilot integration), not yet done to any real module.
+
+**Dependency versions are not pinned in the published POM/module metadata.**
+`spring-boot-starter`/`spring-boot-autoconfigure` etc. appear with no
+`<version>` — resolution relies on the *consumer* also applying a compatible
+`spring-boot-dependencies` BOM (e.g. via the `org.springframework.boot`
+Gradle plugin, which every current Boot app in this repo already applies).
+This is the standard way `io.spring.dependency-management`-published
+libraries work (it mirrors how Spring's own starter POMs are published) —
+not a bug, but it means a non-Spring-Boot consumer would need to explicitly
+import the same BOM version to resolve this artifact's dependencies.
+`GenerateModuleMetadata`'s `dependencies-without-versions` validation is
+suppressed in `build.gradle` for exactly this reason.
 
 ---
 

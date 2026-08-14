@@ -93,6 +93,34 @@ publishing {
       from components.java
     }
   }
-  // Internal Maven/Gradle repo coordinates are not yet provisioned for this repo — add the
-  // `repositories { maven { ... } }` block here once one exists (see design doc §7 "Distribution").
+
+  // io.spring.dependency-management resolves BOM versions onto the classic POM correctly, but
+  // doesn't populate them into Gradle Module Metadata — harmless for Maven-based consumers, who
+  // read the POM either way, but the module metadata task's stricter validation fails without this.
+  tasks.withType(GenerateModuleMetadata).configureEach {
+    suppressedValidationErrors.add('dependencies-without-versions')
+  }
+
+  repositories {
+    // Always available, no credentials needed — `./gradlew publishToMavenLocal` for local dev,
+    // e.g. iterating on a consuming module before a real release is published.
+    mavenLocal()
+
+    // Gitea's built-in Maven package registry, same instance already used for this repo's Docker
+    // images. Only usable when PACKAGE_REGISTRY_TOKEN is set (CI); local `./gradlew publish` without
+    // it will fail just this one target, not `publishToMavenLocal`. See ci-config-sdk.yml.
+    maven {
+      name = 'giteaPackages'
+      url = uri(
+          "https://gitea.local.coddicted.com/api/packages/" +
+          "${System.getenv('GITEA_PACKAGE_OWNER') ?: 'coddicted'}/maven")
+      credentials(HttpHeaderCredentials) {
+        name = 'Authorization'
+        value = "token ${System.getenv('PACKAGE_REGISTRY_TOKEN') ?: ''}"
+      }
+      authentication {
+        header(HttpHeaderAuthentication)
+      }
+    }
+  }
 }
