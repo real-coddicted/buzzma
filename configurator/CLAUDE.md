@@ -21,7 +21,7 @@ code on the hot path never makes a network call to this service.
 |-------|-----------|-------------|
 | 1     | ✅ Done   | Schema + Flyway structure — migration files under `db/migrations/` |
 | 2     | ✅ Done   | Config API service — Spring Boot app, read + write endpoints |
-| 3     | Pending   | Java SDK / Spring Boot Starter |
+| 3     | ✅ Done   | Java SDK / Spring Boot Starter — lives at [`config-sdk-java/`](../config-sdk-java/CLAUDE.md), a sibling Gradle module, not a subproject of this one |
 | 4     | Pending   | Pilot integration into one consuming service |
 | 5     | Pending   | Behavioral contract + OpenAPI spec for future language SDKs |
 
