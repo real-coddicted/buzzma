@@ -6,7 +6,7 @@ import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
 import com.coddicted.buzzma.shared.score.PayloadItem;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -206,7 +206,10 @@ public final class ClaimScreenshotScorerUtils {
       scoredValue.setMismatch(
           !claim
               .getAmountPaise()
-              .equals(new BigInteger(scoredValue.getExtractedValue().replace(".", ""))));
+              .equals(
+                  new BigDecimal(scoredValue.getExtractedValue())
+                      .multiply(BigDecimal.valueOf(100))
+                      .toBigInteger()));
     }
     details.put(BuzzmahConstants.AMOUNT, scoredValue);
   }

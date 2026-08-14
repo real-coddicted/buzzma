@@ -147,6 +147,37 @@ class ClaimScreenshotScorerUtilsTest {
   }
 
   @Test
+  void amountWithNoDecimalPointIsNotMismatch() {
+    // Whole-rupee extracted amounts (no decimal point) must still convert to paise correctly.
+    Claim claim =
+        buildClaim(
+            Platform.PLATFORM_AMAZON, "ORD-123", 20260615, BigInteger.valueOf(123400), "john.doe");
+    Map<String, ScoredValue> input =
+        details("PLATFORM_AMAZON", "ORD-123", "2026-06-15", "1234", "john.doe");
+
+    ExtractedScoredResult result =
+        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+            claim, input, 90);
+
+    assertFalse(result.extractedResult().get(BuzzmahConstants.AMOUNT).isMismatch());
+  }
+
+  @Test
+  void amountWithSingleDecimalDigitIsNotMismatch() {
+    Claim claim =
+        buildClaim(
+            Platform.PLATFORM_AMAZON, "ORD-123", 20260615, BigInteger.valueOf(50050), "john.doe");
+    Map<String, ScoredValue> input =
+        details("PLATFORM_AMAZON", "ORD-123", "2026-06-15", "500.5", "john.doe");
+
+    ExtractedScoredResult result =
+        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+            claim, input, 90);
+
+    assertFalse(result.extractedResult().get(BuzzmahConstants.AMOUNT).isMismatch());
+  }
+
+  @Test
   void nullClaimSellerNameIsNotMismatch() {
     // When the campaign has no seller name, the claim won't have one either — absence is not a
     // mismatch.

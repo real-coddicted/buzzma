@@ -7,7 +7,7 @@
   "platform": "PLATFORM_AMAZON",
   "ecommerceOrderId": "403-1234567-8901234",
   "orderDate": 20260615,
-  "amountPaise": 500,
+  "amountPaise": 50000,
   "accountName": "john.doe",
   "productName": "Test Product",
   "sellerName": "Acme Sellers",
