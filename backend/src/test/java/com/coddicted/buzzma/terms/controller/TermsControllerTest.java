@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.security.JwtService;
@@ -29,8 +30,10 @@ class TermsControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  // JwtAuthenticationFilter is a @Component Filter scanned by @WebMvcTest — mock its deps
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
 
   @MockBean private TermsService termsService;

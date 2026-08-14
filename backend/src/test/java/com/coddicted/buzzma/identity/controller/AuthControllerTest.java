@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.mapper.AuthMapper;
 import com.coddicted.buzzma.identity.mapper.SecurityQuestionMapper;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -28,8 +29,10 @@ class AuthControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  // JwtAuthenticationFilter is a @Component Filter scanned by @WebMvcTest — mock its deps
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
 
   @MockBean private AuthService authService;

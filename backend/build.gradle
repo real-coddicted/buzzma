@@ -17,6 +17,7 @@ java {
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
 
 ext {
@@ -82,6 +83,9 @@ dependencies {
 
   // Excel report generation
   implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
+  // Config/Feature-Flag SDK (Phase 4 pilot integration)
+  implementation 'com.coddicted.buzzma:buzzma-config-sdk:0.1.0'
 
   // Lombok
   compileOnly 'org.projectlombok:lombok'

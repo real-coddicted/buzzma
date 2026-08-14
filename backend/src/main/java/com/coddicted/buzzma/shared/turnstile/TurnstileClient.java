@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.shared.turnstile;
 
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.shared.exception.CaptchaException;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -16,21 +17,31 @@ public class TurnstileClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TurnstileClient.class);
   private static final String ERROR_MESSAGE = "An error occurred. Please try refreshing the page.";
+  private static final String ENABLED_KEY = "turnstile.enabled";
 
   private final TurnstileProperties properties;
   private final RestClient restClient;
+  private final ConfigProvider configProvider;
 
-  public TurnstileClient(final RestClient.Builder builder, final TurnstileProperties properties) {
+  public TurnstileClient(
+      final RestClient.Builder builder,
+      final TurnstileProperties properties,
+      final ConfigProvider configProvider) {
     this.properties = properties;
     this.restClient = builder.build();
+    this.configProvider = configProvider;
     LOGGER.info(
         "TurnstileClient initialized: enabled={}, secretKeyPresent={}",
         properties.isEnabled(),
         StringUtils.hasText(properties.getSecretKey()));
   }
 
+  private boolean isEnabled() {
+    return configProvider.getBool(ENABLED_KEY, properties.isEnabled());
+  }
+
   public void verify(final String token) {
-    if (!this.properties.isEnabled()) {
+    if (!isEnabled()) {
       LOGGER.debug("Turnstile verification disabled; skipping captcha check");
       return;
     }

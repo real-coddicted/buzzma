@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
@@ -48,8 +49,10 @@ class UsersControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  // JwtAuthenticationFilter is a @Component Filter scanned by @WebMvcTest — mock its deps
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
 
   @MockBean private UserService userService;

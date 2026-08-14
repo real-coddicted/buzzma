@@ -12,6 +12,7 @@ import com.coddicted.buzzma.claim.model.ClaimAccountingSummary;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.ReceivedPayment;
 import com.coddicted.buzzma.claim.service.MyPaymentsService;
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.security.JwtService;
@@ -42,7 +43,10 @@ class PaymentControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
   @MockBean private MyPaymentsService myPaymentsService;
 

@@ -629,8 +629,49 @@ change:
    was explicitly deferred to Phase 5 rather than substituted with
    same-repo build proximity — see `config-sdk-java/CLAUDE.md` for what's
    implemented and what's still open.
-4. **Pilot integration.** Wire the starter into one real consuming
-   service end-to-end before rolling out broadly.
+4. **Pilot integration. ✅ Code + live validation done, artifact publishing
+   still open.** `backend` is the pilot service (branch
+   `claude/config-sdk-java-phase4-backend-pilot`). `buzzma-config-sdk:0.1.0`
+   is wired in via `mavenLocal()` — **not yet published to the Gitea
+   registry**, no version tagged, so this doesn't work in CI/other machines
+   yet. `config-sdk.*` properties are set in `application.yml` only, with
+   `api-url` left empty so the autoconfiguration stays inert in `local`/`test`
+   profiles. Two values were migrated to the SDK, each with an
+   `Optional<ConfigClient>` injection point and the prior static value kept as
+   the caller-provided fallback default: `app.turnstile.enabled`
+   (`TurnstileClient`) and the request-logging truncation cap, now
+   `request-logging.max-payload-length` (`RequestLoggingFilter`, previously a
+   hardcoded `2048`). Both under namespace `backend`.
+
+   Live end-to-end validation (2026-08-14, local dev): seeded both keys via
+   `POST /v1/configs`, confirmed `backend` reads them
+   (`POST /api/v1/auth/sign-in` without a captcha token: `422
+   CAPTCHA_VERIFICATION_FAILED` with the flag on, `404 NOT_FOUND` with it off
+   — proves the live SDK value overrides the local static default, not just
+   matches it); flipped `turnstile.enabled` via `PUT` and watched the change
+   take effect after one poll interval with **no backend restart**; same for
+   `request-logging.max-payload-length` (log line truncated at exactly the
+   new value); killed `configurator` and confirmed `backend` still boots in
+   ~2s and explicitly logs falling back to the on-disk snapshot (not the
+   hardcoded default — proven distinctly since the snapshot's payload-length
+   value differs from the hardcoded `2048`). `backend`'s full `./gradlew
+   check` also passes (proves the inert-mode fallback path when
+   `config-sdk.api-url` is unset). Micrometer was deliberately not added for
+   this pilot, so `ConfigSdkHealthIndicator`/`ConfigSdkMetrics` stay dormant
+   in `backend`.
+
+   **Bug found and fixed during this validation** (pre-existing, not
+   introduced by the pilot): `configurator`'s own `application.yml` was
+   missing `spring.datasource.hikari.data-source-properties.stringtype:
+   unspecified` — every write touching the native Postgres `value_type_enum`
+   column (i.e. every `POST /v1/configs`) 500'd with a bind-type mismatch.
+   `backend` already carries this same setting for its own PG enum columns;
+   `configurator` didn't. Fixed directly in `application.yml`.
+
+   **Still open before broader rollout:** publish a real tagged
+   `buzzma-config-sdk` version to the Gitea Maven registry (today only
+   resolves via a developer's local `mavenLocal()`); add `configurator` to
+   `docker-compose.yml`'s `.env` wiring for non-local environments.
 5. **Contract docs for future SDKs** (§8) — worth doing once the Java SDK's
    behavior has stabilized through the pilot, so the spec reflects what
    was actually built and validated, not just what was designed on paper.
