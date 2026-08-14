@@ -31,6 +31,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -93,12 +94,14 @@ class ClaimServiceImplTest {
         .thenReturn(SCREENSHOT_KEY);
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
         .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().sellerName("Acme Sellers").build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
     final Claim result =
         this.claimService.createClaim(
-            CLAIM_INPUT,
+            CLAIM_INPUT.toBuilder().sellerName("Extracted Seller").build(),
             SCREENSHOT_BYTES,
             SCREENSHOT_FILENAME,
             CONTENT_TYPE,
@@ -113,6 +116,8 @@ class ClaimServiceImplTest {
     assertFalse(saved.getIsDeleted());
     assertEquals(OWNER_ID, saved.getCreatedBy());
     assertEquals(OWNER_ID, saved.getUpdatedBy());
+    // Campaign has a configured seller name, so the extracted value is preserved
+    assertEquals("Extracted Seller", saved.getSellerName());
 
     final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
         ArgumentCaptor.forClass(ClaimScreenshot.class);
@@ -132,6 +137,34 @@ class ClaimServiceImplTest {
     assertFalse(savedScreenshot.isDeleted());
     assertEquals(OWNER_ID, savedScreenshot.getCreatedBy());
     assertEquals(OWNER_ID, savedScreenshot.getUpdatedBy());
+  }
+
+  @Test
+  void testCreateClaimDropsSellerNameWhenCampaignHasNoSellerName() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
+        .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().sellerName(null).build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+
+    this.claimService.createClaim(
+        CLAIM_INPUT.toBuilder().sellerName("Extracted Seller").build(),
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        EXTRACTED_DETAILS,
+        85);
+
+    assertNull(claimCaptor.getValue().getSellerName());
   }
 
   @Test
@@ -482,6 +515,73 @@ class ClaimServiceImplTest {
     final List<Claim> result = this.claimService.listByOwner(OWNER_ID);
 
     assertEquals(List.of(CLAIM_1, CLAIM_2), result);
+  }
+
+  @Test
+  void testUpdateScreenshotAppliesSellerNameWhenCampaignHasSellerName() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().sellerName("Acme Sellers").build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_ORDER,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null),
+        null);
+
+    assertEquals("New Seller", claimCaptor.getValue().getSellerName());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testUpdateScreenshotDropsSellerNameWhenCampaignHasNoSellerName() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().sellerName(null).build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_ORDER,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null),
+        null);
+
+    assertNull(claimCaptor.getValue().getSellerName());
   }
 
   @Test

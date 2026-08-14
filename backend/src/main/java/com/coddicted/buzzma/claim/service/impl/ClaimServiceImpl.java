@@ -122,6 +122,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
 
+    final boolean campaignHasSellerName =
+        this.campaignService.getById(claim.getCampaignId()).getSellerName() != null;
+
     final Claim saved =
         this.claimRepository.save(
             claim.toBuilder()
@@ -132,6 +135,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .createdBy(claim.getOwnerId())
                 .updatedBy(claim.getOwnerId())
                 .currentStep(CampaignStepType.ORDER)
+                .sellerName(campaignHasSellerName ? claim.getSellerName() : null)
                 .build());
 
     saveScreenshot(
@@ -362,7 +366,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       if (orderFields.productName() != null) {
         b.productName(orderFields.productName());
       }
-      if (orderFields.sellerName() != null) {
+      if (orderFields.sellerName() != null
+          && this.campaignService.getById(claim.getCampaignId()).getSellerName() != null) {
         b.sellerName(orderFields.sellerName());
       }
       if (orderFields.orderDate() != null) {
