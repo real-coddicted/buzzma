@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
     tags: ["v*.*.*"]
+    paths:
+      - "notifications/**"
+      - ".gitea/workflows/ci-notification.yml"
 
 env:
   REGISTRY: gitea.local.coddicted.com

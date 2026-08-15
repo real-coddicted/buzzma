@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
     tags: ["v*.*.*"]
+    paths:
+      - "configurator/**"
+      - ".gitea/workflows/ci-configurator.yml"
 
 env:
   REGISTRY: gitea.local.coddicted.com

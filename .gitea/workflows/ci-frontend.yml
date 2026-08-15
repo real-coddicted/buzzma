@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
     tags: ["v*.*.*"]
+    paths:
+      - "frontend/**"
+      - ".gitea/workflows/ci-frontend.yml"
 
 env:
   REGISTRY: gitea.local.coddicted.com

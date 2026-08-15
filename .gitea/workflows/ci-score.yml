@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
     tags: ["v*.*.*"]
+    paths:
+      - "score/**"
+      - ".gitea/workflows/ci-score.yml"
 
 env:
   REGISTRY: gitea.local.coddicted.com
