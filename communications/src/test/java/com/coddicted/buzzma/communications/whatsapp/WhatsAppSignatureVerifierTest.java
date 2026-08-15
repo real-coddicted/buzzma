@@ -3,7 +3,7 @@ package com.coddicted.buzzma.communications.whatsapp;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.coddicted.buzzma.communications.config.WhatsAppProperties;
+import com.coddicted.buzzma.communications.whatsapp.config.WhatsAppProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.HexFormat;

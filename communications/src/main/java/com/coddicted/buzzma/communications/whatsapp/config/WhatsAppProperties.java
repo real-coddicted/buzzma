@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.communications.config;
+package com.coddicted.buzzma.communications.whatsapp.config;
 
 import lombok.Getter;
 import lombok.Setter;

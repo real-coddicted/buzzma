@@ -1,6 +1,32 @@
 spring:
   application:
     name: buzzma-communications
+  datasource:
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      data-source-properties:
+        stringtype: unspecified
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    user: ${FLYWAY_MIGRATOR_USER:}
+    password: ${FLYWAY_MIGRATOR_PASSWORD:}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
   mail:
     host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
     port: ${EMAIL_SMTP_PORT:587}
@@ -28,6 +54,8 @@ app:
     graph-base-url: ${WHATSAPP_GRAPH_BASE_URL:https://graph.facebook.com}
   email:
     from-address: ${EMAIL_FROM_ADDRESS:donotreply@buzzmah.com}
+    outbox:
+      worker-pool-size: ${EMAIL_OUTBOX_WORKER_POOL_SIZE:1}
 
 management:
   endpoints:

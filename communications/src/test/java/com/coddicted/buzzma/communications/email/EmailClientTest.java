@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.coddicted.buzzma.communications.config.EmailProperties;
+import com.coddicted.buzzma.communications.email.client.EmailClient;
+import com.coddicted.buzzma.communications.email.config.EmailProperties;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mail.SimpleMailMessage;

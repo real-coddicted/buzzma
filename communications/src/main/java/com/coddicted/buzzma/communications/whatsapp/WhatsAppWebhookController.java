@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.communications.whatsapp;
 
-import com.coddicted.buzzma.communications.config.WhatsAppProperties;
+import com.coddicted.buzzma.communications.whatsapp.config.WhatsAppProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

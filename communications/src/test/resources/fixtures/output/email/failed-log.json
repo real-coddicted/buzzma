@@ -1,0 +1,12 @@
+{
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "toAddress": "someone@example.com",
+  "fromAddress": "donotreply@buzzmah.com",
+  "subject": "Your OTP code",
+  "status": "EMAIL_STATUS_FAILED",
+  "errorMessage": "smtp down",
+  "createdBy": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "updatedBy": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-01-01T00:00:05Z"
+}

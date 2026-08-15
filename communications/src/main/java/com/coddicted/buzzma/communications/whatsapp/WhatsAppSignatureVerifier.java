@@ -1,6 +1,6 @@
 package com.coddicted.buzzma.communications.whatsapp;
 
-import com.coddicted.buzzma.communications.config.WhatsAppProperties;
+import com.coddicted.buzzma.communications.whatsapp.config.WhatsAppProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;

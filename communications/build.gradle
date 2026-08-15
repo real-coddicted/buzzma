@@ -21,6 +21,14 @@ repositories {
 
 ext {
   jjwtVersion = '0.12.6'
+  testcontainersVersion = '1.20.4'
+  mapstructVersion = '1.5.5.Final'
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
 }
 
 dependencies {
@@ -28,6 +36,8 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-security'
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-mail'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -37,12 +47,23 @@ dependencies {
   runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
 
   implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+  implementation 'org.flywaydb:flyway-core'
+  implementation 'org.flywaydb:flyway-database-postgresql'
+  runtimeOnly 'org.postgresql:postgresql'
+
+  implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
   compileOnly 'org.projectlombok:lombok'
   annotationProcessor 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+  annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.testcontainers:postgresql'
+  testImplementation 'org.testcontainers:testcontainers'
 }
 
 spotless {
@@ -72,4 +93,7 @@ tasks.named('check') {
 
 tasks.named('test') {
   useJUnitPlatform()
+  // Docker 25+ rejects docker-java's default API version; pin to a supported one.
+  environment 'DOCKER_API_VERSION', '1.45'
+  systemProperty 'api.version', '1.45'
 }

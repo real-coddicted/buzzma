@@ -1,6 +1,6 @@
-package com.coddicted.buzzma.communications.email;
+package com.coddicted.buzzma.communications.email.client;
 
-import com.coddicted.buzzma.communications.config.EmailProperties;
+import com.coddicted.buzzma.communications.email.config.EmailProperties;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
