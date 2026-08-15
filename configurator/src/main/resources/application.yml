@@ -23,10 +23,22 @@ spring:
     locations:
       - classpath:db/migrations/common
       - classpath:db/migrations/${CONFIGURATOR_ENV:local}
+      - classpath:db/vendor/{vendor}
     # Separate history table from backend's flyway_schema_history.
     table: flyway_schema_history_configurator
+    # This module currently shares backend's Postgres schema, so it is always
+    # non-empty on configurator's first-ever run in any environment. Baseline
+    # below V0001 (version 1) so that migration still runs after baselining.
+    baseline-on-migrate: true
+    baseline-version: 0
     user: ${FLYWAY_MIGRATOR_USER:}
     password: ${FLYWAY_MIGRATOR_PASSWORD:}
+    # Same shared Postgres roles as backend/ (see root .env.example) — migrations
+    # run as flywayMigratorRole; afterMigrate grants the app's runtime connection
+    # DML privileges on the tables/sequences configurator's own migrations create.
+    placeholders:
+      appRuntimeRole: ${DB_APP_RUNTIME_ROLE:}
+      flywayMigratorRole: ${DB_FLYWAY_MIGRATOR_ROLE:}
 
   security:
     user:

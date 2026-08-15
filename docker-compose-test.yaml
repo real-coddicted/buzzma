@@ -1,0 +1,86 @@
+services:
+  notifications:
+    image: gitea.local.coddicted.com/coddicted/buzzma-notification:develop
+    container_name: buzzma-notifications
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      - buzzma-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  backend:
+    image: gitea.local.coddicted.com/coddicted/buzzma:develop
+    container_name: buzzma-backend
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      notifications:
+        condition: service_healthy
+      configurator:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - buzzma-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  configurator:
+    image: gitea.local.coddicted.com/coddicted/buzzma-configurator:develop
+    container_name: buzzma-configurator
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8084:8084"
+    networks:
+      - buzzma-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  score:
+    image: gitea.local.coddicted.com/coddicted/buzzma-score:develop
+    container_name: buzzma-score
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks:
+      - buzzma-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8082/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: gitea.local.coddicted.com/coddicted/buzzma-frontend:develop
+    container_name: buzzma-frontend
+    env_file: .env
+    restart: unless-stopped
+    profiles:
+      - frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+networks:
+  buzzma-net:
+    external: true

@@ -14,7 +14,5 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
   flyway:
-    baseline-on-migrate: false
-    baseline-version: 1
     user: ${FLYWAY_MIGRATOR_USER:${spring.datasource.username}}
     password: ${FLYWAY_MIGRATOR_PASSWORD:${spring.datasource.password}}
