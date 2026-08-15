@@ -35,6 +35,12 @@ spring:
 server:
   port: ${PORT:8080}
 
+config-sdk:
+  api-url: ${CONFIG_SDK_API_URL:}
+  environment: ${CONFIG_SDK_ENVIRONMENT:dev}
+  namespaces: [backend]
+  snapshot-dir: ${CONFIG_SDK_SNAPSHOT_DIR:${java.io.tmpdir}/buzzma-config-sdk/backend}
+
 app:
   seed:
     initial-user: ${SEED_DATA:false}

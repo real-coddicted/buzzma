@@ -18,6 +18,7 @@ import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
 import com.coddicted.buzzma.claim.service.PayoutService;
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.security.JwtService;
@@ -48,7 +49,10 @@ class PayoutControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
 
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
   @MockBean private PayoutService payoutService;
 

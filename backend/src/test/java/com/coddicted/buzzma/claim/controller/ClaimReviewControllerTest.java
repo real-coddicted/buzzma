@@ -15,6 +15,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
 import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.security.JwtService;
@@ -40,7 +41,10 @@ class ClaimReviewControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
+  // JwtAuthenticationFilter and RequestLoggingFilter are @Component Filters scanned by
+  // @WebMvcTest — mock their deps
   @MockBean private JwtService jwtService;
+  @MockBean private ConfigProvider configProvider;
   @MockBean private UsersRepository usersRepository;
 
   @MockBean private ClaimReviewWorksheetService worksheetService;

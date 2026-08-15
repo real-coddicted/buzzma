@@ -17,6 +17,24 @@ java {
 
 repositories {
   mavenCentral()
+  mavenLocal()
+
+  // Gitea's built-in Maven package registry — same instance config-sdk-java publishes
+  // buzzma-config-sdk to. Only usable when PACKAGE_REGISTRY_TOKEN is set (CI); local
+  // resolution without it falls back to mavenLocal() above.
+  maven {
+    name = 'giteaPackages'
+    url = uri(
+        "https://gitea.local.coddicted.com/api/packages/" +
+        "${System.getenv('GITEA_PACKAGE_OWNER') ?: 'coddicted'}/maven")
+    credentials(HttpHeaderCredentials) {
+      name = 'Authorization'
+      value = "token ${System.getenv('PACKAGE_REGISTRY_TOKEN') ?: ''}"
+    }
+    authentication {
+      header(HttpHeaderAuthentication)
+    }
+  }
 }
 
 ext {
@@ -82,6 +100,9 @@ dependencies {
 
   // Excel report generation
   implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
+  // Config/Feature-Flag SDK (Phase 4 pilot integration)
+  implementation 'com.coddicted.buzzma:buzzma-config-sdk:0.1.0'
 
   // Lombok
   compileOnly 'org.projectlombok:lombok'

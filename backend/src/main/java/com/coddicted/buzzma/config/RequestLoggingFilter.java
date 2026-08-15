@@ -23,7 +23,18 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
-  private static final int MAX_PAYLOAD_LENGTH = 2048;
+  private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 2048;
+  private static final String MAX_PAYLOAD_LENGTH_KEY = "request-logging.max-payload-length";
+
+  private final ConfigProvider configProvider;
+
+  public RequestLoggingFilter(final ConfigProvider configProvider) {
+    this.configProvider = configProvider;
+  }
+
+  private int maxPayloadLength() {
+    return configProvider.getInt(MAX_PAYLOAD_LENGTH_KEY, DEFAULT_MAX_PAYLOAD_LENGTH);
+  }
 
   @Override
   protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
@@ -162,11 +173,12 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       return "[binary content omitted]";
     }
 
-    int length = Math.min(body.length, MAX_PAYLOAD_LENGTH);
+    int maxLength = maxPayloadLength();
+    int length = Math.min(body.length, maxLength);
     Charset charset = resolveCharset(encoding);
     String content = new String(body, 0, length, charset).replaceAll("\\s+", " ").trim();
 
-    if (body.length > MAX_PAYLOAD_LENGTH) {
+    if (body.length > maxLength) {
       return content + "... [truncated]";
     }
     return content;
