@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { formatDateTime } from './time'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { formatDateTime, toRelativeTime, formatShortDate } from './time'
 
 describe('formatDateTime', () => {
   it('includes both date and time', () => {
@@ -20,5 +20,50 @@ describe('formatDateTime', () => {
     })
     expect(formatDateTime(iso)).not.toBe(dateOnly)
     expect(formatDateTime(iso)).toContain(dateOnly)
+  })
+})
+
+describe('toRelativeTime', () => {
+  const NOW = new Date('2026-08-16T12:00:00.000Z')
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(NOW)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  function isoMinutesAgo(mins: number): string {
+    return new Date(NOW.getTime() - mins * 60_000).toISOString()
+  }
+
+  it('returns "just now" for less than a minute ago', () => {
+    expect(toRelativeTime(isoMinutesAgo(0))).toBe('just now')
+  })
+
+  it('returns minutes ago for under an hour', () => {
+    expect(toRelativeTime(isoMinutesAgo(5))).toBe('5m ago')
+  })
+
+  it('returns hours ago for under a day', () => {
+    expect(toRelativeTime(isoMinutesAgo(3 * 60))).toBe('3h ago')
+  })
+
+  it('returns days ago for under 7 days', () => {
+    expect(toRelativeTime(isoMinutesAgo(3 * 24 * 60))).toBe('3d ago')
+  })
+
+  it('falls back to an absolute date at exactly 7 days', () => {
+    const iso = isoMinutesAgo(7 * 24 * 60)
+    expect(toRelativeTime(iso)).toBe(formatShortDate(iso))
+  })
+
+  it('falls back to an absolute date for a very old timestamp instead of an absurd day count', () => {
+    const veryOld = '1970-01-02T00:00:00.000Z'
+    const result = toRelativeTime(veryOld)
+    expect(result).toBe(formatShortDate(veryOld))
+    expect(result).not.toMatch(/d ago/)
   })
 })
