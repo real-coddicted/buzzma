@@ -5,13 +5,16 @@ import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserBatchRequestDto;
 import com.coddicted.buzzma.identity.dto.UserBriefDto;
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
+import com.coddicted.buzzma.identity.dto.VerifyEmailOtpRequestDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
+import com.coddicted.buzzma.identity.service.EmailVerificationService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -41,16 +46,19 @@ public class UsersController {
   private final UserMapper userMapper;
   private final UserBankingDetailService userBankingDetailService;
   private final UserBankingDetailMapper userBankingDetailMapper;
+  private final EmailVerificationService emailVerificationService;
 
   public UsersController(
       final UserService userService,
       final UserMapper userMapper,
       final UserBankingDetailService userBankingDetailService,
-      final UserBankingDetailMapper userBankingDetailMapper) {
+      final UserBankingDetailMapper userBankingDetailMapper,
+      final EmailVerificationService emailVerificationService) {
     this.userService = userService;
     this.userMapper = userMapper;
     this.userBankingDetailService = userBankingDetailService;
     this.userBankingDetailMapper = userBankingDetailMapper;
+    this.emailVerificationService = emailVerificationService;
   }
 
   @GetMapping("/me")
@@ -64,6 +72,21 @@ public class UsersController {
       @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final UpdateProfileRequestDto request) {
     final BuzzmaUser user = this.userService.updateProfile(request.getEmail(), requesterId);
+    return this.userMapper.toUserSummaryDto(user);
+  }
+
+  @PostMapping("/me/email/otp/send")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void sendEmailOtp(@CurrentUser final BuzzmaUser currentUser) {
+    this.emailVerificationService.sendOtp(currentUser.getId());
+  }
+
+  @PostMapping("/me/email/otp/verify")
+  public UserSummaryDto verifyEmailOtp(
+      @CurrentUserId final UUID requesterId,
+      @Valid @RequestBody final VerifyEmailOtpRequestDto request) {
+    this.emailVerificationService.verifyOtp(requesterId, request.getCode());
+    final BuzzmaUser user = this.userService.getById(requesterId);
     return this.userMapper.toUserSummaryDto(user);
   }
 

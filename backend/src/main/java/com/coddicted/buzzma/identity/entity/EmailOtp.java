@@ -5,8 +5,6 @@ import com.coddicted.buzzma.shared.common.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -20,14 +18,14 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "users")
+@Table(name = "email_otp")
 @EntityListeners(AuditEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class BuzzmaUser implements Auditable {
+public class EmailOtp implements Auditable {
 
   @Id
   @GeneratedValue
@@ -35,34 +33,19 @@ public class BuzzmaUser implements Auditable {
   @Column(name = "id", updatable = false, nullable = false)
   private UUID id;
 
-  @Column(name = "name", length = 120, nullable = false)
-  private String name;
+  @Column(name = "user_id", nullable = false)
+  private UUID userId;
 
-  @Column(name = "username", length = 64, unique = true)
-  private String username;
+  @Column(name = "otp_hash", nullable = false, length = 64)
+  private String otpHash;
 
-  @Column(name = "mobile", length = 10, nullable = false)
-  private String mobile;
+  @Column(name = "expires_at", nullable = false)
+  private Instant expiresAt;
 
-  @Column(name = "email", length = 320)
-  private String email;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "role")
-  private UserRole role;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status")
-  private UserStatus status;
-
-  @Column(name = "code", length = 16, unique = true)
-  private String code;
-
-  @Column(name = "email_verified", nullable = false)
+  @Column(name = "is_used", nullable = false)
   @Builder.Default
-  private Boolean emailVerified = false;
+  private Boolean isUsed = false;
 
-  // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;
 
@@ -74,8 +57,4 @@ public class BuzzmaUser implements Auditable {
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
-
-  @Column(name = "is_deleted", nullable = false)
-  @Builder.Default
-  private Boolean isDeleted = false;
 }

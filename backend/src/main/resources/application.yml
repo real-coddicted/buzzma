@@ -77,6 +77,11 @@ app:
     max-balance-paise: ${WALLET_MAX_BALANCE_PAISE:100000000}
   score:
     base-url: ${SCORE_BASE_URL:http://localhost:8082}
+  communications:
+    base-url: ${COMMUNICATIONS_BASE_URL:http://localhost:8083}
+    max-attempts: ${COMMUNICATIONS_MAX_ATTEMPTS:3}
+    retry-backoff-ms: ${COMMUNICATIONS_RETRY_BACKOFF_MS:200}
+    retry-backoff-multiplier: ${COMMUNICATIONS_RETRY_BACKOFF_MULTIPLIER:2.0}
   extraction:
     scheduler:
       fixed-delay-ms: ${EXTRACTION_SCHEDULER_DELAY_MS:30000}

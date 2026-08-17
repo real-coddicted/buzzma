@@ -23,6 +23,8 @@ public class UserSummary {
 
   UserStatus status;
 
+  Boolean emailVerified;
+
   String avatar;
 
   Instant createdAt;

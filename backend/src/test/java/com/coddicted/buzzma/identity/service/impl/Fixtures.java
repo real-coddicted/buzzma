@@ -35,6 +35,18 @@ public final class Fixtures {
       FileUtils.loadResourceAsObject(
           "/fixtures/output/identity/buzzma-user-2.json", BuzzmaUser.class);
 
+  static final BuzzmaUser USER_WITH_EMAIL =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/input/identity/buzzma-user-3.json", BuzzmaUser.class);
+
+  static final BuzzmaUser EXPECTED_USER_WITH_EMAIL_VERIFIED =
+      FileUtils.loadResourceAsObject(
+          "/fixtures/output/identity/buzzma-user-3.json", BuzzmaUser.class);
+
+  static final String USER_EMAIL = "alice@example.com";
+
+  static final String OTP_CODE = "123456";
+
   static final String PLAIN_PASSWORD = "plain-password";
 
   static final String STORED_HASH = "stored-hash";

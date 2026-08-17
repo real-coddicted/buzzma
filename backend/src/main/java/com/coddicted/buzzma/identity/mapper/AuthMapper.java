@@ -35,6 +35,7 @@ public interface AuthMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
+  @Mapping(target = "emailVerified", ignore = true)
   BuzzmaUser toUser(UserSignInRequestDto request);
 
   @Mapping(target = "id", ignore = true)
@@ -57,6 +58,7 @@ public interface AuthMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
+  @Mapping(target = "emailVerified", ignore = true)
   BuzzmaUser toUser(UserRegistrationRequestDto request);
 
   @Mapping(target = "id", ignore = true)

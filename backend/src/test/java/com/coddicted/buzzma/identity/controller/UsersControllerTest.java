@@ -22,6 +22,7 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
+import com.coddicted.buzzma.identity.service.EmailVerificationService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -60,6 +61,7 @@ class UsersControllerTest {
   @MockBean private UserBankingDetailService userBankingDetailService;
   @MockBean private UserBankingDetailMapper userBankingDetailMapper;
   @MockBean private ConnectionService connectionService;
+  @MockBean private EmailVerificationService emailVerificationService;
 
   private static final UUID TARGET_USER_ID =
       UUID.fromString("44444444-4444-4444-4444-444444444444");

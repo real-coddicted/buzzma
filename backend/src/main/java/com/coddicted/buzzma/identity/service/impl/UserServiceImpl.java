@@ -56,8 +56,13 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Transactional
   public BuzzmaUser updateProfile(final String email, final UUID requesterId) {
     final BuzzmaUser existingEntity = mustFind(this.repository, requesterId, "Users");
-    return this.repository.save(
-        existingEntity.toBuilder().email(email).updatedBy(requesterId).build());
+    final boolean emailChanged = !email.equals(existingEntity.getEmail());
+    final BuzzmaUser.BuzzmaUserBuilder updated =
+        existingEntity.toBuilder().email(email).updatedBy(requesterId);
+    if (emailChanged) {
+      updated.emailVerified(false);
+    }
+    return this.repository.save(updated.build());
   }
 
   @Override

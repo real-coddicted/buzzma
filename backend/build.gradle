@@ -92,6 +92,9 @@ dependencies {
   // Rate limiting
   implementation 'com.bucket4j:bucket4j-core:8.10.1'
 
+  // Retry
+  implementation 'org.springframework.retry:spring-retry'
+
   // Dotenv support
   implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 

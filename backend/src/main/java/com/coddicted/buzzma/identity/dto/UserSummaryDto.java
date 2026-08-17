@@ -26,6 +26,8 @@ public class UserSummaryDto {
 
   UserStatus status;
 
+  Boolean emailVerified;
+
   String code;
 
   @Nullable String avatar;

@@ -21,6 +21,7 @@ public interface UsersMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
+  @Mapping(target = "emailVerified", ignore = true)
   BuzzmaUser toEntity(UserRequestDto request);
 
   @Mapping(target = "roles", ignore = true)
@@ -48,5 +49,6 @@ public interface UsersMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
+  @Mapping(target = "emailVerified", ignore = true)
   void update(UserRequestDto request, @MappingTarget BuzzmaUser entity);
 }
