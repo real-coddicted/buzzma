@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.springframework.core.Ordered;
@@ -25,6 +26,11 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
   private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 2048;
   private static final String MAX_PAYLOAD_LENGTH_KEY = "request-logging.max-payload-length";
+  private static final String REDACTED_VALUE = "***REDACTED***";
+  private static final Pattern SENSITIVE_FIELD_PATTERN =
+      Pattern.compile(
+          "(?i)(\"(?:accessToken|refreshToken|password|newPassword|otp|token|captchaToken|secret)\"\\s*:\\s*)"
+              + "(\"[^\"]*\"|null)");
 
   private final ConfigProvider configProvider;
 
@@ -177,11 +183,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     int length = Math.min(body.length, maxLength);
     Charset charset = resolveCharset(encoding);
     String content = new String(body, 0, length, charset).replaceAll("\\s+", " ").trim();
+    content = redactSensitiveFields(content);
 
     if (body.length > maxLength) {
       return content + "... [truncated]";
     }
     return content;
+  }
+
+  private String redactSensitiveFields(String content) {
+    return SENSITIVE_FIELD_PATTERN.matcher(content).replaceAll("$1\"" + REDACTED_VALUE + "\"");
   }
 
   private boolean isTextContentType(String contentType) {
