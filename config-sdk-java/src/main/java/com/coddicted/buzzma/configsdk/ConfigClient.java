@@ -213,6 +213,12 @@ public class ConfigClient implements SmartLifecycle {
   @Override
   public void stop() {
     pollers.values().forEach(ConfigPoller::stop);
+    // Every construction path (autoconfiguration, ConfigClientBuilder) builds this scheduler
+    // exclusively for this client's own use — it's never a shared/host-provided instance — so
+    // ConfigClient owns shutting it down rather than relying on external lifecycle management.
+    if (taskScheduler instanceof final ThreadPoolTaskScheduler threadPoolTaskScheduler) {
+      threadPoolTaskScheduler.shutdown();
+    }
     running = false;
   }
 
