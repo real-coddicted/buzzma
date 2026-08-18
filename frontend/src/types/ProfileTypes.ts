@@ -6,6 +6,7 @@ export interface UserDetails {
   name: string
   mobile: string
   email?: string
+  emailVerified?: boolean
 }
 
 export interface UserActivityDto {

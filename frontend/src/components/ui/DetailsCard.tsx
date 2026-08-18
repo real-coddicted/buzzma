@@ -3,11 +3,13 @@ import { LabeledField } from './LabeledField'
 import { CopyableCode } from './CopyableCode'
 import { Button } from './Button'
 import { Toast } from './Toast'
+import { EmailVerificationStatus } from './EmailVerificationStatus'
 import type { UserDetails } from '../../types/ProfileTypes'
 
 interface DetailsCardProps {
   details: UserDetails
   onSave?: (email: string) => Promise<void>
+  onEmailVerified?: () => void
 }
 
 const nameLabels: Record<string, string> = {
@@ -25,12 +27,13 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
-export function DetailsCard({ details, onSave }: DetailsCardProps) {
-  const { code, type, name, mobile, email } = details
+export function DetailsCard({ details, onSave, onEmailVerified }: DetailsCardProps) {
+  const { code, type, name, mobile, email, emailVerified } = details
   const [emailValue, setEmailValue] = useState(email ?? '')
   const [emailError, setEmailError] = useState('')
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [verifySuccess, setVerifySuccess] = useState(false)
   const [apiError, setApiError] = useState('')
 
   useEffect(() => { setEmailValue(email ?? '') }, [email])
@@ -99,9 +102,21 @@ export function DetailsCard({ details, onSave }: DetailsCardProps) {
         <div className="border-t border-surface-light-border dark:border-surface-dark-border" />
         {onSave ? (
           <form onSubmit={handleSaveEmail} className="space-y-2">
-            <label className="block text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
-              Email
-            </label>
+            <div className="flex items-center gap-2">
+              <label className="block text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide">
+                Email
+              </label>
+              {email && (
+                <EmailVerificationStatus
+                  email={email}
+                  verified={!!emailVerified}
+                  onVerified={() => {
+                    setVerifySuccess(true)
+                    onEmailVerified?.()
+                  }}
+                />
+              )}
+            </div>
             <input
               type="email"
               placeholder="you@example.com"
@@ -115,6 +130,12 @@ export function DetailsCard({ details, onSave }: DetailsCardProps) {
               <Toast
                 message="Email updated successfully."
                 onDismiss={() => setSuccess(false)}
+              />
+            )}
+            {verifySuccess && (
+              <Toast
+                message="Email verified successfully."
+                onDismiss={() => setVerifySuccess(false)}
               />
             )}
             <div className="flex justify-end pt-1">

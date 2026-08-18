@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   /** Backdrop click handler. Pass `undefined` while busy to block dismissal. */
@@ -7,7 +8,7 @@ interface ModalProps {
 }
 
 export function Modal({ onClose, children }: ModalProps) {
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
       onClick={onClose}
@@ -18,6 +19,7 @@ export function Modal({ onClose, children }: ModalProps) {
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

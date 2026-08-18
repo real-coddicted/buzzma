@@ -1675,6 +1675,7 @@ export interface components {
             role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
             /** @enum {string} */
             status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
+            emailVerified?: boolean;
             code?: string;
             avatar?: string;
             /** Format: date-time */
@@ -2355,6 +2356,7 @@ export interface components {
             role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
             /** @enum {string} */
             status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
+            emailVerified?: boolean;
             avatar?: string;
             /** Format: date-time */
             createdAt?: string;

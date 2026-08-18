@@ -22,6 +22,7 @@ function toUserDetails(user: CurrentUser): UserDetails {
     name: user.name ?? '',
     mobile: user.mobile ?? '',
     email: user.email,
+    emailVerified: user.emailVerified,
   }
 }
 
@@ -66,8 +67,9 @@ export function Profile() {
             details={toUserDetails(user)}
             onSave={async email => {
               const updated = await updateUserProfile(email)
-              setUser(prev => prev ? { ...prev, email: updated.email ?? email } : prev)
+              setUser(prev => prev ? { ...prev, email: updated.email ?? email, emailVerified: updated.emailVerified } : prev)
             }}
+            onEmailVerified={() => setUser(getCurrentUser())}
           />
         ) : (
           <div className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-5">

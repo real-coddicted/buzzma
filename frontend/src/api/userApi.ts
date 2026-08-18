@@ -22,6 +22,20 @@ export async function updateUserProfile(email: string): Promise<UserSummaryDto> 
   return user
 }
 
+export async function sendEmailOtp(): Promise<void> {
+  await fetchWithAuth('/api/v1/users/me/email/otp/send', { method: 'POST' })
+}
+
+export async function verifyEmailOtp(code: string): Promise<UserSummaryDto> {
+  const res = await fetchWithAuth('/api/v1/users/me/email/otp/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
+  const user: UserSummaryDto = await res.json()
+  setCurrentUser(user)
+  return user
+}
+
 export async function searchUserByMobile(mobile: string): Promise<UserSummaryDto> {
   const res = await fetchWithAuth(`/api/v1/users/search?mobile=${encodeURIComponent(mobile)}`)
   return res.json() as Promise<UserSummaryDto>
