@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
+import com.coddicted.buzzma.claim.notification.PayoutEventPublisher;
 import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
@@ -61,6 +63,7 @@ class PayoutServiceImplTest {
   @Mock private PaymentService paymentService;
   @Mock private ClaimService claimService;
   @Mock private StorageService storageService;
+  @Mock private PayoutEventPublisher payoutEventPublisher;
 
   private PayoutServiceImpl service;
 
@@ -72,7 +75,8 @@ class PayoutServiceImplTest {
             paymentService,
             claimService,
             Mappers.getMapper(PaymentMapper.class),
-            storageService);
+            storageService,
+            payoutEventPublisher);
   }
 
   // ── listPending ───────────────────────────────────────────────────────────────────────────────
@@ -232,6 +236,13 @@ class PayoutServiceImplTest {
             eq(PAID_AT),
             any(Instant.class),
             eq(AGENCY_ID));
+    verify(payoutEventPublisher)
+        .publishAgencyPaymentCapturedEvent(
+            eq(List.of(ca)),
+            eq(BigInteger.valueOf(10000)),
+            eq(AGENCY_ID),
+            eq(MEDIATOR_ID),
+            eq(AGENCY_ID));
   }
 
   @Test
@@ -278,6 +289,8 @@ class PayoutServiceImplTest {
             eq(PAID_AT),
             any(Instant.class),
             eq(MEDIATOR_ID));
+    verify(payoutEventPublisher, never())
+        .publishAgencyPaymentCapturedEvent(any(), any(), any(), any(), any());
   }
 
   @Test

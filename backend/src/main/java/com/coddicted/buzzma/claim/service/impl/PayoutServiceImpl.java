@@ -11,6 +11,7 @@ import com.coddicted.buzzma.claim.model.PaidPayout;
 import com.coddicted.buzzma.claim.model.PaymentReceipt;
 import com.coddicted.buzzma.claim.model.PendingPayout;
 import com.coddicted.buzzma.claim.model.RecordPaymentRequest;
+import com.coddicted.buzzma.claim.notification.PayoutEventPublisher;
 import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.ClaimService;
@@ -38,18 +39,21 @@ public class PayoutServiceImpl implements PayoutService {
   private final ClaimService claimService;
   private final PaymentMapper paymentMapper;
   private final StorageService storageService;
+  private final PayoutEventPublisher payoutEventPublisher;
 
   public PayoutServiceImpl(
       final ClaimAccountingService claimAccountingService,
       final PaymentService paymentService,
       final ClaimService claimService,
       final PaymentMapper paymentMapper,
-      final StorageService storageService) {
+      final StorageService storageService,
+      final PayoutEventPublisher payoutEventPublisher) {
     this.claimAccountingService = claimAccountingService;
     this.paymentService = paymentService;
     this.claimService = claimService;
     this.paymentMapper = paymentMapper;
     this.storageService = storageService;
+    this.payoutEventPublisher = payoutEventPublisher;
   }
 
   @Override
@@ -133,6 +137,8 @@ public class PayoutServiceImpl implements PayoutService {
     if (role == UserRole.ROLE_AGENCY) {
       claimAccountingService.markMediatorPaid(
           ids, saved.getId(), request.getPaidAt(), now, callerId);
+      payoutEventPublisher.publishAgencyPaymentCapturedEvent(
+          targets, totalAmount, callerId, payeeId, callerId);
     } else {
       claimAccountingService.markBuyerPaid(ids, saved.getId(), request.getPaidAt(), now, callerId);
     }
