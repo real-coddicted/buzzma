@@ -28,4 +28,6 @@ public class DealResponseDto {
   String termsAndConditions;
   String sellerName;
   Integer slotsAvailable;
+  Integer startDate;
+  Integer endDate;
 }

@@ -8,6 +8,7 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +52,8 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
   public Page<Deal> getActiveDeals(
       final Collection<UUID> ownerIds, final UUID requesterId, final int page, final int size) {
     LOGGER.info("Get active deals for user {}", requesterId);
-    return this.dealRepository.findActiveDeals(ownerIds, PageRequest.of(page, size));
+    final int today = DateTimeUtils.getAsianTodayDate();
+    return this.dealRepository.findActiveDeals(ownerIds, today, PageRequest.of(page, size));
   }
 
   @Override

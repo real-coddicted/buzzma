@@ -30,6 +30,8 @@ export interface Deal {
   offeredPricePaise: number
   sellerName?: string
   mediatorName?: string
+  startDate?: string
+  endDate?: string
   termsAndConditions?: string
   slotsAvailable?: number
   status: DealStatus

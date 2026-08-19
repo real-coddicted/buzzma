@@ -47,6 +47,18 @@ describe('dealResponseToDeal', () => {
     const deal = dealResponseToDeal(makeDto({ code: 'ABC999' }))
     expect(deal.code).toBe('ABC999')
   })
+
+  it('converts startDate and endDate from yyyymmdd to ISO', () => {
+    const deal = dealResponseToDeal(makeDto({ startDate: 20260901, endDate: 20260930 }))
+    expect(deal.startDate).toBe('2026-09-01')
+    expect(deal.endDate).toBe('2026-09-30')
+  })
+
+  it('leaves startDate and endDate undefined when absent', () => {
+    const deal = dealResponseToDeal(makeDto())
+    expect(deal.startDate).toBeUndefined()
+    expect(deal.endDate).toBeUndefined()
+  })
 })
 
 describe('claimResponseToDeal', () => {

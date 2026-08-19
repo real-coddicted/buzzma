@@ -2033,6 +2033,10 @@ export interface components {
             sellerName?: string;
             /** Format: int32 */
             slotsAvailable?: number;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
         };
         UpdateClaimRequestDto: {
             /** Format: uuid */

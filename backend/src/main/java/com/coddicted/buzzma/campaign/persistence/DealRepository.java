@@ -22,6 +22,8 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
             AND d.is_deleted = false
             AND c.id = d.campaign_id
             AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
           """,
       countQuery =
           """
@@ -30,9 +32,14 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
             AND d.is_deleted = false
             AND c.id = d.campaign_id
             AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
           """,
       nativeQuery = true)
-  Page<Deal> findActiveDeals(@Param("ownerIds") Collection<UUID> ownerIds, Pageable pageable);
+  Page<Deal> findActiveDeals(
+      @Param("ownerIds") Collection<UUID> ownerIds,
+      @Param("today") Integer today,
+      Pageable pageable);
 
   @Query(
       """

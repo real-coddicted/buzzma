@@ -3,6 +3,7 @@ import type { Deal, Platform, CampaignType, ClaimStatus } from '../types/DealTyp
 import type { CampaignResponseDto, CampaignNameOption } from './campaignApi'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 import { fetchWithAuth } from './client'
+import { yyyymmddToIso } from '../utils/time'
 
 const API_BASE = '/api/v1'
 
@@ -68,6 +69,8 @@ export function dealResponseToDeal(dto: DealResponseDto): Deal {
     mediatorName: dto.ownerName,
     termsAndConditions: dto.termsAndConditions,
     slotsAvailable: dto.slotsAvailable,
+    startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
+    endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
     status: 'explore',
   }
 }

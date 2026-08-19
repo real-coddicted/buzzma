@@ -47,6 +47,26 @@ class DealMapperTest {
     assertEquals("https://example.com/product", response.getProductUrl());
   }
 
+  @Test
+  void toDealResponseMapsCampaignStartAndEndDate()
+      throws MalformedURLException, URISyntaxException {
+    final Product product =
+        Product.builder()
+            .name("Test Product")
+            .productLink(new URI("https://example.com/product").toURL())
+            .pricePaise(BigInteger.valueOf(99900))
+            .build();
+    final Campaign campaign =
+        Campaign.builder().product(product).startDate(20260901).endDate(20260930).build();
+    final Deal deal =
+        Deal.builder().campaign(campaign).dealPricePaise(BigInteger.valueOf(49900)).build();
+
+    final DealResponseDto response = this.dealMapper.toDealResponse(deal);
+
+    assertEquals(20260901, response.getStartDate());
+    assertEquals(20260930, response.getEndDate());
+  }
+
   private Deal dealWithAffiliateUrl(final String affiliateUrl)
       throws MalformedURLException, URISyntaxException {
     final Product product =

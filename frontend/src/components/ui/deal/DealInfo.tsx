@@ -4,6 +4,7 @@ import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { formatShortDate } from '../../../utils/time'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -82,6 +83,8 @@ export function DealInfo({ deal }: DealInfoProps) {
           )}
           <Row label="Deal Type"      value={deal.dealTypeLabel} />
           {deal.sellerName && <Row label="Seller" value={deal.sellerName} />}
+          {deal.startDate && <Row label="Start Date" value={formatShortDate(deal.startDate)} />}
+          {deal.endDate && <Row label="End Date" value={formatShortDate(deal.endDate)} />}
           <Row label="Original Price" value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise))}`} />
           <Row label="Offered Price"  value={`₹${formatRupees(paiseToRupees(deal.offeredPricePaise))}`} />
           <Row label="You Save"       value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise - deal.offeredPricePaise))} (${discount}%)`} />

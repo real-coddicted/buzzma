@@ -4,6 +4,7 @@ import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { formatShortDate } from '../../../utils/time'
 
 interface DealCardProps {
   deal: Deal
@@ -55,6 +56,12 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         {deal.mediatorName && (
           <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
             Mediator: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.mediatorName}</span>
+          </p>
+        )}
+
+        {deal.endDate && (
+          <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            Ends: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{formatShortDate(deal.endDate)}</span>
           </p>
         )}
 
