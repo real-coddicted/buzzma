@@ -3,14 +3,18 @@ package com.coddicted.buzzma.claim.notification;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.notification.service.NotificationService;
+import com.coddicted.buzzma.notification.template.NotificationTemplateRenderer;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,11 +30,18 @@ class ClaimReviewEventPublisherTest {
   private static final String REVIEWER_COMMENTS = "Screenshot does not match the order";
 
   @Mock private NotificationService mockNotificationService;
+  @Mock private ConfigProvider mockConfigProvider;
+
+  // ConfigProvider built with Optional.empty() always falls through to the caller-provided
+  // default template (the inert-mode path), so these tests keep asserting the exact rendered
+  // text without needing to mock config-sdk internals.
+  private final NotificationTemplateRenderer defaultTemplateRenderer =
+      new NotificationTemplateRenderer(new ConfigProvider(Optional.empty()));
 
   @Test
   void testPublishScreenshotReviewedEventNotifiesBuyerAndMediator() {
     final ClaimReviewEventPublisher publisher =
-        new ClaimReviewEventPublisher(this.mockNotificationService);
+        new ClaimReviewEventPublisher(this.mockNotificationService, this.defaultTemplateRenderer);
     final Claim claim = Claim.builder().id(UUID.randomUUID()).ownerId(BUYER_ID).build();
     final Campaign campaign = Campaign.builder().title("Diwali Sale").build();
     final Deal deal = Deal.builder().ownerId(MEDIATOR_ID).campaign(campaign).code("DEAL-1").build();
@@ -54,7 +65,7 @@ class ClaimReviewEventPublisherTest {
   @Test
   void testPublishClaimDecisionEventNotifiesBuyerOnApproval() {
     final ClaimReviewEventPublisher publisher =
-        new ClaimReviewEventPublisher(this.mockNotificationService);
+        new ClaimReviewEventPublisher(this.mockNotificationService, this.defaultTemplateRenderer);
     final Claim claim =
         Claim.builder()
             .id(UUID.randomUUID())
@@ -78,7 +89,7 @@ class ClaimReviewEventPublisherTest {
   @Test
   void testPublishClaimDecisionEventNotifiesBuyerOnRejection() {
     final ClaimReviewEventPublisher publisher =
-        new ClaimReviewEventPublisher(this.mockNotificationService);
+        new ClaimReviewEventPublisher(this.mockNotificationService, this.defaultTemplateRenderer);
     final Claim claim =
         Claim.builder()
             .id(UUID.randomUUID())
@@ -95,6 +106,39 @@ class ClaimReviewEventPublisherTest {
             "Your claim with code CLM-43 has been rejected with reason: "
                 + REVIEWER_COMMENTS
                 + ". Please visit claims page for more details or contact your mediator.",
+            BUYER_ID,
+            REVIEWER_ID);
+  }
+
+  @Test
+  void testPublishClaimDecisionEventUsesConfigOverriddenTemplate() {
+    final String messageDefault =
+        "Congratulations! Your claim with code {claimCode} has been approved. We will keep you"
+            + " updated once payment is released for it.";
+    when(this.mockConfigProvider.getString(
+            "claim-decision-notification.approved.title", "Hurray! Claim {claimCode} approved!!"))
+        .thenReturn("Claim {claimCode}: approved by ops");
+    when(this.mockConfigProvider.getString(
+            "claim-decision-notification.approved.message", messageDefault))
+        .thenReturn("Your claim {claimCode} has been approved by our ops team.");
+    final ClaimReviewEventPublisher publisher =
+        new ClaimReviewEventPublisher(
+            this.mockNotificationService,
+            new NotificationTemplateRenderer(this.mockConfigProvider));
+    final Claim claim =
+        Claim.builder()
+            .id(UUID.randomUUID())
+            .ownerId(BUYER_ID)
+            .code("CLM-99")
+            .reviewerId(REVIEWER_ID)
+            .build();
+
+    publisher.publishClaimDecisionEvent(claim, ClaimStatus.APPROVED, null);
+
+    verify(this.mockNotificationService)
+        .create(
+            "Claim CLM-99: approved by ops",
+            "Your claim CLM-99 has been approved by our ops team.",
             BUYER_ID,
             REVIEWER_ID);
   }
