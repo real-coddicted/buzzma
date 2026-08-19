@@ -4,21 +4,8 @@ import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { IconChevronLeft } from '../components/ui/icons'
-import { fetchUserSettingsById, updateUserSettingsById, type UserSettingsDto } from '../api/userSettingsApi'
+import { fetchUserSettingsById, updateUserSettingsById, FLAG_TO_DTO_KEY, type UserSettingsDto, type UserSettingsFlagDto } from '../api/userSettingsApi'
 import type { UserSummaryDto } from '../api/userApi'
-
-const SETTINGS: { key: keyof UserSettingsDto; label: string }[] = [
-  { key: 'dashboardTabEnabled',   label: 'Dashboard'   },
-  { key: 'campaignsTabEnabled',   label: 'Campaigns'   },
-  { key: 'assignmentsTabEnabled', label: 'Assignments' },
-  { key: 'connectionsTabEnabled', label: 'Connections' },
-  { key: 'dealTabEnabled',        label: 'Deals'       },
-  { key: 'claimReviewEnabled',    label: 'Claim Review'},
-  { key: 'ticketsTabEnabled',     label: 'Tickets'     },
-  { key: 'feedbackTabEnabled',    label: 'Feedback'    },
-  { key: 'settingsTabEnabled',    label: 'Settings'    },
-  { key: 'usersTabEnabled',       label: 'Users'       },
-]
 
 interface UserSettingsPageProps {
   user: UserSummaryDto
@@ -26,7 +13,7 @@ interface UserSettingsPageProps {
 }
 
 export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
-  const [values, setValues]     = useState<UserSettingsDto | null>(null)
+  const [values, setValues]     = useState<UserSettingsFlagDto[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
   const [toast, setToast]     = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -39,15 +26,20 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
       .finally(() => setLoading(false))
   }, [user.id])
 
-  function toggle(key: keyof UserSettingsDto) {
-    setValues(prev => prev ? { ...prev, [key]: !prev[key] } : prev)
+  function toggle(flag: string) {
+    setValues(prev => prev ? prev.map(f => f.flag === flag ? { ...f, enabled: !f.enabled } : f) : prev)
   }
 
   async function handleUpdate() {
     if (!values) return
     setSaving(true)
     try {
-      const updated = await updateUserSettingsById(user.id!, values)
+      const payload: UserSettingsDto = {}
+      for (const f of values) {
+        const key = f.flag ? FLAG_TO_DTO_KEY[f.flag] : undefined
+        if (key) payload[key] = f.enabled ?? false
+      }
+      const updated = await updateUserSettingsById(user.id!, payload)
       setValues(updated)
       setToast({ message: 'Settings updated successfully.', type: 'success' })
     } catch (err) {
@@ -96,19 +88,19 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
         {values && !loading && (
           <>
             <ul className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
-              {SETTINGS.map(({ key, label }) => (
-                <li key={key} className="px-4 py-3 flex items-center justify-between gap-4">
+              {values.map(({ flag, enabled, displayName }) => (
+                <li key={flag} className="px-4 py-3 flex items-center justify-between gap-4">
                   <label
-                    htmlFor={key}
+                    htmlFor={flag}
                     className="text-sm text-ink-light-primary dark:text-ink-dark-primary cursor-pointer select-none"
                   >
-                    {label}
+                    {displayName}
                   </label>
                   <input
-                    id={key}
+                    id={flag}
                     type="checkbox"
-                    checked={values[key] ?? false}
-                    onChange={() => toggle(key)}
+                    checked={enabled ?? false}
+                    onChange={() => flag && toggle(flag)}
                     className="w-4 h-4 accent-neon-blue cursor-pointer"
                   />
                 </li>

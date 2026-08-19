@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.entity.Settings;
@@ -51,19 +52,83 @@ class UserSettingsServiceImplTest {
   }
 
   @Test
+  void testGetByUserIdOrDefaultWhenFound() {
+    when(this.mockUserSettingsRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_SETTINGS_1));
+    when(this.mockUserService.getById(USER_ID))
+        .thenReturn(BuzzmaUser.builder().id(USER_ID).role(UserRole.ROLE_BUYER).build());
+
+    // USER_SETTINGS_1's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled (null on
+    // the stored settings), so they resolve from the buyer role default (false) rather than
+    // staying null.
+    final Settings stored = USER_SETTINGS_1.getSettings();
+    final Settings expected =
+        Settings.builder()
+            .dashboardTabEnabled(stored.getDashboardTabEnabled())
+            .campaignsTabEnabled(stored.getCampaignsTabEnabled())
+            .assignmentsTabEnabled(stored.getAssignmentsTabEnabled())
+            .connectionsTabEnabled(stored.getConnectionsTabEnabled())
+            .dealTabEnabled(stored.getDealTabEnabled())
+            .claimReviewEnabled(stored.getClaimReviewEnabled())
+            .ticketsTabEnabled(stored.getTicketsTabEnabled())
+            .feedbackTabEnabled(stored.getFeedbackTabEnabled())
+            .settingsTabEnabled(stored.getSettingsTabEnabled())
+            .usersTabEnabled(stored.getUsersTabEnabled())
+            .myPaymentsTabEnabled(false)
+            .userPayoutsTabEnabled(false)
+            .build();
+
+    assertEquals(expected, this.userSettingsService.getByUserIdOrDefault(USER_ID).getSettings());
+  }
+
+  @Test
+  void testGetByUserIdOrDefaultWhenFoundFillsUnsetFlagsFromRoleDefaults() {
+    when(this.mockUserSettingsRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.of(USER_SETTINGS_2));
+    when(this.mockUserService.getById(USER_ID))
+        .thenReturn(BuzzmaUser.builder().id(USER_ID).role(UserRole.ROLE_BUYER).build());
+
+    final Settings settings = this.userSettingsService.getByUserIdOrDefault(USER_ID).getSettings();
+
+    // USER_SETTINGS_2's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled, so
+    // they should resolve from the buyer role default rather than staying null.
+    assertEquals(
+        this.userSettingsService
+            .getDefaultSettingsByUserRole(UserRole.ROLE_BUYER)
+            .getSettings()
+            .getMyPaymentsTabEnabled(),
+        settings.getMyPaymentsTabEnabled());
+    assertNotNull(settings.getUserPayoutsTabEnabled());
+  }
+
+  @Test
+  void testGetByUserIdOrDefaultWhenNotFoundFallsBackToRoleDefaults() {
+    when(this.mockUserSettingsRepository.findByUserIdAndIsDeletedFalse(USER_ID))
+        .thenReturn(Optional.empty());
+    when(this.mockUserService.getById(USER_ID))
+        .thenReturn(BuzzmaUser.builder().id(USER_ID).role(UserRole.ROLE_BUYER).build());
+
+    final Settings settings = this.userSettingsService.getByUserIdOrDefault(USER_ID).getSettings();
+
+    assertEquals(
+        this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_BUYER).getSettings(),
+        settings);
+  }
+
+  @Test
   void testGetDefaultSettingsByUserRoleAdmin() {
     final Settings settings =
         this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_ADMIN).getSettings();
 
-    assertFalse(settings.isDashboardTabEnabled());
-    assertTrue(settings.isCampaignsTabEnabled());
-    assertTrue(settings.isAssignmentsTabEnabled());
-    assertTrue(settings.isConnectionsTabEnabled());
-    assertTrue(settings.isDealTabEnabled());
-    assertTrue(settings.isTicketsTabEnabled());
-    assertTrue(settings.isFeedbackTabEnabled());
-    assertTrue(settings.isSettingsTabEnabled());
-    assertTrue(settings.isUsersTabEnabled());
+    assertFalse(settings.getDashboardTabEnabled());
+    assertTrue(settings.getCampaignsTabEnabled());
+    assertTrue(settings.getAssignmentsTabEnabled());
+    assertTrue(settings.getConnectionsTabEnabled());
+    assertTrue(settings.getDealTabEnabled());
+    assertTrue(settings.getTicketsTabEnabled());
+    assertTrue(settings.getFeedbackTabEnabled());
+    assertTrue(settings.getSettingsTabEnabled());
+    assertTrue(settings.getUsersTabEnabled());
   }
 
   @Test
@@ -71,15 +136,15 @@ class UserSettingsServiceImplTest {
     final Settings settings =
         this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_MEDIATOR).getSettings();
 
-    assertFalse(settings.isDashboardTabEnabled());
-    assertFalse(settings.isCampaignsTabEnabled());
-    assertTrue(settings.isAssignmentsTabEnabled());
-    assertTrue(settings.isConnectionsTabEnabled());
-    assertFalse(settings.isDealTabEnabled());
-    assertTrue(settings.isTicketsTabEnabled());
-    assertTrue(settings.isFeedbackTabEnabled());
-    assertTrue(settings.isSettingsTabEnabled());
-    assertFalse(settings.isUsersTabEnabled());
+    assertFalse(settings.getDashboardTabEnabled());
+    assertFalse(settings.getCampaignsTabEnabled());
+    assertTrue(settings.getAssignmentsTabEnabled());
+    assertTrue(settings.getConnectionsTabEnabled());
+    assertFalse(settings.getDealTabEnabled());
+    assertTrue(settings.getTicketsTabEnabled());
+    assertTrue(settings.getFeedbackTabEnabled());
+    assertTrue(settings.getSettingsTabEnabled());
+    assertFalse(settings.getUsersTabEnabled());
   }
 
   @Test
@@ -87,15 +152,15 @@ class UserSettingsServiceImplTest {
     final Settings settings =
         this.userSettingsService.getDefaultSettingsByUserRole(UserRole.ROLE_BUYER).getSettings();
 
-    assertFalse(settings.isDashboardTabEnabled());
-    assertFalse(settings.isCampaignsTabEnabled());
-    assertFalse(settings.isAssignmentsTabEnabled());
-    assertTrue(settings.isConnectionsTabEnabled());
-    assertTrue(settings.isDealTabEnabled());
-    assertTrue(settings.isTicketsTabEnabled());
-    assertTrue(settings.isFeedbackTabEnabled());
-    assertTrue(settings.isSettingsTabEnabled());
-    assertFalse(settings.isUsersTabEnabled());
+    assertFalse(settings.getDashboardTabEnabled());
+    assertFalse(settings.getCampaignsTabEnabled());
+    assertFalse(settings.getAssignmentsTabEnabled());
+    assertTrue(settings.getConnectionsTabEnabled());
+    assertTrue(settings.getDealTabEnabled());
+    assertTrue(settings.getTicketsTabEnabled());
+    assertTrue(settings.getFeedbackTabEnabled());
+    assertTrue(settings.getSettingsTabEnabled());
+    assertFalse(settings.getUsersTabEnabled());
   }
 
   @Test

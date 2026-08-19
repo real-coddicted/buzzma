@@ -2,6 +2,7 @@ package com.coddicted.buzzma.settings.controller;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.settings.dto.UserSettingsDto;
+import com.coddicted.buzzma.settings.dto.UserSettingsFlagsResponseDto;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.mapper.UserSettingsMapper;
@@ -38,25 +39,25 @@ public class UserSettingsController {
   }
 
   @GetMapping
-  public UserSettingsDto get(@CurrentUserId final UUID requesterId) {
-    final UserSettings userSettings = this.userSettingsService.getByUserId(requesterId);
-    return this.userSettingsMapper.toUserSettingsDto(userSettings);
+  public UserSettingsFlagsResponseDto get(@CurrentUserId final UUID requesterId) {
+    final UserSettings userSettings = this.userSettingsService.getByUserIdOrDefault(requesterId);
+    return toFlagsResponse(userSettings);
   }
 
   @GetMapping("/{userId}")
   @PreAuthorize(UserRole.Expr.ADMIN)
-  public UserSettingsDto get(
+  public UserSettingsFlagsResponseDto get(
       @PathVariable final UUID userId, @CurrentUserId final UUID requesterId) {
-    final UserSettings userSettings = this.userSettingsService.getByUserId(userId);
-    return this.userSettingsMapper.toUserSettingsDto(userSettings);
+    final UserSettings userSettings = this.userSettingsService.getByUserIdOrDefault(userId);
+    return toFlagsResponse(userSettings);
   }
 
   @PostMapping
-  public UserSettingsDto create(
+  public UserSettingsFlagsResponseDto create(
       @CurrentUserId final UUID requesterId, @Valid @RequestBody final UserSettingsDto request) {
     final UserSettings userSettings = this.userSettingsMapper.toEntity(request);
     final UserSettings created = this.userSettingsService.create(userSettings, requesterId);
-    return this.userSettingsMapper.toUserSettingsDto(created);
+    return toFlagsResponse(created);
   }
 
   @PostMapping("/setToDefault")
@@ -68,7 +69,7 @@ public class UserSettingsController {
   }
 
   @PutMapping("/{userId}")
-  public UserSettingsDto update(
+  public UserSettingsFlagsResponseDto update(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID userId,
       @Valid @RequestBody final UserSettingsDto request) {
@@ -76,12 +77,18 @@ public class UserSettingsController {
     final Settings newSettings = this.userSettingsMapper.toSettings(request);
     final UserSettings toUpdate = existing.toBuilder().settings(newSettings).build();
     final UserSettings updated = this.userSettingsService.update(toUpdate, requesterId);
-    return this.userSettingsMapper.toUserSettingsDto(updated);
+    return toFlagsResponse(updated);
   }
 
   @DeleteMapping("/{userId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@CurrentUserId final UUID requesterId, @PathVariable final UUID userId) {
     this.userSettingsService.delete(userId, requesterId);
+  }
+
+  private UserSettingsFlagsResponseDto toFlagsResponse(final UserSettings userSettings) {
+    return UserSettingsFlagsResponseDto.builder()
+        .flags(this.userSettingsMapper.toUserSettingsFlags(userSettings.getSettings()))
+        .build();
   }
 }

@@ -7,6 +7,8 @@ import java.util.UUID;
 public interface UserSettingsService {
   UserSettings getByUserId(UUID userId);
 
+  UserSettings getByUserIdOrDefault(UUID userId);
+
   UserSettings getDefaultSettingsByUserRole(UserRole role);
 
   UserSettings create(UserSettings userSettings, UUID requesterId);

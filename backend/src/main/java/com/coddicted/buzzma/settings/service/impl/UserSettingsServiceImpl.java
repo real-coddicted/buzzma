@@ -5,6 +5,7 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
+import com.coddicted.buzzma.settings.entity.UserSettingsFlag;
 import com.coddicted.buzzma.settings.persistence.UserSettingsRepository;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.settings.util.SettingsUtils;
@@ -36,6 +37,35 @@ public class UserSettingsServiceImpl extends BaseCrudService implements UserSett
     return this.userSettingsRepository
         .findByUserIdAndIsDeletedFalse(userId)
         .orElseThrow(() -> new NotFoundException("UserSettings not found for user: " + userId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserSettings getByUserIdOrDefault(final UUID userId) {
+    final BuzzmaUser user = this.userService.getById(userId);
+    final Settings roleDefaults = getDefaultSettingsByUserRole(user.getRole()).getSettings();
+    return this.userSettingsRepository
+        .findByUserIdAndIsDeletedFalse(userId)
+        .map(
+            existing ->
+                existing.toBuilder()
+                    .settings(mergeWithDefaults(existing.getSettings(), roleDefaults))
+                    .build())
+        .orElseGet(() -> UserSettings.builder().userId(userId).settings(roleDefaults).build());
+  }
+
+  /**
+   * A flag left {@code null} on the stored settings means the user has never explicitly overridden
+   * it, so it resolves to the current role default rather than a hardcoded false.
+   */
+  private Settings mergeWithDefaults(final Settings settings, final Settings roleDefaults) {
+    Settings.SettingsBuilder builder = Settings.builder();
+    for (final UserSettingsFlag flag : UserSettingsFlag.values()) {
+      final Boolean override = flag.getValue(settings);
+      final Boolean resolved = override != null ? override : flag.getValue(roleDefaults);
+      builder = flag.applyTo(builder, resolved);
+    }
+    return builder.build();
   }
 
   @Override

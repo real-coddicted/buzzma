@@ -1,8 +1,12 @@
 package com.coddicted.buzzma.settings.mapper;
 
 import com.coddicted.buzzma.settings.dto.UserSettingsDto;
+import com.coddicted.buzzma.settings.dto.UserSettingsFlagDto;
 import com.coddicted.buzzma.settings.entity.Settings;
 import com.coddicted.buzzma.settings.entity.UserSettings;
+import com.coddicted.buzzma.settings.entity.UserSettingsFlag;
+import java.util.Arrays;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -49,4 +53,16 @@ public interface UserSettingsMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   UserSettings toEntity(UserSettingsDto dto);
+
+  default List<UserSettingsFlagDto> toUserSettingsFlags(final Settings settings) {
+    return Arrays.stream(UserSettingsFlag.values())
+        .map(
+            flag ->
+                UserSettingsFlagDto.builder()
+                    .flag(flag)
+                    .enabled(flag.isEnabled(settings))
+                    .displayName(flag.getDisplayName())
+                    .build())
+        .toList();
+  }
 }

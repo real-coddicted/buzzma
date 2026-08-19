@@ -1662,6 +1662,14 @@ export interface components {
             myPaymentsTabEnabled?: boolean;
             userPayoutsTabEnabled?: boolean;
         };
+        UserSettingsFlagDto: {
+            flag?: "DASHBOARD_TAB_ENABLED" | "CAMPAIGNS_TAB_ENABLED" | "ASSIGNMENTS_TAB_ENABLED" | "CONNECTIONS_TAB_ENABLED" | "DEAL_TAB_ENABLED" | "CLAIM_REVIEW_ENABLED" | "TICKETS_TAB_ENABLED" | "FEEDBACK_TAB_ENABLED" | "SETTINGS_TAB_ENABLED" | "USERS_TAB_ENABLED" | "MY_PAYMENTS_TAB_ENABLED" | "USER_PAYOUTS_TAB_ENABLED";
+            enabled?: boolean;
+            displayName?: string;
+        };
+        UserSettingsFlagsResponseDto: {
+            flags?: components["schemas"]["UserSettingsFlagDto"][];
+        };
         UpdateProfileRequestDto: {
             email: string;
         };
@@ -2820,7 +2828,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
+                    "*/*": components["schemas"]["UserSettingsFlagsResponseDto"];
                 };
             };
         };
@@ -2846,7 +2854,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
+                    "*/*": components["schemas"]["UserSettingsFlagsResponseDto"];
                 };
             };
         };
@@ -3050,7 +3058,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
+                    "*/*": components["schemas"]["UserSettingsFlagsResponseDto"];
                 };
             };
         };
@@ -3074,7 +3082,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSettingsDto"];
+                    "*/*": components["schemas"]["UserSettingsFlagsResponseDto"];
                 };
             };
         };

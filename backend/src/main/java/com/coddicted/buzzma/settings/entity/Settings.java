@@ -8,16 +8,16 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class Settings {
-  boolean dashboardTabEnabled;
-  boolean campaignsTabEnabled;
-  boolean assignmentsTabEnabled;
-  boolean connectionsTabEnabled;
-  boolean dealTabEnabled;
-  boolean claimReviewEnabled;
-  boolean ticketsTabEnabled;
-  boolean feedbackTabEnabled;
-  boolean settingsTabEnabled;
-  boolean usersTabEnabled;
-  boolean myPaymentsTabEnabled;
-  boolean userPayoutsTabEnabled;
+  Boolean dashboardTabEnabled;
+  Boolean campaignsTabEnabled;
+  Boolean assignmentsTabEnabled;
+  Boolean connectionsTabEnabled;
+  Boolean dealTabEnabled;
+  Boolean claimReviewEnabled;
+  Boolean ticketsTabEnabled;
+  Boolean feedbackTabEnabled;
+  Boolean settingsTabEnabled;
+  Boolean usersTabEnabled;
+  Boolean myPaymentsTabEnabled;
+  Boolean userPayoutsTabEnabled;
 }
