@@ -32,6 +32,7 @@ import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
@@ -511,6 +512,9 @@ class ClaimReviewServiceImplTest {
     assertEquals(
         SCREENSHOT_VERIFICATION_STATUS_VERIFIED,
         screenshotCaptor.getValue().getVerificationStatus());
+
+    verify(this.mockClaimReviewEventPublisher)
+        .publishClaimDecisionEvent(CLAIM_1, ClaimStatus.APPROVED, null);
   }
 
   @Test
@@ -525,5 +529,61 @@ class ClaimReviewServiceImplTest {
                 this.claimReviewService.bulkApproveClaimReviews(
                     Map.of(CLAIM_ID, AMOUNT_APPROVED_PAISE), OWNER_ID));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
+  void testSubmitClaimReviewApprovedPublishesDecisionEvent() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockClaimService.listScreenshots(CLAIM_ID)).thenReturn(List.of(SCREENSHOT_1));
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID,
+        OWNER_ID,
+        UserRole.ROLE_AGENCY,
+        ReviewerDecision.APPROVED,
+        REVIEWER_COMMENTS,
+        AMOUNT_APPROVED_PAISE);
+
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(ClaimStatus.APPROVED, saved.getStatus());
+    verify(this.mockClaimReviewEventPublisher)
+        .publishClaimDecisionEvent(CLAIM_1, ClaimStatus.APPROVED, REVIEWER_COMMENTS);
+  }
+
+  @Test
+  void testSubmitClaimReviewRejectedPublishesDecisionEvent() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    final Claim rejectedClaim =
+        CLAIM_1.toBuilder().status(ClaimStatus.REJECTED).updatedBy(OWNER_ID).build();
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(rejectedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID,
+        OWNER_ID,
+        UserRole.ROLE_AGENCY,
+        ReviewerDecision.REJECTED,
+        REVIEWER_COMMENTS,
+        null);
+
+    assertEquals(ClaimStatus.REJECTED, claimCaptor.getValue().getStatus());
+    verify(this.mockClaimReviewEventPublisher)
+        .publishClaimDecisionEvent(rejectedClaim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+  }
+
+  @Test
+  void testSubmitClaimReviewVerifiedByMediatorDoesNotPublishDecisionEvent() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockClaimService.save(any(Claim.class))).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID, OWNER_ID, UserRole.ROLE_MEDIATOR, ReviewerDecision.VERIFIED, null, null);
+
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
   }
 }

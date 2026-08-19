@@ -189,6 +189,8 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
                   .updatedAt(Instant.now())
                   .updatedBy(reviewerId)
                   .build());
+      this.claimReviewEventPublisher.publishClaimDecisionEvent(
+          updated, ClaimStatus.REJECTED, reviewerComment);
     }
 
     return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
@@ -223,15 +225,19 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
                         .updatedAt(Instant.now())
                         .updatedBy(reviewerId)
                         .build()));
-    return this.claimService.save(
-        claim.toBuilder()
-            .status(ClaimStatus.APPROVED)
-            .reviewerComments(reviewerComments)
-            .reviewerId(reviewerId)
-            .amountApprovedPaise(amountApprovedPaise)
-            .updatedAt(Instant.now())
-            .updatedBy(reviewerId)
-            .build());
+    final Claim updated =
+        this.claimService.save(
+            claim.toBuilder()
+                .status(ClaimStatus.APPROVED)
+                .reviewerComments(reviewerComments)
+                .reviewerId(reviewerId)
+                .amountApprovedPaise(amountApprovedPaise)
+                .updatedAt(Instant.now())
+                .updatedBy(reviewerId)
+                .build());
+    this.claimReviewEventPublisher.publishClaimDecisionEvent(
+        updated, ClaimStatus.APPROVED, reviewerComments);
+    return updated;
   }
 
   @Override

@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.notification.service.NotificationService;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,54 @@ class ClaimReviewEventPublisherTest {
             "Screenshot Rejected",
             "Diwali Sale (DEAL-1) - Review screenshot Rejected: " + REVIEWER_COMMENTS,
             List.of(BUYER_ID, MEDIATOR_ID),
+            REVIEWER_ID);
+  }
+
+  @Test
+  void testPublishClaimDecisionEventNotifiesBuyerOnApproval() {
+    final ClaimReviewEventPublisher publisher =
+        new ClaimReviewEventPublisher(this.mockNotificationService);
+    final Claim claim =
+        Claim.builder()
+            .id(UUID.randomUUID())
+            .ownerId(BUYER_ID)
+            .code("CLM-42")
+            .amountApprovedPaise(BigInteger.valueOf(150050))
+            .reviewerId(REVIEWER_ID)
+            .build();
+
+    publisher.publishClaimDecisionEvent(claim, ClaimStatus.APPROVED, null);
+
+    verify(this.mockNotificationService)
+        .create(
+            "Hurray! Claim CLM-42 approved!!",
+            "Congratulations! Your claim with code CLM-42 has been approved."
+                + " We will keep you updated once payment is released for it.",
+            BUYER_ID,
+            REVIEWER_ID);
+  }
+
+  @Test
+  void testPublishClaimDecisionEventNotifiesBuyerOnRejection() {
+    final ClaimReviewEventPublisher publisher =
+        new ClaimReviewEventPublisher(this.mockNotificationService);
+    final Claim claim =
+        Claim.builder()
+            .id(UUID.randomUUID())
+            .ownerId(BUYER_ID)
+            .code("CLM-43")
+            .reviewerId(REVIEWER_ID)
+            .build();
+
+    publisher.publishClaimDecisionEvent(claim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+
+    verify(this.mockNotificationService)
+        .create(
+            "Claim CLM-43 rejected!",
+            "Your claim with code CLM-43 has been rejected with reason: "
+                + REVIEWER_COMMENTS
+                + ". Please visit claims page for more details or contact your mediator.",
+            BUYER_ID,
             REVIEWER_ID);
   }
 }
