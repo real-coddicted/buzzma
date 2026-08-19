@@ -111,6 +111,12 @@ export function VerifyEmailModal({ email, onClose, onVerified }: VerifyEmailModa
                 : `Enter the 6-digit code we sent to ${email}.`}
             </p>
 
+            {!sending && (
+              <p className="text-xs text-neon-yellow bg-neon-yellow/10 border border-neon-yellow/30 rounded-lg px-3 py-2">
+                Don't see it? Check your spam folder.
+              </p>
+            )}
+
             <input
               type="text"
               inputMode="numeric"
