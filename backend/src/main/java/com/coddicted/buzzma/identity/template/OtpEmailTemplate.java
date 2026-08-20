@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class OtpEmailTemplate {
 
-  private static final String SUBJECT = "Your Buzzma verification code";
+  private static final String SUBJECT = "Your Buzzmah verification code";
   private static final String TEMPLATE_PATH = "/templates/email/otp-verification.txt";
   private static final String OTP_PLACEHOLDER = "{{otp}}";
 

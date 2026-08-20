@@ -102,7 +102,7 @@ class EmailVerificationServiceImplTest {
     when(this.mockEmailOtpRepository.findTopByUserIdOrderByCreatedAtDesc(USER_ID))
         .thenReturn(Optional.of(oldOtp));
     when(this.mockOtpGenerator.generate()).thenReturn(OTP_CODE);
-    when(this.mockOtpEmailTemplate.subject()).thenReturn("Your Buzzma verification code");
+    when(this.mockOtpEmailTemplate.subject()).thenReturn("Your Buzzmah verification code");
     when(this.mockOtpEmailTemplate.render(OTP_CODE)).thenReturn("body with " + OTP_CODE);
 
     this.service.sendOtp(USER_ID);
@@ -119,7 +119,7 @@ class EmailVerificationServiceImplTest {
     assertEquals(USER_ID, saved.getUpdatedBy());
 
     verify(this.mockCommunicationsClient)
-        .sendEmail(USER_EMAIL, "Your Buzzma verification code", "body with " + OTP_CODE, USER_ID);
+        .sendEmail(USER_EMAIL, "Your Buzzmah verification code", "body with " + OTP_CODE, USER_ID);
   }
 
   @Test

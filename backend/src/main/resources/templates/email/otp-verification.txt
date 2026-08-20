@@ -1,3 +1,3 @@
-Your Buzzma email verification code is: {{otp}}
+Your Buzzmah email verification code is: {{otp}}
 
 This code will expire in 15 minutes. If you did not request this, you can safely ignore this email.
