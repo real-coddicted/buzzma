@@ -39,7 +39,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
     sellerName: dto.sellerName ?? undefined,
     productPricePaise: dto.deal?.originalPricePaise ?? undefined,
-    campaignPricePaise: dto.deal?.offeredPricePaise ?? undefined,
+    dealOfferedPricePaise: dto.deal?.offeredPricePaise ?? undefined,
     amountPaise: dto.amountPaise ?? undefined,
     amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
     reviewUrl: dto.reviewUrl ?? undefined,

@@ -14,6 +14,7 @@ interface Props {
   sectionRefs: { current: Record<string, HTMLElement | null> }
   claim: ClaimReviewItem
   campaignTitle?: string
+  campaignPricePaise?: number
   userRole: string | undefined
   onOpenOverlay: (item: ClaimProofItem) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
@@ -28,6 +29,7 @@ export function ClaimProofRightPanel({
   sectionRefs,
   claim,
   campaignTitle,
+  campaignPricePaise,
   userRole,
   onOpenOverlay,
   onApproveClaim,
@@ -102,7 +104,7 @@ export function ClaimProofRightPanel({
               </span>
               <div className="h-px flex-1 bg-surface-light-border dark:bg-surface-dark-border" />
             </div>
-            <ClaimInfo claim={claim} campaignTitle={campaignTitle} />
+            <ClaimInfo claim={claim} campaignTitle={campaignTitle} campaignPricePaise={campaignPricePaise} userRole={userRole} />
             <ClaimProofActions
               userRole={userRole}
               isUnderReview={claim.isUnderReview ?? false}

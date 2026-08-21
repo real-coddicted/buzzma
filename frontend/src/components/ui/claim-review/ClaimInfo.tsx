@@ -15,9 +15,14 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 interface ClaimInfoProps {
   claim: ClaimReviewItem
   campaignTitle?: string
+  campaignPricePaise?: number
+  userRole?: string
 }
 
-export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
+export function ClaimInfo({ claim, campaignTitle, campaignPricePaise, userRole }: ClaimInfoProps) {
+  const displayedPricePaise = userRole === 'ROLE_MEDIATOR' || userRole === 'ROLE_BUYER'
+    ? claim.dealOfferedPricePaise
+    : campaignPricePaise
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
       <div className="px-5 pt-5 pb-3">
@@ -36,8 +41,8 @@ export function ClaimInfo({ claim, campaignTitle }: ClaimInfoProps) {
         {claim.productPricePaise != null && (
           <Row label="Product Price">₹{formatRupees(paiseToRupees(claim.productPricePaise))}</Row>
         )}
-        {claim.campaignPricePaise != null && (
-          <Row label="Campaign Price">₹{formatRupees(paiseToRupees(claim.campaignPricePaise))}</Row>
+        {displayedPricePaise != null && (
+          <Row label="Campaign Price">₹{formatRupees(paiseToRupees(displayedPricePaise))}</Row>
         )}
         {claim.amountPaise != null && (
           <Row label="Amount Claimed">₹{formatRupees(paiseToRupees(claim.amountPaise))}</Row>

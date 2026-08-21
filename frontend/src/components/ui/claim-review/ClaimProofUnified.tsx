@@ -12,6 +12,7 @@ interface Props {
   userRole: string | undefined
   claim: ClaimReviewItem
   campaignTitle?: string
+  campaignPricePaise?: number
   onApproveScreenshot: (item: ClaimProofItem) => void
   onRejectScreenshot: (item: ClaimProofItem, comment: string) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
@@ -25,6 +26,7 @@ export function ClaimProofUnified({
   userRole,
   claim,
   campaignTitle,
+  campaignPricePaise,
   onApproveScreenshot,
   onRejectScreenshot,
   onApproveClaim,
@@ -75,6 +77,7 @@ export function ClaimProofUnified({
         sectionRefs={sectionRefs}
         claim={claim}
         campaignTitle={campaignTitle}
+        campaignPricePaise={campaignPricePaise}
         userRole={userRole}
         onOpenOverlay={openOverlay}
         onApproveClaim={onApproveClaim}

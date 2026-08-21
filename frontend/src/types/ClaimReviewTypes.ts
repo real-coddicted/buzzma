@@ -54,7 +54,7 @@ export interface ClaimReviewItem {
   productName?: string
   sellerName?: string
   productPricePaise?: number
-  campaignPricePaise?: number
+  dealOfferedPricePaise?: number
   amountPaise?: number
   amountApprovedPaise?: number
   reviewUrl?: string
