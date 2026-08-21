@@ -9,6 +9,7 @@ import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.dto.PagedClaimsResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -258,18 +259,30 @@ public class ClaimController {
   }
 
   @GetMapping
-  public List<ClaimResponseDto> list(@CurrentUserId final UUID requesterId) {
-    return this.claimService.listByOwner(requesterId).stream()
-        .map(
-            claim -> {
-              final Deal deal = this.dealService.getById(claim.getDealId());
-              return this.claimMapper.toResponse(
-                  claim,
-                  deal,
-                  this.claimService.listScreenshots(claim.getId()),
-                  currentStep(claim, deal));
-            })
-        .toList();
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public PagedClaimsResponseDto list(
+      @CurrentUserId final UUID requesterId,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "10") final int size) {
+    final Page<Claim> claimsPage = this.claimService.listByOwner(requesterId, page, size);
+    final List<ClaimResponseDto> items =
+        claimsPage.getContent().stream()
+            .map(
+                claim -> {
+                  final Deal deal = this.dealService.getById(claim.getDealId());
+                  return this.claimMapper.toResponse(
+                      claim,
+                      deal,
+                      this.claimService.listScreenshots(claim.getId()),
+                      currentStep(claim, deal));
+                })
+            .toList();
+    return PagedClaimsResponseDto.builder()
+        .items(items)
+        .total(claimsPage.getTotalElements())
+        .page(page)
+        .totalPages(claimsPage.getTotalPages())
+        .build();
   }
 
   @PostMapping("/review")

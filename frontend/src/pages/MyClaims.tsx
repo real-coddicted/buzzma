@@ -8,8 +8,11 @@ import type { components } from '../types/api'
 import { claimResponseToDeal } from '../api/dealApi'
 import { fetchRawClaims } from '../api/claimApi'
 import { Toast } from '../components/ui/Toast'
+import { PaginationToolbar } from '../components/ui/PaginationToolbar'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
+
+const CLAIMED_PAGE_SIZE = 10
 
 export function MyClaims() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -21,17 +24,24 @@ export function MyClaims() {
 
   const [claimedResponses, setClaimedResponses] = useState<ClaimResponseDto[]>([])
   const [claimedLoading, setClaimedLoading] = useState(true)
+  const [claimedTotalPages, setClaimedTotalPages] = useState(1)
+  const [claimedCurrentPage, setClaimedCurrentPage] = useState(1)
 
   const [toastError, setToastError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    fetchRawClaims()
-      .then(data => { if (!cancelled) setClaimedResponses(data) })
+    setClaimedLoading(true)
+    fetchRawClaims(claimedCurrentPage, CLAIMED_PAGE_SIZE)
+      .then(data => {
+        if (cancelled) return
+        setClaimedResponses(data.items)
+        setClaimedTotalPages(data.totalPages)
+      })
       .catch((err: unknown) => { if (!cancelled) setToastError(err instanceof Error ? err.message : 'Failed to load claimed deals.') })
       .finally(() => { if (!cancelled) setClaimedLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [claimedCurrentPage])
 
   const claimedDeals = useMemo(() => claimedResponses.map(claimResponseToDeal), [claimedResponses])
 
@@ -63,6 +73,13 @@ export function MyClaims() {
         <div className="p-4">
           <ClaimedDealsList deals={claimedDeals} loading={claimedLoading} onSelect={handleClaimedSelect} />
         </div>
+
+        <PaginationToolbar
+          currentPage={claimedCurrentPage}
+          totalPages={claimedTotalPages}
+          onPageChange={setClaimedCurrentPage}
+          disabled={claimedLoading}
+        />
       </Card>
 
       {toastError && (

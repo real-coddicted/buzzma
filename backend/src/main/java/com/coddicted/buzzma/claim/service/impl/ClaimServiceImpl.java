@@ -40,7 +40,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -272,8 +274,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Claim> listByOwner(final UUID ownerId) {
-    return this.claimRepository.findByOwnerIdAndIsDeletedFalse(ownerId);
+  public Page<Claim> listByOwner(final UUID ownerId, final int page, final int size) {
+    final Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    return this.claimRepository.findByOwnerIdAndIsDeletedFalse(ownerId, pageable);
   }
 
   @Override

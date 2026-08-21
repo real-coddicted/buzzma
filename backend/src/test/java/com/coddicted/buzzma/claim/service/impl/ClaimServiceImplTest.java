@@ -50,6 +50,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceImplTest {
@@ -509,12 +512,13 @@ class ClaimServiceImplTest {
 
   @Test
   void testListByOwner() {
-    when(this.mockClaimRepository.findByOwnerIdAndIsDeletedFalse(OWNER_ID))
-        .thenReturn(List.of(CLAIM_1, CLAIM_2));
+    when(this.mockClaimRepository.findByOwnerIdAndIsDeletedFalse(
+            ArgumentMatchers.eq(OWNER_ID), ArgumentMatchers.any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(CLAIM_1, CLAIM_2)));
 
-    final List<Claim> result = this.claimService.listByOwner(OWNER_ID);
+    final Page<Claim> result = this.claimService.listByOwner(OWNER_ID, 0, 10);
 
-    assertEquals(List.of(CLAIM_1, CLAIM_2), result);
+    assertEquals(List.of(CLAIM_1, CLAIM_2), result.getContent());
   }
 
   @Test

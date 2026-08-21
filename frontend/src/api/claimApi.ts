@@ -87,9 +87,28 @@ export async function fetchClaims(): Promise<ClaimReviewItem[]> {
   return data.map(mapClaim)
 }
 
-export async function fetchRawClaims(): Promise<ClaimResponseDto[]> {
-  const res = await fetchWithAuth(`${API_BASE}/claims`)
-  return (await res.json()) as ClaimResponseDto[]
+export interface PagedClaims {
+  items: ClaimResponseDto[]
+  total: number
+  page: number
+  totalPages: number
+}
+
+export function mapPagedClaimsResponse(
+  data: components['schemas']['PagedClaimsResponseDto'],
+): PagedClaims {
+  return {
+    items: data.items ?? [],
+    total: data.total ?? 0,
+    page: (data.page ?? 0) + 1,
+    totalPages: data.totalPages ?? 1,
+  }
+}
+
+export async function fetchRawClaims(page: number, size: number): Promise<PagedClaims> {
+  const res = await fetchWithAuth(`${API_BASE}/claims?page=${page - 1}&size=${size}`)
+  const data = (await res.json()) as components['schemas']['PagedClaimsResponseDto']
+  return mapPagedClaimsResponse(data)
 }
 
 export async function fetchClaimById(id: string): Promise<ClaimReviewItem> {

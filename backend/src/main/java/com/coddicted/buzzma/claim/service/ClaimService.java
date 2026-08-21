@@ -53,7 +53,7 @@ public interface ClaimService {
 
   Claim getByCode(String code);
 
-  List<Claim> listByOwner(UUID ownerId);
+  Page<Claim> listByOwner(UUID ownerId, int page, int size);
 
   Map<UUID, Claim> findAllByIdAsMap(Collection<UUID> claimIds);
 

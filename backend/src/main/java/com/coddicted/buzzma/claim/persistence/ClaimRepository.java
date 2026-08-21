@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
-  List<Claim> findByOwnerIdAndIsDeletedFalse(UUID ownerId);
+  Page<Claim> findByOwnerIdAndIsDeletedFalse(UUID ownerId, Pageable pageable);
 
   Optional<Claim> findByIdAndIsDeletedFalse(UUID id);
 

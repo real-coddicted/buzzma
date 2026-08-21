@@ -132,6 +132,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/email/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["verifyEmailOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/email/otp/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendEmailOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/batch": {
         parameters: {
             query?: never;
@@ -1664,6 +1696,7 @@ export interface components {
             userPayoutsTabEnabled?: boolean;
         };
         UserSettingsFlagDto: {
+            /** @enum {string} */
             flag?: "DASHBOARD_TAB_ENABLED" | "CAMPAIGNS_TAB_ENABLED" | "ASSIGNMENTS_TAB_ENABLED" | "CONNECTIONS_TAB_ENABLED" | "DEAL_TAB_ENABLED" | "MY_CLAIMS_TAB_ENABLED" | "CLAIM_REVIEW_ENABLED" | "TICKETS_TAB_ENABLED" | "FEEDBACK_TAB_ENABLED" | "SETTINGS_TAB_ENABLED" | "USERS_TAB_ENABLED" | "MY_PAYMENTS_TAB_ENABLED" | "USER_PAYOUTS_TAB_ENABLED";
             enabled?: boolean;
             displayName?: string;
@@ -1693,6 +1726,9 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
             updatedBy?: string;
+        };
+        VerifyEmailOtpRequestDto: {
+            code?: string;
         };
         UserBatchRequestDto: {
             ids?: string[];
@@ -2126,10 +2162,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -2138,9 +2174,9 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
@@ -2622,6 +2658,15 @@ export interface components {
             /** Format: int64 */
             rejected?: number;
         };
+        PagedClaimsResponseDto: {
+            items?: components["schemas"]["ClaimResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         CampaignStepDto: {
             type?: string;
             label?: string;
@@ -3025,6 +3070,48 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["UserSummaryDto"];
                 };
+            };
+        };
+    };
+    verifyEmailOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailOtpRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserSummaryDto"];
+                };
+            };
+        };
+    };
+    sendEmailOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3586,7 +3673,10 @@ export interface operations {
     };
     list_3: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3599,7 +3689,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ClaimResponseDto"][];
+                    "*/*": components["schemas"]["PagedClaimsResponseDto"];
                 };
             };
         };
