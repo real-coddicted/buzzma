@@ -288,7 +288,7 @@ public class DevDataSeeder implements ApplicationRunner {
     final Timestamp now = Timestamp.from(Instant.now());
     this.jdbcTemplate.update(
         "INSERT INTO connections (id, from_user_id, to_user_id, status, created_by, updated_by,"
-            + " created_at, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            + " created_at, updated_at, is_deleted, invite_owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
         id,
         fromUserId,
         toUserId,
@@ -297,7 +297,8 @@ public class DevDataSeeder implements ApplicationRunner {
         fromUserId,
         now,
         now,
-        false);
+        false,
+        fromUserId);
   }
 
   private boolean rowExists(final String table, final UUID id) {
