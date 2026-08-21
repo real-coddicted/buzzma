@@ -10,6 +10,7 @@ export const FLAG_TO_DTO_KEY: Record<string, keyof UserSettingsDto> = {
   ASSIGNMENTS_TAB_ENABLED: 'assignmentsTabEnabled',
   CONNECTIONS_TAB_ENABLED: 'connectionsTabEnabled',
   DEAL_TAB_ENABLED: 'dealTabEnabled',
+  MY_CLAIMS_TAB_ENABLED: 'myClaimsTabEnabled',
   CLAIM_REVIEW_ENABLED: 'claimReviewEnabled',
   TICKETS_TAB_ENABLED: 'ticketsTabEnabled',
   FEEDBACK_TAB_ENABLED: 'feedbackTabEnabled',

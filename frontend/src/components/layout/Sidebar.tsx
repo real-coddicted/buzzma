@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconTicket, IconSettings, IconChart, IconLogout, IconProfile, IconX, IconRupee, IconPayouts } from '../ui/icons'
+import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconTicket, IconSettings, IconChart, IconLogout, IconProfile, IconX, IconRupee, IconPayouts, IconCheck } from '../ui/icons'
 import { getCurrentUser } from '../../api/client'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
@@ -140,6 +140,14 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
               label="Deals"
               active={activePage === 'deals'}
               onClick={() => onNavigate('deals')}
+            />
+          )}
+          {show(userSettings?.myClaimsTabEnabled) && (
+            <NavItem
+              icon={<IconCheck size={18} />}
+              label="My Claims"
+              active={activePage === 'my-claims'}
+              onClick={() => onNavigate('my-claims')}
             />
           )}
           {show(userSettings?.claimReviewEnabled) && (

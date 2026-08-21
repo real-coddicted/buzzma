@@ -10,6 +10,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   connections:  { title: 'My Network',  subtitle: 'Manage your network' },
   assignments:  { title: 'Assigned Campaigns',  subtitle: 'View and manage your assigned campaigns' },
   deals:        { title: 'Deals',        subtitle: 'Browse and manage your deals' },
+  'my-claims':  { title: 'My Claims',    subtitle: 'Track the status of your claimed deals' },
   feedback:        { title: 'Feedback',         subtitle: `Share your thoughts on ${APP_NAME}` },
   profile:         { title: 'Profile',          subtitle: 'Your profile details' },
   'raise-ticket': { title: 'Raise a Ticket', subtitle: 'Report an issue or request support' },

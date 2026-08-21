@@ -9,6 +9,7 @@ export const TAB_FLAGS: Partial<Record<NavPage, keyof UserSettingsDto>> = {
   connections:    'connectionsTabEnabled',
   assignments:    'assignmentsTabEnabled',
   deals:          'dealTabEnabled',
+  'my-claims':    'myClaimsTabEnabled',
   'claim-review': 'claimReviewEnabled',
   'my-tickets':   'ticketsTabEnabled',
   tickets:        'ticketsTabEnabled',
@@ -19,7 +20,7 @@ export const TAB_FLAGS: Partial<Record<NavPage, keyof UserSettingsDto>> = {
 }
 
 const FALLBACK_ORDER: NavPage[] = [
-  'campaigns', 'connections', 'assignments', 'deals', 'claim-review', 'my-tickets', 'feedback', 'users',
+  'campaigns', 'connections', 'assignments', 'deals', 'my-claims', 'claim-review', 'my-tickets', 'feedback', 'users',
 ]
 
 export function isTabDisabled(page: NavPage, settings: UserSettingsDto): boolean {

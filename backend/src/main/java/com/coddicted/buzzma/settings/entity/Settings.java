@@ -13,6 +13,7 @@ public class Settings {
   Boolean assignmentsTabEnabled;
   Boolean connectionsTabEnabled;
   Boolean dealTabEnabled;
+  Boolean myClaimsTabEnabled;
   Boolean claimReviewEnabled;
   Boolean ticketsTabEnabled;
   Boolean feedbackTabEnabled;

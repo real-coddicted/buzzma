@@ -58,9 +58,9 @@ class UserSettingsServiceImplTest {
     when(this.mockUserService.getById(USER_ID))
         .thenReturn(BuzzmaUser.builder().id(USER_ID).role(UserRole.ROLE_BUYER).build());
 
-    // USER_SETTINGS_1's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled (null on
-    // the stored settings), so they resolve from the buyer role default (false) rather than
-    // staying null.
+    // USER_SETTINGS_1's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled/
+    // myClaimsTabEnabled (null on the stored settings), so they resolve from the buyer role
+    // default (false, false, true respectively) rather than staying null.
     final Settings stored = USER_SETTINGS_1.getSettings();
     final Settings expected =
         Settings.builder()
@@ -69,6 +69,7 @@ class UserSettingsServiceImplTest {
             .assignmentsTabEnabled(stored.getAssignmentsTabEnabled())
             .connectionsTabEnabled(stored.getConnectionsTabEnabled())
             .dealTabEnabled(stored.getDealTabEnabled())
+            .myClaimsTabEnabled(true)
             .claimReviewEnabled(stored.getClaimReviewEnabled())
             .ticketsTabEnabled(stored.getTicketsTabEnabled())
             .feedbackTabEnabled(stored.getFeedbackTabEnabled())
@@ -90,8 +91,9 @@ class UserSettingsServiceImplTest {
 
     final Settings settings = this.userSettingsService.getByUserIdOrDefault(USER_ID).getSettings();
 
-    // USER_SETTINGS_2's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled, so
-    // they should resolve from the buyer role default rather than staying null.
+    // USER_SETTINGS_2's fixture never sets myPaymentsTabEnabled/userPayoutsTabEnabled/
+    // myClaimsTabEnabled, so they should resolve from the buyer role default rather than
+    // staying null.
     assertEquals(
         this.userSettingsService
             .getDefaultSettingsByUserRole(UserRole.ROLE_BUYER)
@@ -99,6 +101,12 @@ class UserSettingsServiceImplTest {
             .getMyPaymentsTabEnabled(),
         settings.getMyPaymentsTabEnabled());
     assertNotNull(settings.getUserPayoutsTabEnabled());
+    assertEquals(
+        this.userSettingsService
+            .getDefaultSettingsByUserRole(UserRole.ROLE_BUYER)
+            .getSettings()
+            .getMyClaimsTabEnabled(),
+        settings.getMyClaimsTabEnabled());
   }
 
   @Test
@@ -125,6 +133,7 @@ class UserSettingsServiceImplTest {
     assertTrue(settings.getAssignmentsTabEnabled());
     assertTrue(settings.getConnectionsTabEnabled());
     assertTrue(settings.getDealTabEnabled());
+    assertFalse(settings.getMyClaimsTabEnabled());
     assertTrue(settings.getTicketsTabEnabled());
     assertTrue(settings.getFeedbackTabEnabled());
     assertTrue(settings.getSettingsTabEnabled());
@@ -141,6 +150,7 @@ class UserSettingsServiceImplTest {
     assertTrue(settings.getAssignmentsTabEnabled());
     assertTrue(settings.getConnectionsTabEnabled());
     assertFalse(settings.getDealTabEnabled());
+    assertFalse(settings.getMyClaimsTabEnabled());
     assertTrue(settings.getTicketsTabEnabled());
     assertTrue(settings.getFeedbackTabEnabled());
     assertTrue(settings.getSettingsTabEnabled());
@@ -157,6 +167,7 @@ class UserSettingsServiceImplTest {
     assertFalse(settings.getAssignmentsTabEnabled());
     assertTrue(settings.getConnectionsTabEnabled());
     assertTrue(settings.getDealTabEnabled());
+    assertTrue(settings.getMyClaimsTabEnabled());
     assertTrue(settings.getTicketsTabEnabled());
     assertTrue(settings.getFeedbackTabEnabled());
     assertTrue(settings.getSettingsTabEnabled());

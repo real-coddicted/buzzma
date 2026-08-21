@@ -19,6 +19,8 @@ public enum UserSettingsFlag {
       Settings::getConnectionsTabEnabled,
       Settings.SettingsBuilder::connectionsTabEnabled),
   DEAL_TAB_ENABLED("Deals", Settings::getDealTabEnabled, Settings.SettingsBuilder::dealTabEnabled),
+  MY_CLAIMS_TAB_ENABLED(
+      "My Claims", Settings::getMyClaimsTabEnabled, Settings.SettingsBuilder::myClaimsTabEnabled),
   CLAIM_REVIEW_ENABLED(
       "Claim Review",
       Settings::getClaimReviewEnabled,

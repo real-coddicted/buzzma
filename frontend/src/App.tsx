@@ -6,6 +6,7 @@ import { Campaigns } from './pages/Campaigns'
 import { Connections } from './pages/Connections'
 import { Assignments } from './pages/Assignments'
 import { Deals } from './pages/Deals'
+import { MyClaims } from './pages/MyClaims'
 import { Feedback } from './pages/Feedback'
 import { Profile } from './pages/Profile'
 import { RaiseTicket } from './pages/RaiseTicket'
@@ -41,7 +42,7 @@ export default function App() {
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
   const [mustReacceptTerms, setMustReacceptTerms] = useState(false)
 
-  const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments','user-payouts']), [])
+  const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','my-claims','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments','user-payouts']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
   const activePage: NavPage = validPages.has(rawPage as NavPage) ? (rawPage as NavPage) : 'dashboard'
 
@@ -123,6 +124,7 @@ export default function App() {
       {activePage === 'connections'    && <Connections />}
       {activePage === 'assignments'  && <Assignments />}
       {activePage === 'deals'          && <Deals />}
+      {activePage === 'my-claims'     && <MyClaims />}
       {activePage === 'feedback'      && <Feedback />}
       {activePage === 'profile'       && <Profile />}
       {activePage === 'raise-ticket'  && <RaiseTicket />}

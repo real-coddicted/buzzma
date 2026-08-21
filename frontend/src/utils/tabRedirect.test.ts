@@ -10,6 +10,7 @@ const allEnabled: UserSettingsDto = {
   connectionsTabEnabled: true,
   assignmentsTabEnabled: true,
   dealTabEnabled:        true,
+  myClaimsTabEnabled:    true,
   claimReviewEnabled:    true,
   ticketsTabEnabled:     true,
   feedbackTabEnabled:    true,
@@ -67,6 +68,7 @@ describe('getFirstEnabledPage', () => {
       connectionsTabEnabled: false,
       assignmentsTabEnabled: false,
       dealTabEnabled:        false,
+      myClaimsTabEnabled:    false,
       claimReviewEnabled:    false,
       ticketsTabEnabled:     false,
     }
@@ -80,6 +82,7 @@ describe('getFirstEnabledPage', () => {
       connectionsTabEnabled: false,
       assignmentsTabEnabled: false,
       dealTabEnabled:        false,
+      myClaimsTabEnabled:    false,
       claimReviewEnabled:    false,
       ticketsTabEnabled:     false,
       feedbackTabEnabled:    false,

@@ -13,6 +13,7 @@ public class UserSettingsDto {
   boolean assignmentsTabEnabled;
   boolean connectionsTabEnabled;
   boolean dealTabEnabled;
+  boolean myClaimsTabEnabled;
   boolean claimReviewEnabled;
   boolean ticketsTabEnabled;
   boolean feedbackTabEnabled;
