@@ -6,6 +6,7 @@ import { AuthBackground } from '../components/ui/AuthBackground'
 import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 import { TermsLink } from '../components/ui/TermsLink'
 import { fetchSecurityQuestions, registerUser } from '../api/authApi'
+import { isValidMobile } from '../utils/mobileValidation'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
@@ -76,7 +77,7 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
   function validate(): boolean {
     const next: Partial<Record<keyof RegisterForm, string>> = {}
     if (!form.mobile.trim()) next.mobile = 'Mobile number is required'
-    else if (!/^\+?[0-9]{7,15}$/.test(form.mobile.replace(/\s/g, '')))
+    else if (!isValidMobile(form.mobile))
       next.mobile = 'Enter a valid mobile number'
     if (!form.email.trim()) next.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
@@ -253,7 +254,8 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
               </label>
               <input
                 type="tel"
-                placeholder="+91 9876543210"
+                placeholder="9876543210"
+                maxLength={10}
                 value={form.mobile}
                 onChange={e => set('mobile', e.target.value)}
                 className={inputBase}

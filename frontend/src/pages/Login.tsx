@@ -5,6 +5,7 @@ import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 import { loginUser } from '../api/authApi'
+import { isValidMobile } from '../utils/mobileValidation'
 import type { LoginForm } from '../types/LoginTypes'
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
@@ -43,7 +44,7 @@ export function Login({ initialCaptchaToken, onLogin, onGoToRegister, onGoToForg
   function validate(): boolean {
     const next: Partial<Record<keyof LoginForm, string>> = {}
     if (!form.mobile.trim()) next.mobile = 'Mobile number is required'
-    else if (!/^\+?[0-9]{7,15}$/.test(form.mobile.replace(/\s/g, '')))
+    else if (!isValidMobile(form.mobile))
       next.mobile = 'Enter a valid mobile number'
     if (!form.password) next.password = 'Password is required'
     setErrors(next)
@@ -112,7 +113,8 @@ export function Login({ initialCaptchaToken, onLogin, onGoToRegister, onGoToForg
               </label>
               <input
                 type="tel"
-                placeholder="+91 9876543210"
+                placeholder="9876543210"
+                maxLength={10}
                 value={form.mobile}
                 onChange={e => set('mobile', e.target.value)}
                 onKeyDown={handleKeyDown}

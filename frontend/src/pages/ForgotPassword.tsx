@@ -3,6 +3,7 @@ import { APP_NAME } from '../constants/app'
 import { Button } from '../components/ui/Button'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { fetchUserSecurityQuestion } from '../api/authApi'
+import { isValidMobile } from '../utils/mobileValidation'
 import type { LoginAs, ForgotPasswordForm } from '../types/ForgotPasswordTypes'
 
 interface ForgotPasswordProps {
@@ -17,8 +18,6 @@ const inputBase =
   'placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted ' +
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-purple focus:ring-1 focus:ring-neon-purple/30'
-
-const mobileRegex = /^\+?[0-9]{7,15}$/
 
 export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) {
   const [form, setForm] = useState<ForgotPasswordForm>({
@@ -37,7 +36,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
 
   function handleMobileBlur() {
     const mobile = form.mobile.replace(/\s/g, '')
-    if (!mobile || !mobileRegex.test(mobile)) return
+    if (!mobile || !isValidMobile(mobile)) return
     setQuestionLoading(true)
     setForm(prev => ({ ...prev, securityQuestion: '', answer: '' }))
     fetchUserSecurityQuestion(mobile)
@@ -48,7 +47,7 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
   function validate(): boolean {
     const next: Partial<Record<keyof ForgotPasswordForm, string>> = {}
     if (!form.mobile.trim()) next.mobile = 'Mobile number is required'
-    else if (!mobileRegex.test(form.mobile.replace(/\s/g, '')))
+    else if (!isValidMobile(form.mobile))
       next.mobile = 'Enter a valid mobile number'
     if (!form.answer.trim()) next.answer = 'Answer is required'
     setErrors(next)
@@ -101,7 +100,8 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
               </label>
               <input
                 type="tel"
-                placeholder="+91 9876543210"
+                placeholder="9876543210"
+                maxLength={10}
                 value={form.mobile}
                 onChange={e => set('mobile', e.target.value)}
                 onBlur={handleMobileBlur}
