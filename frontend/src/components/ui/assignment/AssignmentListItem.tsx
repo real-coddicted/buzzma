@@ -2,6 +2,7 @@ import type { AssignmentSummary } from '../../../types/AssignmentTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from '../deal/ProductThumbnail'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { formatShortDate as fmtDate } from '../../../utils/time'
 import { StatusBadge } from '../Badge'
 import { CopyableCode } from '../CopyableCode'
 import { ShareOnWhatsAppButton } from './ShareOnWhatsAppButton'
@@ -56,6 +57,12 @@ export function AssignmentListItem({ item, onClick, showShare = false }: Assignm
           </span>
           <StatusBadge status={item.campaignStatus} textClass="text-[10px] font-semibold" />
         </div>
+
+        {(item.startDate || item.endDate) && (
+          <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
+            {[item.startDate, item.endDate].filter(Boolean).map(d => fmtDate(d as string)).join(' - ')}
+          </p>
+        )}
       </div>
 
       {/* Right-side stats */}

@@ -2701,6 +2701,10 @@ export interface components {
             offeredPricePaise?: number;
             /** Format: int32 */
             slotLimit?: number;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
             dealCode?: string;
             campaignCode?: string;
         };
@@ -2736,6 +2740,10 @@ export interface components {
             commissionOfferedPaise?: number;
             /** Format: int32 */
             slotLimit?: number;
+            /** Format: int32 */
+            startDate?: number;
+            /** Format: int32 */
+            endDate?: number;
             /** Format: int32 */
             returnWindowDays?: number;
             termsAndConditions?: string;

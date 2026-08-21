@@ -39,7 +39,7 @@ public interface CampaignAssignmentRepository extends JpaRepository<CampaignAssi
             p.pricePaise, ca.adjustedCampaignPricePaise, ca.slotLimit, c.status,
             (SELECT d.code FROM Deal d
              WHERE d.campaign = c AND d.ownerId = ca.assigneeId AND d.isDeleted = false),
-            c.code
+            c.code, c.startDate, c.endDate
           )
           FROM CampaignAssignment ca, Campaign c
           JOIN c.product p

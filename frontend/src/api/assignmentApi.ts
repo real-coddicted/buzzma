@@ -3,6 +3,7 @@ import type { AssignmentItem, AssignmentSummary } from '../types/AssignmentTypes
 import { fetchWithAuth } from './client'
 import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS } from '../constants/campaigns'
 import { campaignStatusMap, type RawCampaignStatus } from '../utils/campaignStatus'
+import { yyyymmddToIso } from '../utils/time'
 
 const API_BASE = '/api/v1'
 
@@ -28,6 +29,8 @@ function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
     slotsOffered: dto.slotLimit ?? 0,
     dealCode: dto.dealCode,
     campaignCode: dto.campaignCode,
+    startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
+    endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
   }
 }
 
@@ -54,6 +57,8 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
     termsAndConditions: dto.termsAndConditions,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     dealCode: dto.dealCode,
+    startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
+    endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
   }
 }
 

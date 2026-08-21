@@ -37,6 +37,8 @@ public interface AssignmentMapper {
   @Mapping(source = "campaignAssignment.adjustedCampaignPricePaise", target = "offeredPricePaise")
   @Mapping(source = "campaignAssignment.commissionOfferedPaise", target = "commissionOfferedPaise")
   @Mapping(source = "campaignAssignment.slotLimit", target = "slotLimit")
+  @Mapping(source = "campaign.startDate", target = "startDate")
+  @Mapping(source = "campaign.endDate", target = "endDate")
   @Mapping(source = "campaign.returnWindowDays", target = "returnWindowDays")
   @Mapping(source = "campaign.termsAndConditions", target = "termsAndConditions")
   @Mapping(source = "campaign.sellerName", target = "sellerName")
@@ -55,6 +57,8 @@ public interface AssignmentMapper {
         .offeredPricePaise(
             view.offeredPricePaise() != null ? view.offeredPricePaise() : BigInteger.ZERO)
         .slotLimit(view.slotLimit())
+        .startDate(view.startDate())
+        .endDate(view.endDate())
         .dealCode(view.dealCode())
         .campaignCode(view.campaignCode())
         .build();

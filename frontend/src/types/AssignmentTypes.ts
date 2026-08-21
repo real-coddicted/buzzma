@@ -16,6 +16,8 @@ export interface AssignmentSummary {
   slotsOffered: number
   dealCode?: string
   campaignCode?: string
+  startDate?: string
+  endDate?: string
 }
 
 export interface AssignmentItem extends AssignmentSummary {

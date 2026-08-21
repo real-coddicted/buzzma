@@ -28,6 +28,8 @@ public class AssignmentResponseDto {
   BigInteger offeredPricePaise;
   BigInteger commissionOfferedPaise;
   Integer slotLimit;
+  Integer startDate;
+  Integer endDate;
   Integer returnWindowDays;
   String termsAndConditions;
   String sellerName;

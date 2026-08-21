@@ -18,4 +18,6 @@ public record AssignmentSummaryView(
     Integer slotLimit,
     CampaignStatus campaignStatus,
     String dealCode,
-    String campaignCode) {}
+    String campaignCode,
+    Integer startDate,
+    Integer endDate) {}

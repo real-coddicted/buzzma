@@ -43,6 +43,8 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
     originalPricePaise:   item.originalPricePaise,
     offeredPricePaise:    item.offeredPricePaise,
     sellerName:           item.sellerName,
+    startDate:            item.startDate,
+    endDate:              item.endDate,
     termsAndConditions:   item.termsAndConditions,
     status:               'explore' as const,
   }
