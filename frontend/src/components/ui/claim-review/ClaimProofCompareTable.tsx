@@ -6,10 +6,29 @@ interface Props {
   fields: ExtractedField[]
 }
 
-function FieldValue({ value }: { value: string | undefined }) {
+function LinkValue({ value, className = '' }: { value: string, className?: string }) {
+  return (
+    <a
+      href={value}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`text-neon-blue hover:underline ${className}`.trim()}
+    >
+      {value}
+    </a>
+  )
+}
+
+function FieldValue({ value, isLink }: { value: string | undefined, isLink?: boolean }) {
+  if (!value) {
+    return <span className="text-ink-light-muted dark:text-ink-dark-muted font-normal">—</span>
+  }
+  if (isLink) {
+    return <LinkValue value={value} className="font-semibold break-all" />
+  }
   return (
     <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary break-all">
-      {value || <span className="text-ink-light-muted dark:text-ink-dark-muted font-normal">—</span>}
+      {value}
     </span>
   )
 }
@@ -53,7 +72,7 @@ export function ClaimProofCompareTable({ fields }: Props) {
                     {f.score == null && <MatchStatusIcon matched={f.matched} indeterminate={f.indeterminate} />}
                     <ScoreBadge score={f.score} className="" />
                   </div>
-                  <FieldValue value={f.value} />
+                  <FieldValue value={f.value} isLink={f.key === 'reviewUrl'} />
                 </div>
               </td>
               <td className={[
@@ -63,7 +82,14 @@ export function ClaimProofCompareTable({ fields }: Props) {
                   : 'text-ink-light-primary dark:text-ink-dark-primary',
               ].join(' ')}>
                 {f.submittedValue
-                  ? <>{f.submittedMismatch && <span className="text-[9px] mr-0.5 opacity-70">⚠</span>}{f.submittedValue}</>
+                  ? (
+                    <>
+                      {f.submittedMismatch && <span className="text-[9px] mr-0.5 opacity-70">⚠</span>}
+                      {f.key === 'reviewUrl'
+                        ? <LinkValue value={f.submittedValue} />
+                        : f.submittedValue}
+                    </>
+                  )
                   : <span className="text-ink-light-muted dark:text-ink-dark-muted font-normal">—</span>}
               </td>
             </tr>
