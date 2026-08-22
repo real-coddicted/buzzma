@@ -72,4 +72,9 @@ describe('claimResponseToDeal', () => {
     expect(deal.code).toBe('DEAL123')
     expect(deal.claimCode).toBe('CLM1-A2B3')
   })
+
+  it('maps deal.ownerName to mediatorName', () => {
+    const deal = claimResponseToDeal(makeClaimDto({ deal: makeDto({ ownerName: 'Alice Mediator' }) }))
+    expect(deal.mediatorName).toBe('Alice Mediator')
+  })
 })

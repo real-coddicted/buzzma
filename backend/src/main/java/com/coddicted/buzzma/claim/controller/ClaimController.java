@@ -25,17 +25,20 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -66,6 +69,7 @@ public class ClaimController {
   private final ClaimMapper claimMapper;
   private final ClaimReviewMapper claimReviewMapper;
   private final ClaimReviewProcessor claimReviewProcessor;
+  private final UserService userService;
 
   public ClaimController(
       final ClaimService claimService,
@@ -74,7 +78,8 @@ public class ClaimController {
       final CampaignTypeStepService campaignTypeStepService,
       final ClaimMapper claimMapper,
       final ClaimReviewMapper claimReviewMapper,
-      final ClaimReviewProcessor claimReviewProcessor) {
+      final ClaimReviewProcessor claimReviewProcessor,
+      final UserService userService) {
     this.claimService = claimService;
     this.claimReviewService = claimReviewService;
     this.dealService = dealService;
@@ -82,6 +87,7 @@ public class ClaimController {
     this.claimMapper = claimMapper;
     this.claimReviewMapper = claimReviewMapper;
     this.claimReviewProcessor = claimReviewProcessor;
+    this.userService = userService;
   }
 
   @PostMapping
@@ -265,7 +271,7 @@ public class ClaimController {
       @RequestParam(defaultValue = "0") final int page,
       @RequestParam(defaultValue = "10") final int size) {
     final Page<Claim> claimsPage = this.claimService.listByOwner(requesterId, page, size);
-    final List<ClaimResponseDto> items =
+    final List<ClaimResponseDto> claims =
         claimsPage.getContent().stream()
             .map(
                 claim -> {
@@ -276,6 +282,24 @@ public class ClaimController {
                       this.claimService.listScreenshots(claim.getId()),
                       currentStep(claim, deal));
                 })
+            .toList();
+    final Set<UUID> ownerIds =
+        claims.stream().map(c -> c.getDeal().getOwnerId()).collect(Collectors.toSet());
+    final Map<UUID, String> ownerNames =
+        ownerIds.isEmpty()
+            ? Map.of()
+            : this.userService.getByIds(new ArrayList<>(ownerIds)).stream()
+                .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    final List<ClaimResponseDto> items =
+        claims.stream()
+            .map(
+                c ->
+                    c.toBuilder()
+                        .deal(
+                            c.getDeal().toBuilder()
+                                .ownerName(ownerNames.get(c.getDeal().getOwnerId()))
+                                .build())
+                        .build())
             .toList();
     return PagedClaimsResponseDto.builder()
         .items(items)

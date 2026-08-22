@@ -31,6 +31,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     originalPricePaise: d.originalPricePaise ?? 0,
     offeredPricePaise: d.offeredPricePaise ?? 0,
     sellerName: d.sellerName,
+    mediatorName: d.ownerName,
     termsAndConditions: d.termsAndConditions,
     status: 'claimed',
     currentStep: dto.currentStep ?? 0,
