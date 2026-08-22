@@ -53,7 +53,7 @@ export function ClaimedDealsList({ deals, loading, onSelect }: ClaimedDealsListP
           {deals.length === 0 ? 'No claimed deals yet.' : 'No deals match your filters.'}
         </div>
       ) : (
-        <div className="flex flex-col gap-3 max-h-[32rem] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-3">
           {filtered.map(deal => (
             <ClaimedDealListItem
               key={deal.id}
