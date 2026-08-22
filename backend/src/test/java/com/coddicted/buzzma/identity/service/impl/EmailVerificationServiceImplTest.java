@@ -78,6 +78,7 @@ class EmailVerificationServiceImplTest {
             .otpHash("irrelevant")
             .expiresAt(Instant.now().plusSeconds(900))
             .createdAt(Instant.now().minusSeconds(10))
+            .updatedAt(Instant.now().minusSeconds(10))
             .build();
     when(this.mockEmailOtpRepository.findTopByUserIdOrderByCreatedAtDesc(USER_ID))
         .thenReturn(Optional.of(recentOtp));
@@ -85,7 +86,7 @@ class EmailVerificationServiceImplTest {
     final BusinessRuleViolationException ex =
         assertThrows(BusinessRuleViolationException.class, () -> this.service.sendOtp(USER_ID));
     assertEquals("Please wait before requesting another OTP", ex.getMessage());
-    verify(this.mockEmailOtpRepository, never()).deleteByUserId(USER_ID);
+    verify(this.mockEmailOtpRepository, never()).save(any());
     verify(this.mockCommunicationsClient, never()).sendEmail(any(), any(), any(), any());
   }
 
@@ -98,6 +99,8 @@ class EmailVerificationServiceImplTest {
             .otpHash("irrelevant")
             .expiresAt(Instant.now().minusSeconds(1))
             .createdAt(Instant.now().minusSeconds(120))
+            .updatedAt(Instant.now().minusSeconds(120))
+            .isUsed(true)
             .build();
     when(this.mockEmailOtpRepository.findTopByUserIdOrderByCreatedAtDesc(USER_ID))
         .thenReturn(Optional.of(oldOtp));
@@ -107,15 +110,13 @@ class EmailVerificationServiceImplTest {
 
     this.service.sendOtp(USER_ID);
 
-    verify(this.mockEmailOtpRepository).deleteByUserId(USER_ID);
-
     final ArgumentCaptor<EmailOtp> captor = ArgumentCaptor.forClass(EmailOtp.class);
     verify(this.mockEmailOtpRepository).save(captor.capture());
     final EmailOtp saved = captor.getValue();
     assertEquals(USER_ID, saved.getUserId());
     assertEquals(sha256Hex(OTP_CODE), saved.getOtpHash());
     assertTrue(saved.getExpiresAt().isAfter(Instant.now()));
-    assertEquals(USER_ID, saved.getCreatedBy());
+    assertFalse(saved.getIsUsed());
     assertEquals(USER_ID, saved.getUpdatedBy());
 
     verify(this.mockCommunicationsClient)

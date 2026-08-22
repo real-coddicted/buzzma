@@ -17,6 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,27 +59,28 @@ public class EmailVerificationServiceImpl extends BaseCrudService
       throw new BusinessRuleViolationException("User has no email on file");
     }
 
-    this.emailOtpRepository
-        .findTopByUserIdOrderByCreatedAtDesc(userId)
-        .ifPresent(
-            latest -> {
-              final Instant cooldownEnd = latest.getCreatedAt().plus(RESEND_COOLDOWN);
-              if (Instant.now().isBefore(cooldownEnd)) {
-                throw new BusinessRuleViolationException(
-                    "Please wait before requesting another OTP");
-              }
-            });
+    final Optional<EmailOtp> existing =
+        this.emailOtpRepository.findTopByUserIdOrderByCreatedAtDesc(userId);
+
+    existing.ifPresent(
+        latest -> {
+          final Instant cooldownEnd = latest.getUpdatedAt().plus(RESEND_COOLDOWN);
+          if (Instant.now().isBefore(cooldownEnd)) {
+            throw new BusinessRuleViolationException("Please wait before requesting another OTP");
+          }
+        });
 
     final String otp = this.otpGenerator.generate();
-    this.emailOtpRepository.deleteByUserId(userId);
-    this.emailOtpRepository.save(
-        EmailOtp.builder()
-            .userId(userId)
+    final EmailOtp emailOtp =
+        existing
+            .map(EmailOtp::toBuilder)
+            .orElseGet(() -> EmailOtp.builder().userId(userId).createdBy(userId))
             .otpHash(hash(otp))
             .expiresAt(Instant.now().plus(OTP_TTL))
-            .createdBy(userId)
+            .isUsed(false)
             .updatedBy(userId)
-            .build());
+            .build();
+    this.emailOtpRepository.save(emailOtp);
 
     this.communicationsClient.sendEmail(
         user.getEmail(),

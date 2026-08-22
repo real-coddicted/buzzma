@@ -8,6 +8,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface EmailOtpRepository extends JpaRepository<EmailOtp, UUID> {
 
   Optional<EmailOtp> findTopByUserIdOrderByCreatedAtDesc(UUID userId);
-
-  void deleteByUserId(UUID userId);
 }
