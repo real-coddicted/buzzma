@@ -1,8 +1,10 @@
 import type { Deal } from '../../../types/DealTypes'
+import { isDealSoldOut } from '../../../types/DealTypes'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
+import { Badge } from '../Badge'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { formatShortDate } from '../../../utils/time'
 
@@ -13,9 +15,16 @@ interface DealCardProps {
 
 export function DealCard({ deal, onClick }: DealCardProps) {
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
+  const soldOut = isDealSoldOut(deal)
 
   return (
-    <div onClick={onClick} className="h-full flex flex-col rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden hover:border-neon-blue/30 transition-colors group cursor-pointer">
+    <div
+      onClick={soldOut ? undefined : onClick}
+      className={[
+        'h-full flex flex-col rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-hidden transition-colors group',
+        soldOut ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:border-neon-blue/30 cursor-pointer',
+      ].join(' ')}
+    >
       <div className="relative h-44">
         <ProductThumbnail
           src={deal.productImageUrl}
@@ -29,6 +38,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
       <div className="flex-1 flex flex-col p-4 space-y-3">
         {/* Badges */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          {soldOut && <Badge variant="red">Sold out</Badge>}
           <span className={[
             'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
             PLATFORM_COLORS[deal.platform],
@@ -79,7 +89,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             )}
           </div>
           <div className="flex items-center justify-between">
-            <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} />
+            <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} disabled={soldOut} />
             {deal.slotsAvailable != null && (
               <span className={`text-base font-semibold ${deal.slotsAvailable === 0 ? 'text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}`}>
                 {deal.slotsAvailable} Left
