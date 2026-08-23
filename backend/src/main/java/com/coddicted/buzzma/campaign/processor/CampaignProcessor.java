@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,13 +178,10 @@ public class CampaignProcessor {
       return response;
     }
     final Map<UUID, String> nameById =
-        this.userService
-            .getByIds(
-                response.getAssignments().stream()
-                    .map(CampaignAssignmentResponseDto::getAssigneeId)
-                    .toList())
-            .stream()
-            .collect(Collectors.toMap(u -> u.getId(), u -> u.getName()));
+        this.userService.getNamesByIds(
+            response.getAssignments().stream()
+                .map(CampaignAssignmentResponseDto::getAssigneeId)
+                .toList());
     return response.toBuilder()
         .assignments(
             response.getAssignments().stream()

@@ -17,11 +17,10 @@ import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +76,7 @@ class ClaimControllerTest {
         .thenReturn(new PageImpl<>(List.of(claim), PageRequest.of(0, 10), 1));
 
     final Campaign campaign = Campaign.builder().type(CampaignType.CAMPAIGN_TYPE_ORDER).build();
-    final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
+    final Deal deal = Deal.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
 
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
@@ -87,7 +86,7 @@ class ClaimControllerTest {
     final ClaimResponseDto mappedDto =
         ClaimResponseDto.builder().id(CLAIM_ID).deal(mappedDeal).build();
     when(this.claimMapper.toResponse(claim, deal, List.of(), 0)).thenReturn(mappedDto);
-    when(this.userService.getByIds(List.of())).thenReturn(List.of());
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID))).thenReturn(Map.of());
 
     final var result = this.controller.list(REQUESTER_ID, 0, 10);
 
@@ -127,13 +126,8 @@ class ClaimControllerTest {
         ClaimResponseDto.builder().id(CLAIM_ID).deal(mappedDeal).build();
     when(this.claimMapper.toResponse(claim, deal, List.of(), 0)).thenReturn(mappedClaim);
 
-    final BuzzmaUser mediator =
-        BuzzmaUser.builder()
-            .id(MEDIATOR_ID)
-            .name(MEDIATOR_NAME)
-            .role(UserRole.ROLE_MEDIATOR)
-            .build();
-    when(this.userService.getByIds(List.of(MEDIATOR_ID))).thenReturn(List.of(mediator));
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
+        .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
 
     final var result = this.controller.list(REQUESTER_ID, 0, 10);
 

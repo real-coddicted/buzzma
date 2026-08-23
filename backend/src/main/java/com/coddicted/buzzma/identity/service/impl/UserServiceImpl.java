@@ -9,8 +9,11 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -82,6 +85,16 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Transactional(readOnly = true)
   public List<BuzzmaUser> getByIds(final List<UUID> ids) {
     return this.repository.findAllById(ids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, String> getNamesByIds(final Collection<UUID> ids) {
+    if (ids.isEmpty()) {
+      return Map.of();
+    }
+    return this.repository.findAllById(ids).stream()
+        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
   }
 
   @Override

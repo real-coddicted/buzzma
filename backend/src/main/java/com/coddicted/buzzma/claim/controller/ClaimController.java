@@ -32,7 +32,6 @@ import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -285,11 +284,7 @@ public class ClaimController {
             .toList();
     final Set<UUID> ownerIds =
         claims.stream().map(c -> c.getDeal().getOwnerId()).collect(Collectors.toSet());
-    final Map<UUID, String> ownerNames =
-        ownerIds.isEmpty()
-            ? Map.of()
-            : this.userService.getByIds(new ArrayList<>(ownerIds)).stream()
-                .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
     final List<ClaimResponseDto> items =
         claims.stream()
             .map(

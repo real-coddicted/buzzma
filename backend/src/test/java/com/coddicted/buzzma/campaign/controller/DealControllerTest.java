@@ -11,10 +11,9 @@ import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.service.ConnectionService;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
-import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,13 +67,8 @@ class DealControllerTest {
         DealResponseDto.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
     when(this.dealMapper.toDealResponse(List.of(deal))).thenReturn(List.of(mappedDto));
 
-    final BuzzmaUser mediator =
-        BuzzmaUser.builder()
-            .id(MEDIATOR_ID)
-            .name(MEDIATOR_NAME)
-            .role(UserRole.ROLE_MEDIATOR)
-            .build();
-    when(this.userService.getByIds(List.of(MEDIATOR_ID))).thenReturn(List.of(mediator));
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
+        .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
 
     final var result = this.controller.getActiveDeals(REQUESTER_ID, 0, 20);
 

@@ -13,7 +13,10 @@ import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,6 +101,22 @@ class UserServiceImplTest {
         this.userService.getConnectedByIds(List.of(USER_ID), REQUESTER_ID);
 
     assertEquals(List.of(USER_2), result);
+  }
+
+  @Test
+  void testGetNamesByIdsWhenEmpty() {
+    final Map<UUID, String> result = this.userService.getNamesByIds(Set.of());
+
+    assertEquals(Map.of(), result);
+  }
+
+  @Test
+  void testGetNamesByIdsWhenNonEmpty() {
+    when(this.mockUsersRepository.findAllById(Set.of(USER_ID))).thenReturn(List.of(USER_2));
+
+    final Map<UUID, String> result = this.userService.getNamesByIds(Set.of(USER_ID));
+
+    assertEquals(Map.of(USER_ID, USER_2.getName()), result);
   }
 
   @Test
