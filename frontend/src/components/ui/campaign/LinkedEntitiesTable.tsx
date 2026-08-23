@@ -2,6 +2,7 @@ import type { LinkedEntity } from '../../../types'
 import type { ConnectionOption } from '../../../hooks/useConnections'
 import { RupeeInput } from '../RupeeInput'
 import { IconInfo } from '../icons'
+import { copyFieldToAllRows } from '../../../utils/linkedEntities'
 
 interface Props {
   entities: LinkedEntity[]
@@ -47,16 +48,11 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
   }
 
   function copySlotsToAll() {
-    const slots = entityMap.get(rows[0]?.id ?? '')?.slotsAvailable ?? 0
-    onChange(entities.map(e => ({ ...e, slotsAvailable: slots })))
+    onChange(copyFieldToAllRows(rows, entityMap, 'slotsAvailable'))
   }
 
   function copyCommissionToAll() {
-    const commission = entityMap.get(rows[0]?.id ?? '')?.commissionOffered ?? 0
-    onChange(rows.map(r => ({
-      ...(entityMap.get(r.id) ?? { id: r.id, name: r.name, slotsAvailable: 0, commissionOffered: 0 }),
-      commissionOffered: commission,
-    })))
+    onChange(copyFieldToAllRows(rows, entityMap, 'commissionOffered'))
   }
 
   const allSelected = connections.length > 0 && connections.every(c => entityMap.has(c.id))
@@ -159,7 +155,7 @@ export function LinkedEntitiesTable({ entities, connections = [], onChange, open
                           disabled={readOnly}
                           className="w-20 bg-transparent border border-surface-light-border dark:border-surface-dark-border rounded-lg pr-2 py-1 text-ink-light-primary dark:text-ink-dark-primary outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all disabled:opacity-40"
                         />
-                        {isFirst && !readOnly && selected && (
+                        {isFirst && !readOnly && !openToAll && selected && (
                           <button
                             type="button"
                             onClick={copyCommissionToAll}
