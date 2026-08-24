@@ -23,7 +23,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -130,6 +132,18 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
         claim.getId(),
         mediatorReceivablePaise,
         buyerReceivablePaise);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<ClaimAccounting> getByClaimId(final UUID claimId) {
+    return claimAccountingRepository.findByClaimId(claimId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ClaimAccounting> getByClaimIdIn(final Collection<UUID> claimIds) {
+    return claimAccountingRepository.findByClaimIdIn(claimIds);
   }
 
   private BigInteger computeMediatorReceivable(

@@ -13,6 +13,7 @@ import com.coddicted.buzzma.claim.dto.PagedClaimsResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
+import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
@@ -20,6 +21,7 @@ import com.coddicted.buzzma.claim.mapper.ClaimMapper;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewMapper;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
+import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
@@ -63,6 +65,7 @@ public class ClaimController {
 
   private final ClaimService claimService;
   private final ClaimReviewService claimReviewService;
+  private final ClaimAccountingService claimAccountingService;
   private final DealService dealService;
   private final CampaignTypeStepService campaignTypeStepService;
   private final ClaimMapper claimMapper;
@@ -73,6 +76,7 @@ public class ClaimController {
   public ClaimController(
       final ClaimService claimService,
       final ClaimReviewService claimReviewService,
+      final ClaimAccountingService claimAccountingService,
       final DealService dealService,
       final CampaignTypeStepService campaignTypeStepService,
       final ClaimMapper claimMapper,
@@ -81,6 +85,7 @@ public class ClaimController {
       final UserService userService) {
     this.claimService = claimService;
     this.claimReviewService = claimReviewService;
+    this.claimAccountingService = claimAccountingService;
     this.dealService = dealService;
     this.campaignTypeStepService = campaignTypeStepService;
     this.claimMapper = claimMapper;
@@ -285,6 +290,13 @@ public class ClaimController {
     final Set<UUID> ownerIds =
         claims.stream().map(c -> c.getDeal().getOwnerId()).collect(Collectors.toSet());
     final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
+    final Map<UUID, BigInteger> buyerReceivableByClaimId =
+        this.claimAccountingService
+            .getByClaimIdIn(claims.stream().map(ClaimResponseDto::getId).toList())
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    ClaimAccounting::getClaimId, ClaimAccounting::getBuyerReceivablePaise));
     final List<ClaimResponseDto> items =
         claims.stream()
             .map(
@@ -294,6 +306,7 @@ public class ClaimController {
                             c.getDeal().toBuilder()
                                 .ownerName(ownerNames.get(c.getDeal().getOwnerId()))
                                 .build())
+                        .amountApprovedPaise(buyerReceivableByClaimId.get(c.getId()))
                         .build())
             .toList();
     return PagedClaimsResponseDto.builder()
@@ -330,7 +343,17 @@ public class ClaimController {
     final Claim claim = this.claimService.getById(id, requesterId);
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+    final ClaimResponseDto response =
+        this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+    if (requesterId.equals(claim.getOwnerId())) {
+      final BigInteger buyerReceivablePaise =
+          this.claimAccountingService
+              .getByClaimId(id)
+              .map(ClaimAccounting::getBuyerReceivablePaise)
+              .orElse(null);
+      return response.toBuilder().amountApprovedPaise(buyerReceivablePaise).build();
+    }
+    return response;
   }
 
   private int currentStep(final Claim claim, final Deal deal) {
