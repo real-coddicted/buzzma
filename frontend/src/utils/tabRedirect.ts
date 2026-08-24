@@ -1,27 +1,19 @@
+import { NAV_ITEMS } from '../config/navItems'
 import type { NavPage } from '../types'
 import type { components } from '../types/api'
 
 type UserSettingsDto = components['schemas']['UserSettingsDto']
 
 export const TAB_FLAGS: Partial<Record<NavPage, keyof UserSettingsDto>> = {
-  dashboard:      'dashboardTabEnabled',
-  campaigns:      'campaignsTabEnabled',
-  connections:    'connectionsTabEnabled',
-  assignments:    'assignmentsTabEnabled',
-  deals:          'dealTabEnabled',
-  'my-claims':    'myClaimsTabEnabled',
-  'claim-review': 'claimReviewEnabled',
-  'my-tickets':   'ticketsTabEnabled',
-  tickets:        'ticketsTabEnabled',
-  feedback:       'feedbackTabEnabled',
-  users:          'usersTabEnabled',
-  'my-payments':  'myPaymentsTabEnabled',
-  'user-payouts': 'userPayoutsTabEnabled',
+  ...Object.fromEntries(NAV_ITEMS.map(item => [item.page, item.flagKey])),
+  // 'tickets' is a ticket-detail page, not a sidebar item, so it isn't in NAV_ITEMS.
+  tickets: 'ticketsTabEnabled',
 }
 
-const FALLBACK_ORDER: NavPage[] = [
-  'campaigns', 'connections', 'assignments', 'deals', 'my-claims', 'claim-review', 'my-tickets', 'feedback', 'users',
-]
+// Derived from NAV_ITEMS so the redirect fallback can never drift from the
+// sidebar's actual rendering order. 'dashboard' stays excluded — the redirect
+// only ever runs after 'dashboard' is confirmed disabled, so including it would be a no-op.
+const FALLBACK_ORDER: NavPage[] = NAV_ITEMS.filter(item => item.page !== 'dashboard').map(item => item.page)
 
 export function isTabDisabled(page: NavPage, settings: UserSettingsDto): boolean {
   const key = TAB_FLAGS[page]
