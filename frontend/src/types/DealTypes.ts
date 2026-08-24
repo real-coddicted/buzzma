@@ -43,3 +43,7 @@ export interface Deal {
   screenshots?: Array<{ type?: string; verificationStatus?: string }>
   amountApprovedPaise?: number
 }
+
+export function isDealSoldOut(deal: Deal): boolean {
+  return deal.slotsAvailable === 0
+}
