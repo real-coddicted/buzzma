@@ -74,6 +74,7 @@ export function DealInfo({ deal }: DealInfoProps) {
             </div>
           )}
           {deal.mediatorName && <Row label="Mediator" value={deal.mediatorName} />}
+          {deal.agencyName && <Row label="Agency" value={deal.agencyName} />}
           <Row label="Platform"       value={deal.platformLabel} />
           {deal.campaignCode && (
             <div className="flex justify-between items-center py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">

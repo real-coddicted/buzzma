@@ -30,6 +30,7 @@ export interface Deal {
   offeredPricePaise: number
   sellerName?: string
   mediatorName?: string
+  agencyName?: string
   startDate?: string
   endDate?: string
   termsAndConditions?: string

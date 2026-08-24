@@ -20,6 +20,7 @@ public interface AssignmentMapper {
   @Mapping(source = "campaignAssignment.campaignId", target = "campaignId")
   @Mapping(source = "campaign.code", target = "campaignCode")
   @Mapping(source = "campaignAssignment.assigneeId", target = "ownerId")
+  @Mapping(source = "campaign.ownerId", target = "agencyId")
   @Mapping(source = "campaign.product.name", target = "productName")
   @Mapping(source = "campaign.product.brandName", target = "productBrandName")
   @Mapping(
@@ -61,6 +62,7 @@ public interface AssignmentMapper {
         .endDate(view.endDate())
         .dealCode(view.dealCode())
         .campaignCode(view.campaignCode())
+        .agencyId(view.campaignOwnerId())
         .build();
   }
 

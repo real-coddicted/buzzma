@@ -10,7 +10,7 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @Jacksonized
 public class AssignmentResponseDto {
   UUID id;
@@ -35,4 +35,6 @@ public class AssignmentResponseDto {
   String sellerName;
   boolean affiliateLinkAllowed;
   String dealCode;
+  UUID agencyId;
+  String agencyName;
 }

@@ -2753,6 +2753,9 @@ export interface components {
             endDate?: number;
             dealCode?: string;
             campaignCode?: string;
+            /** Format: uuid */
+            agencyId?: string;
+            agencyName?: string;
         };
         PagedAssignmentsResponseDto: {
             items?: components["schemas"]["AssignmentSummaryResponseDto"][];
@@ -2796,6 +2799,9 @@ export interface components {
             sellerName?: string;
             affiliateLinkAllowed?: boolean;
             dealCode?: string;
+            /** Format: uuid */
+            agencyId?: string;
+            agencyName?: string;
         };
         CommissionResponseDto: {
             /** Format: uuid */
