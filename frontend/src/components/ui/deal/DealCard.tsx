@@ -59,7 +59,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         </div>
 
         {/* Product name — reserves two lines of height so the content below lines up across cards */}
-        <p className="text-sm font-semibold text-ink-light-primary dark:text-ink-dark-primary leading-snug line-clamp-2 min-h-[2.5rem]">
+        <p className="text-sm font-bold text-ink-light-primary dark:text-ink-dark-primary leading-snug line-clamp-2 min-h-[2.5rem]">
           {deal.productName}
         </p>
 
@@ -69,7 +69,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
               MRP ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
             </span>
-            <span className="text-base font-bold text-ink-light-primary dark:text-ink-dark-primary">
+            <span className="text-lg font-bold text-ink-light-primary dark:text-ink-dark-primary">
               ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
             </span>
           </div>
@@ -90,7 +90,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
               Type: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.dealTypeLabel}</span>
             </span>
             {deal.slotsAvailable != null && (
-              <span className={`font-semibold ${deal.slotsAvailable === 0 ? 'text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}`}>
+              <span className={deal.slotsAvailable === 0 ? 'font-semibold text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}>
                 {deal.slotsAvailable} slots left
               </span>
             )}
