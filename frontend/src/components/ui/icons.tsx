@@ -453,6 +453,15 @@ export function IconWarning({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconSparkle({ size = 14, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+      <path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75L19 15z" />
+    </svg>
+  )
+}
+
 export function IconWhatsApp({ size = 14, ...p }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...p}>

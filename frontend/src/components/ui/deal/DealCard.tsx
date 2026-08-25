@@ -5,6 +5,8 @@ import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
 import { Badge } from '../Badge'
+import { Button } from '../Button'
+import { IconSparkle } from '../icons'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { formatShortDate } from '../../../utils/time'
 
@@ -96,6 +98,15 @@ export function DealCard({ deal, onClick }: DealCardProps) {
               </span>
             )}
           </div>
+          <Button
+            variant="primary"
+            className="w-full"
+            leftIcon={<IconSparkle size={14} />}
+            disabled={soldOut}
+            onClick={e => { e.stopPropagation(); onClick() }}
+          >
+            Claim Deal
+          </Button>
         </div>
       </div>
     </div>

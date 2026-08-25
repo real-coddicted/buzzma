@@ -73,43 +73,39 @@ export function Deals() {
         </h1>
       </div>
 
-      <Card padded={false}>
-        <div className="p-4 border-b border-surface-light-border dark:border-surface-dark-border">
-          <DealFilterBar
-            search={search}
-            onSearchChange={setSearch}
-            typeFilter={typeFilter}
-            platformFilter={platformFilter}
-            onTypeChange={setTypeFilter}
-            onPlatformChange={setPlatformFilter}
-          />
-        </div>
-
-        <div className="p-4">
-          {exploreLoading ? (
-            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
-              <Loading size={32} />
-            </div>
-          ) : filteredExplore.length === 0 ? (
-            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
-              No deals match your filters.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredExplore.map(deal => (
-                <DealCard key={deal.id} deal={deal} onClick={() => { setSelectedDeal(deal); setSearchParams({ view: 'detail', id: deal.id }) }} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <PaginationToolbar
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          disabled={exploreLoading}
+      <Card>
+        <DealFilterBar
+          search={search}
+          onSearchChange={setSearch}
+          typeFilter={typeFilter}
+          platformFilter={platformFilter}
+          onTypeChange={setTypeFilter}
+          onPlatformChange={setPlatformFilter}
         />
       </Card>
+
+      {exploreLoading ? (
+        <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+          <Loading size={32} />
+        </div>
+      ) : filteredExplore.length === 0 ? (
+        <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
+          No deals match your filters.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredExplore.map(deal => (
+            <DealCard key={deal.id} deal={deal} onClick={() => { setSelectedDeal(deal); setSearchParams({ view: 'detail', id: deal.id }) }} />
+          ))}
+        </div>
+      )}
+
+      <PaginationToolbar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        disabled={exploreLoading}
+      />
 
       {toastError && (
         <Toast
