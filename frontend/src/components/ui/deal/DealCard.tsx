@@ -1,6 +1,5 @@
 import type { Deal } from '../../../types/DealTypes'
 import { isDealSoldOut } from '../../../types/DealTypes'
-import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
@@ -33,6 +32,9 @@ export function DealCard({ deal, onClick }: DealCardProps) {
           className="h-full"
           imgClassName="group-hover:scale-105 transition-transform duration-300"
         />
+        <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary shadow-sm">
+          {deal.platformLabel}
+        </span>
       </div>
 
       {/* Content */}
@@ -40,18 +42,6 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         {/* Badges */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {soldOut && <Badge variant="red">Sold out</Badge>}
-          <span className={[
-            'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-            PLATFORM_COLORS[deal.platform],
-          ].join(' ')}>
-            {deal.platformLabel}
-          </span>
-          <span className={[
-            'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-            DEAL_TYPE_COLORS[deal.dealType],
-          ].join(' ')}>
-            {deal.dealTypeLabel}
-          </span>
           {deal.code && (
             <span onClick={e => e.stopPropagation()}>
               <CopyableCode code={deal.code} />
@@ -64,20 +54,20 @@ export function DealCard({ deal, onClick }: DealCardProps) {
           {deal.productName}
         </p>
 
-        {deal.mediatorName && (
-          <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-            Mediator: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.mediatorName}</span>
-          </p>
-        )}
-
-        {deal.endDate && (
-          <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-            Ends: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{formatShortDate(deal.endDate)}</span>
-          </p>
-        )}
-
         {/* Pricing + footer, pinned to the bottom of the card */}
         <div className="mt-auto space-y-3 pt-3 border-t border-surface-light-border dark:border-surface-dark-border">
+          {deal.mediatorName && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-ink-light-muted dark:text-ink-dark-muted">Mediator</span>
+              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.mediatorName}</span>
+            </div>
+          )}
+          {deal.endDate && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-ink-light-muted dark:text-ink-dark-muted">Ends</span>
+              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{formatShortDate(deal.endDate)}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
               MRP ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
