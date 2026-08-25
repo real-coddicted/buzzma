@@ -16,6 +16,7 @@ interface DealCardProps {
 
 export function DealCard({ deal, onClick }: DealCardProps) {
   const soldOut = isDealSoldOut(deal)
+  const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
   return (
     <div
@@ -32,6 +33,11 @@ export function DealCard({ deal, onClick }: DealCardProps) {
           className="h-full"
           imgClassName="group-hover:scale-105 transition-transform duration-300"
         />
+        {discount > 0 && (
+          <span className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-ink-light-primary dark:bg-ink-dark-primary text-surface-light-card dark:text-surface-dark-card shadow-sm">
+            {discount}% OFF
+          </span>
+        )}
         <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary shadow-sm">
           {deal.platformLabel}
         </span>
