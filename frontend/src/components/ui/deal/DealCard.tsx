@@ -16,7 +16,6 @@ interface DealCardProps {
 }
 
 export function DealCard({ deal, onClick }: DealCardProps) {
-  const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
   const soldOut = isDealSoldOut(deal)
 
   return (
@@ -78,26 +77,26 @@ export function DealCard({ deal, onClick }: DealCardProps) {
         )}
 
         {/* Pricing + footer, pinned to the bottom of the card */}
-        <div className="mt-auto space-y-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs font-bold text-neon-green">
+        <div className="mt-auto space-y-3 pt-3 border-t border-surface-light-border dark:border-surface-dark-border">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
+              MRP ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
+            </span>
+            <span className="text-base font-bold text-ink-light-primary dark:text-ink-dark-primary">
               ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
             </span>
-            <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
-              ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
-            </span>
-            {discount > 0 && (
-              <span className="text-base font-bold text-neon-red">-{discount}%</span>
-            )}
           </div>
-          <div className="flex items-center justify-between">
-            <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} disabled={soldOut} />
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-ink-light-muted dark:text-ink-dark-muted">
+              Type: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.dealTypeLabel}</span>
+            </span>
             {deal.slotsAvailable != null && (
-              <span className={`text-base font-semibold ${deal.slotsAvailable === 0 ? 'text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}`}>
-                {deal.slotsAvailable} Left
+              <span className={`font-semibold ${deal.slotsAvailable === 0 ? 'text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}`}>
+                {deal.slotsAvailable} slots left
               </span>
             )}
           </div>
+          <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} disabled={soldOut} />
           <Button
             variant="primary"
             className="w-full"
