@@ -90,7 +90,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
               Type: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.dealTypeLabel}</span>
             </span>
             {deal.slotsAvailable != null && (
-              <span className={deal.slotsAvailable === 0 ? 'font-semibold text-neon-red' : 'text-ink-light-muted dark:text-ink-dark-muted'}>
+              <span className={deal.slotsAvailable === 0 ? 'font-semibold text-neon-red' : 'text-neon-green'}>
                 {deal.slotsAvailable} slots left
               </span>
             )}
@@ -98,7 +98,7 @@ export function DealCard({ deal, onClick }: DealCardProps) {
           <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} disabled={soldOut} />
           <Button
             variant="primary"
-            className="w-full"
+            className="w-full !bg-[#2B6CB0] !text-white !shadow-none hover:!bg-[#2C5282] hover:!brightness-100"
             leftIcon={<IconSparkle size={14} />}
             disabled={soldOut}
             onClick={e => { e.stopPropagation(); onClick() }}
