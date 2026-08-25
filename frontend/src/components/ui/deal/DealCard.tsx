@@ -65,18 +65,6 @@ export function DealCard({ deal, onClick }: DealCardProps) {
 
         {/* Pricing + footer, pinned to the bottom of the card */}
         <div className="mt-auto space-y-3 pt-3 border-t border-surface-light-border dark:border-surface-dark-border">
-          {deal.mediatorName && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-ink-light-muted dark:text-ink-dark-muted">Mediator</span>
-              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.mediatorName}</span>
-            </div>
-          )}
-          {deal.endDate && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-ink-light-muted dark:text-ink-dark-muted">Ends</span>
-              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{formatShortDate(deal.endDate)}</span>
-            </div>
-          )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted line-through">
               MRP ₹{formatRupees(paiseToRupees(deal.originalPricePaise))}
@@ -85,6 +73,18 @@ export function DealCard({ deal, onClick }: DealCardProps) {
               ₹{formatRupees(paiseToRupees(deal.offeredPricePaise))}
             </span>
           </div>
+          {deal.endDate && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-ink-light-muted dark:text-ink-dark-muted">Ends</span>
+              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{formatShortDate(deal.endDate)}</span>
+            </div>
+          )}
+          {deal.mediatorName && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-ink-light-muted dark:text-ink-dark-muted">Mediator</span>
+              <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.mediatorName}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-xs">
             <span className="text-ink-light-muted dark:text-ink-dark-muted">
               Type: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{deal.dealTypeLabel}</span>
