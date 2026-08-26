@@ -1444,6 +1444,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claim-review/worksheets/{id}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listWorksheetRows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/step-config": {
         parameters: {
             query?: never;
@@ -2162,10 +2178,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -2174,21 +2190,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -2666,6 +2682,53 @@ export interface components {
             page?: number;
             /** Format: int32 */
             totalPages?: number;
+        };
+        ClaimReviewWorksheetRowResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            worksheetId?: string;
+            campaign?: string;
+            campaignCode?: string;
+            brand?: string;
+            mediator?: string;
+            buyer?: string;
+            profileName?: string;
+            platform?: string;
+            orderId?: string;
+            orderDate?: string;
+            orderAmount?: string;
+            claimCode?: string;
+            claimStatus?: string;
+            matchScore?: string;
+            amountApproved?: string;
+            brandReview?: string;
+            remarks?: string;
+            /** @enum {string} */
+            processingStatus?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
+            errorRemarks?: string;
+            /** Format: int32 */
+            retryCount?: number;
+            /** Format: date-time */
+            lastAttemptedAt?: string;
+        };
+        PageClaimReviewWorksheetRowResponseDto: {
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["ClaimReviewWorksheetRowResponseDto"][];
+            /** Format: int32 */
+            number?: number;
+            sort?: components["schemas"]["SortObject"][];
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            empty?: boolean;
         };
         CampaignStepDto: {
             type?: string;
@@ -5214,6 +5277,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                };
+            };
+        };
+    };
+    listWorksheetRows: {
+        parameters: {
+            query: {
+                status?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageClaimReviewWorksheetRowResponseDto"];
                 };
             };
         };

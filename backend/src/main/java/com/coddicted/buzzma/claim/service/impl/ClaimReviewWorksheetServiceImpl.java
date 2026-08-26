@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetService {
 
-  private static final int EXPECTED_COLUMN_COUNT = 17;
+  private static final int EXPECTED_COLUMN_COUNT = 16;
 
   private final ClaimReviewWorksheetProperties properties;
   private final ClaimReviewWorksheetRepository worksheetRepository;
@@ -71,7 +71,7 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
         storageService.store(
             "claim-review-worksheets", file.getOriginalFilename(), file.getContentType(), bytes);
 
-    final int dataRowCount = WorkbookUtils.countDataRows(sheet);
+    final int dataRowCount = WorkbookUtils.countDataRows(sheet, EXPECTED_COLUMN_COUNT);
 
     final ClaimReviewWorksheet worksheet =
         worksheetRepository.save(
@@ -137,7 +137,7 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
 
     for (int r = 1; r <= sheet.getLastRowNum(); r++) {
       final Row row = sheet.getRow(r);
-      if (row == null || row.getLastCellNum() <= 0) {
+      if (!WorkbookUtils.isDataRow(row, EXPECTED_COLUMN_COUNT)) {
         continue;
       }
       worksheetRow = toRowEntity(row, worksheetId);
@@ -205,10 +205,9 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
         .claimCode(WorkbookUtils.cellString(row, 10))
         .claimStatus(WorkbookUtils.cellString(row, 11))
         .matchScore(WorkbookUtils.cellString(row, 12))
-        .reviewStatus(WorkbookUtils.cellString(row, 13))
-        .amountApproved(WorkbookUtils.cellString(row, 14))
-        .brandReview(WorkbookUtils.cellString(row, 15))
-        .remarks(WorkbookUtils.cellString(row, 16))
+        .amountApproved(WorkbookUtils.cellString(row, 13))
+        .brandReview(WorkbookUtils.cellString(row, 14))
+        .remarks(WorkbookUtils.cellString(row, 15))
         .processingStatus(WorksheetRowStatus.PENDING)
         .build();
   }

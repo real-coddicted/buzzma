@@ -8,9 +8,10 @@ import type { ClaimReviewItem } from '../types'
 
 interface ClaimReviewListProps {
   onViewDetails: (claim: ClaimReviewItem) => void
+  onOpenImport: () => void
 }
 
-export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
+export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewListProps) {
   const [searchParams] = useSearchParams()
   const seedCampaignId = searchParams.get('campaignId')
   const seedCampaignName = searchParams.get('campaignName')
@@ -72,6 +73,7 @@ export function ClaimReviewList({ onViewDetails }: ClaimReviewListProps) {
         onViewDetails={onViewDetails}
         onApprove={handleApprove}
         onBulkApprove={handleBulkApprove}
+        onOpenImport={onOpenImport}
         initialCampaignOption={seedCampaignId && seedCampaignName ? { value: seedCampaignId, label: seedCampaignName } : undefined}
       />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}

@@ -73,9 +73,6 @@ public class ClaimReviewWorksheetRow {
   @Column(name = "match_score", length = 500)
   private String matchScore;
 
-  @Column(name = "review_status", length = 500)
-  private String reviewStatus;
-
   @Column(name = "amount_approved", length = 500)
   private String amountApproved;
 

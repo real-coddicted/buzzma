@@ -11,6 +11,7 @@ type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type BackendClaimStatus = NonNullable<ClaimResponseDto['status']>
 type ClaimReviewResponseDto = components['schemas']['ClaimReviewResponseDto']
 type PageClaimReviewResponseDto = components['schemas']['PageClaimReviewResponseDto']
+export type ClaimReviewWorksheetResponseDto = components['schemas']['ClaimReviewWorksheetResponseDto']
 
 
 function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
@@ -172,6 +173,53 @@ export async function downloadClaimReviewReport(filter?: ClaimReviewServerFilter
 
 function filenameFromContentDisposition(header: string | null): string | undefined {
   return header?.match(/filename="?([^"]+)"?/)?.[1]
+}
+
+/** GET /claim-review/worksheets — lists previously uploaded claim review worksheets. */
+export async function listClaimReviewWorksheets(): Promise<ClaimReviewWorksheetResponseDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets`)
+  return (await res.json()) as ClaimReviewWorksheetResponseDto[]
+}
+
+/** POST /claim-review/worksheets — uploads an Excel worksheet of claims to be processed. */
+export async function uploadClaimReviewWorksheet(file: File): Promise<ClaimReviewWorksheetResponseDto> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets`, {
+    method: 'POST',
+    body: formData,
+  })
+  return (await res.json()) as ClaimReviewWorksheetResponseDto
+}
+
+/** GET /claim-review/worksheets/{id} — downloads the original uploaded worksheet file. */
+export async function downloadClaimReviewWorksheet(id: string, fallbackFilename: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets/${id}`)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filenameFromContentDisposition(res.headers.get('Content-Disposition')) ?? fallbackFilename
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+export type ClaimReviewWorksheetRowResponseDto = components['schemas']['ClaimReviewWorksheetRowResponseDto']
+
+export interface PagedClaimReviewWorksheetRows {
+  items: ClaimReviewWorksheetRowResponseDto[]
+  totalPages: number
+}
+
+/** GET /claim-review/worksheets/{id}/rows — lists the parsed rows for a worksheet, paginated. */
+export async function listClaimReviewWorksheetRows(
+  worksheetId: string,
+  page: number,
+  size: number
+): Promise<PagedClaimReviewWorksheetRows> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets/${worksheetId}/rows?page=${page - 1}&size=${size}`)
+  const data = (await res.json()) as components['schemas']['PageClaimReviewWorksheetRowResponseDto']
+  return { items: data.content ?? [], totalPages: data.totalPages ?? 1 }
 }
 
 type ScoredValue = components['schemas']['ScoredValue']

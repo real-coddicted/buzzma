@@ -443,6 +443,26 @@ export function IconFileSpreadsheet({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconUpload({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3v12" />
+      <path d="M7 8l5-5 5 5" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
+export function IconDownload({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
 export function IconWarning({ size = 18, ...p }: IconProps) {
   return (
     <svg {...base(size, p)}>

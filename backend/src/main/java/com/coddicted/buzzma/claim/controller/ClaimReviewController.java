@@ -2,13 +2,20 @@ package com.coddicted.buzzma.claim.controller;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
+import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetRowResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
+import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheetRow;
+import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
+import com.coddicted.buzzma.claim.mapper.ClaimReviewWorksheetMapper;
+import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetRowService;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,9 +38,16 @@ public class ClaimReviewController {
       MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
   private final ClaimReviewWorksheetService worksheetService;
+  private final ClaimReviewWorksheetRowService worksheetRowService;
+  private final ClaimReviewWorksheetMapper worksheetMapper;
 
-  public ClaimReviewController(final ClaimReviewWorksheetService worksheetService) {
+  public ClaimReviewController(
+      final ClaimReviewWorksheetService worksheetService,
+      final ClaimReviewWorksheetRowService worksheetRowService,
+      final ClaimReviewWorksheetMapper worksheetMapper) {
     this.worksheetService = worksheetService;
+    this.worksheetRowService = worksheetRowService;
+    this.worksheetMapper = worksheetMapper;
   }
 
   @GetMapping("/worksheets")
@@ -48,7 +62,7 @@ public class ClaimReviewController {
   public ResponseEntity<ClaimReviewWorksheetResponseDto> uploadWorksheet(
       @CurrentUser final BuzzmaUser currentUser, @RequestParam("file") final MultipartFile file) {
     final ClaimReviewWorksheet worksheet = worksheetService.uploadWorksheet(currentUser, file);
-    return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(worksheet));
+    return ResponseEntity.status(HttpStatus.CREATED).body(worksheetMapper.toResponse(worksheet));
   }
 
   @GetMapping("/worksheets/{id}")
@@ -65,14 +79,15 @@ public class ClaimReviewController {
         .body(download.bytes());
   }
 
-  private ClaimReviewWorksheetResponseDto toResponse(final ClaimReviewWorksheet worksheet) {
-    return ClaimReviewWorksheetResponseDto.builder()
-        .id(worksheet.getId())
-        .originalFilename(worksheet.getOriginalFilename())
-        .rowCount(worksheet.getRowCount())
-        .rowsProcessed(0)
-        .status(worksheet.getStatus())
-        .createdAt(worksheet.getCreatedAt())
-        .build();
+  @GetMapping("/worksheets/{id}/rows")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public ResponseEntity<Page<ClaimReviewWorksheetRowResponseDto>> listWorksheetRows(
+      @CurrentUser final BuzzmaUser currentUser,
+      @PathVariable final UUID id,
+      @RequestParam(required = false) final WorksheetRowStatus status,
+      final Pageable pageable) {
+    final Page<ClaimReviewWorksheetRow> rows =
+        worksheetRowService.listRows(id, currentUser.getId(), status, pageable);
+    return ResponseEntity.ok(rows.map(worksheetMapper::toRowResponse));
   }
 }

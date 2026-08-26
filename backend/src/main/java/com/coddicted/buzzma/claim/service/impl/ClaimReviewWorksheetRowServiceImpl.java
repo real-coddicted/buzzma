@@ -28,6 +28,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -104,7 +106,7 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
         row.getWorksheetId());
     try {
       // Group 1: pure field checks — no DB calls
-      final ReviewerDecision decision = validateReviewStatus(row);
+      final ReviewerDecision decision = validateBrandReview(row);
       final BigInteger amountPaise = validateAmountForApproval(row, decision);
       validateRemarksForRejection(row, decision);
 
@@ -145,24 +147,35 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
     syncWorksheetStatus(row.getWorksheetId());
   }
 
+  @Override
+  public Page<ClaimReviewWorksheetRow> listRows(
+      final UUID worksheetId,
+      final UUID uploadedBy,
+      final WorksheetRowStatus status,
+      final Pageable pageable) {
+    worksheetService.getUploadedBy(worksheetId);
+    return rowRepository.findByWorksheetIdAndUploadByAndStatuses(
+        worksheetId, uploadedBy, status == null ? null : List.of(status), pageable);
+  }
+
   // -- Validation: Group 1 (pure field checks, no DB) --
 
-  private ReviewerDecision validateReviewStatus(final ClaimReviewWorksheetRow row) {
-    if (!StringUtils.hasText(row.getReviewStatus())) {
+  private ReviewerDecision validateBrandReview(final ClaimReviewWorksheetRow row) {
+    if (!StringUtils.hasText(row.getBrandReview())) {
       throw new RowValidationException(
-          "Invalid review status, only APPROVED or REJECTED is allowed");
+          "Invalid brand review, only APPROVED or REJECTED is allowed");
     }
     try {
       ReviewerDecision decision =
-          ReviewerDecision.valueOf(row.getReviewStatus().trim().toUpperCase());
+          ReviewerDecision.valueOf(row.getBrandReview().trim().toUpperCase());
       if (decision == ReviewerDecision.VERIFIED) {
         throw new RowValidationException(
-            "Invalid review status, only APPROVED or REJECTED is allowed");
+            "Invalid brand review, only APPROVED or REJECTED is allowed");
       }
       return decision;
     } catch (IllegalArgumentException e) {
       throw new RowValidationException(
-          "Invalid review status, only APPROVED or REJECTED is allowed");
+          "Invalid brand review, only APPROVED or REJECTED is allowed");
     }
   }
 

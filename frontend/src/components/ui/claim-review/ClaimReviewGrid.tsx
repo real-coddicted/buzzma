@@ -34,10 +34,11 @@ interface ClaimReviewGridProps {
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
   onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
+  onOpenImport: () => void
   initialCampaignOption?: TypeaheadOption
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove, initialCampaignOption }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove, onOpenImport, initialCampaignOption }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -284,6 +285,9 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           onOpenFilters={() => setDrawerOpen(true)}
           onDownloadReport={handleDownloadReport}
           downloadingReport={downloadingReport}
+          showExport={!isMediator}
+          showImport={!isMediator}
+          onOpenImport={onOpenImport}
         />
 
         <FilterChips chips={chips} onClearAll={() => onApplyFilters(emptyFilters())} />

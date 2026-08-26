@@ -35,15 +35,28 @@ public final class WorkbookUtils {
     }
   }
 
-  public static int countDataRows(final Sheet sheet) {
+  public static int countDataRows(final Sheet sheet, final int columnCount) {
     int count = 0;
     for (int r = 1; r <= sheet.getLastRowNum(); r++) {
-      final Row row = sheet.getRow(r);
-      if (row != null && row.getLastCellNum() > 0) {
+      if (isDataRow(sheet.getRow(r), columnCount)) {
         count++;
       }
     }
     return count;
+  }
+
+  /**
+   * A worksheet row is empty only if every one of its expected columns is blank; this ignores cells
+   * Excel may leave behind with formatting but no value (e.g. from data validation applied to a
+   * wider range than the actual data), which would otherwise look non-empty via getLastCellNum().
+   */
+  public static boolean isDataRow(final Row row, final int columnCount) {
+    for (int c = 0; c < columnCount; c++) {
+      if (cellString(row, c) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static String cellString(final Row row, final int col) {
