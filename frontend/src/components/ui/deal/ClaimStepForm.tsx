@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import type { CampaignStepDto } from '../../../api/campaignApi'
-import { fetchStepConfig } from '../../../api/campaignApi'
+import { fetchCampaignStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS, STEP_TYPE_TO_SCREENSHOT_TYPE, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { ScreenshotRejectionBanner } from '../ScreenshotRejectionBanner'
 import { paiseToRupees } from '../../../utils/currency'
@@ -366,10 +366,8 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
   const [localClaim, setLocalClaim] = useState<ClaimResponseDto | undefined>(undefined)
 
   useEffect(() => {
-    fetchStepConfig().then(config => {
-      setSteps(config[deal.dealType] ?? [])
-    })
-  }, [deal.dealType])
+    fetchCampaignStepConfig(deal.campaignId).then(setSteps)
+  }, [deal.campaignId])
 
   const step = steps[currentStep]
   const stepType = step?.type ?? ''

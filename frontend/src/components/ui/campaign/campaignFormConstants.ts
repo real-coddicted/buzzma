@@ -20,6 +20,7 @@ export const EMPTY_FORM = {
   affiliateLinkAllowed: false,
   assignees: [] as LinkedEntity[],
   termsAndConditions: '',
+  requiredSteps: ['ORDER'] as string[],
 }
 
 export const labelClass =

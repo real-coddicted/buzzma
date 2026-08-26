@@ -10,6 +10,10 @@ import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * @see com.coddicted.buzzma.campaign.entity.CampaignTypeStep
+ */
+@Deprecated
 @Mapper(componentModel = "spring")
 public interface CampaignTypeStepMapper {
 

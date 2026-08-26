@@ -11,6 +11,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
@@ -23,8 +24,11 @@ import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -125,6 +129,7 @@ public class CampaignProcessor {
                 .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
+                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -138,13 +143,21 @@ public class CampaignProcessor {
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
     final Campaign existingCampaign = this.service.getById(id);
+    if (existingCampaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_DRAFT) {
+      throw new BusinessRuleViolationException(
+          "Cannot update a campaign that is not in draft status");
+    }
 
     final Product updatedProduct =
         this.productProcessor.updateProduct(existingCampaign.getProduct(), request);
     this.campaignMapper.updateCampaign(request, existingCampaign);
 
     final Campaign updatedCampaign =
-        existingCampaign.toBuilder().product(updatedProduct).updatedBy(requesterId).build();
+        existingCampaign.toBuilder()
+            .product(updatedProduct)
+            .updatedBy(requesterId)
+            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+            .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -280,6 +293,20 @@ public class CampaignProcessor {
               .build());
     }
     return this.campaignAssignmentService.create(assignments);
+  }
+
+  /**
+   * ORDER is always required — it's the claim-creation screenshot — regardless of what the request
+   * selected, and CASHBACK is implicit (appended by {@code CampaignStepResolver}) so it is never
+   * persisted as part of the selection.
+   */
+  private static List<CampaignStepType> normalizeRequiredSteps(
+      final List<CampaignStepType> requiredSteps) {
+    final Set<CampaignStepType> steps =
+        requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
+    steps.add(CampaignStepType.ORDER);
+    steps.remove(CampaignStepType.CASHBACK);
+    return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
   }
 
   private void validateCampaignSlots(final CampaignRequestDto request) {

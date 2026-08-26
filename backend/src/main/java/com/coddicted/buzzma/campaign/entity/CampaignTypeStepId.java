@@ -10,6 +10,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * @see CampaignTypeStep
+ */
+@Deprecated
 @Getter
 @Embeddable
 @NoArgsConstructor

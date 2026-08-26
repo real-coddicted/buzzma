@@ -79,6 +79,7 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
       termsAndConditions: form.termsAndConditions.trim() || null,
       startDate: form.startDate || null,
       endDate: form.endDate || null,
+      requiredSteps: form.requiredSteps,
       ...(action ? { action } : {}),
     }
   }

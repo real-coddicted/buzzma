@@ -1,8 +1,8 @@
 package com.coddicted.buzzma.claim.controller;
 
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
@@ -67,7 +67,7 @@ public class ClaimController {
   private final ClaimReviewService claimReviewService;
   private final ClaimAccountingService claimAccountingService;
   private final DealService dealService;
-  private final CampaignTypeStepService campaignTypeStepService;
+  private final CampaignStepResolver campaignStepResolver;
   private final ClaimMapper claimMapper;
   private final ClaimReviewMapper claimReviewMapper;
   private final ClaimReviewProcessor claimReviewProcessor;
@@ -78,7 +78,7 @@ public class ClaimController {
       final ClaimReviewService claimReviewService,
       final ClaimAccountingService claimAccountingService,
       final DealService dealService,
-      final CampaignTypeStepService campaignTypeStepService,
+      final CampaignStepResolver campaignStepResolver,
       final ClaimMapper claimMapper,
       final ClaimReviewMapper claimReviewMapper,
       final ClaimReviewProcessor claimReviewProcessor,
@@ -87,7 +87,7 @@ public class ClaimController {
     this.claimReviewService = claimReviewService;
     this.claimAccountingService = claimAccountingService;
     this.dealService = dealService;
-    this.campaignTypeStepService = campaignTypeStepService;
+    this.campaignStepResolver = campaignStepResolver;
     this.claimMapper = claimMapper;
     this.claimReviewMapper = claimReviewMapper;
     this.claimReviewProcessor = claimReviewProcessor;
@@ -357,16 +357,12 @@ public class ClaimController {
   }
 
   private int currentStep(final Claim claim, final Deal deal) {
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
-    for (final CampaignTypeStep step : steps) {
-      if (step.getId().getStepType() == claim.getCurrentStep()) {
-        return step.getStepOrder();
-      }
+    if (claim.getCurrentStep() == null) {
+      return 0;
     }
-    return 0;
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
+    final int index = steps.indexOf(claim.getCurrentStep());
+    return index >= 0 ? index + 1 : 0;
   }
 
   private byte[] readBytes(final MultipartFile file) {

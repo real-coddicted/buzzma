@@ -17,8 +17,8 @@ import com.coddicted.buzzma.campaign.dto.CampaignSummaryResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.SharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
-import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.SharedCampaignSummaryMapper;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
@@ -27,7 +27,7 @@ import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -63,9 +63,8 @@ class CampaignControllerTest {
 
   @MockBean private CampaignService campaignService;
   @MockBean private CampaignMapper campaignMapper;
-  @MockBean private CampaignTypeStepMapper campaignTypeStepMapper;
   @MockBean private CampaignProcessor campaignProcessor;
-  @MockBean private CampaignTypeStepService campaignTypeStepService;
+  @MockBean private CampaignStepResolver campaignStepResolver;
   @MockBean private ShareableCampaignMapper shareableCampaignMapper;
   @MockBean private SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
 
@@ -120,6 +119,41 @@ class CampaignControllerTest {
         .perform(
             post("/api/v1/campaigns").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isUnauthorized());
+  }
+
+  // --- GET /api/v1/campaigns/step-config ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetStepConfigReturnsSelectableStepsInOrder() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/campaigns/step-config"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].type").value("ORDER"))
+        .andExpect(jsonPath("$[1].type").value("RATING"))
+        .andExpect(jsonPath("$[2].type").value("REVIEW"))
+        .andExpect(jsonPath("$[3].type").value("RETURN_WINDOW"))
+        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(4)));
+  }
+
+  // --- GET /api/v1/campaigns/{id}/step-config ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void testGetStepConfigForCampaignReturnsResolvedStepsWithCashbackLast() throws Exception {
+    final UUID campaignId = UUID.randomUUID();
+    final Campaign campaign = Campaign.builder().id(campaignId).build();
+    when(campaignService.getById(campaignId)).thenReturn(campaign);
+    when(campaignStepResolver.resolve(campaign))
+        .thenReturn(List.of(CampaignStepType.ORDER, CampaignStepType.CASHBACK));
+
+    mockMvc
+        .perform(get("/api/v1/campaigns/" + campaignId + "/step-config"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].type").value("ORDER"))
+        .andExpect(jsonPath("$[0].stepOrder").value(1))
+        .andExpect(jsonPath("$[1].type").value("CASHBACK"))
+        .andExpect(jsonPath("$[1].stepOrder").value(2));
   }
 
   // --- PATCH /api/v1/campaigns/{id} (update) ---

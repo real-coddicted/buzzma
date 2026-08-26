@@ -109,6 +109,7 @@ export interface CampaignRequestDto {
   termsAndConditions: string | null
   startDate: string | null
   endDate: string | null
+  requiredSteps: string[]
   action?: 'CAMPAIGN_ACTION_PUBLISH' | 'CAMPAIGN_ACTION_PAUSE' | 'CAMPAIGN_ACTION_RESUME' | 'CAMPAIGN_ACTION_CLOSE' | 'CAMPAIGN_ACTION_COMPLETE'
 }
 

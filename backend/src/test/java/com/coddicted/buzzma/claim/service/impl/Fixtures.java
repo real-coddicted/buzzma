@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.claim.service.impl;
 
-import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -13,7 +12,6 @@ import java.util.UUID;
 
 final class Fixtures {
 
-  static final CampaignType CAMPAIGN_TYPE = CampaignType.CAMPAIGN_TYPE_REVIEW;
   static final String ECOMMERCE_ORDER_ID = "403-1234567-8901234";
   static final Platform PLATFORM = Platform.PLATFORM_AMAZON;
 

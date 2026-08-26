@@ -2268,6 +2268,7 @@ export interface components {
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            requiredSteps?: ("ORDER" | "RATING" | "REVIEW" | "RETURN_WINDOW" | "CASHBACK")[];
             /** @enum {string} */
             action?: "CAMPAIGN_ACTION_PUBLISH" | "CAMPAIGN_ACTION_PAUSE" | "CAMPAIGN_ACTION_RESUME" | "CAMPAIGN_ACTION_CLOSE" | "CAMPAIGN_ACTION_COMPLETE";
         };
@@ -2315,6 +2316,7 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            requiredSteps?: ("ORDER" | "RATING" | "REVIEW" | "RETURN_WINDOW" | "CASHBACK")[];
             openToAll?: boolean;
             affiliateLinkAllowed?: boolean;
             commissionToAllPaise?: number;

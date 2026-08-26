@@ -11,20 +11,16 @@ import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_R
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -40,7 +36,6 @@ import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -63,7 +58,7 @@ class ClaimServiceImplTest {
   @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
-  @Mock private CampaignTypeStepService mockCampaignTypeStepService;
+  @Mock private CampaignStepResolver mockCampaignStepResolver;
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
@@ -79,7 +74,7 @@ class ClaimServiceImplTest {
             this.mockCampaignShareService,
             this.mockDealService,
             this.mockCampaignSlotRepository,
-            this.mockCampaignTypeStepService,
+            this.mockCampaignStepResolver,
             this.mockStorageService,
             this.mockExtractionService,
             this.mockCodeGenerationService);
@@ -195,8 +190,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -228,8 +222,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -258,8 +251,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -292,8 +284,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -353,8 +344,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_3));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -386,8 +376,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -599,21 +588,11 @@ class ClaimServiceImplTest {
     assertEquals(List.of(SCREENSHOT_1), result);
   }
 
-  private Map<com.coddicted.buzzma.campaign.entity.CampaignType, List<CampaignTypeStep>>
-      stepConfig() {
-    return Map.of(
-        CAMPAIGN_TYPE,
-        List.of(
-            mockStep(CampaignStepType.ORDER, 1),
-            mockStep(CampaignStepType.RATING, 2),
-            mockStep(CampaignStepType.REVIEW, 3),
-            mockStep(CampaignStepType.RETURN_WINDOW, 4)));
-  }
-
-  private CampaignTypeStep mockStep(final CampaignStepType type, final int order) {
-    final CampaignTypeStep step = mock(CampaignTypeStep.class);
-    lenient().when(step.getId()).thenReturn(new CampaignTypeStepId(CAMPAIGN_TYPE, type));
-    when(step.getStepOrder()).thenReturn(order);
-    return step;
-  }
+  private static final List<CampaignStepType> STEPS =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
 }

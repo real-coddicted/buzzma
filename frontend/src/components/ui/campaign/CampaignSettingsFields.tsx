@@ -1,14 +1,17 @@
+import { useEffect, useState } from 'react'
 import type { LinkedEntity } from '../../../types'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { LinkedEntitiesTable } from './LinkedEntitiesTable'
 import { useConnections } from '../../../hooks/useConnections'
 import { ToggleSwitch } from '../ToggleSwitch'
+import { fetchStepConfig, type CampaignStepDto } from '../../../api/campaignApi'
 
 interface FormSlice {
   totalSlots: string
   returnWindowDays: string
   openToAll: boolean
   assignees: LinkedEntity[]
+  requiredSteps: string[]
 }
 
 interface Props {
@@ -20,6 +23,11 @@ interface Props {
 
 export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
   const { connections, loading } = useConnections(!readOnly)
+  const [selectableSteps, setSelectableSteps] = useState<CampaignStepDto[]>([])
+
+  useEffect(() => {
+    fetchStepConfig().then(setSelectableSteps)
+  }, [])
 
   function handleOpenToAllToggle(next: boolean) {
     set('openToAll', next)
@@ -27,6 +35,12 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
       ? connections.map(c => ({ id: c.id, name: c.name, slotsAvailable: 0, commissionOffered: 0 }))
       : []
     )
+  }
+
+  function handleStepToggle(type: string, checked: boolean) {
+    set('requiredSteps', checked
+      ? [...form.requiredSteps, type]
+      : form.requiredSteps.filter(t => t !== type))
   }
 
   return (
@@ -57,6 +71,26 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
           onWheel={e => e.currentTarget.blur()}
           />
           {errors.returnWindowDays && <p className={errorClass}>{errors.returnWindowDays}</p>}
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Required Screenshots</label>
+        <div className="space-y-2">
+          {selectableSteps.map(step => (
+            <label
+              key={step.type}
+              className="flex items-center gap-2 text-xs text-ink-light-primary dark:text-ink-dark-primary"
+            >
+              <input
+                type="checkbox"
+                checked={form.requiredSteps.includes(step.type)}
+                disabled={readOnly || step.type === 'ORDER'}
+                onChange={e => handleStepToggle(step.type, e.target.checked)}
+              />
+              {step.label}
+            </label>
+          ))}
         </div>
       </div>
 

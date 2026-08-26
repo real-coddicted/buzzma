@@ -1,12 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -31,7 +30,6 @@ import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,7 +55,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final CampaignShareService campaignShareService;
   private final DealService dealService;
   private final CampaignSlotRepository campaignSlotRepository;
-  private final CampaignTypeStepService campaignTypeStepService;
+  private final CampaignStepResolver campaignStepResolver;
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
@@ -69,7 +67,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignShareService campaignShareService,
       final DealService dealService,
       final CampaignSlotRepository campaignSlotRepository,
-      final CampaignTypeStepService campaignTypeStepService,
+      final CampaignStepResolver campaignStepResolver,
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService) {
@@ -79,7 +77,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.campaignShareService = campaignShareService;
     this.dealService = dealService;
     this.campaignSlotRepository = campaignSlotRepository;
-    this.campaignTypeStepService = campaignTypeStepService;
+    this.campaignStepResolver = campaignStepResolver;
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
@@ -163,10 +161,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.REVIEW, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -199,10 +194,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.RATING, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -234,10 +226,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.RETURN_WINDOW, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -506,22 +495,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   private void validatePrecedingStep(
-      final List<CampaignTypeStep> steps,
+      final List<CampaignStepType> steps,
       final CampaignStepType targetStep,
       final CampaignStepType currentStep) {
-    final List<CampaignTypeStep> sorted =
-        steps.stream().sorted(Comparator.comparingInt(CampaignTypeStep::getStepOrder)).toList();
-    int targetIndex = -1;
-    for (int i = 0; i < sorted.size(); i++) {
-      if (sorted.get(i).getId().getStepType() == targetStep) {
-        targetIndex = i;
-        break;
-      }
-    }
+    final int targetIndex = steps.indexOf(targetStep);
     if (targetIndex <= 0) {
       throw new BusinessRuleViolationException("Invalid step configuration for " + targetStep);
     }
-    final CampaignStepType expectedStep = sorted.get(targetIndex - 1).getId().getStepType();
+    final CampaignStepType expectedStep = steps.get(targetIndex - 1);
     if (currentStep != expectedStep) {
       LOGGER.warn(
           "Cannot submit {} — currentStep is {}, expected {}",

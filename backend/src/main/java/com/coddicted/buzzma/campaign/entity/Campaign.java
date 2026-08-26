@@ -105,6 +105,10 @@ public class Campaign implements Auditable {
   @Column(name = "assignments_draft", columnDefinition = "jsonb")
   private List<CampaignAssignmentRequestDto> assignmentsDraft;
 
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "required_steps", columnDefinition = "jsonb")
+  private List<CampaignStepType> requiredSteps;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;

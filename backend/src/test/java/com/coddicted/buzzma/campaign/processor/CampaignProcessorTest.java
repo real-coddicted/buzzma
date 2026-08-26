@@ -23,6 +23,8 @@ import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -127,6 +129,41 @@ class CampaignProcessorTest {
     assertEquals(ASSIGNEE_ID, assignmentsCaptor.getValue().get(0).getAssigneeId());
 
     verify(campaignMapper).toResponse(CAMPAIGN_1_PUBLISHED, expectedAssignments);
+  }
+
+  @Test
+  void testUpdateCampaignOnNonDraftCampaignThrows() {
+    final Campaign activeCampaign =
+        CAMPAIGN_1.toBuilder().status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE).build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(activeCampaign);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                campaignProcessor.updateCampaign(
+                    REQUESTER_ID, CAMPAIGN_ID_1, CampaignRequestDto.builder().build()));
+    assertEquals("Cannot update a campaign that is not in draft status", ex.getMessage());
+  }
+
+  @Test
+  void testUpdateCampaignNormalizesRequiredStepsForcingOrderAndDroppingCashback() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .requiredSteps(List.of(CampaignStepType.CASHBACK, CampaignStepType.REVIEW))
+            .build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(productProcessor.updateProduct(CAMPAIGN_1.getProduct(), request)).thenReturn(PRODUCT_1);
+
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(campaignService.update(captor.capture())).thenReturn(CAMPAIGN_1);
+    when(campaignMapper.toResponse(CAMPAIGN_1)).thenReturn(CampaignResponseDto.builder().build());
+
+    campaignProcessor.updateCampaign(REQUESTER_ID, CAMPAIGN_ID_1, request);
+
+    assertEquals(
+        List.of(CampaignStepType.ORDER, CampaignStepType.REVIEW),
+        captor.getValue().getRequiredSteps());
   }
 
   @Test

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { StepperStep } from '../Stepper'
-import { fetchStepConfig } from '../../../api/campaignApi'
+import { fetchCampaignStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { CLAIM_STATUS_CONFIG } from '../claim-review/claimReviewConstants'
@@ -21,12 +21,11 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
   const [rawStepTypes, setRawStepTypes] = useState<string[]>([])
 
   useEffect(() => {
-    fetchStepConfig().then(config => {
-      const cfg = config[deal.dealType] ?? []
+    fetchCampaignStepConfig(deal.campaignId).then(cfg => {
       setSteps(toStepperSteps(cfg))
-      setRawStepTypes(cfg.map((s: { type: string }) => s.type))
+      setRawStepTypes(cfg.map(s => s.type))
     })
-  }, [deal.dealType])
+  }, [deal.campaignId])
 
   const stepStatuses = getStepVerificationStatuses(rawStepTypes, deal.screenshots ?? [])
   const screenshotRejected = stepStatuses.includes('rejected') && deal.claimStatus !== 'REJECTED'

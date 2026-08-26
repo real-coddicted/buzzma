@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
@@ -62,6 +63,8 @@ public class CampaignRequestDto {
   @Nullable String termsAndConditions;
 
   @Nullable String sellerName;
+
+  @Nullable List<CampaignStepType> requiredSteps;
 
   @Nullable CampaignAction action;
 }

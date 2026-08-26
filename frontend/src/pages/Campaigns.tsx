@@ -46,6 +46,7 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
       commissionOffered: paiseToRupees(a.commissionOfferedPaise ?? 0),
     })),
     termsAndConditions: dto.termsAndConditions ?? '',
+    requiredSteps: dto.requiredSteps ?? ['ORDER'],
   }
 }
 

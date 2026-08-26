@@ -7,7 +7,7 @@ import com.coddicted.buzzma.campaign.dto.DealResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -46,7 +46,7 @@ class ClaimControllerTest {
   private ClaimReviewService claimReviewService;
   private ClaimAccountingService claimAccountingService;
   private DealService dealService;
-  private CampaignTypeStepService campaignTypeStepService;
+  private CampaignStepResolver campaignStepResolver;
   private ClaimMapper claimMapper;
   private ClaimReviewMapper claimReviewMapper;
   private ClaimReviewProcessor claimReviewProcessor;
@@ -59,7 +59,7 @@ class ClaimControllerTest {
     this.claimReviewService = Mockito.mock(ClaimReviewService.class);
     this.claimAccountingService = Mockito.mock(ClaimAccountingService.class);
     this.dealService = Mockito.mock(DealService.class);
-    this.campaignTypeStepService = Mockito.mock(CampaignTypeStepService.class);
+    this.campaignStepResolver = Mockito.mock(CampaignStepResolver.class);
     this.claimMapper = Mockito.mock(ClaimMapper.class);
     this.claimReviewMapper = Mockito.mock(ClaimReviewMapper.class);
     this.claimReviewProcessor = Mockito.mock(ClaimReviewProcessor.class);
@@ -70,7 +70,7 @@ class ClaimControllerTest {
             this.claimReviewService,
             this.claimAccountingService,
             this.dealService,
-            this.campaignTypeStepService,
+            this.campaignStepResolver,
             this.claimMapper,
             this.claimReviewMapper,
             this.claimReviewProcessor,
@@ -88,7 +88,7 @@ class ClaimControllerTest {
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
 
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
 
     final DealResponseDto mappedDeal = DealResponseDto.builder().id(DEAL_ID).build();
     final ClaimResponseDto mappedDto =
@@ -126,7 +126,7 @@ class ClaimControllerTest {
         .thenReturn(new PageImpl<>(List.of(claim), PageRequest.of(0, 10), 1));
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
 
     final DealResponseDto mappedDeal =
         DealResponseDto.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
@@ -153,7 +153,7 @@ class ClaimControllerTest {
     final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
     when(this.userService.getNamesByIds(Mockito.any())).thenReturn(Collections.emptyMap());
 
     final DealResponseDto mappedDeal = DealResponseDto.builder().id(DEAL_ID).build();
@@ -190,7 +190,7 @@ class ClaimControllerTest {
     final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
     when(this.userService.getNamesByIds(Mockito.any())).thenReturn(Collections.emptyMap());
 
     final DealResponseDto mappedDeal = DealResponseDto.builder().id(DEAL_ID).build();
@@ -218,7 +218,7 @@ class ClaimControllerTest {
     final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
 
     final ClaimResponseDto mappedDto =
         ClaimResponseDto.builder()
@@ -248,7 +248,7 @@ class ClaimControllerTest {
     final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
 
     final ClaimResponseDto mappedDto =
         ClaimResponseDto.builder()
@@ -272,7 +272,7 @@ class ClaimControllerTest {
     final Deal deal = Deal.builder().id(DEAL_ID).campaign(campaign).build();
     when(this.dealService.getById(DEAL_ID)).thenReturn(deal);
     when(this.claimService.listScreenshots(CLAIM_ID)).thenReturn(List.of());
-    when(this.campaignTypeStepService.getStepConfig()).thenReturn(Map.of());
+    when(this.campaignStepResolver.resolve(campaign)).thenReturn(List.of());
 
     final ClaimResponseDto mappedDto =
         ClaimResponseDto.builder()

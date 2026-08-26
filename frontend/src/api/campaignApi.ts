@@ -11,18 +11,24 @@ const API_BASE = '/api/v1'
 export interface CampaignStepDto {
   type: string
   label: string
+  stepOrder: number
 }
 
-export type StepConfig = Record<string, CampaignStepDto[]>
+let stepConfigCache: Promise<CampaignStepDto[]> | null = null
 
-let stepConfigCache: Promise<StepConfig> | null = null
-
-export function fetchStepConfig(): Promise<StepConfig> {
+/** GET /campaigns/step-config — the flat set of screenshot steps selectable when configuring a campaign. */
+export function fetchStepConfig(): Promise<CampaignStepDto[]> {
   if (!stepConfigCache) {
     stepConfigCache = fetchWithAuth(`${API_BASE}/campaigns/step-config`)
-      .then(r => r.json() as Promise<StepConfig>)
+      .then(r => r.json() as Promise<CampaignStepDto[]>)
   }
   return stepConfigCache
+}
+
+/** GET /campaigns/{id}/step-config — the resolved, ordered claim steps for one campaign. */
+export function fetchCampaignStepConfig(campaignId: string): Promise<CampaignStepDto[]> {
+  return fetchWithAuth(`${API_BASE}/campaigns/${campaignId}/step-config`)
+    .then(r => r.json() as Promise<CampaignStepDto[]>)
 }
 
 type BackendRequest = components['schemas']['CampaignRequestDto']
@@ -61,6 +67,7 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     totalSlots: dto.totalSlots ?? 1,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
@@ -276,6 +283,7 @@ export async function updateCampaign(
     totalSlots: dto.totalSlots ?? 1,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
