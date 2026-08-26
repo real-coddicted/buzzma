@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_TURNSTILE_SITE_KEY: string
+  readonly VITE_APP_BASE_URL: string
 }
 
 interface ImportMeta {
@@ -19,6 +20,7 @@ interface TurnstileRenderOptions {
 }
 
 interface Window {
+  __APP_BASE_URL__?: string
   turnstile?: {
     render(container: string | HTMLElement, options: TurnstileRenderOptions): string
     reset(widgetId: string): void

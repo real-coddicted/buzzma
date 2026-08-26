@@ -29,6 +29,7 @@ import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/clie
 import { signOut } from './api/authApi'
 import { useTheme } from './hooks/useTheme'
 import { isTabDisabled, getFirstEnabledPage } from './utils/tabRedirect'
+import { isAuthPath, POST_LOGIN_REDIRECT_KEY } from './utils/postLoginRedirect'
 import type { NavPage } from './types'
 import type { components } from './types/api'
 
@@ -90,6 +91,12 @@ export default function App() {
   }, [userSettings, activePage, navigate])
 
   useEffect(() => {
+    if (isAuthenticated) return
+    if (isAuthPath(location.pathname)) return
+    sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, location.pathname + location.search)
+  }, [isAuthenticated, location.pathname, location.search])
+
+  useEffect(() => {
     if (!isAuthenticated) return
     fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
   }, [isAuthenticated])
@@ -103,7 +110,16 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <Auth onAuth={() => setIsAuthenticated(true)} />
+    return (
+      <Auth
+        onAuth={() => {
+          const redirectTo = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+          sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+          setIsAuthenticated(true)
+          if (redirectTo) navigate(redirectTo, { replace: true })
+        }}
+      />
+    )
   }
 
   if (mustReacceptTerms) {

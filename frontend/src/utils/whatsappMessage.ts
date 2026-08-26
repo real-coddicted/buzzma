@@ -1,6 +1,14 @@
 import type { Deal } from '../types/DealTypes'
 import { paiseToRupees, formatRupees } from './currency'
 
+const DEFAULT_APP_BASE_URL = 'https://buzzmah.com'
+
+export function buildDealShareUrl(dealId: string): string {
+  const runtimeBaseUrl = typeof window !== 'undefined' ? window.__APP_BASE_URL__ : undefined
+  const baseUrl = runtimeBaseUrl || import.meta.env.VITE_APP_BASE_URL || DEFAULT_APP_BASE_URL
+  return `${baseUrl}/deals?view=detail&id=${encodeURIComponent(dealId)}`
+}
+
 export function buildWhatsAppMessage(deal: Deal, mediatorName: string): string {
   const original = paiseToRupees(deal.originalPricePaise)
   const offered = paiseToRupees(deal.offeredPricePaise)
@@ -18,7 +26,7 @@ export function buildWhatsAppMessage(deal: Deal, mediatorName: string): string {
     `🛒 Platform: ${deal.platformLabel}`,
     '',
     '🔗 Link:',
-    deal.productUrl,
+    buildDealShareUrl(deal.id),
     '',
     `👤 Mediator Name: ${mediatorName}`,
     `💰 Original Price: ₹${formatRupees(original)}/-`,

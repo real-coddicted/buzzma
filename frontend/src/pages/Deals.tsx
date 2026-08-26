@@ -16,6 +16,7 @@ export function Deals() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const view     = searchParams.get('view')
+  const dealId   = searchParams.get('id')
 
   const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
   const [search, setSearch]                 = useState('')
@@ -27,6 +28,12 @@ export function Deals() {
   const [currentPage, setCurrentPage]       = useState(1)
 
   const [toastError, setToastError]         = useState<string | null>(null)
+
+  useEffect(() => {
+    if (view !== 'detail' || !dealId || selectedDeal || !explorePage) return
+    const deal = explorePage.items.find(d => d.id === dealId)
+    if (deal) setSelectedDeal(deal)
+  }, [view, dealId, selectedDeal, explorePage])
 
   useEffect(() => {
     let cancelled = false
