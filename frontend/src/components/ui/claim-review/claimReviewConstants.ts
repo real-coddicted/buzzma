@@ -2,8 +2,10 @@ import type { ClaimStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
   'ORDERED':                    { label: 'Ordered',                    colorClass: 'text-neon-blue'   },
+  'DELIVERY_PROOF_SUBMITTED':   { label: 'Delivery Proof Submitted',   colorClass: 'text-neon-purple' },
   'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
   'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },
+  'SELLER_FEEDBACK_SUBMITTED':  { label: 'Seller Feedback Submitted',  colorClass: 'text-neon-purple' },
   'PROOF_SUBMITTED':            { label: 'Proof Submitted',            colorClass: 'text-neon-purple' },
   'PROOF_REJECTED':             { label: 'Proof Rejected',             colorClass: 'text-neon-red'    },
   'UNDER_REVIEW':               { label: 'Under Review',               colorClass: 'text-neon-yellow' },
@@ -26,6 +28,7 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
   SCREENSHOT_TYPE_REVIEW: { label: 'Written Review', tag: 'REVIEW', tagClass: 'bg-neon-green/10  text-neon-green  border border-neon-green/25' },
   SCREENSHOT_TYPE_RETURN: { label: 'Return Request', tag: 'RETURN', tagClass: 'bg-neon-red/10    text-neon-red    border border-neon-red/25' },
   SCREENSHOT_TYPE_DELIVERY: { label: 'Delivery Proof', tag: 'DELIVERY', tagClass: 'bg-neon-pink/10   text-neon-pink   border border-neon-pink/25' },
+  SCREENSHOT_TYPE_SELLER_FEEDBACK: { label: 'Seller Feedback', tag: 'FEEDBACK', tagClass: 'bg-neon-purple/10 text-neon-purple border border-neon-purple/25' },
 }
 
 export const CLAIM_REVIEW_COLUMNS = [

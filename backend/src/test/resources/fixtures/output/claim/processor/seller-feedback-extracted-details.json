@@ -5,5 +5,6 @@
   "orderId": { "extractedValue": "403-1234567-8901234", "score": null },
   "rating": { "extractedValue": "5", "score": null },
   "feedbackText": { "extractedValue": "Excellent", "score": null },
-  "comment": { "extractedValue": "Great product, fast shipping and well packaged.", "score": null }
+  "comment": { "extractedValue": "Great product, fast shipping and well packaged.", "score": null },
+  "reviewerName": { "extractedValue": "Jane Buyer", "score": null }
 }

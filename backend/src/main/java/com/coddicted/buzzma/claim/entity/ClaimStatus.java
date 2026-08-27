@@ -5,8 +5,10 @@ import lombok.Getter;
 @Getter
 public enum ClaimStatus {
   ORDERED("Ordered"),
+  DELIVERY_PROOF_SUBMITTED("Delivery Proof Submitted"),
   RATING_SUBMITTED("Rating Submitted"),
   REVIEW_SUBMITTED("Review Submitted"),
+  SELLER_FEEDBACK_SUBMITTED("Seller Feedback Submitted"),
   PROOF_SUBMITTED("Proof Submitted"),
   PROOF_REJECTED("Proof Rejected"),
   UNDER_REVIEW("Under Review"),

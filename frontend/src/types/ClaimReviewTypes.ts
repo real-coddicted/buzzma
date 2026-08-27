@@ -5,8 +5,10 @@ type ScoredValue = components['schemas']['ScoredValue']
 
 export type ClaimStatus =
   | 'ORDERED'
+  | 'DELIVERY_PROOF_SUBMITTED'
   | 'RATING_SUBMITTED'
   | 'REVIEW_SUBMITTED'
+  | 'SELLER_FEEDBACK_SUBMITTED'
   | 'PROOF_SUBMITTED'
   | 'PROOF_REJECTED'
   | 'UNDER_REVIEW'

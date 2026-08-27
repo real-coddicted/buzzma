@@ -267,7 +267,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.PROOF_SUBMITTED)
+                .status(ClaimStatus.DELIVERY_PROOF_SUBMITTED)
                 .currentStep(CampaignStepType.DELIVERY)
                 .updatedBy(ownerId)
                 .build());
@@ -275,6 +275,39 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final ClaimScreenshot deliveryScreenshot =
         saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_DELIVERY, ownerId);
     this.extractionService.submitJob(deliveryScreenshot.getId(), ownerId);
+
+    return new ClaimWithDeal(updated, deal);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitSellerFeedback(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
+    validatePrecedingStep(steps, CampaignStepType.SELLER_FEEDBACK, claim.getCurrentStep());
+
+    final String screenshotKey =
+        this.storageService.store("claims", filename, contentType, screenshot);
+
+    final Claim updated =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .status(ClaimStatus.SELLER_FEEDBACK_SUBMITTED)
+                .currentStep(CampaignStepType.SELLER_FEEDBACK)
+                .updatedBy(ownerId)
+                .build());
+
+    final ClaimScreenshot sellerFeedbackScreenshot =
+        saveScreenshot(
+            claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK, ownerId);
+    this.extractionService.submitJob(sellerFeedbackScreenshot.getId(), ownerId);
 
     return new ClaimWithDeal(updated, deal);
   }

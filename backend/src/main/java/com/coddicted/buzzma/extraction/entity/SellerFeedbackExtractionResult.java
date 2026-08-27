@@ -16,4 +16,5 @@ public class SellerFeedbackExtractionResult {
   Integer rating;
   String feedbackText;
   String comment;
+  String reviewerName;
 }

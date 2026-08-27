@@ -59,11 +59,13 @@ public class SellerFeedbackScreenshotProcessor implements ClaimScreenshotProcess
             SellerFeedbackExtractionResult.class);
 
     LOGGER.info(
-        "processSellerFeedbackScreenshot: extracted sellerName={} productName={} orderId={} rating={} for screenshot {}",
+        "processSellerFeedbackScreenshot: extracted sellerName={} productName={} orderId={} rating={}"
+            + " reviewerName={} for screenshot {}",
         extracted.getSellerName(),
         extracted.getProductName(),
         extracted.getOrderId(),
         extracted.getRating(),
+        extracted.getReviewerName() != null,
         screenshot.getId());
 
     final String platformValue =
@@ -94,6 +96,9 @@ public class SellerFeedbackScreenshotProcessor implements ClaimScreenshotProcess
     details.put(
         "comment",
         ScoredValue.builder().extractedValue(extracted.getComment()).score(null).build());
+    details.put(
+        BuzzmahConstants.REVIEWER_NAME,
+        ScoredValue.builder().extractedValue(extracted.getReviewerName()).score(null).build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);

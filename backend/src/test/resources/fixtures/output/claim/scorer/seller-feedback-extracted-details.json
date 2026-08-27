@@ -5,5 +5,6 @@
   "orderId": { "extractedValue": "403-1234567-8901234", "score": null, "mismatch": false },
   "rating": { "extractedValue": "5", "score": 100, "mismatch": false },
   "feedbackText": { "extractedValue": "Excellent", "score": null, "mismatch": false },
-  "comment": { "extractedValue": "Great product, fast shipping and well packaged.", "score": null, "mismatch": false }
+  "comment": { "extractedValue": "Great product, fast shipping and well packaged.", "score": null, "mismatch": false },
+  "reviewerName": { "extractedValue": "Jane Buyer", "score": null, "mismatch": false }
 }

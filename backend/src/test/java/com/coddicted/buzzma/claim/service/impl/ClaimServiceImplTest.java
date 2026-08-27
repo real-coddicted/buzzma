@@ -1,15 +1,17 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.DELIVERY_PROOF_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
-import static com.coddicted.buzzma.claim.entity.ClaimStatus.PROOF_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.UNDER_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DELIVERY;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RATING;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_REVIEW;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK;
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -439,7 +441,7 @@ class ClaimServiceImplTest {
     assertEquals(CLAIM_2, result.claim());
     assertEquals(DEAL_1, result.deal());
     final Claim saved = claimCaptor.getValue();
-    assertEquals(PROOF_SUBMITTED, saved.getStatus());
+    assertEquals(DELIVERY_PROOF_SUBMITTED, saved.getStatus());
     assertEquals(CampaignStepType.DELIVERY, saved.getCurrentStep());
     assertEquals(OWNER_ID, saved.getUpdatedBy());
 
@@ -477,6 +479,69 @@ class ClaimServiceImplTest {
             NotFoundException.class,
             () ->
                 this.claimService.submitDelivery(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
+  void testSubmitSellerFeedback() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final ClaimWithDeal result =
+        this.claimService.submitSellerFeedback(
+            CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_1, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(SELLER_FEEDBACK_SUBMITTED, saved.getStatus());
+    assertEquals(CampaignStepType.SELLER_FEEDBACK, saved.getCurrentStep());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
+    assertEquals(SCREENSHOT_TYPE_SELLER_FEEDBACK, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testSubmitSellerFeedbackWhenWrongStep() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.submitSellerFeedback(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Seller Feedback can only be submitted after Review", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitSellerFeedbackWhenNotFound() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimService.submitSellerFeedback(
                     CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
     assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
@@ -667,6 +732,15 @@ class ClaimServiceImplTest {
           CampaignStepType.DELIVERY,
           CampaignStepType.RATING,
           CampaignStepType.REVIEW,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
+
+  private static final List<CampaignStepType> STEPS_WITH_SELLER_FEEDBACK =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.SELLER_FEEDBACK,
           CampaignStepType.RETURN_WINDOW,
           CampaignStepType.CASHBACK);
 }

@@ -289,6 +289,31 @@ export async function submitDelivery(claimId: string, screenshot: File): Promise
   return (await res.json()) as ClaimResponseDto
 }
 
+export async function submitSellerFeedback(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/seller-feedback`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to submit seller feedback screenshot. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
 export async function submitReview(claimId: string, screenshot: File, reviewUrl?: string): Promise<ClaimResponseDto> {
   const formData = new FormData()
   formData.append('screenshot', screenshot)

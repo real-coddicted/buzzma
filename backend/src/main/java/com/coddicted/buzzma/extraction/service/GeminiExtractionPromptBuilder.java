@@ -102,7 +102,8 @@ public class GeminiExtractionPromptBuilder {
         "orderId": "<order identifier string or null>",
         "rating": <the numeric star rating given to the seller as an integer between 1 and 5, or null>,
         "feedbackText": "<the short feedback label visible in the screenshot (e.g. 'Excellent', 'Good', 'Fair', 'Poor'), or null>",
-        "comment": "<the full free-text comment the customer wrote about the seller, if any (e.g. under a 'Comments' heading), or null>"
+        "comment": "<the full free-text comment the customer wrote about the seller, if any (e.g. under a 'Comments' heading), or null>",
+        "reviewerName": "<the name of the customer/reviewer who left the feedback, or null>"
       }
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);

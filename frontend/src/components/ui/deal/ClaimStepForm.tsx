@@ -9,6 +9,7 @@ import { OrderStep } from './OrderStep'
 import { DeliveryStep } from './DeliveryStep'
 import { RatingStep } from './RatingStep'
 import { ReviewStep } from './ReviewStep'
+import { SellerFeedbackStep } from './SellerFeedbackStep'
 import { ReturnStep } from './ReturnStep'
 import { CashbackStep } from './CashbackStep'
 
@@ -70,6 +71,7 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
       {stepType === 'DELIVERY'      && <DeliveryStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'REVIEW'        && <ReviewStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'SELLER_FEEDBACK' && <SellerFeedbackStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'CASHBACK'      && <CashbackStep />}
     </div>

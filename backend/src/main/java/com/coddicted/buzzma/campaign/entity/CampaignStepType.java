@@ -10,6 +10,7 @@ public enum CampaignStepType {
   DELIVERY("Delivery"),
   RATING("Rating"),
   REVIEW("Review"),
+  SELLER_FEEDBACK("Seller Feedback"),
   RETURN_WINDOW("Return Window"),
   CASHBACK("Cashback");
 
