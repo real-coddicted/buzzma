@@ -158,6 +158,20 @@ public final class ClaimScreenshotScorerUtils {
     return new ExtractedScoredResult(details, overallScore);
   }
 
+  public static ExtractedScoredResult updateExtractedDataForMatchWithManualEntryInSellerFeedback(
+      final Claim claim, final Map<String, ScoredValue> extractedDetails, Integer overallScore) {
+
+    final Map<String, ScoredValue> details =
+        extractedDetails != null ? new HashMap<>(extractedDetails) : new HashMap<>();
+
+    processPlatform(claim, details);
+    processProductName(claim, details);
+    processSellerName(claim, details);
+    overallScore = processOrderId(claim, details, overallScore);
+
+    return new ExtractedScoredResult(details, overallScore);
+  }
+
   private static void processPlatform(final Claim claim, final Map<String, ScoredValue> details) {
     final ScoredValue scoredValue =
         details.getOrDefault(BuzzmahConstants.PLATFORM, new ScoredValue());

@@ -1,0 +1,9 @@
+{
+  "platform": "PLATFORM_AMAZON",
+  "sellerName": "Acme Sellers",
+  "productName": "Test Product",
+  "orderId": "403-1234567-8901234",
+  "rating": 5,
+  "feedbackText": "Excellent",
+  "comment": "Great product, fast shipping and well packaged."
+}

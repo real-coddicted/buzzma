@@ -89,12 +89,33 @@ public class GeminiExtractionPromptBuilder {
       from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String SELLER_FEEDBACK_PROMPT =
+      """
+      You are a seller-feedback-data extractor. Analyze the provided screenshot of a "Leave \
+      Seller Feedback" or "Rate your experience" UI and return ONLY valid JSON with no markdown \
+      fences, no extra text, and no explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "sellerName": "<the seller or sold-by name string, or null>",
+        "productName": "<product name string or null>",
+        "orderId": "<order identifier string or null>",
+        "rating": <the numeric star rating given to the seller as an integer between 1 and 5, or null>,
+        "feedbackText": "<the short feedback label visible in the screenshot (e.g. 'Excellent', 'Good', 'Fair', 'Poor'), or null>",
+        "comment": "<the full free-text comment the customer wrote about the seller, if any (e.g. under a 'Comments' heading), or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
   public String build() {
     return PROMPT;
   }
 
   public String buildRatingPrompt() {
     return RATING_PROMPT;
+  }
+
+  public String buildSellerFeedbackPrompt() {
+    return SELLER_FEEDBACK_PROMPT;
   }
 
   public String buildReviewPrompt() {
