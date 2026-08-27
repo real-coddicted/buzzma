@@ -248,6 +248,38 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
+  @Transactional
+  public ClaimWithDeal submitDelivery(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
+    validatePrecedingStep(steps, CampaignStepType.DELIVERY, claim.getCurrentStep());
+
+    final String screenshotKey =
+        this.storageService.store("claims", filename, contentType, screenshot);
+
+    final Claim updated =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .status(ClaimStatus.PROOF_SUBMITTED)
+                .currentStep(CampaignStepType.DELIVERY)
+                .updatedBy(ownerId)
+                .build());
+
+    final ClaimScreenshot deliveryScreenshot =
+        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_DELIVERY, ownerId);
+    this.extractionService.submitJob(deliveryScreenshot.getId(), ownerId);
+
+    return new ClaimWithDeal(updated, deal);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Claim getById(final UUID claimId, final UUID ownerId) {
     return loadAndVerifyOwnership(claimId, ownerId);

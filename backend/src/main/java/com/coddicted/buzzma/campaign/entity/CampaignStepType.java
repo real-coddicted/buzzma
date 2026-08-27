@@ -6,7 +6,8 @@ import lombok.Getter;
 
 @Getter
 public enum CampaignStepType {
-  ORDER("Order & Upload"),
+  ORDER("Order"),
+  DELIVERY("Delivery"),
   RATING("Rating"),
   REVIEW("Review"),
   RETURN_WINDOW("Return Window"),

@@ -6,5 +6,6 @@ public interface ScoreDatasetKeys {
   String RATING = "ratingData";
   String REVIEW = "reviewData";
   String RETURN = "returnData";
+  String DELIVERY = "deliveryData";
   String SELLER_FEEDBACK = "sellerFeedbackData";
 }

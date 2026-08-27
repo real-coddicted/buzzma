@@ -1,7 +1,8 @@
 {
   "platform": "PLATFORM_AMAZON",
   "productName": "Test Product",
-  "orderId": "112-1234567-1234567",
+  "orderId": "403-1234567-8901234",
   "deliveryDate": "2026-08-12",
-  "deliveryStatus": "Delivered"
+  "deliveryStatus": "Delivered",
+  "orderedBy": "john.doe"
 }

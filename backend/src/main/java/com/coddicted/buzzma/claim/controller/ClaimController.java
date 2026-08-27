@@ -174,6 +174,25 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  @PostMapping("/{id}/delivery")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitDelivery(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitDelivery(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
   @PostMapping("/{id}/update")
   @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto updateScreenshot(

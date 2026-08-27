@@ -1,9 +1,11 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.PROOF_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.UNDER_REVIEW;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DELIVERY;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RATING;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
@@ -230,7 +232,7 @@ class ClaimServiceImplTest {
             () ->
                 this.claimService.submitRating(
                     CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
-    assertEquals("Rating can only be submitted after Order & Upload", ex.getMessage());
+    assertEquals("Rating can only be submitted after Order", ex.getMessage());
   }
 
   @Test
@@ -417,6 +419,69 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testSubmitDelivery() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_DELIVERY);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_2);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final ClaimWithDeal result =
+        this.claimService.submitDelivery(
+            CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_2, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(PROOF_SUBMITTED, saved.getStatus());
+    assertEquals(CampaignStepType.DELIVERY, saved.getCurrentStep());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
+    assertEquals(SCREENSHOT_TYPE_DELIVERY, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testSubmitDeliveryWhenWrongStep() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_2));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_DELIVERY);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.submitDelivery(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Delivery can only be submitted after Order", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitDeliveryWhenNotFound() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimService.submitDelivery(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
   void testGetById() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
@@ -591,6 +656,15 @@ class ClaimServiceImplTest {
   private static final List<CampaignStepType> STEPS =
       List.of(
           CampaignStepType.ORDER,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
+
+  private static final List<CampaignStepType> STEPS_WITH_DELIVERY =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.DELIVERY,
           CampaignStepType.RATING,
           CampaignStepType.REVIEW,
           CampaignStepType.RETURN_WINDOW,

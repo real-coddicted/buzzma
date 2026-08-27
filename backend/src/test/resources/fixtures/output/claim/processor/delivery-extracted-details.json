@@ -1,7 +1,8 @@
 {
   "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
   "productName": { "extractedValue": "Test Product", "score": null },
-  "orderId": { "extractedValue": "112-1234567-1234567", "score": null },
+  "orderId": { "extractedValue": "403-1234567-8901234", "score": null },
   "deliveryDate": { "extractedValue": "2026-08-12", "score": null },
-  "deliveryStatus": { "extractedValue": "Delivered", "score": null }
+  "deliveryStatus": { "extractedValue": "Delivered", "score": null },
+  "orderedBy": { "extractedValue": "john.doe", "score": null }
 }

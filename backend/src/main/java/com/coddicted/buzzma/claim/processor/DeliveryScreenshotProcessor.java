@@ -58,11 +58,12 @@ public class DeliveryScreenshotProcessor implements ClaimScreenshotProcessor {
 
     LOGGER.info(
         "processDeliveryScreenshot: extracted productName={} orderId={} deliveryDate={}"
-            + " deliveryStatus={} for screenshot {}",
+            + " deliveryStatus={} orderedBy={} for screenshot {}",
         extracted.getProductName(),
         extracted.getOrderId(),
         extracted.getDeliveryDate(),
         extracted.getDeliveryStatus(),
+        extracted.getOrderedBy() != null,
         screenshot.getId());
 
     final String platformValue =
@@ -83,6 +84,9 @@ public class DeliveryScreenshotProcessor implements ClaimScreenshotProcessor {
     details.put(
         "deliveryStatus",
         ScoredValue.builder().extractedValue(extracted.getDeliveryStatus()).score(null).build());
+    details.put(
+        BuzzmahConstants.ORDERED_BY,
+        ScoredValue.builder().extractedValue(extracted.getOrderedBy()).score(null).build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);

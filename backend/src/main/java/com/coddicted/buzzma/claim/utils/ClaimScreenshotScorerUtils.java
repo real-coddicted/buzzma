@@ -158,6 +158,20 @@ public final class ClaimScreenshotScorerUtils {
     return new ExtractedScoredResult(details, overallScore);
   }
 
+  public static ExtractedScoredResult updateExtractedDataForMatchWithManualEntryInDelivery(
+      final Claim claim, final Map<String, ScoredValue> extractedDetails, Integer overallScore) {
+
+    final Map<String, ScoredValue> details =
+        extractedDetails != null ? new HashMap<>(extractedDetails) : new HashMap<>();
+
+    processPlatform(claim, details);
+    processProductName(claim, details);
+    overallScore = processOrderId(claim, details, overallScore);
+    overallScore = processOrderedByHardFail(claim, details, overallScore);
+
+    return new ExtractedScoredResult(details, overallScore);
+  }
+
   public static ExtractedScoredResult updateExtractedDataForMatchWithManualEntryInSellerFeedback(
       final Claim claim, final Map<String, ScoredValue> extractedDetails, Integer overallScore) {
 
@@ -195,6 +209,24 @@ public final class ClaimScreenshotScorerUtils {
       }
     }
     details.put(BuzzmahConstants.ORDER_ID, scoredValue);
+    return overallScore;
+  }
+
+  // Only penalize when the screenshot extracted an orderedBy that doesn't match; delivery-status
+  // pages often omit the buyer's name, and absence should not hard-fail the claim.
+  private static Integer processOrderedByHardFail(
+      final Claim claim, final Map<String, ScoredValue> details, Integer overallScore) {
+    final ScoredValue scoredValue =
+        details.getOrDefault(BuzzmahConstants.ORDERED_BY, new ScoredValue());
+    if (scoredValue.getExtractedValue() != null) {
+      scoredValue.setMismatch(
+          !scoredValue.getExtractedValue().equalsIgnoreCase(claim.getAccountName()));
+      if (scoredValue.isMismatch()) {
+        scoredValue.setScore(0);
+        overallScore = 0;
+      }
+    }
+    details.put(BuzzmahConstants.ORDERED_BY, scoredValue);
     return overallScore;
   }
 

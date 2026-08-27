@@ -25,6 +25,7 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
   SCREENSHOT_TYPE_RATING: { label: 'Product Rating', tag: 'RATING', tagClass: 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/25' },
   SCREENSHOT_TYPE_REVIEW: { label: 'Written Review', tag: 'REVIEW', tagClass: 'bg-neon-green/10  text-neon-green  border border-neon-green/25' },
   SCREENSHOT_TYPE_RETURN: { label: 'Return Request', tag: 'RETURN', tagClass: 'bg-neon-red/10    text-neon-red    border border-neon-red/25' },
+  SCREENSHOT_TYPE_DELIVERY: { label: 'Delivery Proof', tag: 'DELIVERY', tagClass: 'bg-neon-pink/10   text-neon-pink   border border-neon-pink/25' },
 }
 
 export const CLAIM_REVIEW_COLUMNS = [

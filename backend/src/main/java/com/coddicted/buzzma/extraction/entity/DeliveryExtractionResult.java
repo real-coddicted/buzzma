@@ -14,4 +14,5 @@ public class DeliveryExtractionResult {
   String orderId;
   String deliveryDate;
   String deliveryStatus;
+  String orderedBy;
 }

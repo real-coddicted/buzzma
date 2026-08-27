@@ -49,6 +49,9 @@ public interface ClaimService {
   ClaimWithDeal submitReturn(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
+  ClaimWithDeal submitDelivery(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
   Claim getById(UUID claimId, UUID ownerId);
 
   Claim getByCode(String code);

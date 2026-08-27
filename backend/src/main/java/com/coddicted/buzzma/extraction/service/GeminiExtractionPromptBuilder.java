@@ -83,7 +83,8 @@ public class GeminiExtractionPromptBuilder {
         "productName": "<product name string or null>",
         "orderId": "<order identifier string or null>",
         "deliveryDate": "<the date the order was delivered in YYYY-MM-DD format, or null>",
-        "deliveryStatus": "<the delivery status text shown (e.g. 'Delivered'), or null>"
+        "deliveryStatus": "<the delivery status text shown (e.g. 'Delivered'), or null>",
+        "orderedBy": "<customer full name or null>"
       }
       Extract only what is clearly visible; use null for any field that cannot be determined \
       from the image."""
