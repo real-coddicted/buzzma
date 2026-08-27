@@ -73,6 +73,22 @@ public class GeminiExtractionPromptBuilder {
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String DELIVERY_PROMPT =
+      """
+      You are a delivery-proof-data extractor. Analyze the provided screenshot showing an order's \
+      delivery status (e.g. a "Delivered" order tracking page) and return ONLY valid JSON with no \
+      markdown fences, no extra text, and no explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "productName": "<product name string or null>",
+        "orderId": "<order identifier string or null>",
+        "deliveryDate": "<the date the order was delivered in YYYY-MM-DD format, or null>",
+        "deliveryStatus": "<the delivery status text shown (e.g. 'Delivered'), or null>"
+      }
+      Extract only what is clearly visible; use null for any field that cannot be determined \
+      from the image."""
+          .formatted(PLATFORM_VALUES);
+
   public String build() {
     return PROMPT;
   }
@@ -87,5 +103,9 @@ public class GeminiExtractionPromptBuilder {
 
   public String buildReturnPrompt() {
     return RETURN_PROMPT;
+  }
+
+  public String buildDeliveryPrompt() {
+    return DELIVERY_PROMPT;
   }
 }

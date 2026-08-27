@@ -1,0 +1,7 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
+  "productName": { "extractedValue": "Test Product", "score": null },
+  "orderId": { "extractedValue": "112-1234567-1234567", "score": null },
+  "deliveryDate": { "extractedValue": "2026-08-12", "score": null },
+  "deliveryStatus": { "extractedValue": "Delivered", "score": null }
+}

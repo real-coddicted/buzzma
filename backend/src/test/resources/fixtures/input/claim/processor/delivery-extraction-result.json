@@ -1,0 +1,7 @@
+{
+  "platform": "PLATFORM_AMAZON",
+  "productName": "Test Product",
+  "orderId": "112-1234567-1234567",
+  "deliveryDate": "2026-08-12",
+  "deliveryStatus": "Delivered"
+}

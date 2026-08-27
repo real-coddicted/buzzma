@@ -50,6 +50,7 @@ public class GeminiClientProxyImpl implements GeminiClientProxy {
       case ScreenshotType.SCREENSHOT_TYPE_RATING -> this.promptBuilder.buildRatingPrompt();
       case ScreenshotType.SCREENSHOT_TYPE_REVIEW -> this.promptBuilder.buildReviewPrompt();
       case ScreenshotType.SCREENSHOT_TYPE_RETURN -> this.promptBuilder.buildReturnPrompt();
+      case ScreenshotType.SCREENSHOT_TYPE_DELIVERY -> this.promptBuilder.buildDeliveryPrompt();
     };
   }
 }

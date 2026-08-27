@@ -7,7 +7,8 @@ public enum ScreenshotType {
   SCREENSHOT_TYPE_ORDER("Order"),
   SCREENSHOT_TYPE_RATING("Rating"),
   SCREENSHOT_TYPE_REVIEW("Review"),
-  SCREENSHOT_TYPE_RETURN("Return");
+  SCREENSHOT_TYPE_RETURN("Return"),
+  SCREENSHOT_TYPE_DELIVERY("Delivery");
 
   private final String displayName;
 

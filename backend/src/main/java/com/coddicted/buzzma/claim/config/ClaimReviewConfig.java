@@ -2,12 +2,14 @@ package com.coddicted.buzzma.claim.config;
 
 import com.coddicted.buzzma.claim.processor.ChainedScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.DeliveryScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.OrderScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.RatingScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ReturnScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ReviewScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.ChainedScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.DeliveryScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
@@ -23,13 +25,15 @@ public class ClaimReviewConfig {
       final OrderScreenshotProcessor orderScreenshotProcessor,
       final RatingScreenshotProcessor ratingScreenshotProcessor,
       final ReviewScreenshotProcessor reviewScreenshotProcessor,
-      final ReturnScreenshotProcessor returnScreenshotProcessor) {
+      final ReturnScreenshotProcessor returnScreenshotProcessor,
+      final DeliveryScreenshotProcessor deliveryScreenshotProcessor) {
     return new ChainedScreenshotProcessor(
         List.of(
             orderScreenshotProcessor,
             ratingScreenshotProcessor,
             reviewScreenshotProcessor,
-            returnScreenshotProcessor));
+            returnScreenshotProcessor,
+            deliveryScreenshotProcessor));
   }
 
   @Bean("ClaimScreenshotScorer")
@@ -37,12 +41,14 @@ public class ClaimReviewConfig {
       final OrderScreenshotScorer orderScreenshotScorer,
       final RatingScreenshotScorer ratingScreenshotScorer,
       final ReviewScreenshotScorer reviewScreenshotScorer,
-      final ReturnScreenshotScorer returnScreenshotScorer) {
+      final ReturnScreenshotScorer returnScreenshotScorer,
+      final DeliveryScreenshotScorer deliveryScreenshotScorer) {
     return new ChainedScreenshotScorer(
         List.of(
             orderScreenshotScorer,
             ratingScreenshotScorer,
             reviewScreenshotScorer,
-            returnScreenshotScorer));
+            returnScreenshotScorer,
+            deliveryScreenshotScorer));
   }
 }
