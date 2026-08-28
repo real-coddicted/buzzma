@@ -15,11 +15,13 @@ import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_S
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
@@ -97,7 +99,11 @@ class ClaimServiceImplTest {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
         .thenReturn(CLAIM_CODE);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
-        .thenReturn(Campaign.builder().sellerName("Acme Sellers").build());
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName("Acme Sellers")
+                .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
@@ -154,7 +160,11 @@ class ClaimServiceImplTest {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
         .thenReturn(CLAIM_CODE);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
-        .thenReturn(Campaign.builder().sellerName(null).build());
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName(null)
+                .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
@@ -167,6 +177,36 @@ class ClaimServiceImplTest {
         85);
 
     assertNull(claimCaptor.getValue().getSellerName());
+  }
+
+  @Test
+  void testCreateClaimWhenCampaignNotActive() {
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM))
+        .thenReturn(false);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createClaim(
+                    CLAIM_INPUT,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS,
+                    null));
+
+    assertEquals(
+        "The campaign is not active anymore. Please go back to deals page and refresh once to"
+            + " confirm active deals",
+        ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
   }
 
   @Test

@@ -1,5 +1,7 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
@@ -104,6 +106,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Deal deal = this.dealService.getById(claim.getDealId());
 
+    final Campaign campaign = loadActiveCampaign(claim);
+
     final int updated =
         this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
             deal.getCampaignSlot().getId());
@@ -122,8 +126,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
 
-    final boolean campaignHasSellerName =
-        this.campaignService.getById(claim.getCampaignId()).getSellerName() != null;
+    final boolean campaignHasSellerName = campaign.getSellerName() != null;
 
     final Claim saved =
         this.claimRepository.save(
@@ -557,6 +560,21 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .createdBy(actorId)
             .updatedBy(actorId)
             .build());
+  }
+
+  private Campaign loadActiveCampaign(final Claim claim) {
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    if (campaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_ACTIVE) {
+      LOGGER.warn(
+          "Claim rejected for deal {}: campaign {} is not active (status {})",
+          claim.getDealId(),
+          claim.getCampaignId(),
+          campaign.getStatus());
+      throw new BusinessRuleViolationException(
+          "The campaign is not active anymore. Please go back to deals page and refresh once to"
+              + " confirm active deals");
+    }
+    return campaign;
   }
 
   private void validatePrecedingStep(
