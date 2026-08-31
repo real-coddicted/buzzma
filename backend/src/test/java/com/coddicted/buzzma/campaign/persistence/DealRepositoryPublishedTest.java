@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
@@ -59,16 +61,31 @@ class DealRepositoryPublishedTest {
     deletedCampaign.setDeleted(true);
     this.campaignRepository.save(deletedCampaign);
 
-    saveDeal(this.mediatorId, this.nikeCampaign, "DEAL001");
-    saveDeal(this.mediatorId, this.nikeCampaign, "DEAL002");
-    saveDeal(this.mediatorId, this.adidasCampaign, "DEAL003");
-    saveDeal(this.otherMediatorId, this.nikeCampaign, "DEAL004");
+    persistDeal(this.mediatorId, this.nikeCampaign, "DEAL001", false);
+    // Superseded (soft-deleted) deals for a campaign+owner that also has an active deal —
+    // allowed because uq_deals_active_campaign_owner only covers is_deleted = false.
+    persistDeal(this.mediatorId, this.nikeCampaign, "DEAL002", true);
+    persistDeal(this.mediatorId, this.adidasCampaign, "DEAL003", false);
+    persistDeal(this.otherMediatorId, this.nikeCampaign, "DEAL004", false);
+    persistDeal(this.mediatorId, this.adidasCampaign, "DEAL005", true);
+    persistDeal(this.mediatorId, deletedCampaign, "DEAL006", false);
+  }
 
-    final Deal deletedDeal = saveDeal(this.mediatorId, this.adidasCampaign, "DEAL005");
-    deletedDeal.setDeleted(true);
-    this.dealRepository.save(deletedDeal);
+  @Test
+  void rejectsSecondActiveDealForSameCampaignAndOwner() {
+    // mediatorId already has an active deal on nikeCampaign (DEAL001) from setUp.
+    assertThrows(
+        DataIntegrityViolationException.class,
+        () -> saveDeal(this.mediatorId, this.nikeCampaign, "DEAL-DUP"));
+  }
 
-    saveDeal(this.mediatorId, deletedCampaign, "DEAL006");
+  @Test
+  void allowsNewActiveDealOncePreviousIsSoftDeleted() {
+    final Deal first = saveDeal(this.otherMediatorId, this.adidasCampaign, "DEAL-SD-1");
+    first.setDeleted(true);
+    this.dealRepository.saveAndFlush(first);
+
+    saveDeal(this.otherMediatorId, this.adidasCampaign, "DEAL-SD-2");
   }
 
   @Test
@@ -151,6 +168,11 @@ class DealRepositoryPublishedTest {
   }
 
   private Deal saveDeal(final UUID ownerId, final Campaign campaign, final String code) {
+    return persistDeal(ownerId, campaign, code, false);
+  }
+
+  private Deal persistDeal(
+      final UUID ownerId, final Campaign campaign, final String code, final boolean deleted) {
     final CampaignSlot slot =
         this.campaignSlotRepository.save(
             CampaignSlot.builder()
@@ -160,14 +182,14 @@ class DealRepositoryPublishedTest {
                 .createdBy(this.agencyId)
                 .isDeleted(false)
                 .build());
-    return this.dealRepository.save(
+    return this.dealRepository.saveAndFlush(
         Deal.builder()
             .ownerId(ownerId)
             .campaign(campaign)
             .campaignSlot(slot)
             .dealPricePaise(BigInteger.valueOf(5000))
             .code(code)
-            .isDeleted(false)
+            .isDeleted(deleted)
             .build());
   }
 
