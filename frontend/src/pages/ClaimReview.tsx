@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { ClaimReviewList } from './ClaimReviewList'
 import { ClaimDetails } from './ClaimDetails'
 import { ClaimReviewWorksheetImport } from './ClaimReviewWorksheetImport'
@@ -9,22 +9,21 @@ import type { ClaimReviewWorksheetResponseDto } from '../api/claimApi'
 
 export function ClaimReview() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const [selected, setSelected] = useState<ClaimReviewItem | null>(null)
   const [selectedWorksheet, setSelectedWorksheet] = useState<ClaimReviewWorksheetResponseDto | null>(null)
 
   if (searchParams.get('view') === 'detail' && selected) {
-    return <ClaimDetails claim={selected} onBack={() => navigate(-1)} />
+    return <ClaimDetails claim={selected} onBack={() => { setSelected(null); setSearchParams({}) }} />
   }
 
   if (searchParams.get('view') === 'rows' && selectedWorksheet) {
-    return <ClaimReviewWorksheetRows worksheet={selectedWorksheet} onBack={() => navigate(-1)} />
+    return <ClaimReviewWorksheetRows worksheet={selectedWorksheet} onBack={() => { setSelectedWorksheet(null); setSearchParams({}) }} />
   }
 
   if (searchParams.get('view') === 'import') {
     return (
       <ClaimReviewWorksheetImport
-        onBack={() => navigate(-1)}
+        onBack={() => setSearchParams({})}
         onOpenRows={worksheet => { setSelectedWorksheet(worksheet); setSearchParams({ view: 'rows' }) }}
       />
     )

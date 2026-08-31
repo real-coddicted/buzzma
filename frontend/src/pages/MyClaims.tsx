@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { ClaimedDealsList } from '../components/ui/deal/ClaimedDealsList'
 import { ClaimedDealDetail } from '../components/ui/deal/ClaimedDealDetail'
@@ -16,7 +16,6 @@ const CLAIMED_PAGE_SIZE = 10
 
 export function MyClaims() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const view = searchParams.get('view')
 
   const [selectedClaimed, setSelectedClaimed] = useState<Deal | null>(null)
@@ -55,7 +54,7 @@ export function MyClaims() {
     return (
       <ClaimedDealDetail
         deal={selectedClaimed}
-        onBack={() => navigate(-1)}
+        onBack={() => { setSelectedClaimed(null); setSelectedClaimedResponse(null); setSearchParams({}) }}
         claimResponse={selectedClaimedResponse ?? undefined}
       />
     )

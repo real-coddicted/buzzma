@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
@@ -21,7 +21,6 @@ interface Props {
 
 export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Props) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
 
   const tab = (searchParams.get('tab') as TicketTab) ?? 'raised'
   const ticketId = searchParams.get('id')
@@ -122,7 +121,7 @@ export function MyTickets({ title = 'My Tickets', fetchFn = fetchMyTickets }: Pr
     return (
       <TicketDetail
         ticket={ticket}
-        onBack={() => navigate(-1)}
+        onBack={() => setSearchParams(tab === 'raised' ? {} : { tab })}
         onUpdate={handleUpdate}
         showActions
         role={tab === 'raised' ? 'reporter' : 'assignee'}

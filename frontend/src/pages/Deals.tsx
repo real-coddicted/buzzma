@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { DealCard } from '../components/ui/deal/DealCard'
 import { DealDetail } from '../components/ui/deal/DealDetail'
@@ -14,7 +14,6 @@ import { Toast } from '../components/ui/Toast'
 
 export function Deals() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const view     = searchParams.get('view')
   const dealId   = searchParams.get('id')
 
@@ -67,7 +66,7 @@ export function Deals() {
   }, [explorePage, search, typeFilter, platformFilter])
 
   if (view === 'detail' && selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => navigate(-1)} />
+    return <DealDetail deal={selectedDeal} onBack={() => { setSelectedDeal(null); setSearchParams({}) }} />
   }
 
   const totalPages = explorePage?.totalPages ?? 1

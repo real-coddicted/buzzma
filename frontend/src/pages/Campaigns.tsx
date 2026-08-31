@@ -229,7 +229,7 @@ export function Campaigns() {
   }
 
   function handleBack() {
-    navigate(-1)
+    setSearchParams({})
   }
 
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {

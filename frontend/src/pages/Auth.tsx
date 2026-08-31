@@ -30,7 +30,7 @@ export function Auth({ onAuth }: AuthProps) {
   function handleCaptchaVerify(token: string) {
     setCaptchaToken(token)
     if (routedView === 'captcha') {
-      navigate('/login')
+      navigate('/login', { replace: true })
     }
   }
 
