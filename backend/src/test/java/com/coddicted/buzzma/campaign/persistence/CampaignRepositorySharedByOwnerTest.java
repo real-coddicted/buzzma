@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,7 @@ class CampaignRepositorySharedByOwnerTest {
         Product.builder()
             .name("Test product")
             .brandName("Nike")
-            .imageUrl(url("https://example.com/image.png"))
+            .imageUrls(List.of(url("https://example.com/image.png")))
             .productLink(url("https://example.com/product"))
             .pricePaise(BigInteger.valueOf(10000))
             .build();

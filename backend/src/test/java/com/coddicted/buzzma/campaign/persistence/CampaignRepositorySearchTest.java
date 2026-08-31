@@ -170,7 +170,7 @@ class CampaignRepositorySearchTest {
         Product.builder()
             .name("Test product")
             .brandName(brand)
-            .imageUrl(url("https://example.com/image.png"))
+            .imageUrls(List.of(url("https://example.com/image.png")))
             .productLink(url("https://example.com/product"))
             .pricePaise(BigInteger.valueOf(10000))
             .build();

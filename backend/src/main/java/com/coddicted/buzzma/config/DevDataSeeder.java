@@ -11,11 +11,13 @@ import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.shared.common.PasswordService;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import java.math.BigInteger;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -96,13 +98,19 @@ public class DevDataSeeder implements ApplicationRunner {
       return;
     }
     this.jdbcTemplate.update(
-        "INSERT INTO products (id, name, image_url, product_link, price_paise)"
-            + " VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO products (id, name, image_urls, product_link, price_paise)"
+            + " VALUES (?, ?, ?::jsonb, ?, ?)",
         product.getId(),
         product.getName(),
-        product.getImageUrl().toString(),
+        toJsonArray(product.getImageUrls()),
         product.getProductLink().toString(),
         product.getPricePaise());
+  }
+
+  private static String toJsonArray(final List<URL> urls) {
+    return urls.stream()
+        .map(url -> "\"" + url.toString().replace("\"", "\\\"") + "\"")
+        .collect(Collectors.joining(",", "[", "]"));
   }
 
   private void insertCampaign(final Campaign campaign) {

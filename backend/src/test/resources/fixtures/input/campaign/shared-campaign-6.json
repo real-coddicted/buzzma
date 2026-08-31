@@ -17,7 +17,7 @@
   "product": {
     "name": "Shared Test Product 6",
     "brandName": "Test Brand",
-    "imageUrl": "https://example.com/image6.jpg",
+    "imageUrls": ["https://example.com/image6.jpg"],
     "productLink": "https://example.com/product6",
     "pricePaise": 99900
   }

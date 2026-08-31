@@ -6,6 +6,7 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -19,10 +20,16 @@ public interface ProductMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(source = "productName", target = "name")
   @Mapping(source = "productBrandName", target = "brandName")
-  @Mapping(source = "productImageUrl", target = "imageUrl", qualifiedByName = "stringToUrl")
+  @Mapping(source = "productImageUrl", target = "imageUrls", qualifiedByName = "stringToUrlList")
   @Mapping(source = "productUrl", target = "productLink", qualifiedByName = "stringToUrl")
   @Mapping(source = "originalPricePaise", target = "pricePaise")
   Product toProductEntity(final CampaignRequestDto request);
+
+  @Named("stringToUrlList")
+  default List<URL> stringToUrlList(final String value) {
+    final URL url = stringToUrl(value);
+    return url == null ? List.of() : List.of(url);
+  }
 
   @Named("stringToUrl")
   default URL stringToUrl(final String value) {

@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0004-0000-0000-000000000001",
     "name": "Lakme 9 to 5 Vitamin C+ Facial Serum 30ml",
-    "imageUrl": "https://www.nykaa.com/media/catalog/product/4/4/4487_lakme_serum.jpg",
+    "imageUrls": ["https://www.nykaa.com/media/catalog/product/4/4/4487_lakme_serum.jpg"],
     "productLink": "https://www.nykaa.com/lakme-9-to-5-vitamin-c-facial-serum/p/4487",
     "pricePaise": 74900
   },

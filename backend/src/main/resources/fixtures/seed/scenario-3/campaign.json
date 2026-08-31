@@ -15,7 +15,7 @@
   "product": {
     "id": "5eed0002-0003-0000-0000-000000000001",
     "name": "Adidas Ultraboost 22 Running Shoes",
-    "imageUrl": "https://assets.myntassets.com/h_1440,q_100,w_1080/v1/adidas-ultraboost.jpg",
+    "imageUrls": ["https://assets.myntassets.com/h_1440,q_100,w_1080/v1/adidas-ultraboost.jpg"],
     "productLink": "https://www.myntra.com/sports-shoes/adidas/adidas-ultraboost-22/p/123",
     "pricePaise": 499900
   },

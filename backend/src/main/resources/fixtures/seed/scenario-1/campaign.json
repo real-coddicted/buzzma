@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0001-0000-0000-000000000001",
     "name": "Sony WH-1000XM5 Wireless Headphones",
-    "imageUrl": "https://m.media-amazon.com/images/I/71FMFsxC0QL.jpg",
+    "imageUrls": ["https://m.media-amazon.com/images/I/71FMFsxC0QL.jpg"],
     "productLink": "https://www.amazon.in/dp/B09XS7JWHH",
     "pricePaise": 2999900
   },

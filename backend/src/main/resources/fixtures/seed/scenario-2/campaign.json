@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0002-0000-0000-000000000001",
     "name": "Samsung Galaxy S24 Ultra 256GB",
-    "imageUrl": "https://rukminim2.flixcart.com/image/416/416/samsung-galaxy-s24-ultra.jpg",
+    "imageUrls": ["https://rukminim2.flixcart.com/image/416/416/samsung-galaxy-s24-ultra.jpg"],
     "productLink": "https://www.flipkart.com/samsung-galaxy-s24-ultra/p/itm123",
     "pricePaise": 9999900
   },
