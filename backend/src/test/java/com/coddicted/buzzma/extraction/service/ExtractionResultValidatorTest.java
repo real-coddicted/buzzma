@@ -107,6 +107,44 @@ class ExtractionResultValidatorTest {
   }
 
   @Test
+  void testValidateWhenMyntraOrderIdIsLongNumericIsValid() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_MYNTRA)
+            .orderId("134005059763414304501")
+            .orderDate("2026-08-31")
+            .productName("Product")
+            .amount(BigDecimal.valueOf(797))
+            .orderedBy("Customer")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().noneMatch(e -> "orderId".equals(e.getField())),
+        "Expected no orderId validation error for a 21-digit numeric Myntra order ID");
+  }
+
+  @Test
+  void testValidateWhenMyntraOrderIdHasHashAndSpacesIsInvalid() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_MYNTRA)
+            .orderId("# 1340050 59763414304501")
+            .orderDate("2026-08-31")
+            .productName("Product")
+            .amount(BigDecimal.valueOf(797))
+            .orderedBy("Customer")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().anyMatch(e -> "orderId".equals(e.getField())),
+        "Expected an orderId validation error when '#' and spaces are present");
+  }
+
+  @Test
   void testValidateWhenMeeshoOrderIdIsInvalid() {
     final ExtractionResult input =
         ExtractionResult.builder()
