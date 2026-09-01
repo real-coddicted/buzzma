@@ -19,6 +19,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.extraction.entity.DeliveryExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.util.FileUtils;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.Map;
@@ -87,5 +88,43 @@ class DeliveryScreenshotProcessorTest {
         Fixtures.loadExtractedDetails(
             "/fixtures/output/claim/processor/delivery-extracted-details.json");
     assertEquals(expected, captor.getValue().getExtractedDetails());
+  }
+
+  @Test
+  void testProcessNormalizesOrderIdWithHashAndSpaces() {
+    final DeliveryExtractionResult result =
+        DeliveryExtractionResult.builder()
+            .platform(Platform.PLATFORM_MYNTRA)
+            .productName("Test Product")
+            .orderId("# 1340050 59763414304501")
+            .deliveryDate("2026-08-12")
+            .deliveryStatus("Delivered")
+            .orderedBy("john.doe")
+            .build();
+    final DeliveryScreenshotProcessor processor =
+        new DeliveryScreenshotProcessor(
+            this.mockScreenshotRepository,
+            new Fixtures.FixedResultGeminiClientProxy(result),
+            this.mockStorageService);
+    when(this.mockStorageService.retrieve(STORAGE_KEY))
+        .thenReturn(ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), IMAGE_BYTES));
+
+    final ClaimScreenshot screenshot =
+        ClaimScreenshot.builder()
+            .id(SCREENSHOT_ID)
+            .claimId(CLAIM_ID)
+            .storageKey(STORAGE_KEY)
+            .type(SCREENSHOT_TYPE_DELIVERY)
+            .build();
+    final ExtractionJob job =
+        ExtractionJob.builder().id(JOB_ID).claimScreenshotId(SCREENSHOT_ID).build();
+
+    processor.process(job, screenshot);
+
+    final ArgumentCaptor<ClaimScreenshot> captor = ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockScreenshotRepository).save(captor.capture());
+    assertEquals(
+        "134005059763414304501",
+        captor.getValue().getExtractedDetails().get("orderId").getExtractedValue());
   }
 }

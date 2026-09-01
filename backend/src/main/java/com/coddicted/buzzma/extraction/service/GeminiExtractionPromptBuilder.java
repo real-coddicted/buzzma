@@ -18,7 +18,7 @@ public class GeminiExtractionPromptBuilder {
       The JSON must match this exact schema:
       {
         "platform": "<%s|null>",
-        "orderId": "<order identifier string or null>",
+        "orderId": "<the order identifier only, or null — exclude any leading '#', 'Order ID' label text, and any surrounding or internal whitespace>",
         "orderDate": "<YYYY-MM-DD or null>",
         "productName": "<product name string or null>",
         "sellerName": "<seller or sold-by name string or null>",
@@ -81,7 +81,7 @@ public class GeminiExtractionPromptBuilder {
       {
         "platform": "<%s|null>",
         "productName": "<product name string or null>",
-        "orderId": "<order identifier string or null>",
+        "orderId": "<the order identifier only, or null — exclude any leading '#', 'Order ID' label text, and any surrounding or internal whitespace>",
         "deliveryDate": "<the date the order was delivered in YYYY-MM-DD format, or null>",
         "deliveryStatus": "<the delivery status text shown (e.g. 'Delivered'), or null>",
         "orderedBy": "<customer full name or null>"
@@ -99,7 +99,7 @@ public class GeminiExtractionPromptBuilder {
         "platform": "<%s|null>",
         "sellerName": "<the seller or sold-by name string, or null>",
         "productName": "<product name string or null>",
-        "orderId": "<order identifier string or null>",
+        "orderId": "<the order identifier only, or null — exclude any leading '#', 'Order ID' label text, and any surrounding or internal whitespace>",
         "rating": <the numeric star rating given to the seller as an integer between 1 and 5, or null>,
         "feedbackText": "<the short feedback label visible in the screenshot (e.g. 'Excellent', 'Good', 'Fair', 'Poor'), or null>",
         "comment": "<the full free-text comment the customer wrote about the seller, if any (e.g. under a 'Comments' heading), or null>",

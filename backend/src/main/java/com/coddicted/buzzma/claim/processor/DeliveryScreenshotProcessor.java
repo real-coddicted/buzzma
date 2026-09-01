@@ -77,7 +77,10 @@ public class DeliveryScreenshotProcessor implements ClaimScreenshotProcessor {
         ScoredValue.builder().extractedValue(extracted.getProductName()).score(null).build());
     details.put(
         BuzzmahConstants.ORDER_ID,
-        ScoredValue.builder().extractedValue(extracted.getOrderId()).score(null).build());
+        ScoredValue.builder()
+            .extractedValue(ClaimScreenshotProcessorUtils.normalizeOrderId(extracted.getOrderId()))
+            .score(null)
+            .build());
     details.put(
         "deliveryDate",
         ScoredValue.builder().extractedValue(extracted.getDeliveryDate()).score(null).build());

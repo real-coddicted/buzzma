@@ -12,6 +12,7 @@ import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
+import com.coddicted.buzzma.claim.utils.ClaimScreenshotProcessorUtils;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
@@ -74,9 +75,13 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       final UUID campaignId) {
     LOGGER.debug("extractSync: starting for requester {}, campaign {}", requesterId, campaignId);
 
-    final ExtractionResult raw =
+    final ExtractionResult extracted =
         this.geminiClientProxy.extract(
             ScreenshotType.SCREENSHOT_TYPE_ORDER, imageBytes, contentType, ExtractionResult.class);
+    final ExtractionResult raw =
+        extracted.toBuilder()
+            .orderId(ClaimScreenshotProcessorUtils.normalizeOrderId(extracted.getOrderId()))
+            .build();
 
     final List<ValidationError> errors = this.validator.validate(raw);
     if (!errors.isEmpty()) {
