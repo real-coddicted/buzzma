@@ -25,6 +25,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -33,6 +34,7 @@ import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.List;
@@ -84,6 +86,42 @@ class CampaignProcessorTest {
             BusinessRuleViolationException.class,
             () -> campaignProcessor.create(REQUESTER_ID, requestWithPastEndDate));
     assertEquals("Campaign end date cannot be in the past", ex.getMessage());
+  }
+
+  @Test
+  void testCreateAppReviewTypeOnNonAppStorePlatformThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "App-review campaigns are only allowed on Apple App Store or Google Play Store",
+        ex.getMessage());
+  }
+
+  @Test
+  void testCreateAppStorePlatformWithNonAppReviewTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_APPLE_APP_STORE)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "Apple App Store and Google Play Store campaigns must be of type App Review",
+        ex.getMessage());
   }
 
   // Campaign/CampaignSlot/CampaignAssignment are JPA entities without an equals() override, so

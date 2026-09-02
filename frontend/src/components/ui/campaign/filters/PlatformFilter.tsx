@@ -2,7 +2,7 @@ import type { Platform } from '../../../../types'
 import { PLATFORM_LABELS } from '../../../../constants/campaigns'
 import { PLATFORM_COLORS } from './chipColors'
 
-const PLATFORMS: Platform[] = ['PLATFORM_AMAZON', 'PLATFORM_FLIPKART', 'PLATFORM_NYKAA', 'PLATFORM_MYNTRA', 'PLATFORM_MEESHO']
+const PLATFORMS: Platform[] = ['PLATFORM_AMAZON', 'PLATFORM_FLIPKART', 'PLATFORM_NYKAA', 'PLATFORM_MYNTRA', 'PLATFORM_MEESHO', 'PLATFORM_APPLE_APP_STORE', 'PLATFORM_GOOGLE_PLAY_STORE']
 
 const inactive = 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover'
 
