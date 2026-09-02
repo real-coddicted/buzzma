@@ -47,6 +47,9 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     })),
     termsAndConditions: dto.termsAndConditions ?? '',
     requiredSteps: dto.requiredSteps ?? ['ORDER'],
+    additionalRewardType: dto.additionalRewardType ?? '',
+    additionalRewardCashbackRupees:
+      dto.additionalRewardCashbackPaise != null ? paiseToRupees(dto.additionalRewardCashbackPaise).toFixed(2) : '',
   }
 }
 

@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.dto;
 
+import com.coddicted.buzzma.campaign.entity.AdditionalRewardType;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
@@ -65,6 +66,10 @@ public class CampaignRequestDto {
   @Nullable String sellerName;
 
   @Nullable List<CampaignStepType> requiredSteps;
+
+  @Nullable AdditionalRewardType additionalRewardType;
+
+  @Nullable BigInteger additionalRewardCashbackPaise;
 
   @Nullable CampaignAction action;
 }

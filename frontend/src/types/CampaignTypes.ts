@@ -92,6 +92,8 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_DISCOUNT'
   | 'CAMPAIGN_TYPE_APP_REVIEW'
 
+export type AdditionalRewardType = 'CASHBACK'
+
 export interface CampaignRequestDto {
   title: string
   platform: string
@@ -113,6 +115,8 @@ export interface CampaignRequestDto {
   startDate: string | null
   endDate: string | null
   requiredSteps: string[]
+  additionalRewardType?: AdditionalRewardType | null
+  additionalRewardCashbackPaise?: number | null
   action?: 'CAMPAIGN_ACTION_PUBLISH' | 'CAMPAIGN_ACTION_PAUSE' | 'CAMPAIGN_ACTION_RESUME' | 'CAMPAIGN_ACTION_CLOSE' | 'CAMPAIGN_ACTION_COMPLETE'
 }
 

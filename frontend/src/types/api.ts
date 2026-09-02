@@ -2270,6 +2270,9 @@ export interface components {
             sellerName?: string;
             requiredSteps?: ("ORDER" | "RATING" | "REVIEW" | "RETURN_WINDOW" | "CASHBACK")[];
             /** @enum {string} */
+            additionalRewardType?: "CASHBACK";
+            additionalRewardCashbackPaise?: number;
+            /** @enum {string} */
             action?: "CAMPAIGN_ACTION_PUBLISH" | "CAMPAIGN_ACTION_PAUSE" | "CAMPAIGN_ACTION_RESUME" | "CAMPAIGN_ACTION_CLOSE" | "CAMPAIGN_ACTION_COMPLETE";
         };
         CampaignAssignmentResponseDto: {
@@ -2317,6 +2320,9 @@ export interface components {
             termsAndConditions?: string;
             sellerName?: string;
             requiredSteps?: ("ORDER" | "RATING" | "REVIEW" | "RETURN_WINDOW" | "CASHBACK")[];
+            /** @enum {string} */
+            additionalRewardType?: "CASHBACK";
+            additionalRewardCashbackPaise?: number;
             openToAll?: boolean;
             affiliateLinkAllowed?: boolean;
             commissionToAllPaise?: number;

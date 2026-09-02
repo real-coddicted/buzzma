@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
+import com.coddicted.buzzma.campaign.entity.AdditionalRewardType;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
@@ -25,6 +26,7 @@ import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -125,6 +127,7 @@ public class CampaignProcessor {
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
     validatePlatformAndCampaignType(request);
+    validateAdditionalReward(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
     final Campaign savedCampaign =
         this.service.create(
@@ -147,6 +150,7 @@ public class CampaignProcessor {
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
     validatePlatformAndCampaignType(request);
+    validateAdditionalReward(request);
     final Campaign existingCampaign = this.service.getById(id);
     if (existingCampaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_DRAFT) {
       throw new BusinessRuleViolationException(
@@ -332,6 +336,20 @@ public class CampaignProcessor {
     if (appStorePlatform && !appReviewType) {
       throw new BusinessRuleViolationException(
           "Apple App Store and Google Play Store campaigns must be of type App Review");
+    }
+  }
+
+  /** A CASHBACK reward must carry a positive paise amount; no reward type means no amount. */
+  private static void validateAdditionalReward(final CampaignRequestDto request) {
+    if (request.getAdditionalRewardType() == AdditionalRewardType.CASHBACK) {
+      final BigInteger amount = request.getAdditionalRewardCashbackPaise();
+      if (amount == null || amount.signum() <= 0) {
+        throw new BusinessRuleViolationException(
+            "A cashback reward requires a positive cashback amount");
+      }
+    } else if (request.getAdditionalRewardCashbackPaise() != null) {
+      throw new BusinessRuleViolationException(
+          "Cashback amount is only allowed when the additional reward type is cashback");
     }
   }
 

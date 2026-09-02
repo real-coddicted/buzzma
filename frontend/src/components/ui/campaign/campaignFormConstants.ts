@@ -1,4 +1,4 @@
-import type { Platform, CampaignType, LinkedEntity } from '../../../types'
+import type { Platform, CampaignType, AdditionalRewardType, LinkedEntity } from '../../../types'
 
 export const EMPTY_FORM = {
   title: '',
@@ -21,6 +21,8 @@ export const EMPTY_FORM = {
   assignees: [] as LinkedEntity[],
   termsAndConditions: '',
   requiredSteps: ['ORDER'] as string[],
+  additionalRewardType: '' as AdditionalRewardType | '',
+  additionalRewardCashbackRupees: '',
 }
 
 export const labelClass =
@@ -64,6 +66,11 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
     const rw = parseInt(form.returnWindowDays, 10)
     if (isNaN(rw) || rw < 0) e.returnWindowDays = 'Must be a non-negative integer'
   }
+  if (form.additionalRewardType === 'CASHBACK') {
+    const cb = parseFloat(form.additionalRewardCashbackRupees)
+    if (isNaN(cb) || cb <= 0) e.additionalRewardCashbackRupees = 'Enter a cashback amount greater than zero'
+  }
+
   if (form.totalSlots !== '') {
     const ts = parseInt(form.totalSlots, 10)
     if (isNaN(ts) || ts < 1) {

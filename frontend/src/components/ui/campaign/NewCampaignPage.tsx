@@ -80,6 +80,11 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
       startDate: form.startDate || null,
       endDate: form.endDate || null,
       requiredSteps: form.requiredSteps,
+      additionalRewardType: form.additionalRewardType !== '' ? form.additionalRewardType : null,
+      additionalRewardCashbackPaise:
+        form.additionalRewardType === 'CASHBACK'
+          ? rupeesToPaise(parseFloat(form.additionalRewardCashbackRupees))
+          : null,
       ...(action ? { action } : {}),
     }
   }

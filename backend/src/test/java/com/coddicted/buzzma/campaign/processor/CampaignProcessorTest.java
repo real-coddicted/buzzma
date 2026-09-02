@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
+import com.coddicted.buzzma.campaign.entity.AdditionalRewardType;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
@@ -36,6 +37,7 @@ import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -121,6 +123,38 @@ class CampaignProcessorTest {
             () -> campaignProcessor.create(REQUESTER_ID, request));
     assertEquals(
         "Apple App Store and Google Play Store campaigns must be of type App Review",
+        ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackRewardWithoutAmountThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .additionalRewardType(AdditionalRewardType.CASHBACK)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A cashback reward requires a positive cashback amount", ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackAmountWithoutRewardTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .additionalRewardCashbackPaise(BigInteger.valueOf(500))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "Cashback amount is only allowed when the additional reward type is cashback",
         ex.getMessage());
   }
 

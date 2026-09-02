@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.dto;
 
+import com.coddicted.buzzma.campaign.entity.AdditionalRewardType;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
@@ -60,6 +61,10 @@ public class CampaignResponseDto {
   String sellerName;
 
   List<CampaignStepType> requiredSteps;
+
+  AdditionalRewardType additionalRewardType;
+
+  BigInteger additionalRewardCashbackPaise;
 
   boolean openToAll;
 

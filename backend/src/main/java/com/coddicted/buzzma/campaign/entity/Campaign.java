@@ -109,6 +109,13 @@ public class Campaign implements Auditable {
   @Column(name = "required_steps", columnDefinition = "jsonb")
   private List<CampaignStepType> requiredSteps;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "additional_reward_type")
+  private AdditionalRewardType additionalRewardType;
+
+  @Column(name = "additional_reward_cashback_paise")
+  private BigInteger additionalRewardCashbackPaise;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;
