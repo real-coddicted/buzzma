@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -107,16 +108,16 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
     try {
       // Group 1: pure field checks — no DB calls
       final ReviewerDecision decision = validateBrandReview(row);
-      final BigInteger amountPaise = validateAmountForApproval(row, decision);
       validateRemarksForRejection(row, decision);
 
       // Group 2: claim validity — 1 DB call
       final Claim claim = loadAndValidateClaim(row);
       validateClaimIsReviewable(claim);
 
-      // Group 3: authority, bounds, submit — 2-3 DB calls
+      // Group 3: authority, amount, bounds, submit — 2-3 DB calls
       final UUID reviewerId = loadReviewerId(row);
       final UserRole reviewerRole = validateAuthority(reviewerId, claim);
+      final BigInteger amountPaise = validateAmountForApproval(row, decision, claim);
       validateAmountBounds(amountPaise, claim);
 
       claimReviewService.submitClaimReview(
@@ -180,7 +181,7 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
   }
 
   private BigInteger validateAmountForApproval(
-      final ClaimReviewWorksheetRow row, final ReviewerDecision decision) {
+      final ClaimReviewWorksheetRow row, final ReviewerDecision decision, final Claim claim) {
     if (decision != ReviewerDecision.APPROVED) {
       return null;
     }
@@ -195,8 +196,16 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
     }
     final BigInteger paise =
         rupees.multiply(BigDecimal.valueOf(100)).setScale(0, RoundingMode.HALF_UP).toBigInteger();
-    if (paise.compareTo(BigInteger.ZERO) <= 0) {
-      throw new RowValidationException("Approved amount must be greater than zero");
+    // App-review claims may reimburse nothing (a free app), so 0 is valid there; every other
+    // campaign type reimburses an order and must be strictly positive.
+    final boolean appReview =
+        campaignService.getById(claim.getCampaignId()).getType()
+            == CampaignType.CAMPAIGN_TYPE_APP_REVIEW;
+    if (appReview ? paise.compareTo(BigInteger.ZERO) < 0 : paise.compareTo(BigInteger.ZERO) <= 0) {
+      throw new RowValidationException(
+          appReview
+              ? "Approved amount cannot be negative"
+              : "Approved amount must be greater than zero");
     }
     return paise;
   }
