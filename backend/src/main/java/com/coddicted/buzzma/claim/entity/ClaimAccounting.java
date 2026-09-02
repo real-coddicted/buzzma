@@ -67,6 +67,11 @@ public class ClaimAccounting implements Auditable {
   @Column(name = "buyer_receivable_paise", nullable = false)
   private BigInteger buyerReceivablePaise;
 
+  // Campaign cashback (ref #739), already included in both receivable amounts above; kept
+  // separately for traceability. Null when the campaign offers no cashback.
+  @Column(name = "additional_reward_cashback_paise")
+  private BigInteger additionalRewardCashbackPaise;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "mediator_payment_status", nullable = false, length = 20)
   @Builder.Default

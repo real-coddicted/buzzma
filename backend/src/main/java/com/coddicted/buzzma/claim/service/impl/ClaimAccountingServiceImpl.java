@@ -107,8 +107,11 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
     final Commission commission =
         commissionService.getCommissionCharged(claim.getCampaignId(), deal.getOwnerId());
 
-    final BigInteger mediatorReceivablePaise = computeMediatorReceivable(claim, campaignAssignment);
-    final BigInteger buyerReceivablePaise = computeBuyerReceivable(claim, commission);
+    final BigInteger cashbackPaise = additionalRewardCashback(campaign);
+    final BigInteger mediatorReceivablePaise =
+        computeMediatorReceivable(claim, campaignAssignment).add(cashbackPaise);
+    final BigInteger buyerReceivablePaise =
+        computeBuyerReceivable(claim, commission).add(cashbackPaise);
 
     final ClaimAccounting accounting =
         ClaimAccounting.builder()
@@ -120,6 +123,7 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
             .agencyId(campaign.getOwnerId())
             .mediatorReceivablePaise(mediatorReceivablePaise)
             .buyerReceivablePaise(buyerReceivablePaise)
+            .additionalRewardCashbackPaise(cashbackPaise.signum() == 0 ? null : cashbackPaise)
             .createdBy(WellKnownSystemActors.SYSTEM_USER_ID)
             .updatedBy(WellKnownSystemActors.SYSTEM_USER_ID)
             .build();
@@ -157,6 +161,11 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
     BigInteger amountApproved = claim.getAmountApprovedPaise();
     BigInteger commissionCharged = commission.getCommissionPaise();
     return amountApproved.subtract(commissionCharged);
+  }
+
+  private static BigInteger additionalRewardCashback(final Campaign campaign) {
+    final BigInteger cashback = campaign.getAdditionalRewardCashbackPaise();
+    return cashback == null ? BigInteger.ZERO : cashback;
   }
 
   // ── Payout / My-payments pass-through queries ──────────────────────────────
