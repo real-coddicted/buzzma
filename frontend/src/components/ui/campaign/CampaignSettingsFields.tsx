@@ -5,6 +5,7 @@ import { LinkedEntitiesTable } from './LinkedEntitiesTable'
 import { useConnections } from '../../../hooks/useConnections'
 import { ToggleSwitch } from '../ToggleSwitch'
 import { fetchStepConfig, type CampaignStepDto } from '../../../api/campaignApi'
+import { AdditionalRewardFields } from './AdditionalRewardFields'
 
 interface FormSlice {
   totalSlots: string
@@ -96,40 +97,7 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>Additional Reward</label>
-          <select
-            className={inputClass}
-            value={form.additionalRewardType}
-            onChange={e => {
-              set('additionalRewardType', e.target.value)
-              if (e.target.value === '') set('additionalRewardCashbackRupees', '')
-            }}
-            disabled={readOnly}
-          >
-            <option value="">— None —</option>
-            <option value="CASHBACK">Cashback</option>
-          </select>
-        </div>
-        {form.additionalRewardType === 'CASHBACK' && (
-          <div>
-            <label className={labelClass}>Cashback Amount (₹)</label>
-            <input
-              className={inputClass}
-              type="number"
-              min="0"
-              placeholder="e.g. 400"
-              value={form.additionalRewardCashbackRupees}
-              onChange={e => set('additionalRewardCashbackRupees', e.target.value)}
-              disabled={readOnly}
-            />
-            {errors.additionalRewardCashbackRupees && (
-              <p className={errorClass}>{errors.additionalRewardCashbackRupees}</p>
-            )}
-          </div>
-        )}
-      </div>
+      <AdditionalRewardFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
       <ToggleSwitch
         checked={form.openToAll}
