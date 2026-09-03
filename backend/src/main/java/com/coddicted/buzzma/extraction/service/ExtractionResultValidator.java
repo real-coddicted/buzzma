@@ -6,7 +6,9 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
@@ -18,16 +20,26 @@ public class ExtractionResultValidator {
   private static final Pattern MYNTRA_ORDER_ID = Pattern.compile("^\\d{8,20}$");
   private static final Pattern NYKAA_ORDER_ID = Pattern.compile("^NYK-\\d{9}-\\d{7}$");
   private static final Pattern MEESHO_ORDER_ID = Pattern.compile("^\\d{18}$");
+  private static final Pattern PLAY_STORE_ORDER_ID =
+      Pattern.compile("^GPA\\.\\d{4}-\\d{4}-\\d{4}-\\d{5}$");
+
+  /** App-store purchases: a free app has no order id, and free apps cost nothing. */
+  private static final Set<Platform> APP_STORE_PLATFORMS =
+      EnumSet.of(Platform.PLATFORM_APPLE_APP_STORE, Platform.PLATFORM_GOOGLE_PLAY_STORE);
 
   public List<ValidationError> validate(final ExtractionResult result) {
     final List<ValidationError> errors = new ArrayList<>();
+
+    final boolean appStore = APP_STORE_PLATFORMS.contains(result.getPlatform());
 
     if (result.getPlatform() == null) {
       errors.add(error("platform", "Platform is required"));
     }
 
     if (isBlank(result.getOrderId())) {
-      errors.add(error("orderId", "Order ID is required"));
+      if (!appStore) {
+        errors.add(error("orderId", "Order ID is required"));
+      }
     } else if (result.getPlatform() != null) {
       validateOrderIdFormat(result.getPlatform(), result.getOrderId(), errors);
     }
@@ -46,7 +58,9 @@ public class ExtractionResultValidator {
       errors.add(error("productName", "Product name is required"));
     }
 
-    if (result.getAmount() == null || result.getAmount().signum() <= 0) {
+    if (result.getAmount() == null || result.getAmount().signum() < 0) {
+      errors.add(error("amount", "Amount must not be negative"));
+    } else if (!appStore && result.getAmount().signum() == 0) {
       errors.add(error("amount", "Amount must be greater than 0"));
     }
 
@@ -66,6 +80,7 @@ public class ExtractionResultValidator {
           case PLATFORM_MYNTRA -> MYNTRA_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_NYKAA -> NYKAA_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_MEESHO -> MEESHO_ORDER_ID.matcher(orderId).matches();
+          case PLATFORM_GOOGLE_PLAY_STORE -> PLAY_STORE_ORDER_ID.matcher(orderId).matches();
           default -> true;
         };
     if (!valid) {

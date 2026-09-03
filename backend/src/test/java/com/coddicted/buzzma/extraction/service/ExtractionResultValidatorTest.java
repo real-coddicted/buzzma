@@ -124,4 +124,61 @@ class ExtractionResultValidatorTest {
         errors.stream().anyMatch(e -> "orderId".equals(e.getField())),
         "Expected an orderId validation error for a non-18-digit Meesho order ID");
   }
+
+  @Test
+  void testValidateFreeAppOnPlayStore() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+            .orderId(null)
+            .orderDate("2026-04-19")
+            .productName("Some App")
+            .sellerName("Some Developer")
+            .amount(BigDecimal.ZERO)
+            .orderedBy("Anupam Jain")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(errors.isEmpty(), "A free Play Store app with no order id and zero price is valid");
+  }
+
+  @Test
+  void testValidatePaidAppOnPlayStoreWithOrderId() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+            .orderId("GPA.1234-5678-9012-34567")
+            .orderDate("2026-04-19")
+            .productName("Some App")
+            .sellerName("Some Developer")
+            .amount(BigDecimal.valueOf(149))
+            .orderedBy("Anupam Jain")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().noneMatch(e -> "orderId".equals(e.getField())),
+        "Expected no orderId error for a valid GPA order number");
+  }
+
+  @Test
+  void testValidateAppStoreStillRejectsNegativeAmount() {
+    final ExtractionResult input =
+        ExtractionResult.builder()
+            .platform(Platform.PLATFORM_APPLE_APP_STORE)
+            .orderId(null)
+            .orderDate("2026-04-19")
+            .productName("Some App")
+            .amount(BigDecimal.valueOf(-1))
+            .orderedBy("Anupam Jain")
+            .build();
+
+    final List<ValidationError> errors = this.validator.validate(input);
+
+    assertTrue(
+        errors.stream().anyMatch(e -> "amount".equals(e.getField())),
+        "Expected an amount error for a negative amount");
+  }
 }

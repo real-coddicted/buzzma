@@ -13,17 +13,18 @@ public class GeminiExtractionPromptBuilder {
 
   private static final String PROMPT =
       """
-      You are an order-data extractor. Analyze the provided e-commerce order screenshot and \
+      You are an order-data extractor. Analyze the provided screenshot — an e-commerce order, \
+      or an Apple App Store / Google Play Store app purchase, download, or receipt — and \
       return ONLY valid JSON with no markdown fences, no extra text, and no explanation. \
       The JSON must match this exact schema:
       {
         "platform": "<%s|null>",
-        "orderId": "<order identifier string or null>",
-        "orderDate": "<YYYY-MM-DD or null>",
-        "productName": "<product name string or null>",
-        "sellerName": "<seller or sold-by name string or null>",
-        "amount": <total order amount as a number without currency symbol, or null>,
-        "orderedBy": "<customer full name or null>"
+        "orderId": "<order identifier string, or null. For Google Play use the GPA.####-####-####-##### order number; for the Apple App Store use the receipt Order ID; use null for a free app that shows no order number>",
+        "orderDate": "<YYYY-MM-DD purchase or download date, or null>",
+        "productName": "<product or app name string, or null>",
+        "sellerName": "<seller, sold-by, or app developer name string, or null>",
+        "amount": <amount paid as a number without currency symbol; use 0 for a free app; or null>,
+        "orderedBy": "<customer full name, or the Apple ID / Google account name shown, or null>"
       }
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
