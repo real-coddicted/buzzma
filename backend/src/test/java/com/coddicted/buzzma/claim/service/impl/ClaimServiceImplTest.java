@@ -148,6 +148,39 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testCreateClaimForAppReviewReplacesPlaceholderOrderIdWithDeterministicKey() {
+    final Claim input =
+        CLAIM_INPUT.toBuilder()
+            .ecommerceOrderId(ClaimServiceImpl.APP_REVIEW_ORDER_ID_PLACEHOLDER)
+            .build();
+    final String expectedOrderId = "APPREVIEW:" + input.getCampaignId() + ":" + input.getOwnerId();
+
+    when(this.mockCampaignService.getById(input.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .type(com.coddicted.buzzma.campaign.entity.CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
+                .build());
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+            expectedOrderId, input.getPlatform()))
+        .thenReturn(false);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+
+    this.claimService.createClaim(
+        input, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE, EXTRACTED_DETAILS, 85);
+
+    assertEquals(expectedOrderId, claimCaptor.getValue().getEcommerceOrderId());
+  }
+
+  @Test
   void testCreateClaimDropsSellerNameWhenCampaignHasNoSellerName() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
@@ -181,10 +214,6 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenCampaignNotActive() {
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
-        .thenReturn(false);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
         .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
 
@@ -211,6 +240,8 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenAlreadyClaimed() {
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE).build());
     when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
             ECOMMERCE_ORDER_ID, PLATFORM))
         .thenReturn(true);

@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.service.impl;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
@@ -95,6 +96,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Map<String, ScoredValue> extractedDetails,
       final Integer overallScore) {
 
+    final Campaign campaign = loadActiveCampaign(claim);
+    normalizeAppReviewOrderId(claim, campaign);
+
     if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
         claim.getEcommerceOrderId(), claim.getPlatform())) {
       LOGGER.warn(
@@ -105,8 +109,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
 
     final Deal deal = this.dealService.getById(claim.getDealId());
-
-    final Campaign campaign = loadActiveCampaign(claim);
 
     final int updated =
         this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
@@ -560,6 +562,27 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .createdBy(actorId)
             .updatedBy(actorId)
             .build());
+  }
+
+  /** Shared value an app-review reviewer types in the Order ID field when the app is free. */
+  static final String APP_REVIEW_ORDER_ID_PLACEHOLDER = "NA";
+
+  /**
+   * A free app has no store order id, so the reviewer enters {@link
+   * #APP_REVIEW_ORDER_ID_PLACEHOLDER}. Replace it with a deterministic per-(campaign, reviewer) key
+   * so {@code ecommerce_order_id} stays populated and the order-uniqueness check enforces one
+   * review per reviewer per campaign. A paid app's real store order id is left as entered.
+   */
+  private static void normalizeAppReviewOrderId(final Claim claim, final Campaign campaign) {
+    if (campaign.getType() != CampaignType.CAMPAIGN_TYPE_APP_REVIEW) {
+      return;
+    }
+    final String orderId = claim.getEcommerceOrderId();
+    if (orderId == null
+        || orderId.isBlank()
+        || orderId.trim().equalsIgnoreCase(APP_REVIEW_ORDER_ID_PLACEHOLDER)) {
+      claim.setEcommerceOrderId("APPREVIEW:" + claim.getCampaignId() + ":" + claim.getOwnerId());
+    }
   }
 
   private Campaign loadActiveCampaign(final Claim claim) {
