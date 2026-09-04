@@ -82,12 +82,15 @@ export type Platform =
   | 'PLATFORM_NYKAA'
   | 'PLATFORM_MYNTRA'
   | 'PLATFORM_MEESHO'
+  | 'PLATFORM_APPLE_APP_STORE'
+  | 'PLATFORM_GOOGLE_PLAY_STORE'
 
 export type CampaignType =
   | 'CAMPAIGN_TYPE_RATING'
   | 'CAMPAIGN_TYPE_REVIEW'
   | 'CAMPAIGN_TYPE_ORDER'
   | 'CAMPAIGN_TYPE_DISCOUNT'
+  | 'CAMPAIGN_TYPE_APP_REVIEW'
 
 export interface CampaignRequestDto {
   title: string

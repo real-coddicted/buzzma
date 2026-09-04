@@ -11,7 +11,9 @@ public enum Platform {
   PLATFORM_FLIPKART("Flipkart"),
   PLATFORM_NYKAA("Nykaa"),
   PLATFORM_MYNTRA("Myntra"),
-  PLATFORM_MEESHO("Meesho");
+  PLATFORM_MEESHO("Meesho"),
+  PLATFORM_APPLE_APP_STORE("Apple App Store"),
+  PLATFORM_GOOGLE_PLAY_STORE("Google Play Store");
 
   private final String displayName;
 
