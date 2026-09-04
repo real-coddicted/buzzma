@@ -6,21 +6,23 @@ import { ClaimReviewWorksheetImport } from './ClaimReviewWorksheetImport'
 import { ClaimReviewWorksheetRows } from './ClaimReviewWorksheetRows'
 import type { ClaimReviewItem } from '../types'
 import type { ClaimReviewWorksheetResponseDto } from '../api/claimApi'
+import { getCurrentUser } from '../api/client'
 
 export function ClaimReview() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selected, setSelected] = useState<ClaimReviewItem | null>(null)
   const [selectedWorksheet, setSelectedWorksheet] = useState<ClaimReviewWorksheetResponseDto | null>(null)
+  const canImport = getCurrentUser()?.role === 'ROLE_AGENCY'
 
   if (searchParams.get('view') === 'detail' && selected) {
     return <ClaimDetails claim={selected} onBack={() => { setSelected(null); setSearchParams({}) }} />
   }
 
-  if (searchParams.get('view') === 'rows' && selectedWorksheet) {
+  if (canImport && searchParams.get('view') === 'rows' && selectedWorksheet) {
     return <ClaimReviewWorksheetRows worksheet={selectedWorksheet} onBack={() => { setSelectedWorksheet(null); setSearchParams({}) }} />
   }
 
-  if (searchParams.get('view') === 'import') {
+  if (canImport && searchParams.get('view') === 'import') {
     return (
       <ClaimReviewWorksheetImport
         onBack={() => setSearchParams({})}

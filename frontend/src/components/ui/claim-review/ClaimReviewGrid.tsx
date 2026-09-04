@@ -54,6 +54,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const [bulkApproving, setBulkApproving] = useState(false)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
+  const isAgency = getCurrentUser()?.role === 'ROLE_AGENCY'
   const columns = (isMediator || isBrand)
     ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator / Buyer Name' ? 'Buyer Name' : col)
     : CLAIM_REVIEW_COLUMNS
@@ -285,8 +286,8 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           onOpenFilters={() => setDrawerOpen(true)}
           onDownloadReport={handleDownloadReport}
           downloadingReport={downloadingReport}
-          showExport={!isMediator}
-          showImport={!isMediator}
+          showExport={isAgency || isBrand}
+          showImport={isAgency}
           onOpenImport={onOpenImport}
         />
 

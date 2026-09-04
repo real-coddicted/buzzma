@@ -99,10 +99,8 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void listWorkbooks_withBrandRole_returns200() throws Exception {
-    when(worksheetService.listWorkbooks(any())).thenReturn(List.of());
-
-    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isOk());
+  void listWorkbooks_withBrandRole_returns403() throws Exception {
+    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isForbidden());
   }
 
   @Test
@@ -130,12 +128,10 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void uploadWorksheet_withBrandRole_returns201() throws Exception {
-    when(worksheetService.uploadWorksheet(any(), any())).thenReturn(sampleWorksheet);
-
+  void uploadWorksheet_withBrandRole_returns403() throws Exception {
     mockMvc
         .perform(multipart("/api/v1/claim-review/worksheets").file(sampleFile))
-        .andExpect(status().isCreated());
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -207,12 +203,10 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void downloadWorksheet_withBrandRole_returns200() throws Exception {
-    final UUID id = sampleWorksheet.getId();
-    when(worksheetService.downloadWorksheet(eq(id)))
-        .thenReturn(new ClaimReviewWorksheetDownloadDto("review.xlsx", new byte[] {1}));
-
-    mockMvc.perform(get("/api/v1/claim-review/worksheets/{id}", id)).andExpect(status().isOk());
+  void downloadWorksheet_withBrandRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}", sampleWorksheet.getId()))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -266,7 +260,7 @@ class ClaimReviewControllerTest {
   }
 
   @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_BRAND, id = "22222222-2222-2222-2222-222222222222")
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = "22222222-2222-2222-2222-222222222222")
   void listWorksheetRows_withStatusFilter_passesStatusToService() throws Exception {
     final UUID id = sampleWorksheet.getId();
     final UUID currentUserId = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -278,6 +272,14 @@ class ClaimReviewControllerTest {
         .perform(get("/api/v1/claim-review/worksheets/{id}/rows", id).param("status", "ERROR"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isEmpty());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void listWorksheetRows_withBrandRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", UUID.randomUUID()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

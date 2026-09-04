@@ -51,14 +51,14 @@ public class ClaimReviewController {
   }
 
   @GetMapping("/worksheets")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public ResponseEntity<List<ClaimReviewWorksheetResponseDto>> listWorkbooks(
       @CurrentUser final BuzzmaUser currentUser) {
     return ResponseEntity.ok(worksheetService.listWorkbooks(currentUser));
   }
 
   @PostMapping("/worksheets")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public ResponseEntity<ClaimReviewWorksheetResponseDto> uploadWorksheet(
       @CurrentUser final BuzzmaUser currentUser, @RequestParam("file") final MultipartFile file) {
     final ClaimReviewWorksheet worksheet = worksheetService.uploadWorksheet(currentUser, file);
@@ -66,7 +66,7 @@ public class ClaimReviewController {
   }
 
   @GetMapping("/worksheets/{id}")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public ResponseEntity<byte[]> downloadWorksheet(@PathVariable final UUID id) {
     final ClaimReviewWorksheetDownloadDto download = worksheetService.downloadWorksheet(id);
     final String filename =
@@ -80,7 +80,7 @@ public class ClaimReviewController {
   }
 
   @GetMapping("/worksheets/{id}/rows")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public ResponseEntity<Page<ClaimReviewWorksheetRowResponseDto>> listWorksheetRows(
       @CurrentUser final BuzzmaUser currentUser,
       @PathVariable final UUID id,

@@ -32,7 +32,7 @@ public class ReportController {
   }
 
   @PostMapping("/claim-review/excel")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.MEDIATOR)
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public ResponseEntity<byte[]> claimReviewReport(
       @CurrentUser final BuzzmaUser requester,
       @RequestBody(required = false) final ClaimReviewFilterRequestDto filter) {

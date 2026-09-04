@@ -64,7 +64,15 @@ class ReportControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
-  void testClaimReviewReportWithMediatorRoleReturnsXlsx() throws Exception {
+  void testClaimReviewReportWithMediatorRoleReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/reports/claim-review/excel").contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void testClaimReviewReportWithBrandRoleReturnsXlsx() throws Exception {
     when(reportService.generateClaimReviewReport(any(), any())).thenReturn(new byte[] {1, 2, 3});
 
     mockMvc
