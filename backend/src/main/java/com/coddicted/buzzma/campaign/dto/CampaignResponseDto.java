@@ -3,6 +3,7 @@ package com.coddicted.buzzma.campaign.dto;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.net.URL;
@@ -60,6 +61,8 @@ public class CampaignResponseDto {
   String sellerName;
 
   List<CampaignStepType> requiredSteps;
+
+  List<Reward> rewards;
 
   boolean openToAll;
 

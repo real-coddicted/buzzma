@@ -26,6 +26,8 @@ import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.Reward;
+import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -122,6 +124,54 @@ class CampaignProcessorTest {
     assertEquals(
         "Apple App Store and Google Play Store campaigns must be of type App Review",
         ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackRewardWithoutAmountThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A cashback reward requires a positive cashback amount", ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackRewardWithNonPositiveAmountThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).value("0").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A cashback reward requires a positive cashback amount", ex.getMessage());
+  }
+
+  @Test
+  void testCreateDuplicateRewardTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(
+                List.of(
+                    Reward.builder().type(RewardType.CASHBACK).value("500").build(),
+                    Reward.builder().type(RewardType.CASHBACK).value("1000").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A campaign can only have one reward of type CASHBACK", ex.getMessage());
   }
 
   // Campaign/CampaignSlot/CampaignAssignment are JPA entities without an equals() override, so
