@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isTabDisabled, getFirstEnabledPage } from './tabRedirect'
+import { isTabDisabled, getFirstEnabledPage, isPageVisible, isSettingsMenuVisible } from './tabRedirect'
 import { NAV_ITEMS } from '../config/navItems'
 import type { components } from '../types/api'
 
@@ -127,5 +127,50 @@ describe('getFirstEnabledPage', () => {
       const key = NAV_ITEMS.find(item => item.page === page)!.flagKey
       settings[key] = false
     }
+  })
+})
+
+describe('isPageVisible', () => {
+  describe('when settings failed to load (null)', () => {
+    it('allows the support/footer NAV_ITEMS pages', () => {
+      expect(isPageVisible('my-tickets', null)).toBe(true)
+      expect(isPageVisible('feedback', null)).toBe(true)
+    })
+
+    it('allows utility pages that were never tab-flag-gated', () => {
+      expect(isPageVisible('profile', null)).toBe(true)
+      expect(isPageVisible('notifications', null)).toBe(true)
+      expect(isPageVisible('raise-ticket', null)).toBe(true)
+      expect(isPageVisible('tickets', null)).toBe(true)
+    })
+
+    it('disallows role/feature-gated main-section pages', () => {
+      expect(isPageVisible('dashboard', null)).toBe(false)
+      expect(isPageVisible('campaigns', null)).toBe(false)
+      expect(isPageVisible('deals', null)).toBe(false)
+      expect(isPageVisible('users', null)).toBe(false)
+    })
+  })
+
+  describe('when settings are loaded', () => {
+    it('matches isTabDisabled — visible unless the flag is explicitly false', () => {
+      expect(isPageVisible('dashboard', allEnabled)).toBe(true)
+      expect(isPageVisible('dashboard', { ...allEnabled, dashboardTabEnabled: false })).toBe(false)
+    })
+
+    it('always allows pages with no tab flag', () => {
+      expect(isPageVisible('profile', { ...allEnabled, settingsTabEnabled: false })).toBe(true)
+    })
+  })
+})
+
+describe('isSettingsMenuVisible', () => {
+  it('is visible when settings failed to load (fail open for the Account row)', () => {
+    expect(isSettingsMenuVisible(null)).toBe(true)
+  })
+
+  it('respects settingsTabEnabled when settings are loaded', () => {
+    expect(isSettingsMenuVisible(allEnabled)).toBe(true)
+    expect(isSettingsMenuVisible({ ...allEnabled, settingsTabEnabled: false })).toBe(false)
   })
 })

@@ -5,6 +5,7 @@ import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconSettings, IconLogout, IconX } from '../ui/icons'
 import { NAV_ITEMS } from '../../config/navItems'
 import { getCurrentUser } from '../../api/client'
+import { isPageVisible, isSettingsMenuVisible } from '../../utils/tabRedirect'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
 
@@ -54,8 +55,6 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings }: SidebarProps) {
-  // When settings haven't loaded yet (null), show all items by default
-  const show = (flag?: boolean) => !userSettings || flag !== false
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -112,7 +111,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
         <SectionLabel label="Main" />
         <div className="flex flex-col gap-1">
           {NAV_ITEMS.filter(item => item.section === 'main').map(item => (
-            show(userSettings?.[item.flagKey]) && (
+            isPageVisible(item.page, userSettings) && (
               <NavItem
                 key={item.page}
                 icon={<item.icon size={item.iconSize} />}
@@ -127,7 +126,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
         <div className="flex-1" />
 
         {NAV_ITEMS.filter(item => item.section === 'footer').map(item => (
-          show(userSettings?.[item.flagKey]) && (
+          isPageVisible(item.page, userSettings) && (
             <NavItem
               key={item.page}
               icon={<item.icon size={item.iconSize} />}
@@ -138,7 +137,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
           )
         ))}
 
-        {show(userSettings?.settingsTabEnabled) && (
+        {isSettingsMenuVisible(userSettings) && (
           <div
             ref={triggerRef}
             onMouseEnter={openMenu}
