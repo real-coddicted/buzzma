@@ -58,6 +58,13 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
 
   @Override
   @Transactional(readOnly = true)
+  public Optional<Deal> getActiveDealById(final UUID id, final Collection<UUID> ownerIds) {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    return this.dealRepository.findActiveDealById(id, ownerIds, today);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Campaign> getPublishedCampaigns(final UUID mediatorId) {
     return this.dealRepository.findCampaignsForMediator(mediatorId);
   }

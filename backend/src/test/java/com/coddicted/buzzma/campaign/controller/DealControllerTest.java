@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
@@ -12,8 +13,10 @@ import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,5 +89,45 @@ class DealControllerTest {
 
     assertThat(result.getItems()).isEmpty();
     assertThat(result.getTotal()).isZero();
+  }
+
+  @Test
+  void testGetActiveDealByIdReturnsDealEnrichedWithOwnerName() {
+    final Connection connection =
+        Connection.builder()
+            .fromUserId(MEDIATOR_ID)
+            .toUserId(REQUESTER_ID)
+            .status(ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+            .build();
+    final ConnectionView connectionView = ConnectionView.builder().connection(connection).build();
+    when(this.connectionService.getConnectionsByToUserIdAndStatus(
+            REQUESTER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED))
+        .thenReturn(Set.of(connectionView));
+
+    final Deal deal = Deal.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    when(this.dealService.getActiveDealById(DEAL_ID, Set.of(MEDIATOR_ID)))
+        .thenReturn(Optional.of(deal));
+
+    final DealResponseDto mappedDto =
+        DealResponseDto.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    when(this.dealMapper.toDealResponse(deal)).thenReturn(mappedDto);
+
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
+        .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
+
+    final DealResponseDto result = this.controller.getActiveDealById(REQUESTER_ID, DEAL_ID);
+
+    assertThat(result.getOwnerName()).isEqualTo(MEDIATOR_NAME);
+  }
+
+  @Test
+  void testGetActiveDealByIdThrowsNotFoundWhenDealInaccessible() {
+    when(this.connectionService.getConnectionsByToUserIdAndStatus(
+            REQUESTER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED))
+        .thenReturn(Set.of());
+    when(this.dealService.getActiveDealById(DEAL_ID, Set.of())).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> this.controller.getActiveDealById(REQUESTER_ID, DEAL_ID))
+        .isInstanceOf(NotFoundException.class);
   }
 }
