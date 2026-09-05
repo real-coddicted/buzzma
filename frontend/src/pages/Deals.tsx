@@ -6,7 +6,7 @@ import { DealDetail } from '../components/ui/deal/DealDetail'
 import { DealFilterBar } from '../components/ui/deal/DealFilterBar'
 import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
 import type { Deal } from '../types/DealTypes'
-import { fetchExploreDeals } from '../api/dealApi'
+import { fetchExploreDeals, fetchActiveDealById } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
 import { Loading } from '../components/ui/Loading'
 import { PaginationToolbar } from '../components/ui/PaginationToolbar'
@@ -29,10 +29,23 @@ export function Deals() {
   const [toastError, setToastError]         = useState<string | null>(null)
 
   useEffect(() => {
-    if (view !== 'detail' || !dealId || selectedDeal || !explorePage) return
-    const deal = explorePage.items.find(d => d.id === dealId)
-    if (deal) setSelectedDeal(deal)
-  }, [view, dealId, selectedDeal, explorePage])
+    if (view !== 'detail' || !dealId || selectedDeal) return
+    const local = explorePage?.items.find(d => d.id === dealId)
+    if (local) {
+      setSelectedDeal(local)
+      return
+    }
+    if (!explorePage) return
+    let cancelled = false
+    fetchActiveDealById(dealId)
+      .then(deal => { if (!cancelled) setSelectedDeal(deal) })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setToastError(err instanceof Error ? err.message : 'Failed to load deal.')
+        setSearchParams({})
+      })
+    return () => { cancelled = true }
+  }, [view, dealId, selectedDeal, explorePage, setSearchParams])
 
   useEffect(() => {
     let cancelled = false
@@ -70,6 +83,7 @@ export function Deals() {
   }
 
   const totalPages = explorePage?.totalPages ?? 1
+  const resolvingDetail = view === 'detail' && !!dealId && !selectedDeal
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -92,7 +106,7 @@ export function Deals() {
         </div>
 
         <div className="p-4">
-          {exploreLoading ? (
+          {exploreLoading || resolvingDetail ? (
             <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
               <Loading size={32} />
             </div>

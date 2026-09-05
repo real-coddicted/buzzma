@@ -90,6 +90,12 @@ export async function fetchExploreDeals(page: number): Promise<ExploreDealsPage>
   return { items, total, page: (data.page ?? page - 1) + 1, totalPages }
 }
 
+/** GET /deals/active/{id} — a single active deal by id, independent of pagination (used to resolve deep links). */
+export async function fetchActiveDealById(id: string): Promise<Deal> {
+  const res = await fetchWithAuth(`${API_BASE}/deals/active/${encodeURIComponent(id)}`)
+  return dealResponseToDeal((await res.json()) as DealResponseDto)
+}
+
 /** GET /deals/campaigns — id+title+code of campaigns the current mediator has a published deal on, for typeahead pickers. */
 export async function fetchPublishedCampaignNames(): Promise<CampaignNameOption[]> {
   const res = await fetchWithAuth(`${API_BASE}/deals/campaigns`)
