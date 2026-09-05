@@ -113,6 +113,10 @@ public class Campaign implements Auditable {
   @Column(name = "rewards", columnDefinition = "jsonb")
   private List<Reward> rewards;
 
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "exchange_products", columnDefinition = "jsonb")
+  private List<ExchangeProduct> exchangeProducts;
+
   // Audit fields
   @Column(name = "created_by")
   private UUID createdBy;

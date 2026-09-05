@@ -26,6 +26,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -124,6 +125,53 @@ class CampaignProcessorTest {
     assertEquals(
         "Apple App Store and Google Play Store campaigns must be of type App Review",
         ex.getMessage());
+  }
+
+  @Test
+  void testCreateExchangeTypeWithoutExchangeProductsThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Exchange campaigns require at least one exchange product", ex.getMessage());
+  }
+
+  @Test
+  void testCreateExchangeTypeWithBlankProductNameThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .exchangeProducts(List.of(ExchangeProduct.builder().productName(" ").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Every exchange product requires a product name", ex.getMessage());
+  }
+
+  @Test
+  void testCreateNonExchangeTypeWithExchangeProductsThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Exchange products are only allowed on exchange campaigns", ex.getMessage());
   }
 
   @Test

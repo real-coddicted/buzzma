@@ -13,6 +13,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
@@ -129,6 +130,7 @@ public class CampaignProcessor {
     validateCampaignSlots(request);
     validatePlatformAndCampaignType(request);
     validateReward(request);
+    validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
     final Campaign savedCampaign =
         this.service.create(
@@ -152,6 +154,7 @@ public class CampaignProcessor {
     validateCampaignSlots(request);
     validatePlatformAndCampaignType(request);
     validateReward(request);
+    validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
     if (existingCampaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_DRAFT) {
       throw new BusinessRuleViolationException(
@@ -368,6 +371,29 @@ public class CampaignProcessor {
               "A cashback reward requires a positive cashback amount");
         }
       }
+    }
+  }
+
+  /**
+   * Exchange products are mandatory for an exchange campaign, and disallowed for every other
+   * campaign type.
+   */
+  private static void validateExchangeProducts(final CampaignRequestDto request) {
+    final List<ExchangeProduct> exchangeProducts = request.getExchangeProducts();
+    final boolean exchangeType = request.getCampaignType() == CampaignType.CAMPAIGN_TYPE_EXCHANGE;
+    if (exchangeType) {
+      if (exchangeProducts == null || exchangeProducts.isEmpty()) {
+        throw new BusinessRuleViolationException(
+            "Exchange campaigns require at least one exchange product");
+      }
+      if (exchangeProducts.stream()
+          .anyMatch(
+              product -> product.getProductName() == null || product.getProductName().isBlank())) {
+        throw new BusinessRuleViolationException("Every exchange product requires a product name");
+      }
+    } else if (exchangeProducts != null && !exchangeProducts.isEmpty()) {
+      throw new BusinessRuleViolationException(
+          "Exchange products are only allowed on exchange campaigns");
     }
   }
 

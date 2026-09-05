@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
@@ -68,6 +69,8 @@ public class CampaignRequestDto {
   @Nullable List<CampaignStepType> requiredSteps;
 
   @Nullable List<Reward> rewards;
+
+  @Nullable List<ExchangeProduct> exchangeProducts;
 
   @Nullable CampaignAction action;
 }
