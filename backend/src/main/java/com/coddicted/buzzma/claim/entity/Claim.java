@@ -74,6 +74,9 @@ public class Claim implements Auditable {
   @Column(name = "product_name", length = 255)
   private String productName;
 
+  @Column(name = "exchange_product", length = 255)
+  private String exchangeProduct;
+
   @Column(name = "seller_name", length = 255)
   private String sellerName;
 

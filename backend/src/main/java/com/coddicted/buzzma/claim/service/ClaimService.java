@@ -25,7 +25,8 @@ public interface ClaimService {
       String productName,
       String sellerName,
       Integer orderDate,
-      String accountName) {}
+      String accountName,
+      String exchangeProduct) {}
 
   Claim createClaim(
       Claim claim,

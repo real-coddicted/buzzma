@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.service.impl;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
@@ -107,6 +108,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Deal deal = this.dealService.getById(claim.getDealId());
 
     final Campaign campaign = loadActiveCampaign(claim);
+
+    validateExchangeProduct(campaign, claim);
 
     final int updated =
         this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
@@ -436,6 +439,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       if (orderFields.accountName() != null) {
         b.accountName(orderFields.accountName());
       }
+      if (orderFields.exchangeProduct() != null) {
+        b.exchangeProduct(orderFields.exchangeProduct());
+      }
     }
     claim = verifyAndUpdateClaimStatus(b.build(), requesterId);
     claim = this.claimRepository.save(claim);
@@ -575,6 +581,27 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
               + " confirm active deals");
     }
     return campaign;
+  }
+
+  private void validateExchangeProduct(final Campaign campaign, final Claim claim) {
+    final String exchangeProduct = claim.getExchangeProduct();
+    if (campaign.getType() == CampaignType.CAMPAIGN_TYPE_EXCHANGE) {
+      if (exchangeProduct == null || exchangeProduct.isBlank()) {
+        throw new BusinessRuleViolationException(
+            "Exchange product is required for exchange campaigns");
+      }
+      final boolean isConfigured =
+          campaign.getExchangeProducts() != null
+              && campaign.getExchangeProducts().stream()
+                  .anyMatch(product -> exchangeProduct.equals(product.getProductName()));
+      if (!isConfigured) {
+        throw new BusinessRuleViolationException(
+            "Exchange product must be one of the campaign's configured exchange products");
+      }
+    } else if (exchangeProduct != null && !exchangeProduct.isBlank()) {
+      throw new BusinessRuleViolationException(
+          "Exchange product is only allowed on exchange campaigns");
+    }
   }
 
   private void validatePrecedingStep(

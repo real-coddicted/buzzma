@@ -22,6 +22,7 @@ public class UpdateClaimRequestDto {
   private BigInteger amount;
   private String productName;
   private String sellerName;
+  private String exchangeProduct;
   private Integer orderDate;
   private String accountName;
   private String reviewUrl;

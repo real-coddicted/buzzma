@@ -28,6 +28,8 @@ public class ClaimRequestDto {
 
   @Nullable private String sellerName;
 
+  @Nullable private String exchangeProduct;
+
   private int orderDate;
 
   @NotBlank private String accountName;

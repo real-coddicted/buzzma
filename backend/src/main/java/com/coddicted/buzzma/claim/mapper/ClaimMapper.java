@@ -29,6 +29,7 @@ public interface ClaimMapper {
   @Mapping(source = "claim.amountApprovedPaise", target = "amountApprovedPaise")
   @Mapping(source = "claim.productName", target = "productName")
   @Mapping(source = "claim.sellerName", target = "sellerName")
+  @Mapping(source = "claim.exchangeProduct", target = "exchangeProduct")
   @Mapping(source = "claim.orderDate", target = "orderDate")
   @Mapping(source = "claim.accountName", target = "accountName")
   // TODO to be changed later when the screenshot data extraction
@@ -57,6 +58,7 @@ public interface ClaimMapper {
   @Mapping(source = "request.amount", target = "amountPaise")
   @Mapping(source = "request.productName", target = "productName")
   @Mapping(source = "request.sellerName", target = "sellerName")
+  @Mapping(source = "request.exchangeProduct", target = "exchangeProduct")
   @Mapping(source = "request.orderDate", target = "orderDate")
   @Mapping(source = "request.accountName", target = "accountName")
   @Mapping(source = "ownerId", target = "ownerId")

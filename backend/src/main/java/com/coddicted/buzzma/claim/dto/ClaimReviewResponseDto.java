@@ -32,6 +32,7 @@ public class ClaimReviewResponseDto {
   String claimCode;
   ClaimStatus claimStatus;
   String ecommerceOrderId;
+  String exchangeProduct;
 
   Boolean mediatorVerified;
   BigInteger matchScore;

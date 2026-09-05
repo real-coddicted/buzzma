@@ -34,4 +34,12 @@ class ClaimReviewMapperTest {
 
     assertEquals("Profile A", mapper.toResponse(model).getAccountName());
   }
+
+  @Test
+  void testToResponseMapsExchangeProductFromClaim() {
+    final Claim claim = Claim.builder().exchangeProduct("Widget").build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals("Widget", mapper.toResponse(model).getExchangeProduct());
+  }
 }

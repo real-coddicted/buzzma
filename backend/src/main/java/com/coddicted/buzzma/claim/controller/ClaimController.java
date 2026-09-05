@@ -228,7 +228,8 @@ public class ClaimController {
                 request.getProductName(),
                 request.getSellerName(),
                 request.getOrderDate(),
-                request.getAccountName())
+                request.getAccountName(),
+                request.getExchangeProduct())
             : null;
     final ClaimWithDeal result =
         this.claimService.updateScreenshot(

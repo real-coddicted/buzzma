@@ -25,6 +25,7 @@ public class ClaimResponseDto {
   BigInteger amountApprovedPaise;
   String productName;
   String sellerName;
+  String exchangeProduct;
   int orderDate;
   String accountName;
   String orderedBy;
