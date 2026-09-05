@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -704,5 +705,39 @@ class ClaimReviewServiceImplTest {
     assertNull(saved.getBrandVerified());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(rejectedClaim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+  }
+
+  @Test
+  void testBulkBrandVerifyClaimReviewsSetsFlagWithoutApproving() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    final List<ClaimWithDeal> results =
+        this.claimReviewService.bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), OWNER_ID);
+
+    assertEquals(1, results.size());
+    assertEquals(DEAL_1, results.get(0).deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(true, saved.getBrandVerified());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+    assertEquals(ClaimStatus.ORDERED, saved.getStatus());
+    assertNull(saved.getAmountApprovedPaise());
+    assertNull(saved.getReviewerId());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verify(this.mockClaimService, never()).saveScreenshot(SCREENSHOT_1);
+  }
+
+  @Test
+  void testBulkBrandVerifyClaimReviewsWhenClaimNotFound() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID))
+        .thenThrow(new NotFoundException("Claim not found: " + CLAIM_ID));
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () -> this.claimReviewService.bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 }

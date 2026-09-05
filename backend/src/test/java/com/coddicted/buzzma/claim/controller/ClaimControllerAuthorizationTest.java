@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.controller;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -34,14 +35,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Authorisation slice for {@link ClaimController}. Bulk review only ever approves, so it is
- * restricted to agencies; brands verify or reject claims one at a time via {@code submitReview}.
+ * Authorisation slice for {@link ClaimController}. Bulk review is open to agencies and brands and
+ * dispatches on role — agencies approve, brands verify — while mediators stay locked out.
  */
 @WebMvcTest(ClaimController.class)
 @Import(TestSecurityConfig.class)
 class ClaimControllerAuthorizationTest {
 
   private static final String AGENCY_ID = "11111111-1111-1111-1111-111111111111";
+  private static final String BRAND_ID = "22222222-2222-2222-2222-222222222222";
   private static final UUID CLAIM_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
   private static final String BULK_REVIEW_BODY =
       """
@@ -81,19 +83,27 @@ class ClaimControllerAuthorizationTest {
     verify(this.claimReviewService)
         .bulkApproveClaimReviews(
             Map.of(CLAIM_ID, BigInteger.valueOf(10_000)), UUID.fromString(AGENCY_ID));
+    verify(this.claimReviewService, never())
+        .bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), UUID.fromString(AGENCY_ID));
   }
 
   @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void bulkSubmitReview_withBrandRole_returns403() throws Exception {
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND, id = BRAND_ID)
+  void bulkSubmitReview_withBrandRole_verifiesInsteadOfApproving() throws Exception {
+    when(this.claimReviewService.findClaimReviewModels(List.of(CLAIM_ID))).thenReturn(List.of());
+
     this.mockMvc
         .perform(
             post("/api/v1/claims/bulkSubmitReview")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(BULK_REVIEW_BODY))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isOk());
 
-    verifyNoInteractions(this.claimReviewService);
+    verify(this.claimReviewService)
+        .bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), UUID.fromString(BRAND_ID));
+    verify(this.claimReviewService, never())
+        .bulkApproveClaimReviews(
+            Map.of(CLAIM_ID, BigInteger.valueOf(10_000)), UUID.fromString(BRAND_ID));
   }
 
   @Test

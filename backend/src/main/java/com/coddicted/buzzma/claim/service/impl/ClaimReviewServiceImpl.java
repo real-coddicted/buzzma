@@ -184,9 +184,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
           this.claimService.save(
               claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
     } else if (decision == ReviewerDecision.BRAND_VERIFIED) {
-      updated =
-          this.claimService.save(
-              claim.toBuilder().brandVerified(true).updatedBy(reviewerId).build());
+      updated = brandVerifyClaim(claim, reviewerId);
     } else if (decision == ReviewerDecision.APPROVED) {
       updated =
           approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
@@ -218,6 +216,28 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
     }
     return results;
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkBrandVerifyClaimReviews(
+      final Collection<UUID> claimIds, final UUID reviewerId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final UUID claimId : claimIds) {
+      final Claim updated =
+          brandVerifyClaim(this.claimService.getById(claimId, reviewerId), reviewerId);
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  /**
+   * Records a brand's sign-off. Like mediator verification this only flips a flag: the claim
+   * status, approved amount and screenshots are untouched and no decision event is published.
+   */
+  private Claim brandVerifyClaim(final Claim claim, final UUID reviewerId) {
+    return this.claimService.save(
+        claim.toBuilder().brandVerified(true).updatedBy(reviewerId).build());
   }
 
   private Claim approveClaimWithScreenshots(

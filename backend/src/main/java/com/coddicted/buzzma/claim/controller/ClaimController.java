@@ -272,17 +272,25 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  /**
+   * Bulk review. Agencies approve the selected claims with their approved amounts; brands verify
+   * them, which only records sign-off and never approves.
+   */
   @PostMapping("/bulkSubmitReview")
-  @PreAuthorize(UserRole.Expr.AGENCY)
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public List<ClaimReviewResponseDto> bulkSubmitClaimReview(
       @CurrentUser final BuzzmaUser requester,
       @Valid @RequestBody final List<@Valid ClaimReviewRequestDto> requests) {
-    final Map<UUID, BigInteger> claimAmounts = new HashMap<>();
-    for (final ClaimReviewRequestDto r : requests) {
-      claimAmounts.put(r.getClaimId(), r.getAmountApprovedPaise());
-    }
-    this.claimReviewService.bulkApproveClaimReviews(claimAmounts, requester.getId());
     final List<UUID> claimIds = requests.stream().map(ClaimReviewRequestDto::getClaimId).toList();
+    if (requester.getRole() == UserRole.ROLE_BRAND) {
+      this.claimReviewService.bulkBrandVerifyClaimReviews(claimIds, requester.getId());
+    } else {
+      final Map<UUID, BigInteger> claimAmounts = new HashMap<>();
+      for (final ClaimReviewRequestDto r : requests) {
+        claimAmounts.put(r.getClaimId(), r.getAmountApprovedPaise());
+      }
+      this.claimReviewService.bulkApproveClaimReviews(claimAmounts, requester.getId());
+    }
     return this.claimReviewService.findClaimReviewModels(claimIds).stream()
         .map(this.claimReviewMapper::toResponse)
         .toList();

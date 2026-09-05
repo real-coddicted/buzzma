@@ -45,5 +45,7 @@ public interface ClaimReviewService {
 
   List<ClaimWithDeal> bulkApproveClaimReviews(Map<UUID, BigInteger> claimAmounts, UUID reviewerId);
 
+  List<ClaimWithDeal> bulkBrandVerifyClaimReviews(Collection<UUID> claimIds, UUID reviewerId);
+
   List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);
 }
