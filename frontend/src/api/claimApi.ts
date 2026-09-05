@@ -32,6 +32,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     claimStatus: toClaimStatus(status),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
+    brandVerified: dto.brandVerified ?? false,
     matchPct: dto.score ?? 0,
     platform: (dto.platform ?? '') as Platform,
     brandName: '',
@@ -73,6 +74,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     claimStatus: toClaimStatus(backendStatus),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
+    brandVerified: dto.brandVerified ?? false,
     matchPct: dto.matchScore ?? 0,
     platform: (dto.platform ?? '') as Platform,
     brandName: dto.brandName ?? '',
@@ -492,7 +494,7 @@ export async function bulkApproveClaimReviews(
 
 export async function submitClaimReview(
   claimId: string,
-  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED',
+  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED' | 'BRAND_VERIFIED',
   comment?: string,
   amountApprovedPaise?: number
 ): Promise<ClaimReviewItem> {

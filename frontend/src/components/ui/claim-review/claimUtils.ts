@@ -3,9 +3,17 @@ import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import type { Platform, Deal, ClaimReviewItem } from '../../../types'
 import type { ClaimProofItem } from './ClaimProofGallery'
 
-/** Agencies and brands can approve/reject claims; brands are scoped server-side to campaigns shared with them. */
+/**
+ * Agencies and brands can review claims — rejecting them and reviewing individual screenshots.
+ * Brands are scoped server-side to campaigns shared with them.
+ */
 export function canReviewClaims(userRole: string | undefined): boolean {
   return userRole === 'ROLE_AGENCY' || userRole === 'ROLE_BRAND'
+}
+
+/** Only agencies approve claims and set the approved amount; brands verify or reject instead. */
+export function canApproveClaims(userRole: string | undefined): boolean {
+  return userRole === 'ROLE_AGENCY'
 }
 
 export function formatExtractedValue(key: string, raw: string): string {

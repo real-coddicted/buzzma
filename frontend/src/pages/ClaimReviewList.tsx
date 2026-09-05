@@ -46,6 +46,14 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
       .catch(err => setError((err as Error).message))
   }
 
+  function handleBrandVerify(row: ClaimReviewItem) {
+    submitClaimReview(row.id, 'BRAND_VERIFIED')
+      .then(updated => {
+        setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
+      })
+      .catch(err => setError((err as Error).message))
+  }
+
   function handleBulkApprove(selectedClaims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>): Promise<void> {
     return bulkApproveClaimReviews(selectedClaims.map(c => ({ claimId: c.id, amountApprovedPaise: approvedAmountsPaise[c.id] })))
       .then(updatedList => {
@@ -72,6 +80,7 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
         onApplyFilters={setAppliedFilters}
         onViewDetails={onViewDetails}
         onApprove={handleApprove}
+        onBrandVerify={handleBrandVerify}
         onBulkApprove={handleBulkApprove}
         onOpenImport={onOpenImport}
         initialCampaignOption={seedCampaignId && seedCampaignName ? { value: seedCampaignId, label: seedCampaignName } : undefined}

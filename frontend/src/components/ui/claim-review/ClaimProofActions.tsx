@@ -5,19 +5,21 @@ import { IconCheck, IconX, IconCopyCheck } from '../icons'
 import { ReviewerCommentBox } from './ReviewerCommentBox'
 import { RupeeInput } from '../RupeeInput'
 import { paiseToRupees } from '../../../utils/currency'
-import { canReviewClaims } from './claimUtils'
+import { canReviewClaims, canApproveClaims } from './claimUtils'
 
 interface ClaimProofActionsProps {
   userRole: string | undefined
   isUnderReview: boolean
   mediatorVerified?: boolean
+  brandVerified?: boolean
   initialAmountApprovedPaise?: number
   onApprove: (comment: string, amountApprovedPaise?: number) => void
   onVerified: () => void
+  onBrandVerified: () => void
   onReject: (comment: string) => void
 }
 
-export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, initialAmountApprovedPaise, onApprove, onVerified, onReject }: ClaimProofActionsProps) {
+export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, brandVerified, initialAmountApprovedPaise, onApprove, onVerified, onBrandVerified, onReject }: ClaimProofActionsProps) {
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('')
   const [approvedAmountRupees, setApprovedAmountRupees] = useState(
@@ -56,53 +58,68 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, i
     <>
       <div className="space-y-3">
         {canReviewClaims(userRole) && (
-          <>
-            <ReviewerCommentBox
-              value={comment}
-              onChange={v => { setComment(v); if (commentError) setCommentError('') }}
+          <ReviewerCommentBox
+            value={comment}
+            onChange={v => { setComment(v); if (commentError) setCommentError('') }}
+            disabled={!isUnderReview}
+            error={commentError}
+          />
+        )}
+
+        {canApproveClaims(userRole) && (
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
+              Approved Amount <span className="text-neon-red">*</span>
+            </label>
+            <RupeeInput
+              value={approvedAmountRupees}
+              onChange={v => { setApprovedAmountRupees(v); if (amountError) setAmountError('') }}
+              placeholder="499.00"
               disabled={!isUnderReview}
-              error={commentError}
+              className="w-full rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-raised dark:bg-surface-dark-raised text-xs text-ink-light-primary dark:text-ink-dark-primary pr-3 py-2 focus:outline-none focus:border-neon-blue/40 disabled:opacity-50"
             />
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-                Approved Amount <span className="text-neon-red">*</span>
-              </label>
-              <RupeeInput
-                value={approvedAmountRupees}
-                onChange={v => { setApprovedAmountRupees(v); if (amountError) setAmountError('') }}
-                placeholder="499.00"
-                disabled={!isUnderReview}
-                className="w-full rounded-lg border border-surface-light-border dark:border-surface-dark-border bg-surface-light-raised dark:bg-surface-dark-raised text-xs text-ink-light-primary dark:text-ink-dark-primary pr-3 py-2 focus:outline-none focus:border-neon-blue/40 disabled:opacity-50"
-              />
-              {amountError && <p className="text-xs text-neon-red">{amountError}</p>}
-            </div>
-          </>
+            {amountError && <p className="text-xs text-neon-red">{amountError}</p>}
+          </div>
         )}
 
         <div className="flex flex-wrap justify-end gap-2">
+          {canApproveClaims(userRole) && (
+            <Button
+              size="sm"
+              variant="secondary"
+              leftIcon={<IconCheck size={13} />}
+              onClick={handleApproveClick}
+              disabled={!isUnderReview}
+              className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
+            >
+              Approve claim
+            </Button>
+          )}
+          {userRole === 'ROLE_BRAND' && (
+            <Button
+              size="sm"
+              variant="secondary"
+              leftIcon={<IconCopyCheck size={13} />}
+              onClick={onBrandVerified}
+              disabled={!isUnderReview || brandVerified}
+              className={brandVerified
+                ? "!text-neon-green !border-neon-green/30 !bg-neon-green/10"
+                : "!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"}
+            >
+              Verified
+            </Button>
+          )}
           {canReviewClaims(userRole) && (
-            <>
-              <Button
-                size="sm"
-                variant="secondary"
-                leftIcon={<IconCheck size={13} />}
-                onClick={handleApproveClick}
-                disabled={!isUnderReview}
-                className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
-              >
-                Approve claim
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                leftIcon={<IconX size={13} />}
-                onClick={handleRejectClick}
-                disabled={!isUnderReview}
-                className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
-              >
-                Reject claim
-              </Button>
-            </>
+            <Button
+              size="sm"
+              variant="secondary"
+              leftIcon={<IconX size={13} />}
+              onClick={handleRejectClick}
+              disabled={!isUnderReview}
+              className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
+            >
+              Reject claim
+            </Button>
           )}
           {userRole === 'ROLE_MEDIATOR' && (
             <Button

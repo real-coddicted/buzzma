@@ -17,6 +17,7 @@ interface Props {
   onRejectScreenshot: (item: ClaimProofItem, comment: string) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
+  onBrandVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
 }
 
@@ -31,6 +32,7 @@ export function ClaimProofUnified({
   onRejectScreenshot,
   onApproveClaim,
   onVerifiedClaim,
+  onBrandVerifiedClaim,
   onRejectClaim,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -82,6 +84,7 @@ export function ClaimProofUnified({
         onOpenOverlay={openOverlay}
         onApproveClaim={onApproveClaim}
         onVerifiedClaim={onVerifiedClaim}
+        onBrandVerifiedClaim={onBrandVerifiedClaim}
         onRejectClaim={onRejectClaim}
       />
       {overlayItem && (

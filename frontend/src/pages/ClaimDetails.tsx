@@ -143,6 +143,11 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
+        onBrandVerifiedClaim={() =>
+          submitClaimReview(claim.id, 'BRAND_VERIFIED')
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
         onRejectClaim={comment =>
           submitClaimReview(claim.id, 'REJECTED', comment)
             .then(updated => setClaimDetail(updated))

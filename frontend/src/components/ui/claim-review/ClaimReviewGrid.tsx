@@ -13,6 +13,7 @@ import { Loading } from '../Loading'
 import { Toast } from '../Toast'
 import { IconCalendar } from '../icons'
 import { getCurrentUser } from '../../../api/client'
+import { canApproveClaims } from './claimUtils'
 import { fetchCampaignNames, fetchBrandNames, fetchSharedCampaignNames } from '../../../api/campaignApi'
 import { fetchPublishedCampaignNames, fetchPublishedBrandNames } from '../../../api/dealApi'
 import { fetchConnections } from '../../../api/connectionApi'
@@ -33,12 +34,13 @@ interface ClaimReviewGridProps {
   onApplyFilters: (filters: ClaimReviewFilters) => void
   onViewDetails: (claim: ClaimReviewItem) => void
   onApprove: (claim: ClaimReviewItem, amountApprovedPaise?: number) => void
+  onBrandVerify: (claim: ClaimReviewItem) => void
   onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
   onOpenImport: () => void
   initialCampaignOption?: TypeaheadOption
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBulkApprove, onOpenImport, initialCampaignOption }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, initialCampaignOption }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -55,6 +57,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
   const isAgency = getCurrentUser()?.role === 'ROLE_AGENCY'
+  const canApprove = canApproveClaims(getCurrentUser()?.role)
   const columns = (isMediator || isBrand)
     ? CLAIM_REVIEW_COLUMNS.map(col => col === 'Mediator / Buyer Name' ? 'Buyer Name' : col)
     : CLAIM_REVIEW_COLUMNS
@@ -265,6 +268,10 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
       onViewDetails(row)
       return
     }
+    if (action === 'verify') {
+      onBrandVerify(row)
+      return
+    }
     if (action === 'approve') {
       const raw = approvedAmounts[row.id]?.trim()
       if (!raw) {
@@ -309,7 +316,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-surface-light-border dark:border-surface-dark-border bg-surface-light-hover dark:bg-surface-dark-hover">
-                {!isMediator && (
+                {canApprove && (
                   <th className="pl-5 pr-2 py-3 w-8">
                     <input
                       type="checkbox"
@@ -335,7 +342,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
             <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length + (isMediator ? 0 : 1)} className="px-5 py-10 text-center">
+                  <td colSpan={columns.length + (canApprove ? 1 : 0)} className="px-5 py-10 text-center">
                     <div className="flex justify-center text-ink-light-muted dark:text-ink-dark-muted">
                       <Loading size={32} />
                     </div>
@@ -343,7 +350,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length + (isMediator ? 0 : 1)} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                  <td colSpan={columns.length + (canApprove ? 1 : 0)} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                     No orders match your filter.
                   </td>
                 </tr>
@@ -357,7 +364,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                       selectedIds.has(row.id) ? 'bg-neon-blue/5' : '',
                     ].join(' ')}
                   >
-                    {!isMediator && (
+                    {canApprove && (
                       <td className="pl-5 pr-2 py-4 w-8" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
@@ -443,21 +450,29 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                             {row.amountPaise != null ? `₹${formatRupees(paiseToRupees(row.amountPaise))}` : '—'}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-light-primary dark:text-ink-dark-primary">Approved:</span>
-                          <RupeeInput
-                            value={approvedAmounts[row.id] ?? ''}
-                            onChange={v => handleAmountChange(row.id, v)}
-                            symbolOffset="left-1.5"
-                            inputPadding="pl-4"
-                            disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED'}
-                            className="w-20 pr-2 py-0.5 text-xs rounded border border-surface-light-border dark:border-surface-dark-border bg-transparent text-ink-light-primary dark:text-ink-dark-primary focus:outline-none focus:border-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          />
-                        </div>
+                        {canApprove && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-ink-light-primary dark:text-ink-dark-primary">Approved:</span>
+                            <RupeeInput
+                              value={approvedAmounts[row.id] ?? ''}
+                              onChange={v => handleAmountChange(row.id, v)}
+                              symbolOffset="left-1.5"
+                              inputPadding="pl-4"
+                              disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED'}
+                              className="w-20 pr-2 py-0.5 text-xs rounded border border-surface-light-border dark:border-surface-dark-border bg-transparent text-ink-light-primary dark:text-ink-dark-primary focus:outline-none focus:border-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
-                      <ClaimReviewActions row={row} onAction={handleAction} />
+                      <ClaimReviewActions
+                        row={row}
+                        onAction={handleAction}
+                        showApprove={canApprove}
+                        showVerify={isBrand}
+                        verified={row.brandVerified}
+                      />
                     </td>
                   </tr>
                 ))
@@ -504,7 +519,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           onCancel={() => setShowBulkConfirm(false)}
         />
       )}
-      {!isMediator && selectedIds.size > 0 && (
+      {canApprove && selectedIds.size > 0 && (
         <button
           onClick={() => allSelectedApprovable && handleBulkApproveClick()}
           disabled={!allSelectedApprovable}

@@ -19,6 +19,7 @@ interface Props {
   onOpenOverlay: (item: ClaimProofItem) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
+  onBrandVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
 }
 
@@ -34,6 +35,7 @@ export function ClaimProofRightPanel({
   onOpenOverlay,
   onApproveClaim,
   onVerifiedClaim,
+  onBrandVerifiedClaim,
   onRejectClaim,
 }: Props) {
   return (
@@ -109,9 +111,11 @@ export function ClaimProofRightPanel({
               userRole={userRole}
               isUnderReview={claim.isUnderReview ?? false}
               mediatorVerified={claim.mediatorVerified ?? false}
+              brandVerified={claim.brandVerified ?? false}
               initialAmountApprovedPaise={claim.amountApprovedPaise}
               onApprove={onApproveClaim}
               onVerified={onVerifiedClaim}
+              onBrandVerified={onBrandVerifiedClaim}
               onReject={onRejectClaim}
             />
           </div>
