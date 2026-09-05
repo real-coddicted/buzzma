@@ -273,7 +273,7 @@ public class ClaimController {
   }
 
   @PostMapping("/bulkSubmitReview")
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  @PreAuthorize(UserRole.Expr.AGENCY)
   public List<ClaimReviewResponseDto> bulkSubmitClaimReview(
       @CurrentUser final BuzzmaUser requester,
       @Valid @RequestBody final List<@Valid ClaimReviewRequestDto> requests) {

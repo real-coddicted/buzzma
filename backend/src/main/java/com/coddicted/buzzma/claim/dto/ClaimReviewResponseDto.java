@@ -34,6 +34,7 @@ public class ClaimReviewResponseDto {
   String ecommerceOrderId;
 
   Boolean mediatorVerified;
+  Boolean brandVerified;
   BigInteger matchScore;
 
   BigInteger amountPaise;

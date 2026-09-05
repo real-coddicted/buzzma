@@ -30,6 +30,10 @@ public interface ClaimReviewMapper {
       source = "claim.mediatorVerified",
       target = "mediatorVerified",
       defaultExpression = "java(Boolean.FALSE)")
+  @Mapping(
+      source = "claim.brandVerified",
+      target = "brandVerified",
+      defaultExpression = "java(Boolean.FALSE)")
   @Mapping(source = "claim.score", target = "matchScore")
   @Mapping(source = "claim.amountPaise", target = "amountPaise")
   @Mapping(source = "claim.amountApprovedPaise", target = "amountApprovedPaise")

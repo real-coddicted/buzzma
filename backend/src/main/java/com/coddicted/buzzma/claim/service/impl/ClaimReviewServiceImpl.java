@@ -170,12 +170,23 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
     if (reviewerRole == UserRole.ROLE_MEDIATOR && decision != ReviewerDecision.VERIFIED) {
       throw new BusinessRuleViolationException("MEDIATOR can only submit VERIFIED decision");
     }
+    if (decision == ReviewerDecision.BRAND_VERIFIED && reviewerRole != UserRole.ROLE_BRAND) {
+      throw new BusinessRuleViolationException(
+          "BRAND_VERIFIED decision is only allowed for BRAND role");
+    }
+    if (reviewerRole == UserRole.ROLE_BRAND && decision == ReviewerDecision.APPROVED) {
+      throw new BusinessRuleViolationException("BRAND cannot approve a claim");
+    }
 
     final Claim updated;
     if (reviewerRole == UserRole.ROLE_MEDIATOR) {
       updated =
           this.claimService.save(
               claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
+    } else if (decision == ReviewerDecision.BRAND_VERIFIED) {
+      updated =
+          this.claimService.save(
+              claim.toBuilder().brandVerified(true).updatedBy(reviewerId).build());
     } else if (decision == ReviewerDecision.APPROVED) {
       updated =
           approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
