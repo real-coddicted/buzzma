@@ -92,6 +92,9 @@ public class Claim implements Auditable {
   @Column(name = "mediator_verified")
   private Boolean mediatorVerified;
 
+  @Column(name = "brand_verified")
+  private Boolean brandVerified;
+
   @Column(name = "score")
   private Integer score;
 

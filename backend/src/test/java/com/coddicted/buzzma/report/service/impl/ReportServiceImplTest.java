@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.report.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -123,6 +124,52 @@ class ReportServiceImplTest {
       assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
+    }
+  }
+
+  @Test
+  void testGenerateClaimReviewReportForBrandOmitsAmountApprovedColumn() throws Exception {
+    final BuzzmaUser brand =
+        BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_BRAND).build();
+    final ClaimReviewResponseDto row =
+        ClaimReviewResponseDto.builder()
+            .campaignName("Summer Sale")
+            .campaignCode("CMP-001")
+            .brandName("Acme")
+            .dealOwnerName("Mediator A")
+            .buyerName("Buyer A")
+            .accountName("Profile A")
+            .platform(Platform.PLATFORM_AMAZON)
+            .ecommerceOrderId("ORD-1")
+            .orderDate(20260101)
+            .amountPaise(BigInteger.valueOf(25050))
+            .claimStatus(ClaimStatus.APPROVED)
+            .matchScore(BigInteger.valueOf(90))
+            .build();
+
+    final ReportServiceImpl serviceWithMock =
+        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+    when(claimReviewProcessor.listClaimReviews(
+            eq(brand), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+        .thenReturn(pageOf(row));
+
+    final byte[] bytes = serviceWithMock.generateClaimReviewReport(brand, null);
+
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+      final Row header = workbook.getSheet("Claim Review").getRow(0);
+      assertEquals(15, header.getLastCellNum());
+      for (int i = 0; i < header.getLastCellNum(); i++) {
+        assertNotEquals("Amount Approved", header.getCell(i).getStringCellValue());
+      }
+      assertEquals("Match Score", header.getCell(12).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(13).getStringCellValue());
+      assertEquals("Remarks", header.getCell(14).getStringCellValue());
+
+      final Row dataRow = workbook.getSheet("Claim Review").getRow(1);
+      assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
+      assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
+      assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
     }
   }
 

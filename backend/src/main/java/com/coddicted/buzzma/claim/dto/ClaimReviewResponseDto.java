@@ -35,6 +35,7 @@ public class ClaimReviewResponseDto {
   String exchangeProduct;
 
   Boolean mediatorVerified;
+  Boolean brandVerified;
   BigInteger matchScore;
 
   BigInteger amountPaise;

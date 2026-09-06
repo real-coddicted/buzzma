@@ -15,13 +15,13 @@ import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
+import com.coddicted.buzzma.claim.policy.ClaimReviewPolicy;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.enums.Platform;
-import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -160,22 +160,15 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final ReviewerDecision decision,
       final String reviewerComment,
       final BigInteger amountApprovedPaise) {
-
+    ClaimReviewPolicy.validateSubmitClaimReview(reviewerRole, decision);
     final Claim claim = this.claimService.getById(claimId, reviewerId);
-
-    if (decision == ReviewerDecision.VERIFIED && reviewerRole != UserRole.ROLE_MEDIATOR) {
-      throw new BusinessRuleViolationException(
-          "VERIFIED decision is only allowed for MEDIATOR role");
-    }
-    if (reviewerRole == UserRole.ROLE_MEDIATOR && decision != ReviewerDecision.VERIFIED) {
-      throw new BusinessRuleViolationException("MEDIATOR can only submit VERIFIED decision");
-    }
-
     final Claim updated;
     if (reviewerRole == UserRole.ROLE_MEDIATOR) {
       updated =
           this.claimService.save(
               claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
+    } else if (decision == ReviewerDecision.BRAND_VERIFIED) {
+      updated = brandVerifyClaim(claim, reviewerId);
     } else if (decision == ReviewerDecision.APPROVED) {
       updated =
           approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
@@ -207,6 +200,28 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
     }
     return results;
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkBrandVerifyClaimReviews(
+      final Collection<UUID> claimIds, final UUID reviewerId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final UUID claimId : claimIds) {
+      final Claim updated =
+          brandVerifyClaim(this.claimService.getById(claimId, reviewerId), reviewerId);
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  /**
+   * Records a brand's sign-off. Like mediator verification this only flips a flag: the claim
+   * status, approved amount and screenshots are untouched and no decision event is published.
+   */
+  private Claim brandVerifyClaim(final Claim claim, final UUID reviewerId) {
+    return this.claimService.save(
+        claim.toBuilder().brandVerified(true).updatedBy(reviewerId).build());
   }
 
   private Claim approveClaimWithScreenshots(

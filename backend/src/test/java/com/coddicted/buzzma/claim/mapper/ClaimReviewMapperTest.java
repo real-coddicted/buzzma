@@ -28,6 +28,22 @@ class ClaimReviewMapperTest {
   }
 
   @Test
+  void testToResponseDefaultsBrandVerifiedToFalseWhenNull() {
+    final Claim claim = Claim.builder().brandVerified(null).build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertFalse(mapper.toResponse(model).getBrandVerified());
+  }
+
+  @Test
+  void testToResponsePreservesExplicitBrandVerified() {
+    final Claim claim = Claim.builder().brandVerified(true).build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals(true, mapper.toResponse(model).getBrandVerified());
+  }
+
+  @Test
   void testToResponseMapsAccountNameFromClaim() {
     final Claim claim = Claim.builder().accountName("Profile A").build();
     final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();

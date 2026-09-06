@@ -32,6 +32,7 @@ public class ClaimResponseDto {
   String reviewUrl;
   List<ClaimScreenshotResponseDto> screenshots;
   Boolean mediatorVerified;
+  Boolean brandVerified;
   Integer score;
   String reviewerComments;
   UUID reviewerId;

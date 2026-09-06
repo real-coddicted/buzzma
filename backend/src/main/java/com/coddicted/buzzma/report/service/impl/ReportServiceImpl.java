@@ -41,6 +41,8 @@ public class ReportServiceImpl implements ReportService {
                 Pageable.unpaged())
             .getContent();
     return this.excelReportWriter.write(
-        WellKnownReports.CLAIM_REVIEW_SHEET_NAME, ClaimReviewReportColumns.COLUMNS, rows);
+        WellKnownReports.CLAIM_REVIEW_SHEET_NAME,
+        ClaimReviewReportColumns.columnsFor(requester.getRole()),
+        rows);
   }
 }
