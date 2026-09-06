@@ -47,6 +47,7 @@ export interface ClaimReviewItem {
   claimStatus: ClaimStatus
   approvalMethod: ApprovalMethod
   mediatorVerified: boolean
+  brandVerified: boolean
   matchPct: number
   platform: Platform
   brandName: string

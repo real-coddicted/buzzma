@@ -2041,6 +2041,7 @@ export interface components {
             reviewUrl?: string;
             screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
             mediatorVerified?: boolean;
+            brandVerified?: boolean;
             /** Format: int32 */
             score?: number;
             reviewerComments?: string;
@@ -2121,7 +2122,7 @@ export interface components {
             /** Format: uuid */
             claimId?: string;
             /** @enum {string} */
-            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED";
+            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED" | "BRAND_VERIFIED";
             reviewerComment?: string;
             amountApprovedPaise?: number;
         };
@@ -2164,6 +2165,7 @@ export interface components {
             claimStatus?: "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
             mediatorVerified?: boolean;
+            brandVerified?: boolean;
             matchScore?: number;
             amountPaise?: number;
             amountApprovedPaise?: number;

@@ -53,6 +53,11 @@ export function ClaimInfo({ claim, campaignTitle, campaignPricePaise, userRole }
             ? <span className="text-neon-green">Yes</span>
             : <span className="text-ink-light-muted dark:text-ink-dark-muted">No</span>}
         </Row>
+        <Row label="Brand Verified">
+          {claim.brandVerified
+            ? <span className="text-neon-green">Yes</span>
+            : <span className="text-ink-light-muted dark:text-ink-dark-muted">No</span>}
+        </Row>
         <Row label="Claim Status">
           <ClaimStatusBadge status={claim.claimStatus} approvalMethod={claim.approvalMethod} />
         </Row>
