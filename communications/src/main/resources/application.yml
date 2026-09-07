@@ -41,8 +41,8 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
   mail:
-    host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
-    port: ${EMAIL_SMTP_PORT:587}
+    host: ${EMAIL_SMTP_HOST:}
+    port: ${EMAIL_SMTP_PORT:}
     username: ${EMAIL_SMTP_USERNAME:}
     password: ${EMAIL_SMTP_PASSWORD:}
     properties:
@@ -66,7 +66,7 @@ app:
     api-version: ${WHATSAPP_API_VERSION:v21.0}
     graph-base-url: ${WHATSAPP_GRAPH_BASE_URL:https://graph.facebook.com}
   email:
-    from-address: ${EMAIL_FROM_ADDRESS:donotreply@buzzmah.com}
+    from-address: ${EMAIL_FROM_ADDRESS:}
     outbox:
       worker-pool-size: ${EMAIL_OUTBOX_WORKER_POOL_SIZE:1}
 
