@@ -402,6 +402,11 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                     <td className="px-5 py-4 text-ink-light-muted dark:text-ink-dark-muted">
                       {row.brandName || '—'}
                     </td>
+                    <td className="px-5 py-4">
+                      {row.brandVerified
+                        ? <span className="text-neon-green">Yes</span>
+                        : <span className="text-ink-light-muted dark:text-ink-dark-muted">No</span>}
+                    </td>
                     <td className="px-5 py-4 text-ink-light-primary dark:text-ink-dark-primary">
                       {isMediator || isBrand ? (
                         row.buyerName
