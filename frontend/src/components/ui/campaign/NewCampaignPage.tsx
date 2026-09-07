@@ -7,6 +7,9 @@ import type { CampaignRequestDto } from '../../../types'
 import { rupeesToPaise } from '../../../utils/currency'
 import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignFormConstants'
 import { CampaignInfoFields } from './CampaignInfoFields'
+import { CampaignIncentiveFields } from './CampaignIncentiveFields'
+import { CampaignProductFields } from './CampaignProductFields'
+import { CampaignRequiredScreenshotsFields } from './CampaignRequiredScreenshotsFields'
 import { CampaignSettingsFields } from './CampaignSettingsFields'
 
 interface Props {
@@ -141,8 +144,14 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
       </div>
 
       <form id="new-campaign-form" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <CampaignInfoFields form={form} errors={errors} set={set} readOnly={readOnly} />
+
+          <CampaignProductFields form={form} errors={errors} set={set} readOnly={readOnly} />
+
+          <CampaignIncentiveFields form={form} errors={errors} set={set} readOnly={readOnly} />
+
+          <CampaignRequiredScreenshotsFields form={form} set={set} readOnly={readOnly} />
 
           <CampaignSettingsFields
             form={form}

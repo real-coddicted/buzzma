@@ -1,7 +1,6 @@
 import type { Platform, CampaignType } from '../../../types'
-import { PLATFORM_LABELS, CAMPAIGN_TYPE_LABELS, APP_STORE_PLATFORMS } from '../../../constants/campaigns'
+import { CAMPAIGN_TYPE_LABELS, APP_STORE_PLATFORMS } from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
-import { CampaignPricingFields } from './CampaignPricingFields'
 
 interface FormSlice {
   title: string
@@ -9,15 +8,7 @@ interface FormSlice {
   campaignType: CampaignType | ''
   startDate: string
   endDate: string
-  productBrandName: string
-  productName: string
-  productUrl: string
-  productImageUrl: string
-  sellerName: string
-  originalPriceRupees: string
-  campaignPriceRupees: string
   commissionToAllRupees: string
-  affiliateLinkAllowed: boolean
 }
 
 interface Props {
@@ -33,13 +24,6 @@ export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
     isAppStore ? k === 'CAMPAIGN_TYPE_APP_REVIEW' : k !== 'CAMPAIGN_TYPE_APP_REVIEW',
   )
 
-  function onPlatformChange(value: Platform | '') {
-    set('platform', value)
-    const nowAppStore = APP_STORE_PLATFORMS.includes(value as Platform)
-    if (nowAppStore && form.campaignType !== 'CAMPAIGN_TYPE_APP_REVIEW') set('campaignType', 'CAMPAIGN_TYPE_APP_REVIEW')
-    if (!nowAppStore && form.campaignType === 'CAMPAIGN_TYPE_APP_REVIEW') set('campaignType', '')
-  }
-
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-blue">Basic Info</h3>
@@ -48,26 +32,14 @@ export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
         <input className={inputClass} type="text" placeholder="e.g. Summer Sale 2025" value={form.title} onChange={e => set('title', e.target.value)} disabled={readOnly} />
         {errors.title && <p className={errorClass}>{errors.title}</p>}
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>Platform *</label>
-          <select className={inputClass} value={form.platform} onChange={e => onPlatformChange(e.target.value as Platform | '')} disabled={readOnly}>
-            <option value="">— Select —</option>
-            {(Object.keys(PLATFORM_LABELS) as Platform[]).map(k => (
-              <option key={k} value={k}>{PLATFORM_LABELS[k]}</option>
-            ))}
-          </select>
-          {errors.platform && <p className={errorClass}>{errors.platform}</p>}
-        </div>
-        <div>
-          <label className={labelClass}>Campaign Type</label>
-          <select className={inputClass} value={form.campaignType} onChange={e => set('campaignType', e.target.value as CampaignType | '')} disabled={readOnly}>
-            <option value="">— None —</option>
-            {typeOptions.map(k => (
-              <option key={k} value={k}>{CAMPAIGN_TYPE_LABELS[k]}</option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className={labelClass}>Campaign Type</label>
+        <select className={inputClass} value={form.campaignType} onChange={e => set('campaignType', e.target.value as CampaignType | '')} disabled={readOnly}>
+          <option value="">— None —</option>
+          {typeOptions.map(k => (
+            <option key={k} value={k}>{CAMPAIGN_TYPE_LABELS[k]}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -82,51 +54,6 @@ export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
           {errors.endDate && <p className={errorClass}>{errors.endDate}</p>}
         </div>
       </div>
-
-      <div>
-        <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-cyan mb-4">Product</h3>
-        <div className="space-y-4">
-          <div>
-            <label className={labelClass}>Brand Name *</label>
-            <input className={inputClass} type="text" placeholder="e.g. Acme Co." value={form.productBrandName} onChange={e => set('productBrandName', e.target.value)} disabled={readOnly} />
-            {errors.productBrandName && <p className={errorClass}>{errors.productBrandName}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>Seller Name</label>
-            <input className={inputClass} type="text" placeholder="e.g. Acme Store" value={form.sellerName} onChange={e => set('sellerName', e.target.value)} disabled={readOnly} />
-          </div>
-          <div>
-            <label className={labelClass}>Product Name *</label>
-            <input className={inputClass} type="text" placeholder="e.g. Acme Coffee Cup" value={form.productName} onChange={e => set('productName', e.target.value)} disabled={readOnly} />
-            {errors.productName && <p className={errorClass}>{errors.productName}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>Product URL *</label>
-            <input className={inputClass} type="url" placeholder="https://example.com/product" value={form.productUrl} onChange={e => set('productUrl', e.target.value)} disabled={readOnly} />
-            {errors.productUrl && <p className={errorClass}>{errors.productUrl}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>Affiliate link allowed by mediator?</label>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
-                <input type="radio" name="affiliateLinkAllowed" checked={form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', true)} disabled={readOnly} />
-                Yes
-              </label>
-              <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
-                <input type="radio" name="affiliateLinkAllowed" checked={!form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', false)} disabled={readOnly} />
-                No
-              </label>
-            </div>
-          </div>
-          <div>
-            <label className={labelClass}>Product Image URL *</label>
-            <input className={inputClass} type="url" placeholder="https://example.com/image.jpg" value={form.productImageUrl} onChange={e => set('productImageUrl', e.target.value)} disabled={readOnly} />
-            {errors.productImageUrl && <p className={errorClass}>{errors.productImageUrl}</p>}
-          </div>
-        </div>
-      </div>
-
-      <CampaignPricingFields form={form} errors={errors} set={set} readOnly={readOnly} />
     </section>
   )
 }
