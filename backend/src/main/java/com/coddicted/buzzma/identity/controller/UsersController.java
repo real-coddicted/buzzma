@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.identity.controller;
 
+import com.coddicted.buzzma.identity.dto.PagedUsersResponseDto;
 import com.coddicted.buzzma.identity.dto.UpdateProfileRequestDto;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserBatchRequestDto;
@@ -24,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -91,9 +94,18 @@ public class UsersController {
   }
 
   @GetMapping("/search")
-  public UserSummaryDto searchByMobile(@RequestParam @NotBlank final String mobile) {
-    final BuzzmaUser user = this.userService.getByMobile(mobile);
-    return this.userMapper.toUserSummaryDto(user);
+  @PreAuthorize(UserRole.Expr.ADMIN)
+  public PagedUsersResponseDto searchUsers(
+      @RequestParam @NotBlank final String q,
+      @RequestParam(defaultValue = "0") final int page,
+      @RequestParam(defaultValue = "20") final int size) {
+    final Page<BuzzmaUser> usersPage = this.userService.searchUsers(q, PageRequest.of(page, size));
+    return PagedUsersResponseDto.builder()
+        .items(this.userMapper.toUserSummaryDto(usersPage.getContent()))
+        .total(usersPage.getTotalElements())
+        .page(page)
+        .totalPages(usersPage.getTotalPages())
+        .build();
   }
 
   /** Bulk lookup for display purposes, restricted to users connected to the caller. */

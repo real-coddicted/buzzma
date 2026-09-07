@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -27,6 +29,9 @@ public interface UserService {
   BuzzmaUser updateProfile(String email, UUID requesterId);
 
   BuzzmaUser getByMobile(String mobile);
+
+  /** Case-insensitive partial match on name or mobile. */
+  Page<BuzzmaUser> searchUsers(String term, Pageable pageable);
 
   BuzzmaUser getByRole(UserRole role);
 

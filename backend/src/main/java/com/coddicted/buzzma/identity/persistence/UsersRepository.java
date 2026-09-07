@@ -23,6 +23,15 @@ public interface UsersRepository extends JpaRepository<BuzzmaUser, UUID> {
 
   Optional<BuzzmaUser> findFirstByRoleAndIsDeletedFalse(UserRole role);
 
+  @Query(
+      """
+      SELECT u FROM BuzzmaUser u
+      WHERE u.isDeleted = false
+        AND (LOWER(u.name) LIKE LOWER(CONCAT('%', :term, '%'))
+          OR u.mobile LIKE CONCAT('%', :term, '%'))
+      """)
+  Page<BuzzmaUser> searchByNameOrMobile(@Param("term") String term, Pageable pageable);
+
   /** Of {@code ids}, only those users directly connected (as parent or child) to {@code userId}. */
   @Query(
       """

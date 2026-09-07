@@ -22,7 +22,7 @@ export function Users() {
           Users
         </h1>
         <p className="text-sm text-ink-light-muted dark:text-ink-dark-muted mt-0.5">
-          Search for a user by mobile number.
+          Search for a user by name or mobile number.
         </p>
       </div>
 

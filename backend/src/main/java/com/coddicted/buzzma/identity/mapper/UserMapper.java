@@ -2,6 +2,7 @@ package com.coddicted.buzzma.identity.mapper;
 
 import com.coddicted.buzzma.identity.dto.UserSummaryDto;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,6 +18,8 @@ public interface UserMapper {
   @Mapping(source = "updatedBy", target = "updatedBy", qualifiedByName = "uuidToString")
   @Mapping(target = "avatar", ignore = true)
   UserSummaryDto toUserSummaryDto(BuzzmaUser user);
+
+  List<UserSummaryDto> toUserSummaryDto(List<BuzzmaUser> users);
 
   @Named("uuidToString")
   default String uuidToString(final UUID uuid) {

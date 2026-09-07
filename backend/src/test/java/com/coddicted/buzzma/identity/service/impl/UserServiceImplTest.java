@@ -23,6 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -137,6 +140,18 @@ class UserServiceImplTest {
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.getByMobile(MOBILE));
     assertEquals("user not found: " + MOBILE, ex.getMessage());
+  }
+
+  @Test
+  void testSearchUsers() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    when(this.mockUsersRepository.searchByNameOrMobile(SEARCH_TERM, pageable))
+        .thenReturn(new PageImpl<>(List.of(USER_2), pageable, 1));
+
+    final var result = this.userService.searchUsers(SEARCH_TERM, pageable);
+
+    assertEquals(List.of(USER_2), result.getContent());
+    assertEquals(1, result.getTotalElements());
   }
 
   @Test

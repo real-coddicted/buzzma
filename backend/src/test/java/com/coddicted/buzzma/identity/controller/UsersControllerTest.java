@@ -41,6 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -168,6 +170,53 @@ class UsersControllerTest {
             post("/api/v1/users/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"ids\": [\"" + TARGET_USER_ID + "\"]}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // --- GET /api/v1/users/search ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_ADMIN)
+  void testSearchAsAdminReturnsPagedUsers() throws Exception {
+    final BuzzmaUser user = BuzzmaUser.builder().id(TARGET_USER_ID).name("Alice").build();
+    final PageRequest pageable = PageRequest.of(0, 20);
+    when(userService.searchUsers("alice", pageable))
+        .thenReturn(new PageImpl<>(List.of(user), pageable, 1));
+    when(userMapper.toUserSummaryDto(List.of(user)))
+        .thenReturn(List.of(UserSummaryDto.builder().id(TARGET_USER_ID).name("Alice").build()));
+
+    mockMvc
+        .perform(get("/api/v1/users/search").param("q", "alice"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].id").value(TARGET_USER_ID.toString()))
+        .andExpect(jsonPath("$.total").value(1))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.totalPages").value(1));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
+  void testSearchAsNonAdminReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/users/search").param("q", "alice"))
+        .andExpect(status().isForbidden());
+  }
+
+  // Note: blank @NotBlank query params surface as 500, not 400 — GlobalExceptionHandler has no
+  // ConstraintViolationException mapping (pre-existing gap, same as the old `mobile` param).
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_ADMIN)
+  void testSearchWithBlankTermReturnsServerError() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/users/search").param("q", ""))
+        .andExpect(status().isInternalServerError());
+  }
+
+  @Test
+  void testSearchUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/users/search").param("q", "alice"))
         .andExpect(status().isUnauthorized());
   }
 
