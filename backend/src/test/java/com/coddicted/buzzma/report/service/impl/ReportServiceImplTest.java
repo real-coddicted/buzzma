@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -65,6 +66,8 @@ class ReportServiceImplTest {
             .ecommerceOrderId("ORD-1")
             .orderDate(20260101)
             .amountPaise(BigInteger.valueOf(25050))
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .exchangeProduct("Widget")
             .claimStatus(ClaimStatus.APPROVED)
             .matchScore(BigInteger.valueOf(90))
             .mediatorVerified(true)
@@ -106,10 +109,11 @@ class ReportServiceImplTest {
       assertEquals("Profile Name", header.getCell(5).getStringCellValue());
       assertEquals("Order Date", header.getCell(8).getStringCellValue());
       assertEquals("Order Amount", header.getCell(9).getStringCellValue());
-      assertEquals("Claim Status", header.getCell(11).getStringCellValue());
-      assertEquals("Amount Approved", header.getCell(13).getStringCellValue());
-      assertEquals("Brand Review", header.getCell(14).getStringCellValue());
-      assertEquals("Remarks", header.getCell(15).getStringCellValue());
+      assertEquals("Exchange Product", header.getCell(10).getStringCellValue());
+      assertEquals("Claim Status", header.getCell(12).getStringCellValue());
+      assertEquals("Amount Approved", header.getCell(14).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(15).getStringCellValue());
+      assertEquals("Remarks", header.getCell(16).getStringCellValue());
 
       final Row dataRow = sheet.getRow(1);
       assertEquals("Summer Sale", dataRow.getCell(0).getStringCellValue());
@@ -120,10 +124,42 @@ class ReportServiceImplTest {
       assertEquals("Profile A", dataRow.getCell(5).getStringCellValue());
       assertEquals("2026-01-01", dataRow.getCell(8).getStringCellValue());
       assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
-      assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
-      assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
+      assertEquals("Widget", dataRow.getCell(10).getStringCellValue());
+      assertEquals("Approved", dataRow.getCell(12).getStringCellValue());
       assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(16).getCellType());
+    }
+  }
+
+  @Test
+  void testGenerateClaimReviewReportLeavesExchangeProductBlankForNonExchangeCampaign()
+      throws Exception {
+    final BuzzmaUser agency =
+        BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_AGENCY).build();
+    final ClaimReviewResponseDto row =
+        ClaimReviewResponseDto.builder()
+            .campaignName("Summer Sale")
+            .platform(Platform.PLATFORM_AMAZON)
+            .orderDate(20260101)
+            .amountPaise(BigInteger.valueOf(25050))
+            .campaignType(CampaignType.CAMPAIGN_TYPE_REVIEW)
+            .exchangeProduct("Widget")
+            .claimStatus(ClaimStatus.APPROVED)
+            .build();
+
+    final ReportServiceImpl serviceWithMock =
+        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+    when(claimReviewProcessor.listClaimReviews(
+            eq(agency), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+        .thenReturn(pageOf(row));
+
+    final byte[] bytes = serviceWithMock.generateClaimReviewReport(agency, null);
+
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+      final Sheet sheet = workbook.getSheet("Claim Review");
+      assertEquals("Exchange Product", sheet.getRow(0).getCell(10).getStringCellValue());
+      assertEquals(CellType.BLANK, sheet.getRow(1).getCell(10).getCellType());
     }
   }
 
@@ -157,19 +193,20 @@ class ReportServiceImplTest {
 
     try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
       final Row header = workbook.getSheet("Claim Review").getRow(0);
-      assertEquals(15, header.getLastCellNum());
+      assertEquals(16, header.getLastCellNum());
       for (int i = 0; i < header.getLastCellNum(); i++) {
         assertNotEquals("Amount Approved", header.getCell(i).getStringCellValue());
       }
-      assertEquals("Match Score", header.getCell(12).getStringCellValue());
-      assertEquals("Brand Review", header.getCell(13).getStringCellValue());
-      assertEquals("Remarks", header.getCell(14).getStringCellValue());
+      assertEquals("Exchange Product", header.getCell(10).getStringCellValue());
+      assertEquals("Match Score", header.getCell(13).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(14).getStringCellValue());
+      assertEquals("Remarks", header.getCell(15).getStringCellValue());
 
       final Row dataRow = workbook.getSheet("Claim Review").getRow(1);
       assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
-      assertEquals("Approved", dataRow.getCell(11).getStringCellValue());
-      assertEquals(CellType.BLANK, dataRow.getCell(13).getCellType());
+      assertEquals("Approved", dataRow.getCell(12).getStringCellValue());
       assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
     }
   }
 

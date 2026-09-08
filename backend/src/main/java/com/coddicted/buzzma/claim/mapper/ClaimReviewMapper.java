@@ -15,6 +15,7 @@ public interface ClaimReviewMapper {
   @Mapping(source = "campaign.id", target = "campaignId")
   @Mapping(source = "campaign.title", target = "campaignName")
   @Mapping(source = "campaign.code", target = "campaignCode")
+  @Mapping(source = "campaign.type", target = "campaignType")
   @Mapping(source = "claim.dealId", target = "dealId")
   @Mapping(source = "dealOwnerId", target = "dealOwnerId")
   @Mapping(source = "dealOwnerName", target = "dealOwnerName")

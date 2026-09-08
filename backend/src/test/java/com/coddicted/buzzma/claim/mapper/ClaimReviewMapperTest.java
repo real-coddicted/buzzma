@@ -3,6 +3,8 @@ package com.coddicted.buzzma.claim.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import org.junit.jupiter.api.Test;
@@ -57,5 +59,16 @@ class ClaimReviewMapperTest {
     final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
 
     assertEquals("Widget", mapper.toResponse(model).getExchangeProduct());
+  }
+
+  @Test
+  void testToResponseMapsCampaignTypeFromCampaign() {
+    final ClaimReviewModel model =
+        ClaimReviewModel.builder()
+            .claim(Claim.builder().build())
+            .campaign(Campaign.builder().type(CampaignType.CAMPAIGN_TYPE_EXCHANGE).build())
+            .build();
+
+    assertEquals(CampaignType.CAMPAIGN_TYPE_EXCHANGE, mapper.toResponse(model).getCampaignType());
   }
 }

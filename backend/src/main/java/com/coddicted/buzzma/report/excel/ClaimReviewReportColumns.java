@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.report.excel;
 
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
@@ -24,6 +25,7 @@ public final class ClaimReviewReportColumns {
           new ExcelColumn<>("Order ID", ClaimReviewResponseDto::getEcommerceOrderId),
           new ExcelColumn<>("Order Date", ClaimReviewReportColumns::formatOrderDate),
           new ExcelColumn<>("Order Amount", ClaimReviewReportColumns::formatOrderAmount),
+          new ExcelColumn<>("Exchange Product", ClaimReviewReportColumns::exchangeProduct),
           new ExcelColumn<>("Claim Code", ClaimReviewResponseDto::getClaimCode),
           new ExcelColumn<>("Claim Status", dto -> dto.getClaimStatus().getDisplayName()),
           new ExcelColumn<>("Match Score", ClaimReviewResponseDto::getMatchScore),
@@ -45,6 +47,12 @@ public final class ClaimReviewReportColumns {
     return COLUMNS.stream()
         .filter(column -> !AMOUNT_APPROVED_HEADER.equals(column.header()))
         .toList();
+  }
+
+  private static String exchangeProduct(final ClaimReviewResponseDto dto) {
+    return dto.getCampaignType() == CampaignType.CAMPAIGN_TYPE_EXCHANGE
+        ? dto.getExchangeProduct()
+        : null;
   }
 
   private static String formatOrderDate(final ClaimReviewResponseDto dto) {

@@ -892,6 +892,12 @@ class ClaimServiceImplTest {
     when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
             CLAIM_ID))
         .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
@@ -908,6 +914,78 @@ class ClaimServiceImplTest {
         null);
 
     assertEquals("Widget", claimCaptor.getValue().getExchangeProduct());
+  }
+
+  @Test
+  void testUpdateScreenshotRejectsExchangeProductOnNonExchangeCampaign() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().type(CampaignType.CAMPAIGN_TYPE_REVIEW).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.updateScreenshot(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    SCREENSHOT_ID,
+                    SCREENSHOT_TYPE_ORDER,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    new ClaimService.OrderUpdateFields(
+                        null, null, null, null, null, null, null, "Widget"),
+                    null));
+
+    assertEquals("Exchange product is only allowed on exchange campaigns", ex.getMessage());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testUpdateScreenshotRejectsExchangeProductNotConfiguredOnExchangeCampaign() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.updateScreenshot(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    SCREENSHOT_ID,
+                    SCREENSHOT_TYPE_ORDER,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    new ClaimService.OrderUpdateFields(
+                        null, null, null, null, null, null, null, "Gadget"),
+                    null));
+
+    assertEquals(
+        "Exchange product must be one of the campaign's configured exchange products",
+        ex.getMessage());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
   }
 
   @Test

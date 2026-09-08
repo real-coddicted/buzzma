@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.dto;
 
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
@@ -18,6 +19,7 @@ public class ClaimReviewResponseDto {
   UUID campaignId;
   String campaignName;
   String campaignCode;
+  CampaignType campaignType;
 
   UUID dealId;
   UUID dealOwnerId;
