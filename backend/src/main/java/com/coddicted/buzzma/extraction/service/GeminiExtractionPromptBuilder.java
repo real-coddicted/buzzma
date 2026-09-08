@@ -108,6 +108,21 @@ public class GeminiExtractionPromptBuilder {
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String DOWNLOAD_INSTALL_PROMPT =
+      """
+      You are an app-install-data extractor. Analyze the provided screenshot of an app store \
+      listing (Google Play Store or Apple App Store) for the installed app and return ONLY valid \
+      JSON with no markdown fences, no extra text, and no explanation. The JSON must match this \
+      exact schema:
+      {
+        "platform": "<%s|null>",
+        "productName": "<the app name string or null>",
+        "accountName": "<the account or user name visible in the screenshot, or null>",
+        "installStatus": "<the exact button or status text confirming the app is installed (e.g. 'Open', 'Installed', 'Uninstall'), or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
   public String build() {
     return PROMPT;
   }
@@ -130,5 +145,9 @@ public class GeminiExtractionPromptBuilder {
 
   public String buildDeliveryPrompt() {
     return DELIVERY_PROMPT;
+  }
+
+  public String buildDownloadInstallPrompt() {
+    return DOWNLOAD_INSTALL_PROMPT;
   }
 }

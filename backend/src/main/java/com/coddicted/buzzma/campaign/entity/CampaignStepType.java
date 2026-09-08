@@ -12,6 +12,7 @@ public enum CampaignStepType {
   REVIEW("Review"),
   SELLER_FEEDBACK("Seller Feedback"),
   RETURN_WINDOW("Return Window"),
+  DOWNLOAD_INSTALL("Download & Install"),
   CASHBACK("Cashback");
 
   private final String label;

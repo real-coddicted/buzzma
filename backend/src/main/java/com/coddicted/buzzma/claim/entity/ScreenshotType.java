@@ -9,7 +9,8 @@ public enum ScreenshotType {
   SCREENSHOT_TYPE_REVIEW("Review"),
   SCREENSHOT_TYPE_RETURN("Return"),
   SCREENSHOT_TYPE_DELIVERY("Delivery"),
-  SCREENSHOT_TYPE_SELLER_FEEDBACK("Seller Feedback");
+  SCREENSHOT_TYPE_SELLER_FEEDBACK("Seller Feedback"),
+  SCREENSHOT_TYPE_DOWNLOAD_INSTALL("Download & Install");
 
   private final String displayName;
 

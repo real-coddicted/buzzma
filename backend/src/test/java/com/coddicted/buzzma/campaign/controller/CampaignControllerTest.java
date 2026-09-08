@@ -135,7 +135,8 @@ class CampaignControllerTest {
         .andExpect(jsonPath("$[3].type").value("REVIEW"))
         .andExpect(jsonPath("$[4].type").value("SELLER_FEEDBACK"))
         .andExpect(jsonPath("$[5].type").value("RETURN_WINDOW"))
-        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(6)));
+        .andExpect(jsonPath("$[6].type").value("DOWNLOAD_INSTALL"))
+        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(7)));
   }
 
   // --- GET /api/v1/campaigns/{id}/step-config ---
