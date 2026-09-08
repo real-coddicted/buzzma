@@ -67,6 +67,11 @@ public class Campaign implements Auditable {
   private Platform platform;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "category", nullable = false)
+  @Builder.Default
+  private PromotionCategory category = PromotionCategory.ECOMMERCE;
+
+  @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private CampaignType type;
 

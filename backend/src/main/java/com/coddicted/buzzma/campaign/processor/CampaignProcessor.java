@@ -19,13 +19,13 @@ import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
+import com.coddicted.buzzma.campaign.policy.CampaignPolicy;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
-import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.math.BigInteger;
@@ -128,7 +128,8 @@ public class CampaignProcessor {
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
-    validatePlatformAndCampaignType(request);
+    CampaignPolicy.validatePlatformAndCampaignType(
+        request.getPlatform(), request.getCampaignType());
     validateReward(request);
     validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
@@ -152,7 +153,8 @@ public class CampaignProcessor {
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
-    validatePlatformAndCampaignType(request);
+    CampaignPolicy.validatePlatformAndCampaignType(
+        request.getPlatform(), request.getCampaignType());
     validateReward(request);
     validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
@@ -320,27 +322,6 @@ public class CampaignProcessor {
     steps.add(CampaignStepType.ORDER);
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
-  }
-
-  private static final Set<Platform> APP_STORE_PLATFORMS =
-      EnumSet.of(Platform.PLATFORM_APPLE_APP_STORE, Platform.PLATFORM_GOOGLE_PLAY_STORE);
-
-  /**
-   * App-review campaigns only make sense on an app store, and the app stores only host app-review
-   * campaigns — the pairing is enforced both ways.
-   */
-  private static void validatePlatformAndCampaignType(final CampaignRequestDto request) {
-    final boolean appStorePlatform = APP_STORE_PLATFORMS.contains(request.getPlatform());
-    final boolean appReviewType =
-        request.getCampaignType() == CampaignType.CAMPAIGN_TYPE_APP_REVIEW;
-    if (appReviewType && !appStorePlatform) {
-      throw new BusinessRuleViolationException(
-          "App-review campaigns are only allowed on Apple App Store or Google Play Store");
-    }
-    if (appStorePlatform && !appReviewType) {
-      throw new BusinessRuleViolationException(
-          "Apple App Store and Google Play Store campaigns must be of type App Review");
-    }
   }
 
   /**

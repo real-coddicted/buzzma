@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
@@ -29,6 +30,9 @@ public class CampaignRequestDto {
   @NotNull UUID ownerId;
 
   @NotNull Platform platform;
+
+  /** Defaults to ECOMMERCE until campaign creation lets the owner choose it (App Promotion etc). */
+  @Nullable @Builder.Default PromotionCategory category = PromotionCategory.ECOMMERCE;
 
   @NotBlank String productName;
 
