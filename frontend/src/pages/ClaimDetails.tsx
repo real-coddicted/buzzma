@@ -123,6 +123,7 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
         claim={effectiveClaim}
         campaignTitle={deal?.title}
         campaignPricePaise={deal?.offeredPricePaise}
+        isExchangeCampaign={deal?.dealType === 'CAMPAIGN_TYPE_EXCHANGE'}
         onApproveScreenshot={item =>
           reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED')
             .then(updated => setClaimDetail(updated))

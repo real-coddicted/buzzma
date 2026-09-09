@@ -55,6 +55,7 @@ export interface ClaimReviewItem {
   accountName?: string
   orderedBy?: string
   productName?: string
+  exchangeProduct?: string
   sellerName?: string
   productPricePaise?: number
   dealOfferedPricePaise?: number

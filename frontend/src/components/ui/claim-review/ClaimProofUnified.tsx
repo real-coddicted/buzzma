@@ -13,6 +13,7 @@ interface Props {
   claim: ClaimReviewItem
   campaignTitle?: string
   campaignPricePaise?: number
+  isExchangeCampaign?: boolean
   onApproveScreenshot: (item: ClaimProofItem) => void
   onRejectScreenshot: (item: ClaimProofItem, comment: string) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
@@ -28,6 +29,7 @@ export function ClaimProofUnified({
   claim,
   campaignTitle,
   campaignPricePaise,
+  isExchangeCampaign,
   onApproveScreenshot,
   onRejectScreenshot,
   onApproveClaim,
@@ -80,6 +82,7 @@ export function ClaimProofUnified({
         claim={claim}
         campaignTitle={campaignTitle}
         campaignPricePaise={campaignPricePaise}
+        isExchangeCampaign={isExchangeCampaign}
         userRole={userRole}
         onOpenOverlay={openOverlay}
         onApproveClaim={onApproveClaim}

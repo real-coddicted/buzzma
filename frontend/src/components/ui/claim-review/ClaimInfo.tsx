@@ -17,9 +17,10 @@ interface ClaimInfoProps {
   campaignTitle?: string
   campaignPricePaise?: number
   userRole?: string
+  isExchangeCampaign?: boolean
 }
 
-export function ClaimInfo({ claim, campaignTitle, campaignPricePaise, userRole }: ClaimInfoProps) {
+export function ClaimInfo({ claim, campaignTitle, campaignPricePaise, userRole, isExchangeCampaign }: ClaimInfoProps) {
   const displayedPricePaise = userRole === 'ROLE_MEDIATOR' || userRole === 'ROLE_BUYER'
     ? claim.dealOfferedPricePaise
     : campaignPricePaise
@@ -38,6 +39,9 @@ export function ClaimInfo({ claim, campaignTitle, campaignPricePaise, userRole }
 
       <div className="px-5 pb-5">
         <Row label="Campaign Title">{campaignTitle ?? claim.campaignName}</Row>
+        {isExchangeCampaign && claim.exchangeProduct && (
+          <Row label="Exchange Product">{claim.exchangeProduct}</Row>
+        )}
         {claim.productPricePaise != null && (
           <Row label="Product Price">₹{formatRupees(paiseToRupees(claim.productPricePaise))}</Row>
         )}

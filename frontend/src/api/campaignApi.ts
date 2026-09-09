@@ -243,6 +243,12 @@ export async function fetchCampaignById(id: string): Promise<CampaignResponseDto
   return res.json() as Promise<CampaignResponseDto>
 }
 
+/** GET /campaigns/{id} — the configured exchange product names for a campaign (empty for non-exchange campaigns). */
+export async function fetchCampaignExchangeProductNames(campaignId: string): Promise<string[]> {
+  const dto = await fetchCampaignById(campaignId)
+  return (dto.exchangeProducts ?? []).map(p => p.productName ?? '').filter(Boolean)
+}
+
 export interface CampaignBriefDto {
   id: string
   title: string

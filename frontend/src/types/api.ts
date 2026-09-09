@@ -2262,6 +2262,8 @@ export interface components {
             campaignId?: string;
             campaignName?: string;
             campaignCode?: string;
+            /** @enum {string} */
+            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: uuid */
             dealId?: string;
             /** Format: uuid */
@@ -2315,12 +2317,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;

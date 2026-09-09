@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapPagedClaimsResponse } from './claimApi'
+import { mapClaim, mapPagedClaimsResponse } from './claimApi'
 import type { components } from '../types/api'
 
 type PagedClaimsResponseDto = components['schemas']['PagedClaimsResponseDto']
@@ -34,5 +34,17 @@ describe('mapPagedClaimsResponse', () => {
     expect(result.total).toBe(0)
     expect(result.page).toBe(1)
     expect(result.totalPages).toBe(1)
+  })
+})
+
+describe('mapClaim', () => {
+  it('carries exchangeProduct through when present', () => {
+    const result = mapClaim(makeClaimDto({ exchangeProduct: 'Wireless Earbuds' }))
+    expect(result.exchangeProduct).toBe('Wireless Earbuds')
+  })
+
+  it('leaves exchangeProduct undefined when absent', () => {
+    const result = mapClaim(makeClaimDto())
+    expect(result.exchangeProduct).toBeUndefined()
   })
 })

@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import { paiseToRupees } from '../../../utils/currency'
+import { fetchCampaignExchangeProductNames } from '../../../api/campaignApi'
 import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUrl'
 import { DealOrderForm } from './DealOrderForm'
 import { ScreenshotPreview } from './ScreenshotPreview'
@@ -20,6 +22,16 @@ interface OrderStepProps {
 export function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: OrderStepProps) {
   const screenshotUrl = useRejectedScreenshotUrl(rejectedScreenshot?.storageKey)
 
+  const [exchangeProductOptions, setExchangeProductOptions] = useState<string[]>([])
+  useEffect(() => {
+    if (deal.dealType !== 'CAMPAIGN_TYPE_EXCHANGE') return
+    let cancelled = false
+    fetchCampaignExchangeProductNames(deal.campaignId)
+      .then(names => { if (!cancelled) setExchangeProductOptions(names) })
+      .catch(() => { /* leave options empty — field stays hidden */ })
+    return () => { cancelled = true }
+  }, [deal.dealType, deal.campaignId])
+
   const orderScreenshotKey = rejectedScreenshot?.storageKey
     ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_ORDER')?.storageKey
 
@@ -29,6 +41,7 @@ export function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimRes
     amount:      claimResponse.amountPaise != null ? String(paiseToRupees(claimResponse.amountPaise)) : '',
     productName: claimResponse.productName ?? '',
     sellerName:  claimResponse.sellerName ?? '',
+    exchangeProduct: claimResponse.exchangeProduct ?? '',
     orderDate:   claimResponse.orderDate != null
       ? String(claimResponse.orderDate).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')
       : '',
@@ -45,6 +58,7 @@ export function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimRes
           onSuccess={onSuccess}
           claimValues={claimValues}
           sellerNameOptional={!deal.sellerName}
+          exchangeProductOptions={exchangeProductOptions}
           resubmit={{
             claimId: claimId!,
             screenshotId: rejectedScreenshot.id ?? '',
@@ -75,6 +89,7 @@ export function OrderStep({ deal, claimId, onSuccess, readOnly = false, claimRes
         readOnly={readOnly}
         claimValues={readOnly ? claimValues : undefined}
         sellerNameOptional={!deal.sellerName}
+        exchangeProductOptions={exchangeProductOptions}
       />
     </div>
   )

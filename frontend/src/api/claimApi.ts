@@ -18,7 +18,7 @@ function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
   return status
 }
 
-function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
+export function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
   const status = dto.status ?? 'ORDERED'
   return {
     id: dto.id ?? '',
@@ -39,6 +39,7 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     accountName: dto.accountName ?? undefined,
     orderedBy: dto.orderedBy ?? undefined,
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
+    exchangeProduct: dto.exchangeProduct ?? undefined,
     sellerName: dto.sellerName ?? undefined,
     productPricePaise: dto.deal?.originalPricePaise ?? undefined,
     dealOfferedPricePaise: dto.deal?.offeredPricePaise ?? undefined,
@@ -234,6 +235,7 @@ export interface SubmitClaimParams {
   amount: number
   productName: string
   sellerName?: string
+  exchangeProduct?: string
   orderDate: string   // YYYY-MM-DD from date picker
   accountName: string
   screenshot: File
@@ -411,6 +413,7 @@ export async function updateOrderScreenshot(
     amount: number
     productName: string
     sellerName?: string
+    exchangeProduct?: string
     orderDate: string
     accountName: string
   }
@@ -424,6 +427,7 @@ export async function updateOrderScreenshot(
   formData.append('amount', String(rupeesToPaise(fields.amount)))
   formData.append('productName', fields.productName)
   if (fields.sellerName) formData.append('sellerName', fields.sellerName)
+  if (fields.exchangeProduct) formData.append('exchangeProduct', fields.exchangeProduct)
   formData.append('orderDate', fields.orderDate.replace(/-/g, ''))
   formData.append('accountName', fields.accountName)
 
@@ -523,6 +527,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   formData.append('amount', String(rupeesToPaise(params.amount)))
   formData.append('productName', params.productName)
   if (params.sellerName) formData.append('sellerName', params.sellerName)
+  if (params.exchangeProduct) formData.append('exchangeProduct', params.exchangeProduct)
   // Convert YYYY-MM-DD to YYYYMMDD integer expected by the backend
   formData.append('orderDate', params.orderDate.replace(/-/g, ''))
   formData.append('accountName', params.accountName)
