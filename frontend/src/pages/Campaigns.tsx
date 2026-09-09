@@ -47,6 +47,12 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
     })),
     termsAndConditions: dto.termsAndConditions ?? '',
     requiredSteps: dto.requiredSteps ?? ['ORDER'],
+    exchangeProducts: (dto.exchangeProducts ?? []).map(p => ({
+      productName: p.productName ?? '',
+      productImageUrl: p.productImageUrl ?? '',
+      selected: true,
+      prefilled: true,
+    })),
   }
 }
 

@@ -68,6 +68,10 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
+    exchangeProducts: dto.exchangeProducts.map(p => ({
+      productName: p.productName,
+      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
+    })),
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
@@ -284,6 +288,10 @@ export async function updateCampaign(
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
+    exchangeProducts: dto.exchangeProducts.map(p => ({
+      productName: p.productName,
+      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
+    })),
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),

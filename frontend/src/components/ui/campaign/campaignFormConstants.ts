@@ -1,5 +1,17 @@
 import type { Platform, CampaignType, LinkedEntity } from '../../../types'
 
+/**
+ * One row in the campaign-creation "Exchange Products" section.
+ * `prefilled` rows come from the agency master list or from products already persisted on the
+ * campaign — their name is locked; the image URL stays editable.
+ */
+export interface ExchangeProductRow {
+  productName: string
+  productImageUrl: string
+  selected: boolean
+  prefilled: boolean
+}
+
 export const EMPTY_FORM = {
   title: '',
   platform: '' as Platform | '',
@@ -21,6 +33,7 @@ export const EMPTY_FORM = {
   assignees: [] as LinkedEntity[],
   termsAndConditions: '',
   requiredSteps: ['ORDER'] as string[],
+  exchangeProducts: [] as ExchangeProductRow[],
 }
 
 export const labelClass =
@@ -37,6 +50,46 @@ export const inputClass = [
 export const errorClass = 'text-[10px] text-neon-red mt-1'
 
 export type CampaignForm = typeof EMPTY_FORM
+
+/** Lenient client-side image-URL check: empty is allowed; otherwise it must parse and be http(s). */
+export function isValidImageUrl(value: string): boolean {
+  if (!value.trim()) return true
+  try {
+    const { protocol } = new URL(value)
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Builds the exchange-product rows shown on the campaign form from the agency master list and any
+ * rows already saved on the campaign. Master entries become locked rows (unchecked unless a saved
+ * row matches by name, case-insensitively — the backend dedupes names the same way); saved rows
+ * with no matching master entry are kept as trailing locked rows. The blank "add" row is appended
+ * by the component, not here.
+ */
+export function mergeExchangeProductRows(
+  master: { name?: string }[],
+  saved: ExchangeProductRow[],
+): ExchangeProductRow[] {
+  const savedByName = new Map(saved.map(r => [r.productName.trim().toLowerCase(), r]))
+  const rows: ExchangeProductRow[] = master.map(m => {
+    const productName = (m.name ?? '').trim()
+    const match = savedByName.get(productName.toLowerCase())
+    savedByName.delete(productName.toLowerCase())
+    return {
+      productName,
+      productImageUrl: match?.productImageUrl ?? '',
+      selected: !!match,
+      prefilled: true,
+    }
+  })
+  for (const leftover of savedByName.values()) {
+    rows.push({ ...leftover, prefilled: true })
+  }
+  return rows
+}
 
 export function validateCampaignForm(form: CampaignForm): Partial<Record<string, string>> {
   const e: Partial<Record<string, string>> = {}
@@ -73,6 +126,15 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
       if (assignedSlots > ts) {
         e.assignedSlots = `Total assigned slots (${assignedSlots}) cannot exceed campaign total slots (${ts})`
       }
+    }
+  }
+
+  if (form.campaignType === 'CAMPAIGN_TYPE_EXCHANGE') {
+    const chosen = form.exchangeProducts.filter(r => r.selected && r.productName.trim())
+    if (chosen.length === 0) {
+      e.exchangeProducts = 'Select at least one exchange product with a name'
+    } else if (chosen.some(r => !isValidImageUrl(r.productImageUrl))) {
+      e.exchangeProducts = 'Enter a valid http(s) image URL for each selected product, or leave it blank'
     }
   }
 

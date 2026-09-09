@@ -9,6 +9,7 @@ import { EMPTY_FORM, validateCampaignForm, type CampaignForm } from './campaignF
 import { CampaignInfoFields } from './CampaignInfoFields'
 import { CampaignIncentiveFields } from './CampaignIncentiveFields'
 import { CampaignProductFields } from './CampaignProductFields'
+import { CampaignExchangeProductsFields } from './CampaignExchangeProductsFields'
 import { CampaignRequiredScreenshotsFields } from './CampaignRequiredScreenshotsFields'
 import { CampaignSettingsFields } from './CampaignSettingsFields'
 
@@ -45,11 +46,17 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
   }
 
   function set(field: keyof typeof EMPTY_FORM, value: unknown) {
-    setForm(prev => ({ ...prev, [field]: value }))
+    const clearExchange = field === 'campaignType' && value !== 'CAMPAIGN_TYPE_EXCHANGE'
+    setForm(prev => ({
+      ...prev,
+      [field]: value,
+      ...(clearExchange ? { exchangeProducts: [] } : {}),
+    }))
     setErrors(prev => ({
       ...prev,
       [field]: undefined,
       ...(field === 'totalSlots' || field === 'assignees' ? { assignedSlots: undefined } : {}),
+      ...(clearExchange ? { exchangeProducts: undefined } : {}),
     }))
   }
 
@@ -83,6 +90,11 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
       startDate: form.startDate || null,
       endDate: form.endDate || null,
       requiredSteps: form.requiredSteps,
+      exchangeProducts: form.campaignType === 'CAMPAIGN_TYPE_EXCHANGE'
+        ? form.exchangeProducts
+            .filter(r => r.selected && r.productName.trim())
+            .map(r => ({ productName: r.productName.trim(), productImageUrl: r.productImageUrl.trim() || null }))
+        : [],
       ...(action ? { action } : {}),
     }
   }
@@ -148,6 +160,8 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
           <CampaignInfoFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
           <CampaignProductFields form={form} errors={errors} set={set} readOnly={readOnly} />
+
+          <CampaignExchangeProductsFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
           <CampaignIncentiveFields form={form} errors={errors} set={set} readOnly={readOnly} />
 

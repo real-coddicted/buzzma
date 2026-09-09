@@ -91,6 +91,13 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_ORDER'
   | 'CAMPAIGN_TYPE_DISCOUNT'
   | 'CAMPAIGN_TYPE_APP_REVIEW'
+  | 'CAMPAIGN_TYPE_EXCHANGE'
+
+/** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
+export interface ExchangeProductSelection {
+  productName: string
+  productImageUrl: string | null
+}
 
 export interface CampaignRequestDto {
   title: string
@@ -113,6 +120,7 @@ export interface CampaignRequestDto {
   startDate: string | null
   endDate: string | null
   requiredSteps: string[]
+  exchangeProducts: ExchangeProductSelection[]
   action?: 'CAMPAIGN_ACTION_PUBLISH' | 'CAMPAIGN_ACTION_PAUSE' | 'CAMPAIGN_ACTION_RESUME' | 'CAMPAIGN_ACTION_CLOSE' | 'CAMPAIGN_ACTION_COMPLETE'
 }
 
