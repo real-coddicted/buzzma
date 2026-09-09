@@ -155,6 +155,62 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return saved;
   }
 
+  /**
+   * App Promotion has no order ID and no client-side pre-scoring, so this mirrors {@code
+   * createClaim}'s shape (slot check, active-campaign check, claim creation) but skips the order-ID
+   * duplicate check (meaningless for an app install - see {@code ecommerceOrderId} below) and the
+   * exchange-product validation (App Review campaigns are never exchange campaigns), and submits
+   * the screenshot for async extraction the same way the submit* methods do, instead of requiring
+   * the client to have already scored it.
+   */
+  @Override
+  @Transactional
+  public Claim createAppReviewClaim(
+      final Claim claim,
+      final byte[] screenshot,
+      final String screenshotFilename,
+      final String contentType) {
+
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Campaign campaign = loadActiveCampaign(claim);
+
+    final int updated =
+        this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
+            deal.getCampaignSlot().getId());
+    if (updated == 0) {
+      LOGGER.warn("All slots claimed for deal {}", claim.getDealId());
+      throw new BusinessRuleViolationException("All slots have been claimed for this deal");
+    }
+
+    final String screenshotKey =
+        this.storageService.store("claims", screenshotFilename, contentType, screenshot);
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
+
+    final Claim saved =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .code(code)
+                .status(ClaimStatus.DOWNLOADED_AND_INSTALLED)
+                .ecommerceOrderId("NA")
+                .platform(campaign.getPlatform())
+                .currentStep(CampaignStepType.DOWNLOAD_INSTALL)
+                .isDeleted(false)
+                .createdBy(claim.getOwnerId())
+                .updatedBy(claim.getOwnerId())
+                .build());
+
+    final ClaimScreenshot downloadInstallScreenshot =
+        saveScreenshot(
+            saved.getId(),
+            screenshotKey,
+            ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL,
+            saved.getOwnerId());
+    this.extractionService.submitJob(downloadInstallScreenshot.getId(), saved.getOwnerId());
+
+    return saved;
+  }
+
   @Override
   @Transactional
   public ClaimWithDeal submitReview(

@@ -9,6 +9,7 @@ import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.dto.CreateAppReviewClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.PagedClaimsResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
@@ -110,6 +111,30 @@ public class ClaimController {
             screenshot.getContentType(),
             request.getExtractedDetails(),
             request.getOverallScore());
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/app-review")
+  @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto createAppReviewClaim(
+      @CurrentUserId final UUID requesterId, @Valid final CreateAppReviewClaimRequestDto request) {
+
+    final MultipartFile screenshot = request.getScreenshot();
+    final Claim claim =
+        this.claimService.createAppReviewClaim(
+            Claim.builder()
+                .campaignId(request.getCampaignId())
+                .dealId(request.getDealId())
+                .ownerId(requesterId)
+                .productName(request.getProductName())
+                .accountName(request.getAccountName())
+                .build(),
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));

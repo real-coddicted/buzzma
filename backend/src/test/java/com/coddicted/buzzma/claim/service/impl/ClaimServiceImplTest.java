@@ -1,12 +1,14 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.DELIVERY_PROOF_SUBMITTED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.DOWNLOADED_AND_INSTALLED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.UNDER_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DELIVERY;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RATING;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
@@ -38,6 +40,7 @@ import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -87,6 +90,15 @@ class ClaimServiceImplTest {
             this.mockExtractionService,
             this.mockCodeGenerationService);
   }
+
+  private static final Claim APP_REVIEW_CLAIM_INPUT =
+      Claim.builder()
+          .campaignId(CLAIM_INPUT.getCampaignId())
+          .dealId(DEAL_ID)
+          .ownerId(OWNER_ID)
+          .productName("Sample App")
+          .accountName("john.doe@gmail.com")
+          .build();
 
   @Test
   void testCreateClaim() {
@@ -358,6 +370,90 @@ class ClaimServiceImplTest {
     assertEquals("Exchange product is only allowed on exchange campaigns", ex.getMessage());
     verify(this.mockCampaignSlotRepository, never())
         .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateAppReviewClaim() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+                .build());
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final Claim result =
+        this.claimService.createAppReviewClaim(
+            APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_1, result);
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(DOWNLOADED_AND_INSTALLED, saved.getStatus());
+    assertEquals("NA", saved.getEcommerceOrderId());
+    assertEquals(Platform.PLATFORM_GOOGLE_PLAY_STORE, saved.getPlatform());
+    assertEquals(CampaignStepType.DOWNLOAD_INSTALL, saved.getCurrentStep());
+    assertEquals(CLAIM_CODE, saved.getCode());
+    assertEquals(OWNER_ID, saved.getCreatedBy());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(SCREENSHOT_TYPE_DOWNLOAD_INSTALL, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testCreateAppReviewClaimWhenCampaignNotActive() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createAppReviewClaim(
+                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+
+    assertEquals(
+        "The campaign is not active anymore. Please go back to deals page and refresh once to"
+            + " confirm active deals",
+        ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateAppReviewClaimWhenSlotsExhausted() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+                .build());
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(0);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createAppReviewClaim(
+                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+
+    assertEquals("All slots have been claimed for this deal", ex.getMessage());
     verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
   }
 

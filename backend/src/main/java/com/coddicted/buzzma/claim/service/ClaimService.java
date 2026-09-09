@@ -36,6 +36,10 @@ public interface ClaimService {
       Map<String, ScoredValue> extractedDetails,
       Integer overallScore);
 
+  /** Claim creation for App Promotion (App Review campaigns) - no order ID, async extraction. */
+  Claim createAppReviewClaim(
+      Claim claim, byte[] screenshot, String screenshotFilename, String contentType);
+
   ClaimWithDeal submitReview(
       UUID claimId,
       UUID ownerId,
