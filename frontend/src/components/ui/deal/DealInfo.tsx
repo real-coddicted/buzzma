@@ -22,24 +22,31 @@ interface DealInfoProps {
 export function DealInfo({ deal }: DealInfoProps) {
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
+  const gallery = deal.productImages.filter(Boolean)
+  const isCarousel = gallery.length > 1
+
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
       <div className="relative h-64">
-        <a
-          href={deal.productUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative h-64 block group"
-          aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
-        >
-          <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-          {discount > 0 && (
-            <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
-              -{discount}%
-            </span>
-          )}
-        </a>
+        {isCarousel ? (
+          <ProductThumbnail src={gallery} alt={deal.productName} className="h-full" autoPlay secondaryLabel="Exchange option" />
+        ) : (
+          <a
+            href={deal.productUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative block h-64 group"
+            aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
+          >
+            <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+          </a>
+        )}
+        {discount > 0 && (
+          <span className="absolute top-3 right-3 z-10 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
+            -{discount}%
+          </span>
+        )}
       </div>
 
       {/* badges + title + price */}

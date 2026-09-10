@@ -1,8 +1,10 @@
 package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
@@ -30,4 +32,5 @@ public class DealResponseDto {
   Integer slotsAvailable;
   Integer startDate;
   Integer endDate;
+  List<ExchangeProduct> exchangeProducts;
 }

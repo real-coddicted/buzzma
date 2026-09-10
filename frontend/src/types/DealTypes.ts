@@ -20,6 +20,8 @@ export interface Deal {
   campaignCode?: string
   productName: string
   productImageUrl: string
+  /** Primary image first, then any exchange-product images. Feeds the image carousel. */
+  productImages: string[]
   productUrl: string
   platform: Platform
   platformLabel: string

@@ -31,6 +31,7 @@ public interface DealMapper {
   @Mapping(source = "campaignSlot.slotsAvailable", target = "slotsAvailable")
   @Mapping(source = "campaign.startDate", target = "startDate")
   @Mapping(source = "campaign.endDate", target = "endDate")
+  @Mapping(source = "campaign.exchangeProducts", target = "exchangeProducts")
   DealResponseDto toDealResponse(Deal deal);
 
   List<DealResponseDto> toDealResponse(List<Deal> deals);

@@ -8,6 +8,7 @@ function makeDeal(overrides: Partial<Deal> = {}): Deal {
     campaignId: 'camp-1',
     productName: 'Test Product',
     productImageUrl: 'https://example.com/img.png',
+    productImages: ['https://example.com/img.png'],
     productUrl: 'https://example.com/product',
     platform: 'PLATFORM_AMAZON',
     platformLabel: 'Amazon',

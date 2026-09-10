@@ -10,6 +10,12 @@ const API_BASE = '/api/v1'
 type DealResponseDto = components['schemas']['DealResponseDto']
 type PagedDealsResponseDto = components['schemas']['PagedDealsResponseDto']
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
+type ExchangeProduct = components['schemas']['ExchangeProduct']
+
+/** Primary image first, then each exchange product's image, dropping blanks. */
+function toProductImages(primary: string | undefined, exchangeProducts: ExchangeProduct[] | undefined): string[] {
+  return [primary, ...(exchangeProducts ?? []).map(p => p.productImageUrl)].filter((u): u is string => !!u)
+}
 
 export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
   const d = dto.deal ?? {}
@@ -23,6 +29,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     campaignId: d.campaignId ?? '',
     productName: d.productName ?? '',
     productImageUrl: d.productImageUrl ?? '',
+    productImages: toProductImages(d.productImageUrl, d.exchangeProducts),
     productUrl: d.productUrl ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
@@ -59,6 +66,7 @@ export function dealResponseToDeal(dto: DealResponseDto): Deal {
     campaignId: dto.campaignId ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
+    productImages: toProductImages(dto.productImageUrl, dto.exchangeProducts),
     productUrl: dto.productUrl ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
@@ -124,6 +132,7 @@ export function campaignToDeal(dto: CampaignResponseDto): Deal {
     title: dto.title,
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
+    productImages: toProductImages(dto.productImageUrl, dto.exchangeProducts),
     productUrl: dto.productLink ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,

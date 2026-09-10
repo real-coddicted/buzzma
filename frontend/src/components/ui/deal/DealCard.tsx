@@ -31,10 +31,11 @@ export function DealCard({ deal, onClick }: DealCardProps) {
     >
       <div className="relative h-44">
         <ProductThumbnail
-          src={deal.productImageUrl}
+          src={deal.productImages}
           alt={deal.productName}
           className="h-full"
           imgClassName="group-hover:scale-105 transition-transform duration-300"
+          secondaryLabel="Exchange option"
         />
         <div className="absolute top-2 left-2 flex items-center gap-1.5">
           {discount > 0 && (

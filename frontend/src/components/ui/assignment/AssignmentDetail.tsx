@@ -35,6 +35,7 @@ export function AssignmentDetail({ item, onBack, readOnly = false }: AssignmentD
     campaignCode:         item.campaignCode,
     productName:          item.productName,
     productImageUrl:      item.productImageUrl,
+    productImages:        [item.productImageUrl].filter(Boolean),
     productUrl:           item.productUrl,
     platform:             item.platform,
     platformLabel:        item.platformLabel,

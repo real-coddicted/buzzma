@@ -59,6 +59,26 @@ describe('dealResponseToDeal', () => {
     expect(deal.startDate).toBeUndefined()
     expect(deal.endDate).toBeUndefined()
   })
+
+  it('exposes just the primary image when there are no exchange products', () => {
+    const deal = dealResponseToDeal(makeDto())
+    expect(deal.productImages).toEqual(['https://example.com/img.png'])
+  })
+
+  it('appends exchange-product images after the primary one, dropping blanks', () => {
+    const deal = dealResponseToDeal(makeDto({
+      exchangeProducts: [
+        { productName: 'Old Blender', productImageUrl: 'https://example.com/blender.png' },
+        { productName: 'No Image' },
+        { productName: 'Old Kettle', productImageUrl: 'https://example.com/kettle.png' },
+      ],
+    }))
+    expect(deal.productImages).toEqual([
+      'https://example.com/img.png',
+      'https://example.com/blender.png',
+      'https://example.com/kettle.png',
+    ])
+  })
 })
 
 describe('claimResponseToDeal', () => {

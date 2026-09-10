@@ -8,6 +8,7 @@ const baseDeal: Deal = {
   campaignId: 'c1',
   productName: 'boAt Rockerz 450 Wireless Headphones',
   productImageUrl: '',
+  productImages: [],
   productUrl: 'https://www.amazon.in/dp/B08CF1XZY6',
   platform: 'PLATFORM_AMAZON',
   platformLabel: 'Amazon',

@@ -2211,6 +2211,7 @@ export interface components {
             startDate?: number;
             /** Format: int32 */
             endDate?: number;
+            exchangeProducts?: components["schemas"]["ExchangeProduct"][];
         };
         UpdateClaimRequestDto: {
             /** Format: uuid */
