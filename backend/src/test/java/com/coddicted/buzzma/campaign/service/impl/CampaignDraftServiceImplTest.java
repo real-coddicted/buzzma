@@ -6,9 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.coddicted.buzzma.campaign.dto.CampaignDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignDraftResponseDto;
-import com.coddicted.buzzma.campaign.dto.CreateDraftRequestDto;
-import com.coddicted.buzzma.campaign.dto.UpdateDraftRequestDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignDraft;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
@@ -60,8 +59,8 @@ class CampaignDraftServiceImplTest {
     when(this.mockCampaignDraftRepository.save(captor.capture()))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    final CreateDraftRequestDto request =
-        CreateDraftRequestDto.builder().title("My Draft").ownerId(OWNER_ID).build();
+    final CampaignDraftRequestDto request =
+        CampaignDraftRequestDto.builder().title("My Draft").ownerId(OWNER_ID).build();
 
     final CampaignDraftResponseDto result = this.campaignDraftService.create(OWNER_ID, request);
 
@@ -74,13 +73,14 @@ class CampaignDraftServiceImplTest {
   }
 
   @Test
-  void testUpdateMergesOnlyProvidedFieldsLeavingOthersUnchanged() {
+  void testUpdateReplacesStoredResponseWholesaleNotMerged() {
     final CampaignDraftResponseDto existingResponse =
         CampaignDraftResponseDto.builder()
             .id(DRAFT_ID)
             .code(GENERATED_CODE)
             .title("Old Title")
             .totalSlots(5)
+            .createdBy(OWNER_ID)
             .build();
     final CampaignDraft existing =
         CampaignDraft.builder()
@@ -93,14 +93,19 @@ class CampaignDraftServiceImplTest {
     when(this.mockCampaignDraftRepository.save(captor.capture()))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    final UpdateDraftRequestDto request =
-        UpdateDraftRequestDto.builder().title("New Title").build();
+    // totalSlots is omitted here on purpose: since draft updates replace wholesale rather than
+    // merging, the previously stored value (5) must NOT survive.
+    final CampaignDraftRequestDto request =
+        CampaignDraftRequestDto.builder().title("New Title").build();
 
     final CampaignDraftResponseDto result =
         this.campaignDraftService.update(OWNER_ID, DRAFT_ID, request);
 
     assertEquals("New Title", result.getTitle());
-    assertEquals(5, result.getTotalSlots());
+    assertNull(result.getTotalSlots());
+    assertEquals(DRAFT_ID, result.getId());
+    assertEquals(GENERATED_CODE, result.getCode());
+    assertEquals(OWNER_ID, result.getCreatedBy());
     assertEquals(OWNER_ID, captor.getValue().getResponseJson().getUpdatedBy());
   }
 
@@ -112,7 +117,7 @@ class CampaignDraftServiceImplTest {
         NotFoundException.class,
         () ->
             this.campaignDraftService.update(
-                OWNER_ID, DRAFT_ID, UpdateDraftRequestDto.builder().build()));
+                OWNER_ID, DRAFT_ID, CampaignDraftRequestDto.builder().build()));
   }
 
   @Test

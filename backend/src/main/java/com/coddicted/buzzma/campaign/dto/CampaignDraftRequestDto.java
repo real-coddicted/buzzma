@@ -15,13 +15,14 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 /**
- * Request body for updating a campaign draft. Every field is optional; fields left {@code null}
- * leave the previously stored draft value unchanged. No validation is performed until launch.
+ * Request body for creating or updating a campaign draft. Every field is optional — a draft may be
+ * incomplete, and no validation is performed until launch. Saving a draft always replaces the
+ * stored response wholesale with whatever this DTO carries; there is no field-by-field merging.
  */
 @Value
 @Builder
 @Jacksonized
-public class UpdateDraftRequestDto {
+public class CampaignDraftRequestDto {
 
   @Nullable String title;
 
@@ -29,7 +30,7 @@ public class UpdateDraftRequestDto {
 
   @Nullable Platform platform;
 
-  @Nullable PromotionCategory category;
+  @Nullable @Builder.Default PromotionCategory category = PromotionCategory.ECOMMERCE;
 
   @Nullable String productName;
 
@@ -55,9 +56,9 @@ public class UpdateDraftRequestDto {
 
   @Nullable List<CampaignAssignmentRequestDto> assignees;
 
-  @Nullable Boolean openToAll;
+  boolean openToAll;
 
-  @Nullable Boolean affiliateLinkAllowed;
+  boolean affiliateLinkAllowed;
 
   @Nullable BigInteger commissionToAllPaise;
 

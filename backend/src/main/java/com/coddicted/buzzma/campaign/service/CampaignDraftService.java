@@ -1,16 +1,15 @@
 package com.coddicted.buzzma.campaign.service;
 
+import com.coddicted.buzzma.campaign.dto.CampaignDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignDraftResponseDto;
-import com.coddicted.buzzma.campaign.dto.CreateDraftRequestDto;
-import com.coddicted.buzzma.campaign.dto.UpdateDraftRequestDto;
 import com.coddicted.buzzma.campaign.entity.CampaignDraft;
 import java.util.UUID;
 
 public interface CampaignDraftService {
 
-  CampaignDraftResponseDto create(UUID requesterId, CreateDraftRequestDto request);
+  CampaignDraftResponseDto create(UUID requesterId, CampaignDraftRequestDto request);
 
-  CampaignDraftResponseDto update(UUID requesterId, UUID id, UpdateDraftRequestDto request);
+  CampaignDraftResponseDto update(UUID requesterId, UUID id, CampaignDraftRequestDto request);
 
   CampaignDraftResponseDto getById(UUID id);
 

@@ -1,8 +1,7 @@
 package com.coddicted.buzzma.campaign.service.impl;
 
+import com.coddicted.buzzma.campaign.dto.CampaignDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignDraftResponseDto;
-import com.coddicted.buzzma.campaign.dto.CreateDraftRequestDto;
-import com.coddicted.buzzma.campaign.dto.UpdateDraftRequestDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignDraft;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
@@ -37,42 +36,12 @@ public class CampaignDraftServiceImpl implements CampaignDraftService {
   @Override
   @Transactional
   public CampaignDraftResponseDto create(
-      final UUID requesterId, final CreateDraftRequestDto request) {
+      final UUID requesterId, final CampaignDraftRequestDto request) {
     final UUID id = UUID.randomUUID();
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN);
     final CampaignDraftResponseDto response =
-        CampaignDraftResponseDto.builder()
-            .id(id)
-            .code(code)
-            .title(request.getTitle())
-            .ownerId(request.getOwnerId())
-            .platform(request.getPlatform())
-            .category(request.getCategory())
-            .productName(request.getProductName())
-            .productImageUrl(request.getProductImageUrl())
-            .productUrl(request.getProductUrl())
-            .productBrandName(request.getProductBrandName())
-            .originalPricePaise(request.getOriginalPricePaise())
-            .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
-            .campaignType(request.getCampaignType())
-            .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
-            .campaignPricePaise(request.getCampaignPricePaise())
-            .totalSlots(request.getTotalSlots())
-            .returnWindowDays(request.getReturnWindowDays())
-            .assignees(request.getAssignees())
-            .openToAll(request.isOpenToAll())
-            .affiliateLinkAllowed(request.isAffiliateLinkAllowed())
-            .commissionToAllPaise(request.getCommissionToAllPaise())
-            .termsAndConditions(request.getTermsAndConditions())
-            .sellerName(request.getSellerName())
-            .requiredSteps(request.getRequiredSteps())
-            .rewards(request.getRewards())
-            .exchangeProducts(request.getExchangeProducts())
-            .createdBy(requesterId)
-            .updatedBy(requesterId)
-            .build();
+        toResponse(request, id, code, requesterId, requesterId);
     final CampaignDraft saved =
         this.campaignDraftRepository.save(
             CampaignDraft.builder()
@@ -88,82 +57,62 @@ public class CampaignDraftServiceImpl implements CampaignDraftService {
   @Override
   @Transactional
   public CampaignDraftResponseDto update(
-      final UUID requesterId, final UUID id, final UpdateDraftRequestDto request) {
+      final UUID requesterId, final UUID id, final CampaignDraftRequestDto request) {
     final CampaignDraft existing = mustFind(id);
-    final CampaignDraftResponseDto current = existing.getResponseJson();
-    final CampaignDraftResponseDto merged =
-        current.toBuilder()
-            .title(request.getTitle() != null ? request.getTitle() : current.getTitle())
-            .ownerId(request.getOwnerId() != null ? request.getOwnerId() : current.getOwnerId())
-            .platform(request.getPlatform() != null ? request.getPlatform() : current.getPlatform())
-            .category(request.getCategory() != null ? request.getCategory() : current.getCategory())
-            .productName(
-                request.getProductName() != null
-                    ? request.getProductName()
-                    : current.getProductName())
-            .productImageUrl(
-                request.getProductImageUrl() != null
-                    ? request.getProductImageUrl()
-                    : current.getProductImageUrl())
-            .productUrl(
-                request.getProductUrl() != null ? request.getProductUrl() : current.getProductUrl())
-            .productBrandName(
-                request.getProductBrandName() != null
-                    ? request.getProductBrandName()
-                    : current.getProductBrandName())
-            .originalPricePaise(
-                request.getOriginalPricePaise() != null
-                    ? request.getOriginalPricePaise()
-                    : current.getOriginalPricePaise())
-            .startDate(
-                request.getStartDate() != null ? request.getStartDate() : current.getStartDate())
-            .endDate(request.getEndDate() != null ? request.getEndDate() : current.getEndDate())
-            .campaignType(
-                request.getCampaignType() != null
-                    ? request.getCampaignType()
-                    : current.getCampaignType())
-            .campaignPricePaise(
-                request.getCampaignPricePaise() != null
-                    ? request.getCampaignPricePaise()
-                    : current.getCampaignPricePaise())
-            .totalSlots(
-                request.getTotalSlots() != null ? request.getTotalSlots() : current.getTotalSlots())
-            .returnWindowDays(
-                request.getReturnWindowDays() != null
-                    ? request.getReturnWindowDays()
-                    : current.getReturnWindowDays())
-            .assignees(
-                request.getAssignees() != null ? request.getAssignees() : current.getAssignees())
-            .openToAll(
-                request.getOpenToAll() != null ? request.getOpenToAll() : current.isOpenToAll())
-            .affiliateLinkAllowed(
-                request.getAffiliateLinkAllowed() != null
-                    ? request.getAffiliateLinkAllowed()
-                    : current.isAffiliateLinkAllowed())
-            .commissionToAllPaise(
-                request.getCommissionToAllPaise() != null
-                    ? request.getCommissionToAllPaise()
-                    : current.getCommissionToAllPaise())
-            .termsAndConditions(
-                request.getTermsAndConditions() != null
-                    ? request.getTermsAndConditions()
-                    : current.getTermsAndConditions())
-            .sellerName(
-                request.getSellerName() != null ? request.getSellerName() : current.getSellerName())
-            .requiredSteps(
-                request.getRequiredSteps() != null
-                    ? request.getRequiredSteps()
-                    : current.getRequiredSteps())
-            .rewards(request.getRewards() != null ? request.getRewards() : current.getRewards())
-            .exchangeProducts(
-                request.getExchangeProducts() != null
-                    ? request.getExchangeProducts()
-                    : current.getExchangeProducts())
-            .updatedBy(requesterId)
-            .build();
+    final CampaignDraftResponseDto response =
+        toResponse(
+            request,
+            existing.getId(),
+            existing.getCode(),
+            existing.getResponseJson().getCreatedBy(),
+            requesterId);
     final CampaignDraft saved =
-        this.campaignDraftRepository.save(existing.toBuilder().responseJson(merged).build());
+        this.campaignDraftRepository.save(
+            existing.toBuilder().responseJson(response).updatedBy(requesterId).build());
     return saved.getResponseJson();
+  }
+
+  /**
+   * Builds the stored draft response by replacing it wholesale with whatever the request carries —
+   * draft save/update never merges field-by-field with the previously stored value.
+   */
+  private static CampaignDraftResponseDto toResponse(
+      final CampaignDraftRequestDto request,
+      final UUID id,
+      final String code,
+      final UUID createdBy,
+      final UUID updatedBy) {
+    return CampaignDraftResponseDto.builder()
+        .id(id)
+        .code(code)
+        .title(request.getTitle())
+        .ownerId(request.getOwnerId())
+        .platform(request.getPlatform())
+        .category(request.getCategory())
+        .productName(request.getProductName())
+        .productImageUrl(request.getProductImageUrl())
+        .productUrl(request.getProductUrl())
+        .productBrandName(request.getProductBrandName())
+        .originalPricePaise(request.getOriginalPricePaise())
+        .startDate(request.getStartDate())
+        .endDate(request.getEndDate())
+        .campaignType(request.getCampaignType())
+        .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
+        .campaignPricePaise(request.getCampaignPricePaise())
+        .totalSlots(request.getTotalSlots())
+        .returnWindowDays(request.getReturnWindowDays())
+        .assignees(request.getAssignees())
+        .openToAll(request.isOpenToAll())
+        .affiliateLinkAllowed(request.isAffiliateLinkAllowed())
+        .commissionToAllPaise(request.getCommissionToAllPaise())
+        .termsAndConditions(request.getTermsAndConditions())
+        .sellerName(request.getSellerName())
+        .requiredSteps(request.getRequiredSteps())
+        .rewards(request.getRewards())
+        .exchangeProducts(request.getExchangeProducts())
+        .createdBy(createdBy)
+        .updatedBy(updatedBy)
+        .build();
   }
 
   @Override

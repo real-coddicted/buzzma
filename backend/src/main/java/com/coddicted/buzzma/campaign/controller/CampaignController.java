@@ -3,19 +3,18 @@ package com.coddicted.buzzma.campaign.controller;
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBatchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
+import com.coddicted.buzzma.campaign.dto.CampaignDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignDraftResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
-import com.coddicted.buzzma.campaign.dto.CreateDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedSharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
-import com.coddicted.buzzma.campaign.dto.UpdateDraftRequestDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
@@ -253,7 +252,7 @@ public class CampaignController {
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
   public CampaignDraftResponseDto createDraft(
-      @CurrentUserId final UUID requesterId, @RequestBody final CreateDraftRequestDto request) {
+      @CurrentUserId final UUID requesterId, @RequestBody final CampaignDraftRequestDto request) {
     return this.campaignDraftService.create(requesterId, request);
   }
 
@@ -262,7 +261,7 @@ public class CampaignController {
   public CampaignDraftResponseDto updateDraft(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
-      @RequestBody final UpdateDraftRequestDto request) {
+      @RequestBody final CampaignDraftRequestDto request) {
     return this.campaignDraftService.update(requesterId, id, request);
   }
 
