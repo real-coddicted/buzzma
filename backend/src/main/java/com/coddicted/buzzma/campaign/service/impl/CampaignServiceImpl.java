@@ -104,16 +104,6 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
 
   @Override
   @Transactional
-  public Campaign delete(final UUID campaignId, final UUID requesterId) {
-    final int rowsAffected = this.campaignRepository.deleteDraftCampaign(requesterId, campaignId);
-    if (rowsAffected != 1) {
-      throw new BusinessRuleViolationException("Unable to delete campaign " + campaignId);
-    }
-    return mustFind(this.campaignRepository, campaignId, "Campaign");
-  }
-
-  @Override
-  @Transactional
   public Campaign action(
       final UUID campaignId, final CampaignAction campaignAction, final UUID requesterId) {
     final CampaignStatus target =
@@ -131,28 +121,6 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
   @Transactional(readOnly = true)
   public Set<Campaign> findCampaignsById(final Set<UUID> campaignIdSet) {
     return this.campaignRepository.findByIdInAndIsDeletedFalse(campaignIdSet);
-  }
-
-  @Override
-  @Transactional
-  public Campaign copy(final UUID campaignId, final UUID requesterId) {
-    final Campaign src = mustFind(this.campaignRepository, campaignId, "Campaign");
-    final Campaign copy =
-        src.toBuilder()
-            .id(null)
-            .code(this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
-            .title(src.getTitle() + " (Copy)")
-            .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
-            .assignmentsDraft(null)
-            .createdAt(null)
-            .updatedAt(null)
-            .createdBy(requesterId)
-            .updatedBy(requesterId)
-            .product(src.getProduct().toBuilder().id(null).build())
-            .build();
-    final Campaign saved = this.campaignRepository.save(copy);
-    this.campaignEventPublisher.publishCampaignCreatedEvent(saved.getId(), requesterId);
-    return saved;
   }
 
   @Override

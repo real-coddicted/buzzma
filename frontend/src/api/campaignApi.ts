@@ -35,26 +35,44 @@ type BackendRequest = components['schemas']['CampaignRequestDto']
 export type CampaignResponseDto = components['schemas']['CampaignResponseDto']
 type CampaignSummaryDto = components['schemas']['CampaignSummaryResponseDto']
 
-const statusMap: Record<NonNullable<CampaignSummaryDto['status']>, CampaignStatus> = {
-  CAMPAIGN_STATUS_DRAFT:     'draft',
-  CAMPAIGN_STATUS_ACTIVE:    'active',
-  CAMPAIGN_STATUS_ASSIGNED:  'active',
-  CAMPAIGN_STATUS_PAUSED:    'paused',
-  CAMPAIGN_STATUS_COMPLETED: 'completed',
-  CAMPAIGN_STATUS_CLOSED:    'closed',
+/**
+ * The response shape for a not-yet-launched draft (POST/PATCH/GET /campaigns/draft/*). Unlike
+ * {@link CampaignResponseDto}, a draft has no persisted product/assignment rows, so it mirrors
+ * the flat request field names (`productUrl`, `assignees`) instead of the post-launch shape.
+ */
+export interface CampaignDraftResponseDto {
+  id?: string
+  code?: string
+  title?: string
+  ownerId?: string
+  platform?: BackendRequest['platform']
+  productName?: string
+  productImageUrl?: string
+  productUrl?: string
+  productBrandName?: string
+  originalPricePaise?: number
+  startDate?: number
+  endDate?: number
+  campaignType?: BackendRequest['campaignType']
+  status?: string
+  campaignPricePaise?: number
+  totalSlots?: number
+  returnWindowDays?: number
+  assignees?: BackendRequest['assignees']
+  openToAll?: boolean
+  affiliateLinkAllowed?: boolean
+  commissionToAllPaise?: number
+  termsAndConditions?: string
+  sellerName?: string
+  requiredSteps?: BackendRequest['requiredSteps']
+  rewards?: BackendRequest['rewards']
+  exchangeProducts?: BackendRequest['exchangeProducts']
 }
 
-function isoToYYYYMMDD(iso: string): number {
-  return parseInt(iso.replace(/-/g, ''), 10)
-}
-
-export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignResponseDto> {
-  const user = getCurrentUser()
-  if (!user?.id) throw new Error('You must be signed in to create a campaign.')
-
-  const body: BackendRequest = {
+function toDraftRequestBody(dto: CampaignRequestDto, ownerId: string): Partial<CampaignDraftResponseDto> {
+  return {
     title: dto.title,
-    ownerId: user.id,
+    ownerId,
     platform: dto.platform as BackendRequest['platform'],
     productName: dto.productName,
     productBrandName: dto.productBrandName,
@@ -63,7 +81,6 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     originalPricePaise: dto.originalPricePaise,
     campaignPricePaise: dto.campaignPricePaise,
     campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
-    campaignStatus: 'CAMPAIGN_STATUS_DRAFT',
     totalSlots: dto.totalSlots ?? 1,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
@@ -81,14 +98,124 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     ...(dto.assignees && dto.assignees.length > 0 ? {
       assignees: dto.assignees.map(e => ({
         campaignId: '',
-        assignorId: user.id!,
+        assignorId: ownerId,
         assigneeId: e.id,
         adjustedCampaignPricePaise: dto.campaignPricePaise,
         commissionOfferedPaise: rupeesToPaise(e.commissionOffered),
         slotOffered: e.slotsAvailable,
       })),
     } : {}),
-    ...(dto.action ? { action: dto.action as BackendRequest['action'] } : {}),
+  }
+}
+
+/** POST /campaigns/draft — saves a new, unvalidated campaign draft. */
+export async function createDraft(dto: CampaignRequestDto): Promise<CampaignDraftResponseDto> {
+  const user = getCurrentUser()
+  if (!user?.id) throw new Error('You must be signed in to save a campaign draft.')
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/draft`, {
+    method: 'POST',
+    body: JSON.stringify(toDraftRequestBody(dto, user.id)),
+  })
+  return res.json() as Promise<CampaignDraftResponseDto>
+}
+
+/** PATCH /campaigns/draft/{id} — updates an existing campaign draft. */
+export async function updateDraft(id: string, dto: CampaignRequestDto): Promise<CampaignDraftResponseDto> {
+  const user = getCurrentUser()
+  if (!user?.id) throw new Error('You must be signed in to update a campaign draft.')
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/draft/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(toDraftRequestBody(dto, user.id)),
+  })
+  return res.json() as Promise<CampaignDraftResponseDto>
+}
+
+/** GET /campaigns/draft/{id} — fetches a saved campaign draft. */
+export async function fetchDraftById(id: string): Promise<CampaignDraftResponseDto> {
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/draft/${id}`)
+  return res.json() as Promise<CampaignDraftResponseDto>
+}
+
+/** DELETE /campaigns/draft/{id} — deletes a campaign draft. */
+export async function deleteDraft(id: string): Promise<void> {
+  await fetchWithAuth(`${API_BASE}/campaigns/draft/${id}`, { method: 'DELETE' })
+}
+
+/** POST /campaigns/draft/{id}/launch — validates and launches a previously saved draft. */
+export async function launchDraft(id: string, dto: CampaignRequestDto): Promise<CampaignResponseDto> {
+  const user = getCurrentUser()
+  if (!user?.id) throw new Error('You must be signed in to launch a campaign.')
+  const body = { ...buildCampaignRequestBody(dto, user.id, id), action: 'CAMPAIGN_ACTION_PUBLISH' as const }
+  const res = await fetchWithAuth(`${API_BASE}/campaigns/draft/${id}/launch`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  return res.json() as Promise<CampaignResponseDto>
+}
+
+function buildCampaignRequestBody(
+  dto: CampaignRequestDto, ownerId: string, campaignStatus: string,
+): BackendRequest {
+  return {
+    title: dto.title,
+    ownerId,
+    platform: dto.platform as BackendRequest['platform'],
+    productName: dto.productName,
+    productBrandName: dto.productBrandName,
+    productImageUrl: dto.productImageUrl,
+    productUrl: dto.productUrl,
+    originalPricePaise: dto.originalPricePaise,
+    campaignPricePaise: dto.campaignPricePaise,
+    campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
+    campaignStatus: campaignStatus as BackendRequest['campaignStatus'],
+    totalSlots: dto.totalSlots ?? 1,
+    openToAll: dto.openToAll ?? true,
+    affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
+    exchangeProducts: dto.exchangeProducts.map(p => ({
+      productName: p.productName,
+      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
+    })),
+    ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
+    ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
+    ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
+    ...(dto.sellerName ? { sellerName: dto.sellerName } : {}),
+    ...(dto.startDate ? { startDate: isoToYYYYMMDD(dto.startDate) } : {}),
+    ...(dto.endDate ? { endDate: isoToYYYYMMDD(dto.endDate) } : {}),
+    ...(dto.assignees && dto.assignees.length > 0 ? {
+      assignees: dto.assignees.map(e => ({
+        campaignId: '',
+        assignorId: ownerId,
+        assigneeId: e.id,
+        adjustedCampaignPricePaise: dto.campaignPricePaise,
+        commissionOfferedPaise: rupeesToPaise(e.commissionOffered),
+        slotOffered: e.slotsAvailable,
+      })),
+    } : {}),
+  }
+}
+
+const statusMap: Record<NonNullable<CampaignSummaryDto['status']>, CampaignStatus> = {
+  CAMPAIGN_STATUS_DRAFT:     'draft',
+  CAMPAIGN_STATUS_ACTIVE:    'active',
+  CAMPAIGN_STATUS_ASSIGNED:  'active',
+  CAMPAIGN_STATUS_PAUSED:    'paused',
+  CAMPAIGN_STATUS_COMPLETED: 'completed',
+  CAMPAIGN_STATUS_CLOSED:    'closed',
+}
+
+function isoToYYYYMMDD(iso: string): number {
+  return parseInt(iso.replace(/-/g, ''), 10)
+}
+
+/** POST /campaigns — creates and immediately launches a campaign with no prior draft. */
+export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignResponseDto> {
+  const user = getCurrentUser()
+  if (!user?.id) throw new Error('You must be signed in to create a campaign.')
+
+  const body: BackendRequest = {
+    ...buildCampaignRequestBody(dto, user.id, 'CAMPAIGN_STATUS_DRAFT'),
+    action: 'CAMPAIGN_ACTION_PUBLISH',
   }
 
   const res = await fetchWithAuth(`${API_BASE}/campaigns`, {
@@ -238,9 +365,31 @@ export async function shareCampaignWithBrand(campaignId: string, toUserId: strin
   })
 }
 
+/**
+ * GET /campaigns/{id}, falling back to GET /campaigns/draft/{id} — a launched campaign and a
+ * draft share the same id space (preserved across launch), so callers that only have an id
+ * (e.g. an edit-page URL) can't tell which one it is ahead of time.
+ */
 export async function fetchCampaignById(id: string): Promise<CampaignResponseDto> {
-  const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`)
-  return res.json() as Promise<CampaignResponseDto>
+  try {
+    const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`)
+    return res.json() as Promise<CampaignResponseDto>
+  } catch {
+    const draft = await fetchDraftById(id)
+    return draftToResponseDto(draft)
+  }
+}
+
+function draftToResponseDto(draft: CampaignDraftResponseDto): CampaignResponseDto {
+  return {
+    ...draft,
+    productLink: draft.productUrl,
+    assignments: (draft.assignees ?? []).map(a => ({
+      assigneeId: a.assigneeId,
+      slotOffered: a.slotOffered,
+      commissionOfferedPaise: a.commissionOfferedPaise,
+    })),
+  } as CampaignResponseDto
 }
 
 /** GET /campaigns/{id} — the configured exchange product names for a campaign (empty for non-exchange campaigns). */
@@ -265,64 +414,10 @@ export async function fetchCampaignsByIds(ids: string[]): Promise<CampaignBriefD
   return res.json() as Promise<CampaignBriefDto[]>
 }
 
-export async function copyCampaign(id: string): Promise<CampaignResponseDto> {
+/** POST /campaigns/{id}/copy — copies a launched campaign into a new draft. */
+export async function copyCampaign(id: string): Promise<CampaignDraftResponseDto> {
   const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}/copy`, { method: 'POST' })
-  return res.json() as Promise<CampaignResponseDto>
-}
-
-export async function updateCampaign(
-  id: string,
-  dto: CampaignRequestDto,
-  campaignStatus: NonNullable<CampaignResponseDto['status']>,
-): Promise<CampaignResponseDto> {
-  const user = getCurrentUser()
-  if (!user?.id) throw new Error('You must be signed in to update a campaign.')
-
-  const body: BackendRequest = {
-    title: dto.title,
-    ownerId: user.id,
-    platform: dto.platform as BackendRequest['platform'],
-    productName: dto.productName,
-    productBrandName: dto.productBrandName,
-    productImageUrl: dto.productImageUrl,
-    productUrl: dto.productUrl,
-    originalPricePaise: dto.originalPricePaise,
-    campaignPricePaise: dto.campaignPricePaise,
-    campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
-    campaignStatus,
-    totalSlots: dto.totalSlots ?? 1,
-    openToAll: dto.openToAll ?? true,
-    affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
-    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
-    exchangeProducts: dto.exchangeProducts.map(p => ({
-      productName: p.productName,
-      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
-    })),
-    ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
-    ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
-    ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
-    ...(dto.sellerName ? { sellerName: dto.sellerName } : {}),
-    ...(dto.startDate ? { startDate: isoToYYYYMMDD(dto.startDate) } : {}),
-    ...(dto.endDate ? { endDate: isoToYYYYMMDD(dto.endDate) } : {}),
-    ...(dto.assignees && dto.assignees.length > 0 ? {
-      assignees: dto.assignees.map(e => ({
-        campaignId: id,
-        assignorId: user.id!,
-        assigneeId: e.id,
-        adjustedCampaignPricePaise: dto.campaignPricePaise,
-        commissionOfferedPaise: rupeesToPaise(e.commissionOffered),
-        slotOffered: e.slotsAvailable,
-      })),
-    } : {}),
-    ...(dto.action ? { action: dto.action as BackendRequest['action'] } : {}),
-  }
-
-  const res = await fetchWithAuth(`${API_BASE}/campaigns/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  })
-
-  return res.json() as Promise<CampaignResponseDto>
+  return res.json() as Promise<CampaignDraftResponseDto>
 }
 
 export async function publishCampaign(campaignId: string): Promise<CampaignResponseDto> {
@@ -357,8 +452,9 @@ export async function closeCampaign(campaignId: string): Promise<CampaignRespons
   return res.json() as Promise<CampaignResponseDto>
 }
 
+/** DELETE /campaigns/draft/{id} — deletes a campaign draft (the only kind of campaign that can be deleted). */
 export async function deleteCampaign(campaignId: string): Promise<void> {
-  await fetchWithAuth(`${API_BASE}/campaigns/${campaignId}`, { method: 'DELETE' })
+  await deleteDraft(campaignId)
 }
 
 export interface AssignableCampaign {

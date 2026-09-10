@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,6 +25,7 @@ import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.persistence.ShareableCampaignView;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
+import com.coddicted.buzzma.campaign.service.CampaignDraftService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.config.ConfigProvider;
@@ -67,6 +67,7 @@ class CampaignControllerTest {
   @MockBean private CampaignStepResolver campaignStepResolver;
   @MockBean private ShareableCampaignMapper shareableCampaignMapper;
   @MockBean private SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
+  @MockBean private CampaignDraftService campaignDraftService;
 
   private static final String VALID_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/campaign/campaign-request.json");
@@ -157,57 +158,6 @@ class CampaignControllerTest {
         .andExpect(jsonPath("$[0].stepOrder").value(1))
         .andExpect(jsonPath("$[1].type").value("CASHBACK"))
         .andExpect(jsonPath("$[1].stepOrder").value(2));
-  }
-
-  // --- PATCH /api/v1/campaigns/{id} (update) ---
-
-  @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void testUpdateWithBrandRoleReturns200() throws Exception {
-    when(campaignProcessor.updateCampaign(any(), any(), any()))
-        .thenReturn(CampaignResponseDto.builder().build());
-
-    mockMvc
-        .perform(
-            patch("/api/v1/campaigns/" + UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_BODY))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
-  void testUpdateWithAgencyRoleReturns200() throws Exception {
-    when(campaignProcessor.updateCampaign(any(), any(), any()))
-        .thenReturn(CampaignResponseDto.builder().build());
-
-    mockMvc
-        .perform(
-            patch("/api/v1/campaigns/" + UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_BODY))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
-  void testUpdateWithBuyerRoleReturnsForbidden() throws Exception {
-    mockMvc
-        .perform(
-            patch("/api/v1/campaigns/" + UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_BODY))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  void testUpdateUnauthenticatedReturnsUnauthorized() throws Exception {
-    mockMvc
-        .perform(
-            patch("/api/v1/campaigns/" + UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_BODY))
-        .andExpect(status().isUnauthorized());
   }
 
   // --- Negative slot validation ---
@@ -307,13 +257,13 @@ class CampaignControllerTest {
         .andExpect(status().isUnauthorized());
   }
 
-  // --- DELETE /api/v1/campaigns/{id} ---
+  // --- DELETE /api/v1/campaigns/draft/{id} ---
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
   void testDeleteWithBrandRoleReturns204() throws Exception {
     mockMvc
-        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .perform(delete("/api/v1/campaigns/draft/" + UUID.randomUUID()))
         .andExpect(status().isNoContent());
   }
 
@@ -321,7 +271,7 @@ class CampaignControllerTest {
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
   void testDeleteWithAgencyRoleReturns204() throws Exception {
     mockMvc
-        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .perform(delete("/api/v1/campaigns/draft/" + UUID.randomUUID()))
         .andExpect(status().isNoContent());
   }
 
@@ -329,7 +279,7 @@ class CampaignControllerTest {
   @WithBuzzmaUser(role = UserRole.ROLE_BUYER)
   void testDeleteWithBuyerRoleReturnsForbidden() throws Exception {
     mockMvc
-        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .perform(delete("/api/v1/campaigns/draft/" + UUID.randomUUID()))
         .andExpect(status().isForbidden());
   }
 
@@ -337,14 +287,14 @@ class CampaignControllerTest {
   @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
   void testDeleteWithMediatorRoleReturnsForbidden() throws Exception {
     mockMvc
-        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .perform(delete("/api/v1/campaigns/draft/" + UUID.randomUUID()))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void testDeleteUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc
-        .perform(delete("/api/v1/campaigns/" + UUID.randomUUID()))
+        .perform(delete("/api/v1/campaigns/draft/" + UUID.randomUUID()))
         .andExpect(status().isUnauthorized());
   }
 

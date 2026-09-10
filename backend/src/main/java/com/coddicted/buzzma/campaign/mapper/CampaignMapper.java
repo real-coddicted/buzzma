@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.campaign.mapper;
 
-import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
@@ -9,10 +8,8 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import java.util.List;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
@@ -33,7 +30,6 @@ public interface CampaignMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "isDeleted", ignore = true)
   @Mapping(source = "campaignType", target = "type")
-  @Mapping(source = "assignees", target = "assignmentsDraft")
   Campaign toCampaignEntity(CampaignRequestDto request);
 
   @Mapping(source = "product.id", target = "productId")
@@ -58,18 +54,6 @@ public interface CampaignMapper {
   @Mapping(target = "isDeleted", ignore = true)
   CampaignResponseDto toResponse(Campaign campaign, List<CampaignAssignment> assignments);
 
-  @Mapping(source = "campaign.product.id", target = "productId")
-  @Mapping(source = "campaign.product.name", target = "productName")
-  @Mapping(source = "campaign.product.brandName", target = "productBrandName")
-  @Mapping(source = "campaign.product.imageUrl", target = "productImageUrl")
-  @Mapping(source = "campaign.product.productLink", target = "productLink")
-  @Mapping(source = "campaign.product.pricePaise", target = "productPricePaise")
-  @Mapping(source = "campaign.type", target = "campaignType")
-  @Mapping(source = "draftAssignments", target = "assignments")
-  @Mapping(target = "isDeleted", ignore = true)
-  CampaignResponseDto toResponseFromDraft(
-      Campaign campaign, List<CampaignAssignmentRequestDto> draftAssignments);
-
   @Mapping(source = "campaign.id", target = "campaignId")
   @Mapping(source = "campaign.code", target = "code")
   @Mapping(source = "campaign.title", target = "title")
@@ -90,18 +74,4 @@ public interface CampaignMapper {
 
   @Mapping(source = "product.brandName", target = "productBrandName")
   CampaignBriefDto toBrief(Campaign entity);
-
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  @Mapping(target = "id", ignore = true)
-  @Mapping(target = "code", ignore = true)
-  @Mapping(target = "product", ignore = true)
-  @Mapping(target = "status", ignore = true)
-  @Mapping(target = "createdBy", ignore = true)
-  @Mapping(target = "updatedBy", ignore = true)
-  @Mapping(target = "createdAt", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "deleted", ignore = true)
-  @Mapping(source = "campaignType", target = "type")
-  @Mapping(source = "assignees", target = "assignmentsDraft")
-  void updateCampaign(CampaignRequestDto request, @MappingTarget Campaign entity);
 }

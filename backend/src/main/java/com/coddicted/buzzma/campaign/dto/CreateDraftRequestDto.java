@@ -1,7 +1,5 @@
 package com.coddicted.buzzma.campaign.dto;
 
-import com.coddicted.buzzma.campaign.entity.CampaignAction;
-import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
@@ -9,10 +7,6 @@ import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
@@ -20,45 +14,46 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+/**
+ * Request body for saving a campaign draft. Unlike {@link CampaignRequestDto}, every field is
+ * optional — a draft may be incomplete, and no validation is performed until launch.
+ */
 @Value
-@Builder(toBuilder = true)
+@Builder
 @Jacksonized
-public class CampaignRequestDto {
+public class CreateDraftRequestDto {
 
-  @NotBlank String title;
+  @Nullable String title;
 
-  @NotNull UUID ownerId;
+  @Nullable UUID ownerId;
 
-  @NotNull Platform platform;
+  @Nullable Platform platform;
 
-  /** Defaults to ECOMMERCE until campaign creation lets the owner choose it (App Promotion etc). */
   @Nullable @Builder.Default PromotionCategory category = PromotionCategory.ECOMMERCE;
 
-  @NotBlank String productName;
+  @Nullable String productName;
 
-  @NotBlank String productImageUrl;
+  @Nullable String productImageUrl;
 
-  @NotBlank String productUrl;
+  @Nullable String productUrl;
 
-  @NotBlank String productBrandName;
+  @Nullable String productBrandName;
 
-  @NotNull BigInteger originalPricePaise;
+  @Nullable BigInteger originalPricePaise;
 
   @Nullable Integer startDate;
 
   @Nullable Integer endDate;
 
-  @NotNull CampaignType campaignType;
+  @Nullable CampaignType campaignType;
 
-  @NotNull CampaignStatus campaignStatus;
+  @Nullable BigInteger campaignPricePaise;
 
-  @NotNull BigInteger campaignPricePaise;
-
-  @NotNull @Positive Integer totalSlots;
+  @Nullable Integer totalSlots;
 
   @Nullable Integer returnWindowDays;
 
-  @Valid List<CampaignAssignmentRequestDto> assignees;
+  @Nullable List<CampaignAssignmentRequestDto> assignees;
 
   boolean openToAll;
 
@@ -75,6 +70,4 @@ public class CampaignRequestDto {
   @Nullable List<Reward> rewards;
 
   @Nullable List<ExchangeProduct> exchangeProducts;
-
-  @Nullable CampaignAction action;
 }

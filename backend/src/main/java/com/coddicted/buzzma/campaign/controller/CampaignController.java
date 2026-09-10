@@ -3,16 +3,19 @@ package com.coddicted.buzzma.campaign.controller;
 import com.coddicted.buzzma.campaign.dto.AssignableCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBatchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignBriefDto;
+import com.coddicted.buzzma.campaign.dto.CampaignDraftResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignOptionDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignSearchRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignStepDto;
+import com.coddicted.buzzma.campaign.dto.CreateDraftRequestDto;
 import com.coddicted.buzzma.campaign.dto.PagedCampaignsResponseDto;
 import com.coddicted.buzzma.campaign.dto.PagedSharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.dto.UpdateDraftRequestDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
@@ -23,6 +26,7 @@ import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
+import com.coddicted.buzzma.campaign.service.CampaignDraftService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.identity.entity.UserRole;
@@ -59,6 +63,7 @@ public class CampaignController {
   private final CampaignStepResolver campaignStepResolver;
   private final ShareableCampaignMapper shareableCampaignMapper;
   private final SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
+  private final CampaignDraftService campaignDraftService;
 
   public CampaignController(
       final CampaignService service,
@@ -66,13 +71,15 @@ public class CampaignController {
       final CampaignProcessor campaignProcessor,
       final CampaignStepResolver campaignStepResolver,
       final ShareableCampaignMapper shareableCampaignMapper,
-      final SharedCampaignSummaryMapper sharedCampaignSummaryMapper) {
+      final SharedCampaignSummaryMapper sharedCampaignSummaryMapper,
+      final CampaignDraftService campaignDraftService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.campaignProcessor = campaignProcessor;
     this.campaignStepResolver = campaignStepResolver;
     this.shareableCampaignMapper = shareableCampaignMapper;
     this.sharedCampaignSummaryMapper = sharedCampaignSummaryMapper;
+    this.campaignDraftService = campaignDraftService;
   }
 
   /** The full set of screenshot steps selectable when configuring a campaign. */
@@ -242,20 +249,42 @@ public class CampaignController {
     return this.campaignProcessor.create(requesterId, request);
   }
 
-  @PatchMapping("/{id}")
+  @PostMapping("/draft")
+  @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
-  public CampaignResponseDto updateCampaign(
+  public CampaignDraftResponseDto createDraft(
+      @CurrentUserId final UUID requesterId, @RequestBody final CreateDraftRequestDto request) {
+    return this.campaignDraftService.create(requesterId, request);
+  }
+
+  @PatchMapping("/draft/{id}")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public CampaignDraftResponseDto updateDraft(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestBody final UpdateDraftRequestDto request) {
+    return this.campaignDraftService.update(requesterId, id, request);
+  }
+
+  @GetMapping("/draft/{id}")
+  public CampaignDraftResponseDto getDraftById(@PathVariable final UUID id) {
+    return this.campaignDraftService.getById(id);
+  }
+
+  @DeleteMapping("/draft/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public void deleteDraft(@CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
+    this.campaignDraftService.delete(requesterId, id);
+  }
+
+  @PostMapping("/draft/{id}/launch")
+  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
+  public CampaignResponseDto launchDraft(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
       @Valid @RequestBody final CampaignRequestDto request) {
-    return this.campaignProcessor.updateCampaign(requesterId, id, request);
-  }
-
-  @DeleteMapping("/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize(UserRole.Expr.AGENCY + UserRole.Expr.OR + UserRole.Expr.BRAND)
-  public void delete(@CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    this.service.delete(id, requesterId);
+    return this.campaignProcessor.launchDraft(requesterId, id, request);
   }
 
   @PostMapping("/{id}/action/{action}")
@@ -267,8 +296,8 @@ public class CampaignController {
   }
 
   @PostMapping("/{id}/copy")
-  public CampaignResponseDto copy(
+  public CampaignDraftResponseDto copy(
       @PathVariable final UUID id, @CurrentUserId final UUID requesterId) {
-    return this.campaignMapper.toResponse(this.service.copy(id, requesterId));
+    return this.campaignDraftService.copyFromCampaign(id, requesterId);
   }
 }

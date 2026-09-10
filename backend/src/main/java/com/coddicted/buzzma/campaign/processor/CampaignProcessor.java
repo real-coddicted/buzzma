@@ -8,6 +8,7 @@ import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignDraft;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
@@ -21,6 +22,7 @@ import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.policy.CampaignPolicy;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
+import com.coddicted.buzzma.campaign.service.CampaignDraftService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
@@ -52,6 +54,7 @@ public class CampaignProcessor {
   private final ConnectionService connectionService;
   private final UserService userService;
   private final CampaignShareService campaignShareService;
+  private final CampaignDraftService campaignDraftService;
 
   public CampaignProcessor(
       final CampaignService service,
@@ -62,7 +65,8 @@ public class CampaignProcessor {
       final CampaignEventPublisher campaignEventPublisher,
       final ConnectionService connectionService,
       final UserService userService,
-      final CampaignShareService campaignShareService) {
+      final CampaignShareService campaignShareService,
+      final CampaignDraftService campaignDraftService) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
@@ -72,6 +76,7 @@ public class CampaignProcessor {
     this.connectionService = connectionService;
     this.userService = userService;
     this.campaignShareService = campaignShareService;
+    this.campaignDraftService = campaignDraftService;
   }
 
   @Transactional
@@ -112,20 +117,22 @@ public class CampaignProcessor {
 
   public CampaignResponseDto getById(final UUID id) {
     final Campaign campaign = this.service.getById(id);
-    if (campaign.getStatus() == CampaignStatus.CAMPAIGN_STATUS_DRAFT
-        && campaign.getAssignmentsDraft() != null
-        && !campaign.getAssignmentsDraft().isEmpty()) {
-      final CampaignResponseDto draft =
-          this.campaignMapper.toResponseFromDraft(campaign, campaign.getAssignmentsDraft());
-      return enrichAssigneeNames(campaign, draft);
-    }
     final List<CampaignAssignment> assignments =
         this.campaignAssignmentService.getByCampaignId(campaign.getId());
     return buildResponse(campaign, assignments);
   }
 
+  /**
+   * Creates and immediately launches a campaign with no prior draft. Saving an incomplete campaign
+   * for later must go through {@code CampaignDraftService} instead — this path always runs full
+   * validation.
+   */
   @Transactional
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
+    if (request.getAction() != CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
+      throw new BusinessRuleViolationException(
+          "Use the campaign draft endpoints to save a campaign without launching it");
+    }
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
     CampaignPolicy.validatePlatformAndCampaignType(
@@ -143,42 +150,43 @@ public class CampaignProcessor {
                 .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
-    if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
-      return publish(savedCampaign, requesterId, request.getAssignees());
-    }
-    return this.campaignMapper.toResponse(savedCampaign);
+    return publish(savedCampaign, requesterId, request.getAssignees());
   }
 
+  /**
+   * Launches a previously saved draft: runs full validation (skipped when the draft was saved),
+   * inserts it into {@code campaigns} preserving the draft's id/code, then removes the draft row.
+   */
   @Transactional
-  public CampaignResponseDto updateCampaign(
-      final UUID requesterId, final UUID id, final CampaignRequestDto request) {
+  public CampaignResponseDto launchDraft(
+      final UUID requesterId, final UUID draftId, final CampaignRequestDto request) {
+    if (request.getAction() != CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
+      throw new BusinessRuleViolationException("Launching a draft requires the publish action");
+    }
+    final CampaignDraft draft = this.campaignDraftService.getEntityById(draftId);
+    DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
     CampaignPolicy.validatePlatformAndCampaignType(
         request.getPlatform(), request.getCampaignType());
     validateReward(request);
     validateExchangeProducts(request);
-    final Campaign existingCampaign = this.service.getById(id);
-    if (existingCampaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_DRAFT) {
-      throw new BusinessRuleViolationException(
-          "Cannot update a campaign that is not in draft status");
-    }
-
-    final Product updatedProduct =
-        this.productProcessor.updateProduct(existingCampaign.getProduct(), request);
-    this.campaignMapper.updateCampaign(request, existingCampaign);
-
-    final Campaign updatedCampaign =
-        existingCampaign.toBuilder()
-            .product(updatedProduct)
-            .updatedBy(requesterId)
-            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
-            .build();
-
-    final Campaign savedCampaign = this.service.update(updatedCampaign);
-    if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
-      return publish(savedCampaign, requesterId, request.getAssignees());
-    }
-    return this.campaignMapper.toResponse(savedCampaign);
+    final Product newProduct = this.productProcessor.saveProduct(request);
+    final Campaign savedCampaign =
+        this.service.update(
+            this.campaignMapper.toCampaignEntity(request).toBuilder()
+                .id(draft.getId())
+                .code(draft.getCode())
+                .product(newProduct)
+                .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
+                .createdBy(requesterId)
+                .updatedBy(requesterId)
+                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+                .build());
+    this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
+    final CampaignResponseDto response =
+        publish(savedCampaign, requesterId, request.getAssignees());
+    this.campaignDraftService.delete(requesterId, draftId);
+    return response;
   }
 
   private CampaignResponseDto publish(

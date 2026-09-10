@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.campaign.entity;
 
-import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.shared.common.AuditEntityListener;
 import com.coddicted.buzzma.shared.common.Auditable;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -105,10 +104,6 @@ public class Campaign implements Auditable {
 
   @Column(name = "seller_name", length = 255)
   private String sellerName;
-
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "assignments_draft", columnDefinition = "jsonb")
-  private List<CampaignAssignmentRequestDto> assignmentsDraft;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "required_steps", columnDefinition = "jsonb")

@@ -21,9 +21,9 @@ import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
+import com.coddicted.buzzma.campaign.entity.CampaignDraft;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
-import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
@@ -32,6 +32,7 @@ import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
+import com.coddicted.buzzma.campaign.service.CampaignDraftService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
@@ -61,6 +62,7 @@ class CampaignProcessorTest {
   @Mock private ConnectionService connectionService;
   @Mock private UserService userService;
   @Mock private CampaignShareService campaignShareService;
+  @Mock private CampaignDraftService campaignDraftService;
 
   private CampaignProcessor campaignProcessor;
 
@@ -76,13 +78,30 @@ class CampaignProcessorTest {
             campaignEventPublisher,
             connectionService,
             userService,
-            campaignShareService);
+            campaignShareService,
+            campaignDraftService);
+  }
+
+  @Test
+  void testCreateWithoutPublishActionThrows() {
+    final CampaignRequestDto requestWithoutAction = CampaignRequestDto.builder().build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, requestWithoutAction));
+    assertEquals(
+        "Use the campaign draft endpoints to save a campaign without launching it",
+        ex.getMessage());
   }
 
   @Test
   void testCreateWithPastEndDateThrows() {
     final CampaignRequestDto requestWithPastEndDate =
-        CampaignRequestDto.builder().endDate(20200101).build();
+        CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
+            .endDate(20200101)
+            .build();
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -95,6 +114,7 @@ class CampaignProcessorTest {
   void testCreateAppReviewTypeOnNonAppStorePlatformThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .platform(Platform.PLATFORM_AMAZON)
             .campaignType(CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
@@ -113,6 +133,7 @@ class CampaignProcessorTest {
   void testCreateAppStorePlatformWithNonAppReviewTypeThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .platform(Platform.PLATFORM_APPLE_APP_STORE)
             .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
@@ -131,6 +152,7 @@ class CampaignProcessorTest {
   void testCreateExchangeTypeWithoutExchangeProductsThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
             .build();
@@ -146,6 +168,7 @@ class CampaignProcessorTest {
   void testCreateExchangeTypeWithBlankProductNameThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
             .exchangeProducts(List.of(ExchangeProduct.builder().productName(" ").build()))
@@ -162,6 +185,7 @@ class CampaignProcessorTest {
   void testCreateNonExchangeTypeWithExchangeProductsThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
             .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
@@ -178,6 +202,7 @@ class CampaignProcessorTest {
   void testCreateCashbackRewardWithoutAmountThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).build()))
             .build();
@@ -193,6 +218,7 @@ class CampaignProcessorTest {
   void testCreateCashbackRewardWithNonPositiveAmountThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).value("0").build()))
             .build();
@@ -208,6 +234,7 @@ class CampaignProcessorTest {
   void testCreateDuplicateRewardTypeThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .action(CampaignAction.CAMPAIGN_ACTION_PUBLISH)
             .endDate(20991231)
             .rewards(
                 List.of(
@@ -268,38 +295,53 @@ class CampaignProcessorTest {
   }
 
   @Test
-  void testUpdateCampaignOnNonDraftCampaignThrows() {
-    final Campaign activeCampaign =
-        CAMPAIGN_1.toBuilder().status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE).build();
-    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(activeCampaign);
+  void testLaunchDraftWithoutPublishActionThrows() {
+    final CampaignRequestDto requestWithoutAction = CampaignRequestDto.builder().build();
 
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
-            () ->
-                campaignProcessor.updateCampaign(
-                    REQUESTER_ID, CAMPAIGN_ID_1, CampaignRequestDto.builder().build()));
-    assertEquals("Cannot update a campaign that is not in draft status", ex.getMessage());
+            () -> campaignProcessor.launchDraft(REQUESTER_ID, CAMPAIGN_ID_1, requestWithoutAction));
+    assertEquals("Launching a draft requires the publish action", ex.getMessage());
   }
 
   @Test
-  void testUpdateCampaignNormalizesRequiredStepsForcingOrderAndDroppingCashback() {
+  @SuppressWarnings("unchecked")
+  void testLaunchDraftNormalizesRequiredStepsAndPreservesDraftIdAndCode() {
+    final CampaignDraft draft =
+        CampaignDraft.builder().id(CAMPAIGN_ID_1).code("CAMP-DRAFT1").build();
     final CampaignRequestDto request =
-        CampaignRequestDto.builder()
+        REQUEST_MIXED_SLOT_OFFERED.toBuilder()
             .requiredSteps(List.of(CampaignStepType.CASHBACK, CampaignStepType.REVIEW))
             .build();
-    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
-    when(productProcessor.updateProduct(CAMPAIGN_1.getProduct(), request)).thenReturn(PRODUCT_1);
+    final List<CampaignAssignment> expectedAssignments = List.of(EXPECTED_ASSIGNMENT);
+
+    when(campaignDraftService.getEntityById(CAMPAIGN_ID_1)).thenReturn(draft);
+    when(productProcessor.saveProduct(request)).thenReturn(PRODUCT_1);
+    when(campaignMapper.toCampaignEntity(request)).thenReturn(CAMPAIGN_1);
 
     final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
     when(campaignService.update(captor.capture())).thenReturn(CAMPAIGN_1);
-    when(campaignMapper.toResponse(CAMPAIGN_1)).thenReturn(CampaignResponseDto.builder().build());
+    final ArgumentCaptor<List<CampaignSlot>> slotsCaptor = ArgumentCaptor.forClass(List.class);
+    when(campaignSlotService.create(slotsCaptor.capture())).thenReturn(List.of(EXPECTED_SLOT));
+    final ArgumentCaptor<List<CampaignAssignment>> assignmentsCaptor =
+        ArgumentCaptor.forClass(List.class);
+    when(campaignAssignmentService.create(assignmentsCaptor.capture()))
+        .thenReturn(expectedAssignments);
+    when(campaignService.action(
+            CAMPAIGN_1.getId(), CampaignAction.CAMPAIGN_ACTION_PUBLISH, REQUESTER_ID))
+        .thenReturn(CAMPAIGN_1_PUBLISHED);
+    when(campaignMapper.toResponse(CAMPAIGN_1_PUBLISHED, expectedAssignments))
+        .thenReturn(CampaignResponseDto.builder().build());
 
-    campaignProcessor.updateCampaign(REQUESTER_ID, CAMPAIGN_ID_1, request);
+    campaignProcessor.launchDraft(REQUESTER_ID, CAMPAIGN_ID_1, request);
 
     assertEquals(
         List.of(CampaignStepType.ORDER, CampaignStepType.REVIEW),
         captor.getValue().getRequiredSteps());
+    assertEquals(CAMPAIGN_ID_1, captor.getValue().getId());
+    assertEquals("CAMP-DRAFT1", captor.getValue().getCode());
+    verify(campaignDraftService).delete(REQUESTER_ID, CAMPAIGN_ID_1);
   }
 
   @Test

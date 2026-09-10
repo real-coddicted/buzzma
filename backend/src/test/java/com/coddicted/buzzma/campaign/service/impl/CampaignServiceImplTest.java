@@ -10,7 +10,6 @@ import static com.coddicted.buzzma.campaign.entity.CampaignAssignmentStatus.CAMP
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_ACTIVE;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_CLOSED;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_COMPLETED;
-import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_DRAFT;
 import static com.coddicted.buzzma.campaign.entity.CampaignStatus.CAMPAIGN_STATUS_PAUSED;
 import static com.coddicted.buzzma.campaign.entity.CampaignType.CAMPAIGN_TYPE_REVIEW;
 import static com.coddicted.buzzma.campaign.service.impl.Fixtures.*;
@@ -140,44 +139,6 @@ class CampaignServiceImplTest {
     final Campaign result = this.campaignService.update(CAMPAIGN_1);
 
     assertEquals(CAMPAIGN_1, result);
-  }
-
-  @Test
-  void testDelete() {
-    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_1)).thenReturn(1);
-    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
-
-    final Campaign result = this.campaignService.delete(CAMPAIGN_ID_1, OWNER_ID);
-
-    assertEquals(CAMPAIGN_1, result);
-  }
-
-  @Test
-  void testDeleteWhenNotFound() {
-    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_1)).thenReturn(0);
-
-    assertThrows(
-        BusinessRuleViolationException.class,
-        () -> this.campaignService.delete(CAMPAIGN_ID_1, OWNER_ID));
-  }
-
-  @Test
-  void testDeleteWhenNotOwner() {
-    when(this.mockCampaignRepository.deleteDraftCampaign(NON_OWNER_ID, CAMPAIGN_ID_1))
-        .thenReturn(0);
-
-    assertThrows(
-        BusinessRuleViolationException.class,
-        () -> this.campaignService.delete(CAMPAIGN_ID_1, NON_OWNER_ID));
-  }
-
-  @Test
-  void testDeleteWhenNotDraft() {
-    when(this.mockCampaignRepository.deleteDraftCampaign(OWNER_ID, CAMPAIGN_ID_2)).thenReturn(0);
-
-    assertThrows(
-        BusinessRuleViolationException.class,
-        () -> this.campaignService.delete(CAMPAIGN_ID_2, OWNER_ID));
   }
 
   @Test
@@ -398,52 +359,6 @@ class CampaignServiceImplTest {
     final List<Campaign> result = this.campaignService.getCampaignsForOwner(REQUESTER_ID);
 
     assertEquals(List.of(CAMPAIGN_1), result);
-  }
-
-  @Test
-  void testCopySuccess() {
-    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
-    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
-        .thenReturn(GENERATED_CODE);
-    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
-    when(this.mockCampaignRepository.save(captor.capture())).thenReturn(EXPECTED_CAMPAIGN_1);
-
-    final Campaign result = this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
-
-    assertEquals(EXPECTED_CAMPAIGN_1, result);
-    final Campaign savedCopy = captor.getValue();
-    assertNull(savedCopy.getId());
-    assertEquals(GENERATED_CODE, savedCopy.getCode());
-    assertEquals(CAMPAIGN_STATUS_DRAFT, savedCopy.getStatus());
-    assertEquals(REQUESTER_ID, savedCopy.getCreatedBy());
-    assertEquals(REQUESTER_ID, savedCopy.getUpdatedBy());
-    assertNull(savedCopy.getCreatedAt());
-    assertNull(savedCopy.getUpdatedAt());
-    assertNull(savedCopy.getAssignmentsDraft());
-    assertNotSame(CAMPAIGN_1.getProduct(), savedCopy.getProduct());
-    assertNull(savedCopy.getProduct().getId());
-    verifyNoInteractions(this.mockCampaignAssignmentService);
-  }
-
-  @Test
-  void testCopyWhenNoAssignments() {
-    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.of(CAMPAIGN_1));
-    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CAMPAIGN))
-        .thenReturn(GENERATED_CODE);
-    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
-    when(this.mockCampaignRepository.save(captor.capture())).thenReturn(EXPECTED_CAMPAIGN_1);
-
-    this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID);
-
-    verifyNoInteractions(this.mockCampaignAssignmentService);
-  }
-
-  @Test
-  void testCopyWhenNotFound() {
-    when(this.mockCampaignRepository.findById(CAMPAIGN_ID_1)).thenReturn(Optional.empty());
-
-    assertThrows(
-        NotFoundException.class, () -> this.campaignService.copy(CAMPAIGN_ID_1, REQUESTER_ID));
   }
 
   @Test

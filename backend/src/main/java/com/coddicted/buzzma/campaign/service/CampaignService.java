@@ -24,13 +24,9 @@ public interface CampaignService {
 
   Campaign update(Campaign campaign);
 
-  Campaign delete(UUID campaignId, UUID requesterId);
-
   Campaign action(UUID campaignId, CampaignAction action, UUID requesterId);
 
   Set<Campaign> findCampaignsById(Set<UUID> campaignIdSet);
-
-  Campaign copy(UUID campaignId, UUID requesterId);
 
   List<CampaignSummary> getByOwnerId(UUID ownerId);
 

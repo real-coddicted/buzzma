@@ -8,7 +8,7 @@ import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryC
 import { Loading } from '../components/ui/Loading'
 import { SharedCampaignsPage } from '../components/ui/campaign/SharedCampaignsPage'
 import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
-import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto } from '../api/campaignApi'
+import { createCampaign, createDraft, updateDraft, launchDraft, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto } from '../api/campaignApi'
 import { getCurrentUser } from '../api/client'
 import { yyyymmddToIso } from '../utils/time'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
@@ -239,14 +239,22 @@ export function Campaigns() {
   }
 
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {
-    await createCampaign(dto)
+    if (dto.action === 'CAMPAIGN_ACTION_PUBLISH') {
+      await createCampaign(dto)
+    } else {
+      await createDraft(dto)
+    }
     handleBack()
     handleApplyFilters(appliedFilters, currentPage)
   }
 
   async function handleUpdateCampaign(dto: CampaignRequestDto): Promise<void> {
-    if (!campaignId || !detail?.status) return
-    await updateCampaign(campaignId, dto, detail.status)
+    if (!campaignId) return
+    if (dto.action === 'CAMPAIGN_ACTION_PUBLISH') {
+      await launchDraft(campaignId, dto)
+    } else {
+      await updateDraft(campaignId, dto)
+    }
     handleBack()
     handleApplyFilters(appliedFilters, currentPage)
   }
