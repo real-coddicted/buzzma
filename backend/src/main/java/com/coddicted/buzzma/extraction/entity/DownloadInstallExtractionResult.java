@@ -13,4 +13,5 @@ public class DownloadInstallExtractionResult {
   String productName;
   String accountName;
   String installStatus;
+  String appVersion;
 }

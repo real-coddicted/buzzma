@@ -118,7 +118,8 @@ public class GeminiExtractionPromptBuilder {
         "platform": "<%s|null>",
         "productName": "<the app name string or null>",
         "accountName": "<the account or user name visible in the screenshot, or null>",
-        "installStatus": "<the exact button or status text confirming the app is installed (e.g. 'Open', 'Installed', 'Uninstall'), or null>"
+        "installStatus": "<the exact button or status text confirming the app is installed (e.g. 'Open', 'Installed', 'Uninstall', 'Update'), or null>",
+        "appVersion": "<the app's version number as shown in the listing, or null>"
       }
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);

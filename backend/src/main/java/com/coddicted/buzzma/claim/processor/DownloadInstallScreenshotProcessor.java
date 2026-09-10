@@ -59,10 +59,12 @@ public class DownloadInstallScreenshotProcessor implements ClaimScreenshotProces
             DownloadInstallExtractionResult.class);
 
     LOGGER.info(
-        "processDownloadInstallScreenshot: extracted productName={} installStatus={} accountName={} for screenshot {}",
+        "processDownloadInstallScreenshot: extracted productName={} installStatus={} accountName={}"
+            + " appVersion={} for screenshot {}",
         extracted.getProductName(),
         extracted.getInstallStatus(),
         extracted.getAccountName(),
+        extracted.getAppVersion(),
         screenshot.getId());
 
     final String platformValue =
@@ -80,6 +82,9 @@ public class DownloadInstallScreenshotProcessor implements ClaimScreenshotProces
     details.put(
         "installStatus",
         ScoredValue.builder().extractedValue(extracted.getInstallStatus()).score(null).build());
+    details.put(
+        "appVersion",
+        ScoredValue.builder().extractedValue(extracted.getAppVersion()).score(null).build());
 
     screenshot.setExtractedDetails(details);
     this.screenshotRepository.save(screenshot);
