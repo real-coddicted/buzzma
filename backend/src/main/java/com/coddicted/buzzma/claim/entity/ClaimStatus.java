@@ -15,6 +15,7 @@ public enum ClaimStatus {
   UNDER_REVIEW("Under Review"),
   ADDITIONAL_PROOF_REQUESTED("Additional Proof Requested"),
   APPROVED("Approved"),
+  READY_FOR_ACCOUNTING("Ready for Accounting"),
   REJECTED("Rejected"),
   REWARD_PENDING("Reward Pending"),
   COMPLETED("Completed"),

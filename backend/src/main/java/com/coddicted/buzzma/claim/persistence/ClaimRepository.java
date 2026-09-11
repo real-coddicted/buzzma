@@ -82,7 +82,10 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       nativeQuery = true,
       value =
           """
-      UPDATE claims SET accounting_status = 'COMPLETED' WHERE id = :claimId
+      UPDATE claims
+      SET accounting_status = 'COMPLETED',
+          status            = 'REWARD_PENDING'
+      WHERE id = :claimId
       """)
   void markAccountingCompleted(@Param("claimId") UUID claimId);
 

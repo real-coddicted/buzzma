@@ -11,6 +11,7 @@ export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClas
   'UNDER_REVIEW':               { label: 'Under Review',               colorClass: 'text-neon-yellow' },
   'ADDITIONAL_PROOF_REQUESTED': { label: 'Additional Proof Requested', colorClass: 'text-neon-orange' },
   'APPROVED':                   { label: 'Approved',                   colorClass: 'text-neon-green'  },
+  'READY_FOR_ACCOUNTING':       { label: 'Ready for Accounting',       colorClass: 'text-neon-green'  },
   'REJECTED':                   { label: 'Rejected',                   colorClass: 'text-neon-red'    },
   'REWARD_PENDING':             { label: 'Reward Pending',             colorClass: 'text-neon-yellow' },
   'COMPLETED':                  { label: 'Completed',                  colorClass: 'text-neon-green'  },

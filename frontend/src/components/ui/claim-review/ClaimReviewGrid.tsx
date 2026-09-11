@@ -219,7 +219,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     [filtered, selectedIds]
   )
   const selectableRows = useMemo(
-    () => filtered.filter(r => r.claimStatus !== 'APPROVED' && r.claimStatus !== 'REJECTED' && r.claimStatus !== 'PROOF_REJECTED'),
+    () => filtered.filter(r => r.claimStatus !== 'APPROVED' && r.claimStatus !== 'READY_FOR_ACCOUNTING' && r.claimStatus !== 'REJECTED' && r.claimStatus !== 'PROOF_REJECTED'),
     [filtered]
   )
   const allSelected = selectableRows.length > 0 && selectableRows.every(r => selectedIds.has(r.id))
@@ -370,7 +370,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                           type="checkbox"
                           checked={selectedIds.has(row.id)}
                           onChange={() => toggleRow(row.id)}
-                          disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED' || row.claimStatus === 'PROOF_REJECTED'}
+                          disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'READY_FOR_ACCOUNTING' || row.claimStatus === 'REJECTED' || row.claimStatus === 'PROOF_REJECTED'}
                           className="w-4 h-4 accent-neon-blue cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         />
                       </td>
@@ -463,7 +463,7 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
                               onChange={v => handleAmountChange(row.id, v)}
                               symbolOffset="left-1.5"
                               inputPadding="pl-4"
-                              disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'REJECTED'}
+                              disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'READY_FOR_ACCOUNTING' || row.claimStatus === 'REJECTED'}
                               className="w-20 pr-2 py-0.5 text-xs rounded border border-surface-light-border dark:border-surface-dark-border bg-transparent text-ink-light-primary dark:text-ink-dark-primary focus:outline-none focus:border-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>

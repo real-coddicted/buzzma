@@ -1967,7 +1967,7 @@ export interface components {
         ClaimReviewFilterRequestDto: {
             campaignIds?: string[];
             mediatorIds?: string[];
-            claimStatuses?: ("ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            claimStatuses?: ("ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
             platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
         };
@@ -2137,7 +2137,7 @@ export interface components {
             code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -2278,7 +2278,7 @@ export interface components {
             claimId?: string;
             claimCode?: string;
             /** @enum {string} */
-            claimStatus?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            claimStatus?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
             exchangeProduct?: string;
             mediatorVerified?: boolean;

@@ -41,7 +41,12 @@ public class ClaimReviewWorksheetRowServiceImpl implements ClaimReviewWorksheetR
       LoggerFactory.getLogger(ClaimReviewWorksheetRowServiceImpl.class);
 
   private static final Set<ClaimStatus> TERMINAL_STATUSES =
-      Set.of(ClaimStatus.APPROVED, ClaimStatus.REJECTED, ClaimStatus.COMPLETED, ClaimStatus.FAILED);
+      Set.of(
+          ClaimStatus.APPROVED,
+          ClaimStatus.READY_FOR_ACCOUNTING,
+          ClaimStatus.REJECTED,
+          ClaimStatus.COMPLETED,
+          ClaimStatus.FAILED);
 
   @PersistenceContext private EntityManager entityManager;
 

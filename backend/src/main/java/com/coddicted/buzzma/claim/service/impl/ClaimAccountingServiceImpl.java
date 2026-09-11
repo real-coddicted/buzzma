@@ -79,7 +79,7 @@ public class ClaimAccountingServiceImpl implements ClaimAccountingService {
                 SELECT id FROM claims
                 WHERE accounting_status IN ('PENDING', 'FAILED')
                   AND accounting_retry_count < :maxRetries
-                  AND status = 'APPROVED'
+                  AND status = 'READY_FOR_ACCOUNTING'
                   AND is_deleted = false
                 ORDER BY updated_at
                 LIMIT :batchSize
