@@ -3,16 +3,15 @@ package com.coddicted.buzzma.claim.strategy;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.Deal;
-import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
-import com.coddicted.buzzma.claim.persistence.ClaimRepository;
-import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
@@ -22,16 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * The collaborators and shared mechanics every {@link ClaimCreationStrategy} needs, bundled into
- * one injectable bean since a plain interface can't hold instance state. {@code
- * loadActiveCampaign}/{@code decrementSlotOrThrow}/{@code saveScreenshot} intentionally duplicate
- * the equivalent private methods in {@code ClaimServiceImpl} for now — {@code createClaim}/{@code
- * createAppReviewClaim} haven't been migrated onto the strategy pattern yet, so removing those
- * would break the still-live methods. The duplication is meant to be temporary: once a future
- * change migrates those methods onto strategies, {@code ClaimServiceImpl} should delegate to this
- * context instead of keeping its own copies.
- */
 @Component
 public class ClaimCreationContext {
 
@@ -39,33 +28,30 @@ public class ClaimCreationContext {
 
   private final DealService dealService;
   private final CampaignService campaignService;
-  private final CampaignSlotRepository campaignSlotRepository;
+  private final CampaignSlotService campaignSlotService;
   private final CampaignStepResolver campaignStepResolver;
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
-  private final ClaimRepository claimRepository;
-  private final ClaimScreenshotRepository claimScreenshotRepository;
+  private final ClaimService claimService;
 
   public ClaimCreationContext(
       final DealService dealService,
       final CampaignService campaignService,
-      final CampaignSlotRepository campaignSlotRepository,
+      final CampaignSlotService campaignSlotService,
       final CampaignStepResolver campaignStepResolver,
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService,
-      final ClaimRepository claimRepository,
-      final ClaimScreenshotRepository claimScreenshotRepository) {
+      final ClaimService claimService) {
     this.dealService = dealService;
     this.campaignService = campaignService;
-    this.campaignSlotRepository = campaignSlotRepository;
+    this.campaignSlotService = campaignSlotService;
     this.campaignStepResolver = campaignStepResolver;
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
-    this.claimRepository = claimRepository;
-    this.claimScreenshotRepository = claimScreenshotRepository;
+    this.claimService = claimService;
   }
 
   public DealService dealService() {
@@ -88,8 +74,8 @@ public class ClaimCreationContext {
     return this.codeGenerationService;
   }
 
-  public ClaimRepository claimRepository() {
-    return this.claimRepository;
+  public ClaimService claimService() {
+    return this.claimService;
   }
 
   public Campaign loadActiveCampaign(final Claim claim) {
@@ -108,9 +94,7 @@ public class ClaimCreationContext {
   }
 
   public void decrementSlotOrThrow(final Deal deal) {
-    final int updated =
-        this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
-            deal.getCampaignSlot().getId());
+    final int updated = this.campaignSlotService.decrementSlot(deal.getCampaignSlot().getId());
     if (updated == 0) {
       LOGGER.warn("All slots claimed for deal {}", deal.getId());
       throw new BusinessRuleViolationException("All slots have been claimed for this deal");
@@ -119,7 +103,7 @@ public class ClaimCreationContext {
 
   public ClaimScreenshot saveScreenshot(
       final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
-    return this.claimScreenshotRepository.save(
+    return this.claimService.saveScreenshot(
         ClaimScreenshot.builder()
             .claimId(claimId)
             .storageKey(storageKey)
