@@ -12,6 +12,7 @@ import static com.coddicted.buzzma.claim.service.impl.Fixtures.OWNER_ID;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.REVIEWER_COMMENTS;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_1;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_ID;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.SLOT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -84,6 +86,7 @@ class ClaimReviewServiceImplTest {
   @Mock private CampaignService mockCampaignService;
   @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
+  @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
   @Captor ArgumentCaptor<Collection<UUID>> campaignIdsCaptor;
   @Captor ArgumentCaptor<Collection<UUID>> mediatorIdsCaptor;
@@ -101,6 +104,7 @@ class ClaimReviewServiceImplTest {
             this.mockCampaignService,
             this.mockCampaignShareService,
             this.mockDealService,
+            this.mockCampaignSlotRepository,
             this.mockClaimReviewEventPublisher);
   }
 
@@ -555,6 +559,7 @@ class ClaimReviewServiceImplTest {
     assertEquals(ClaimStatus.APPROVED, saved.getStatus());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(CLAIM_1, ClaimStatus.APPROVED, REVIEWER_COMMENTS);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
   }
 
   @Test
@@ -577,6 +582,7 @@ class ClaimReviewServiceImplTest {
     assertEquals(ClaimStatus.REJECTED, claimCaptor.getValue().getStatus());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(rejectedClaim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+    verify(this.mockCampaignSlotRepository).incrementSlotsAvailableIfBelowTotal(SLOT_ID);
   }
 
   @Test
@@ -589,6 +595,7 @@ class ClaimReviewServiceImplTest {
         CLAIM_ID, OWNER_ID, UserRole.ROLE_MEDIATOR, ReviewerDecision.VERIFIED, null, null);
 
     verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
   }
 
   @Test
@@ -609,6 +616,7 @@ class ClaimReviewServiceImplTest {
     assertNull(saved.getReviewerId());
     assertNull(saved.getReviewerComments());
     verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
     verify(this.mockClaimService).getById(CLAIM_ID, OWNER_ID);
     verify(this.mockClaimService).save(saved);
     verifyNoMoreInteractions(this.mockClaimService);
@@ -699,6 +707,7 @@ class ClaimReviewServiceImplTest {
     assertNull(saved.getBrandVerified());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(rejectedClaim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+    verify(this.mockCampaignSlotRepository).incrementSlotsAvailableIfBelowTotal(SLOT_ID);
   }
 
   @Test

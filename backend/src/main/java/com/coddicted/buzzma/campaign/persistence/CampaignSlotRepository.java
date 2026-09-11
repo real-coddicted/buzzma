@@ -16,4 +16,9 @@ public interface CampaignSlotRepository extends JpaRepository<CampaignSlot, UUID
   @Query(
       "UPDATE CampaignSlot cs SET cs.slotsAvailable = cs.slotsAvailable - 1 WHERE cs.id = :id AND cs.slotsAvailable > 0")
   int decrementSlotsAvailableIfPositive(@Param("id") UUID id);
+
+  @Modifying
+  @Query(
+      "UPDATE CampaignSlot cs SET cs.slotsAvailable = cs.slotsAvailable + 1 WHERE cs.id = :id AND cs.slotsAvailable < cs.totalSlots")
+  int incrementSlotsAvailableIfBelowTotal(@Param("id") UUID id);
 }

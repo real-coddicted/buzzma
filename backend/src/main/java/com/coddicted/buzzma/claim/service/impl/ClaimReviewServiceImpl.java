@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -51,6 +52,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
   private final CampaignService campaignService;
   private final CampaignShareService campaignShareService;
   private final DealService dealService;
+  private final CampaignSlotRepository campaignSlotRepository;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
 
   public ClaimReviewServiceImpl(
@@ -58,11 +60,13 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final CampaignService campaignService,
       final CampaignShareService campaignShareService,
       final DealService dealService,
+      final CampaignSlotRepository campaignSlotRepository,
       final ClaimReviewEventPublisher claimReviewEventPublisher) {
     this.claimService = claimService;
     this.campaignService = campaignService;
     this.campaignShareService = campaignShareService;
     this.dealService = dealService;
+    this.campaignSlotRepository = campaignSlotRepository;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
   }
 
@@ -162,6 +166,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final BigInteger amountApprovedPaise) {
     ClaimReviewPolicy.validateSubmitClaimReview(reviewerRole, decision);
     final Claim claim = this.claimService.getById(claimId, reviewerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
     final Claim updated;
     if (reviewerRole == UserRole.ROLE_MEDIATOR) {
       updated =
@@ -182,11 +187,13 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
                   .updatedAt(Instant.now())
                   .updatedBy(reviewerId)
                   .build());
+      this.campaignSlotRepository.incrementSlotsAvailableIfBelowTotal(
+          deal.getCampaignSlot().getId());
       this.claimReviewEventPublisher.publishClaimDecisionEvent(
           updated, ClaimStatus.REJECTED, reviewerComment);
     }
 
-    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+    return new ClaimWithDeal(updated, deal);
   }
 
   @Override
