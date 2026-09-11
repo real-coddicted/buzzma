@@ -2363,6 +2363,8 @@ export interface components {
             ownerId: string;
             /** @enum {string} */
             platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
             productName: string;
             productImageUrl: string;
             productUrl: string;
@@ -2442,6 +2444,8 @@ export interface components {
             productPricePaise?: number;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
             campaignPricePaise?: number;
             /** Format: int32 */
             returnWindowDays?: number;

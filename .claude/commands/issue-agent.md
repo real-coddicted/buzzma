@@ -221,6 +221,14 @@ If the branch already exists, append `-v2` (or increment the suffix) rather than
 - Add or modify test cases to cover the changes. If existing tests exercise the changed code, update them; if not, add new ones.
 - Do not touch files outside the scope of the plan. Do not refactor adjacent code.
 
+#### Frontend component decomposition — atomic design
+When a plan calls for a new piece of frontend UI (not a one-line tweak to an existing component), decompose it using atom → molecule → compound rather than writing one large component:
+- **Atom**: the smallest single-purpose visual unit — one card, one icon+label pairing, one input. No knowledge of siblings or layout; just props in, markup out.
+- **Molecule**: a small group of atoms combined for one function — e.g. a row of atom cards with selection state, a labeled input group. Owns the "which one is selected / what's the current value" logic; still has no knowledge of the page it lives on.
+- **Compound**: the existing page-level section (an "organism" in the classic atomic-design naming, but this codebase's convention is "compound") that composes one or more molecules into the actual form/page section — e.g. a `*Fields.tsx` section component.
+Name files by what they are (`XCard.tsx` = atom, `XSelector.tsx`/`XGroup.tsx` = molecule), and wire the molecule into the existing compound rather than inlining the markup there. Reference example: `PromotionCategoryCard.tsx` (atom) → `PromotionCategorySelector.tsx` (molecule) → wired into `CampaignInfoFields.tsx` (compound).
+Skip this decomposition for trivial additions (a single new input field, a label change) — it's for new, independently-reusable UI elements, not every touched line.
+
 ### 7d. Run checks
 Run in this order, capturing output:
 

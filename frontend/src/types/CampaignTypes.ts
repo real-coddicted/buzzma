@@ -54,6 +54,7 @@ export interface Campaign {
   title: string
   status: CampaignStatus
   platform: Platform
+  category: PromotionCategory
   productBrandName: string
   productName: string
   productImageUrl: string
@@ -93,6 +94,11 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_APP_REVIEW'
   | 'CAMPAIGN_TYPE_EXCHANGE'
 
+export type PromotionCategory =
+  | 'ECOMMERCE'
+  | 'QUICK_COMMERCE'
+  | 'APP_PROMOTION'
+
 /** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
 export interface ExchangeProductSelection {
   productName: string
@@ -102,6 +108,7 @@ export interface ExchangeProductSelection {
 export interface CampaignRequestDto {
   title: string
   platform: string
+  category?: PromotionCategory
   productBrandName: string
   productName: string
   productImageUrl: string

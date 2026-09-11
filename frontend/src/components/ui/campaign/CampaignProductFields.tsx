@@ -1,9 +1,10 @@
-import type { Platform, CampaignType } from '../../../types'
-import { PLATFORM_LABELS, APP_STORE_PLATFORMS } from '../../../constants/campaigns'
+import type { Platform, CampaignType, PromotionCategory } from '../../../types'
+import { PLATFORM_LABELS, APP_STORE_PLATFORMS, PROMOTION_CATEGORY_PLATFORMS } from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { RupeeInput } from '../RupeeInput'
 
 interface FormSlice {
+  category: PromotionCategory
   platform: Platform | ''
   campaignType: CampaignType | ''
   productBrandName: string
@@ -37,7 +38,7 @@ export function CampaignProductFields({ form, errors, set, readOnly }: Props) {
           <label className={labelClass}>Platform *</label>
           <select className={inputClass} value={form.platform} onChange={e => onPlatformChange(e.target.value as Platform | '')} disabled={readOnly}>
             <option value="">— Select —</option>
-            {(Object.keys(PLATFORM_LABELS) as Platform[]).map(k => (
+            {PROMOTION_CATEGORY_PLATFORMS[form.category].map(k => (
               <option key={k} value={k}>{PLATFORM_LABELS[k]}</option>
             ))}
           </select>

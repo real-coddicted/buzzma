@@ -69,6 +69,7 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
   function buildDto(action?: CampaignRequestDto['action']): CampaignRequestDto {
     return {
       title: form.title.trim(),
+      category: form.category,
       platform: form.platform,
       productBrandName: form.productBrandName.trim(),
       productName: form.productName.trim(),
