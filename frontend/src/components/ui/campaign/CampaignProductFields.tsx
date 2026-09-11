@@ -1,5 +1,5 @@
 import type { Platform, CampaignType } from '../../../types'
-import { PLATFORM_LABELS, APP_STORE_PLATFORMS } from '../../../constants/campaigns'
+import { PLATFORM_LABELS } from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { RupeeInput } from '../RupeeInput'
 
@@ -22,20 +22,13 @@ interface Props {
 }
 
 export function CampaignProductFields({ form, errors, set, readOnly }: Props) {
-  function onPlatformChange(value: Platform | '') {
-    set('platform', value)
-    const nowAppStore = APP_STORE_PLATFORMS.includes(value as Platform)
-    if (nowAppStore && form.campaignType !== 'CAMPAIGN_TYPE_APP_REVIEW') set('campaignType', 'CAMPAIGN_TYPE_APP_REVIEW')
-    if (!nowAppStore && form.campaignType === 'CAMPAIGN_TYPE_APP_REVIEW') set('campaignType', '')
-  }
-
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-cyan">Product</h3>
       <div className="space-y-4">
         <div>
           <label className={labelClass}>Platform *</label>
-          <select className={inputClass} value={form.platform} onChange={e => onPlatformChange(e.target.value as Platform | '')} disabled={readOnly}>
+          <select className={inputClass} value={form.platform} onChange={e => set('platform', e.target.value as Platform | '')} disabled={readOnly}>
             <option value="">— Select —</option>
             {(Object.keys(PLATFORM_LABELS) as Platform[]).map(k => (
               <option key={k} value={k}>{PLATFORM_LABELS[k]}</option>

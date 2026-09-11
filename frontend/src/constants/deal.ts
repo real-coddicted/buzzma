@@ -11,7 +11,7 @@ export const DEAL_TYPE_COLORS: Record<CampaignType, string> = {
   CAMPAIGN_TYPE_REVIEW:            'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/25',
   CAMPAIGN_TYPE_ORDER:             'text-neon-green  bg-neon-green/10  border-neon-green/25',
   CAMPAIGN_TYPE_DISCOUNT:          'text-neon-red    bg-neon-red/10    border-neon-red/25',
-  CAMPAIGN_TYPE_APP_REVIEW:        'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/25',
+  CAMPAIGN_TYPE_REGULAR:           'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/25',
   CAMPAIGN_TYPE_EXCHANGE:          'text-neon-pink   bg-neon-pink/10   border-neon-pink/25'
 }
 
@@ -21,7 +21,7 @@ export const DEAL_TYPE_ACTIVE_CLASSES: Record<CampaignType, string> = {
   CAMPAIGN_TYPE_REVIEW:            'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/30',
   CAMPAIGN_TYPE_ORDER:             'text-neon-green  bg-neon-green/10  border-neon-green/30',
   CAMPAIGN_TYPE_DISCOUNT:          'text-neon-red    bg-neon-red/10    border-neon-red/30',
-  CAMPAIGN_TYPE_APP_REVIEW:        'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/30',
+  CAMPAIGN_TYPE_REGULAR:           'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/30',
   CAMPAIGN_TYPE_EXCHANGE:          'text-neon-pink   bg-neon-pink/10   border-neon-pink/30'
 }
 

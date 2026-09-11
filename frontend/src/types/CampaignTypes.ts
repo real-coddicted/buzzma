@@ -90,7 +90,7 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_REVIEW'
   | 'CAMPAIGN_TYPE_ORDER'
   | 'CAMPAIGN_TYPE_DISCOUNT'
-  | 'CAMPAIGN_TYPE_APP_REVIEW'
+  | 'CAMPAIGN_TYPE_REGULAR'
   | 'CAMPAIGN_TYPE_EXCHANGE'
 
 /** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */

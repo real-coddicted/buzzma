@@ -1,5 +1,5 @@
 import type { Platform, CampaignType } from '../../../types'
-import { CAMPAIGN_TYPE_LABELS, APP_STORE_PLATFORMS } from '../../../constants/campaigns'
+import { CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 
 interface FormSlice {
@@ -19,10 +19,7 @@ interface Props {
 }
 
 export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
-  const isAppStore = APP_STORE_PLATFORMS.includes(form.platform as Platform)
-  const typeOptions = (Object.keys(CAMPAIGN_TYPE_LABELS) as CampaignType[]).filter(k =>
-    isAppStore ? k === 'CAMPAIGN_TYPE_APP_REVIEW' : k !== 'CAMPAIGN_TYPE_APP_REVIEW',
-  )
+  const typeOptions = Object.keys(CAMPAIGN_TYPE_LABELS) as CampaignType[]
 
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
