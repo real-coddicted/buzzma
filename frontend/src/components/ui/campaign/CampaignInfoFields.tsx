@@ -1,5 +1,10 @@
 import type { Platform, CampaignType, PromotionCategory } from '../../../types'
-import { CAMPAIGN_TYPE_LABELS, APP_STORE_PLATFORMS, PROMOTION_CATEGORY_PLATFORMS } from '../../../constants/campaigns'
+import {
+  CAMPAIGN_TYPE_LABELS,
+  PROMOTION_CATEGORY_PLATFORMS,
+  PROMOTION_CATEGORY_CAMPAIGN_TYPES,
+  PROMOTION_CATEGORY_STEPS,
+} from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
 import { PromotionCategorySelector } from './PromotionCategorySelector'
 
@@ -11,6 +16,7 @@ interface FormSlice {
   startDate: string
   endDate: string
   commissionToAllRupees: string
+  requiredSteps: string[]
 }
 
 interface Props {
@@ -21,16 +27,18 @@ interface Props {
 }
 
 export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
-  const isAppStore = APP_STORE_PLATFORMS.includes(form.platform as Platform)
-  const typeOptions = (Object.keys(CAMPAIGN_TYPE_LABELS) as CampaignType[]).filter(k =>
-    isAppStore ? k === 'CAMPAIGN_TYPE_APP_REVIEW' : k !== 'CAMPAIGN_TYPE_APP_REVIEW',
-  )
+  const typeOptions = PROMOTION_CATEGORY_CAMPAIGN_TYPES[form.category]
 
   function onCategoryChange(category: PromotionCategory) {
     set('category', category)
     if (!PROMOTION_CATEGORY_PLATFORMS[category].includes(form.platform as Platform)) {
       set('platform', '')
     }
+    if (!PROMOTION_CATEGORY_CAMPAIGN_TYPES[category].includes(form.campaignType as CampaignType)) {
+      set('campaignType', '')
+    }
+    const allowedSteps = PROMOTION_CATEGORY_STEPS[category]
+    set('requiredSteps', form.requiredSteps.filter(s => allowedSteps.includes(s)))
   }
 
   return (
