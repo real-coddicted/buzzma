@@ -51,6 +51,7 @@ function isoToYYYYMMDD(iso: string): number {
 export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignResponseDto> {
   const user = getCurrentUser()
   if (!user?.id) throw new Error('You must be signed in to create a campaign.')
+  if (dto.totalSlots == null) throw new Error('Total slots is required.')
 
   const body: BackendRequest = {
     title: dto.title,
@@ -64,7 +65,7 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     campaignPricePaise: dto.campaignPricePaise,
     campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
     campaignStatus: 'CAMPAIGN_STATUS_DRAFT',
-    totalSlots: dto.totalSlots ?? 1,
+    totalSlots: dto.totalSlots,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
@@ -277,6 +278,7 @@ export async function updateCampaign(
 ): Promise<CampaignResponseDto> {
   const user = getCurrentUser()
   if (!user?.id) throw new Error('You must be signed in to update a campaign.')
+  if (dto.totalSlots == null) throw new Error('Total slots is required.')
 
   const body: BackendRequest = {
     title: dto.title,
@@ -290,7 +292,7 @@ export async function updateCampaign(
     campaignPricePaise: dto.campaignPricePaise,
     campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
     campaignStatus,
-    totalSlots: dto.totalSlots ?? 1,
+    totalSlots: dto.totalSlots,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
     requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],

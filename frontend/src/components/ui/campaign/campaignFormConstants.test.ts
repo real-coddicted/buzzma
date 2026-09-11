@@ -43,6 +43,40 @@ describe('isValidImageUrl', () => {
   })
 })
 
+function slotsForm(totalSlots: string): CampaignForm {
+  return {
+    ...EMPTY_FORM,
+    title: 'Slots campaign',
+    platform: 'PLATFORM_AMAZON',
+    productBrandName: 'Acme',
+    productName: 'Acme Cup',
+    productImageUrl: 'https://example.com/cup.jpg',
+    productUrl: 'https://example.com/cup',
+    startDate: '2999-01-01',
+    endDate: '2999-02-01',
+    originalPriceRupees: '100',
+    campaignPriceRupees: '80',
+    campaignType: 'CAMPAIGN_TYPE_ORDER',
+    totalSlots,
+  }
+}
+
+describe('validateCampaignForm — total slots', () => {
+  it('flags a blank total slots as required', () => {
+    expect(validateCampaignForm(slotsForm('')).totalSlots).toBe('Required')
+  })
+
+  it('rejects zero, negative or non-numeric total slots', () => {
+    expect(validateCampaignForm(slotsForm('0')).totalSlots).toBe('Must be a positive integer')
+    expect(validateCampaignForm(slotsForm('-5')).totalSlots).toBe('Must be a positive integer')
+    expect(validateCampaignForm(slotsForm('abc')).totalSlots).toBe('Must be a positive integer')
+  })
+
+  it('accepts a positive integer total slots', () => {
+    expect(validateCampaignForm(slotsForm('100')).totalSlots).toBeUndefined()
+  })
+})
+
 describe('validateCampaignForm — exchange products', () => {
   it('errors when the exchange type has no selected, named row', () => {
     const e = validateCampaignForm(exchangeForm([

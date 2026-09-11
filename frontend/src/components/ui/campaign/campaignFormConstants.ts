@@ -117,7 +117,9 @@ export function validateCampaignForm(form: CampaignForm): Partial<Record<string,
     const rw = parseInt(form.returnWindowDays, 10)
     if (isNaN(rw) || rw < 0) e.returnWindowDays = 'Must be a non-negative integer'
   }
-  if (form.totalSlots !== '') {
+  if (form.totalSlots === '') {
+    e.totalSlots = 'Required'
+  } else {
     const ts = parseInt(form.totalSlots, 10)
     if (isNaN(ts) || ts < 1) {
       e.totalSlots = 'Must be a positive integer'
