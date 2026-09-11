@@ -15,6 +15,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -140,7 +141,8 @@ public class CampaignProcessor {
                 .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
-                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+                .requiredSteps(
+                    normalizeRequiredSteps(request.getRequiredSteps(), request.getCategory()))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -171,7 +173,8 @@ public class CampaignProcessor {
         existingCampaign.toBuilder()
             .product(updatedProduct)
             .updatedBy(requesterId)
-            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+            .requiredSteps(
+                normalizeRequiredSteps(request.getRequiredSteps(), request.getCategory()))
             .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
@@ -311,15 +314,18 @@ public class CampaignProcessor {
   }
 
   /**
-   * ORDER is always required — it's the claim-creation screenshot — regardless of what the request
-   * selected, and CASHBACK is implicit (appended by {@code CampaignStepResolver}) so it is never
-   * persisted as part of the selection.
+   * ORDER (or, for App Promotion, DOWNLOAD_INSTALL) is always required — it's the claim-creation
+   * screenshot — regardless of what the request selected, and CASHBACK is implicit (appended by
+   * {@code CampaignStepResolver}) so it is never persisted as part of the selection.
    */
   private static List<CampaignStepType> normalizeRequiredSteps(
-      final List<CampaignStepType> requiredSteps) {
+      final List<CampaignStepType> requiredSteps, final PromotionCategory category) {
     final Set<CampaignStepType> steps =
         requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
-    steps.add(CampaignStepType.ORDER);
+    steps.add(
+        category == PromotionCategory.APP_PROMOTION
+            ? CampaignStepType.DOWNLOAD_INSTALL
+            : CampaignStepType.ORDER);
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
   }

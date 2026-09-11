@@ -20,20 +20,20 @@ public final class CampaignPolicy {
       EnumSet.of(Platform.PLATFORM_APPLE_APP_STORE, Platform.PLATFORM_GOOGLE_PLAY_STORE);
 
   /**
-   * App-review campaigns only make sense on an app store, and the app stores only host app-review
-   * campaigns — the pairing is enforced both ways.
+   * App Promotion platforms only support Rating and Review campaigns - there's no order/discount
+   * concept for an app. Unlike the old CAMPAIGN_TYPE_APP_REVIEW pairing, this is one-directional:
+   * RATING/REVIEW are the same generic types Ecommerce already uses, so they stay valid on
+   * non-app-store platforms too.
    */
   public static void validatePlatformAndCampaignType(
       final Platform platform, final CampaignType campaignType) {
     final boolean appPromotionPlatform = APP_PROMOTION_PLATFORMS.contains(platform);
-    final boolean appReviewType = campaignType == CampaignType.CAMPAIGN_TYPE_APP_REVIEW;
-    if (appReviewType && !appPromotionPlatform) {
+    final boolean validAppPromotionType =
+        campaignType == CampaignType.CAMPAIGN_TYPE_RATING
+            || campaignType == CampaignType.CAMPAIGN_TYPE_REVIEW;
+    if (appPromotionPlatform && !validAppPromotionType) {
       throw new BusinessRuleViolationException(
-          "App-review campaigns are only allowed on Apple App Store or Google Play Store");
-    }
-    if (appPromotionPlatform && !appReviewType) {
-      throw new BusinessRuleViolationException(
-          "Apple App Store and Google Play Store campaigns must be of type App Review");
+          "Apple App Store and Google Play Store campaigns must be of type Rating or Review");
     }
   }
 }
