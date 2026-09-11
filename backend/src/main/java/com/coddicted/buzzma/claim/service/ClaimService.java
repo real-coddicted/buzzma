@@ -85,6 +85,8 @@ public interface ClaimService {
 
   void markAccountingCompleted(UUID claimId);
 
+  int markApprovedClaimsReadyForAccounting(UUID agencyId);
+
   Claim save(Claim claim);
 
   ClaimScreenshot getScreenshotById(UUID screenshotId);

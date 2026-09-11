@@ -37,10 +37,11 @@ interface ClaimReviewGridProps {
   onBrandVerify: (claim: ClaimReviewItem) => void
   onBulkApprove: (claims: ClaimReviewItem[], approvedAmountsPaise: Record<string, number>) => Promise<void>
   onOpenImport: () => void
+  onMarkReadyForAccounting: () => Promise<number>
   initialCampaignOption?: TypeaheadOption
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, initialCampaignOption }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, onMarkReadyForAccounting, initialCampaignOption }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -54,6 +55,9 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
   const [showBulkConfirm, setShowBulkConfirm] = useState(false)
   const [pendingBulkAmounts, setPendingBulkAmounts] = useState<Record<string, number>>({})
   const [bulkApproving, setBulkApproving] = useState(false)
+  const [showReadyConfirm, setShowReadyConfirm] = useState(false)
+  const [markingReady, setMarkingReady] = useState(false)
+  const [readyResult, setReadyResult] = useState<number | null>(null)
   const isMediator = getCurrentUser()?.role === 'ROLE_MEDIATOR'
   const isBrand = getCurrentUser()?.role === 'ROLE_BRAND'
   const isAgency = getCurrentUser()?.role === 'ROLE_AGENCY'
@@ -263,6 +267,20 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
     }
   }
 
+  async function handleMarkReadyConfirm() {
+    setMarkingReady(true)
+    try {
+      const updatedCount = await onMarkReadyForAccounting()
+      setShowReadyConfirm(false)
+      setReadyResult(updatedCount)
+    } catch (err) {
+      setShowReadyConfirm(false)
+      setOptionsError((err as Error).message)
+    } finally {
+      setMarkingReady(false)
+    }
+  }
+
   function handleAction(action: string, row: ClaimReviewItem) {
     if (action === 'details') {
       onViewDetails(row)
@@ -296,6 +314,8 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           showExport={isAgency || isBrand}
           showImport={isAgency}
           onOpenImport={onOpenImport}
+          showMarkReadyForAccounting={isAgency}
+          onMarkReadyForAccounting={() => setShowReadyConfirm(true)}
         />
 
         <FilterChips chips={chips} onClearAll={() => onApplyFilters(emptyFilters())} />
@@ -522,6 +542,25 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
           busy={bulkApproving}
           onConfirm={handleBulkConfirm}
           onCancel={() => setShowBulkConfirm(false)}
+        />
+      )}
+      {showReadyConfirm && (
+        <ConfirmModal
+          title="Mark All Approved Claims Ready for Accounting"
+          message="Are you sure you want to mark all approved claims as ready for accounting? This cannot be reversed and all approved claims would proceed for accounting calculations."
+          confirmLabel="Yes, Proceed"
+          cancelLabel="Cancel"
+          tone="blue"
+          busy={markingReady}
+          onConfirm={handleMarkReadyConfirm}
+          onCancel={() => setShowReadyConfirm(false)}
+        />
+      )}
+      {readyResult !== null && (
+        <AlertModal
+          title="Claims Marked Ready for Accounting"
+          message={`${readyResult} claim${readyResult === 1 ? '' : 's'} updated to ready for accounting.`}
+          onDismiss={() => setReadyResult(null)}
         />
       )}
       {canApprove && selectedIds.size > 0 && (

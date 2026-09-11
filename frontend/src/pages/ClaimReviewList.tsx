@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
-import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews } from '../api/claimApi'
+import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews, markClaimsReadyForAccounting } from '../api/claimApi'
 import { type ClaimReviewFilters, emptyFilters } from '../components/ui/claim-review/filters/ClaimReviewFilterTypes'
 import type { ClaimReviewItem } from '../types'
 
@@ -22,21 +22,21 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
     seedCampaignId ? { ...emptyFilters(), campaignIds: new Set([seedCampaignId]) } : emptyFilters()
   )
 
-  useEffect(() => {
-    let cancelled = false
+  const loadClaims = useCallback(() => {
     setLoading(true)
-    fetchClaimsToReview({
+    return fetchClaimsToReview({
       campaignIds: appliedFilters.campaignIds,
       mediatorIds: appliedFilters.mediatorIds,
       brands: appliedFilters.brands,
       platforms: appliedFilters.platforms,
       claimStatuses: appliedFilters.claimStatuses,
     })
-      .then(data => { if (!cancelled) setClaims(data) })
-      .catch(err => { if (!cancelled) setError((err as Error).message) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .then(data => setClaims(data))
+      .catch(err => setError((err as Error).message))
+      .finally(() => setLoading(false))
   }, [appliedFilters])
+
+  useEffect(() => { loadClaims() }, [loadClaims])
 
   function handleApprove(row: ClaimReviewItem, amountApprovedPaise?: number) {
     submitClaimReview(row.id, 'APPROVED', undefined, amountApprovedPaise)
@@ -66,6 +66,12 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
       .catch(err => setError((err as Error).message))
   }
 
+  function handleMarkReadyForAccounting(): Promise<number> {
+    return markClaimsReadyForAccounting().then(({ updatedCount }) =>
+      loadClaims().then(() => updatedCount)
+    )
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <div>
@@ -83,6 +89,7 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
         onBrandVerify={handleBrandVerify}
         onBulkApprove={handleBulkApprove}
         onOpenImport={onOpenImport}
+        onMarkReadyForAccounting={handleMarkReadyForAccounting}
         initialCampaignOption={seedCampaignId && seedCampaignName ? { value: seedCampaignId, label: seedCampaignName } : undefined}
       />
       {error && <Toast message={error} type="error" onDismiss={() => setError(null)} />}

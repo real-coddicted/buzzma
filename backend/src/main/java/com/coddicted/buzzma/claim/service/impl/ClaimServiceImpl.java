@@ -520,6 +520,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
+  public int markApprovedClaimsReadyForAccounting(final UUID agencyId) {
+    return this.claimRepository.markApprovedClaimsReadyForAccounting(agencyId);
+  }
+
+  @Override
+  @Transactional
   public Claim save(final Claim claim) {
     return this.claimRepository.save(claim);
   }

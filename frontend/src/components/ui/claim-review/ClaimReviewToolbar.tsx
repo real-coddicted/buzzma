@@ -1,5 +1,5 @@
 import { SearchInput } from '../SearchInput'
-import { IconFilter, IconFileSpreadsheet, IconUpload } from '../icons'
+import { IconFilter, IconFileSpreadsheet, IconUpload, IconCheck } from '../icons'
 
 interface ClaimReviewToolbarProps {
   search: string
@@ -11,6 +11,8 @@ interface ClaimReviewToolbarProps {
   showExport: boolean
   showImport: boolean
   onOpenImport: () => void
+  showMarkReadyForAccounting: boolean
+  onMarkReadyForAccounting: () => void
 }
 
 export function ClaimReviewToolbar({
@@ -23,6 +25,8 @@ export function ClaimReviewToolbar({
   showExport,
   showImport,
   onOpenImport,
+  showMarkReadyForAccounting,
+  onMarkReadyForAccounting,
 }: ClaimReviewToolbarProps) {
   return (
     <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
@@ -69,6 +73,17 @@ export function ClaimReviewToolbar({
         >
           <IconUpload size={13} />
           Import
+        </button>
+      )}
+      {showMarkReadyForAccounting && (
+        <button
+          onClick={onMarkReadyForAccounting}
+          title="Mark all approved claims ready for accounting"
+          aria-label="Mark all approved claims ready for accounting"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors"
+        >
+          <IconCheck size={13} />
+          Mark Ready for Accounting
         </button>
       )}
     </div>

@@ -3,12 +3,14 @@ package com.coddicted.buzzma.claim.controller;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetRowResponseDto;
+import com.coddicted.buzzma.claim.dto.MarkClaimsReadyForAccountingResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheetRow;
 import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
 import com.coddicted.buzzma.claim.mapper.ClaimReviewWorksheetMapper;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetRowService;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUser;
@@ -40,14 +42,17 @@ public class ClaimReviewController {
   private final ClaimReviewWorksheetService worksheetService;
   private final ClaimReviewWorksheetRowService worksheetRowService;
   private final ClaimReviewWorksheetMapper worksheetMapper;
+  private final ClaimService claimService;
 
   public ClaimReviewController(
       final ClaimReviewWorksheetService worksheetService,
       final ClaimReviewWorksheetRowService worksheetRowService,
-      final ClaimReviewWorksheetMapper worksheetMapper) {
+      final ClaimReviewWorksheetMapper worksheetMapper,
+      final ClaimService claimService) {
     this.worksheetService = worksheetService;
     this.worksheetRowService = worksheetRowService;
     this.worksheetMapper = worksheetMapper;
+    this.claimService = claimService;
   }
 
   @GetMapping("/worksheets")
@@ -89,5 +94,14 @@ public class ClaimReviewController {
     final Page<ClaimReviewWorksheetRow> rows =
         worksheetRowService.listRows(id, currentUser.getId(), status, pageable);
     return ResponseEntity.ok(rows.map(worksheetMapper::toRowResponse));
+  }
+
+  @PostMapping("/markReadyForAccounting")
+  @PreAuthorize(UserRole.Expr.AGENCY)
+  public ResponseEntity<MarkClaimsReadyForAccountingResponseDto> markReadyForAccounting(
+      @CurrentUser final BuzzmaUser currentUser) {
+    final int updatedCount = claimService.markApprovedClaimsReadyForAccounting(currentUser.getId());
+    return ResponseEntity.ok(
+        MarkClaimsReadyForAccountingResponseDto.builder().updatedCount(updatedCount).build());
   }
 }

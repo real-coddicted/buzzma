@@ -496,6 +496,23 @@ export async function bulkApproveClaimReviews(
   return ((await res.json()) as ClaimReviewResponseDto[]).map(mapClaimReview)
 }
 
+/** POST /claim-review/markReadyForAccounting — marks all of the agency's APPROVED claims as READY_FOR_ACCOUNTING. */
+export async function markClaimsReadyForAccounting(): Promise<{ updatedCount: number }> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/markReadyForAccounting`, {
+    method: 'POST',
+  })
+  if (!res.ok) {
+    let message = 'Failed to mark claims ready for accounting.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  const data = (await res.json()) as { updatedCount?: number }
+  return { updatedCount: data.updatedCount ?? 0 }
+}
+
 export async function submitClaimReview(
   claimId: string,
   decision: 'APPROVED' | 'REJECTED' | 'VERIFIED' | 'BRAND_VERIFIED',
