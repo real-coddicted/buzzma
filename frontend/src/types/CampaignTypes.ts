@@ -54,6 +54,7 @@ export interface Campaign {
   title: string
   status: CampaignStatus
   platform: Platform
+  category: PromotionCategory
   productBrandName: string
   productName: string
   productImageUrl: string
@@ -82,8 +83,14 @@ export type Platform =
   | 'PLATFORM_NYKAA'
   | 'PLATFORM_MYNTRA'
   | 'PLATFORM_MEESHO'
+  | 'PLATFORM_BLINKIT'
+  | 'PLATFORM_ZEPTO'
   | 'PLATFORM_APPLE_APP_STORE'
   | 'PLATFORM_GOOGLE_PLAY_STORE'
+  | 'PLATFORM_YOUTUBE'
+  | 'PLATFORM_INSTAGRAM'
+  | 'PLATFORM_GOOGLE_REVIEWS'
+  | 'PLATFORM_OTHER'
 
 export type CampaignType =
   | 'CAMPAIGN_TYPE_RATING'
@@ -92,6 +99,11 @@ export type CampaignType =
   | 'CAMPAIGN_TYPE_DISCOUNT'
   | 'CAMPAIGN_TYPE_REGULAR'
   | 'CAMPAIGN_TYPE_EXCHANGE'
+
+export type PromotionCategory =
+  | 'ECOMMERCE'
+  | 'QUICK_COMMERCE'
+  | 'APP_PROMOTION'
 
 /** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
 export interface ExchangeProductSelection {
@@ -102,6 +114,7 @@ export interface ExchangeProductSelection {
 export interface CampaignRequestDto {
   title: string
   platform: string
+  category?: PromotionCategory
   productBrandName: string
   productName: string
   productImageUrl: string

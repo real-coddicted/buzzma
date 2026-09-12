@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { fetchStepConfig, type CampaignStepDto } from '../../../api/campaignApi'
+import type { PromotionCategory } from '../../../types'
+import { PROMOTION_CATEGORY_STEPS, PROMOTION_CATEGORY_FORCED_STEP } from '../../../constants/campaigns'
 
 interface FormSlice {
+  category: PromotionCategory
   requiredSteps: string[]
 }
 
@@ -12,11 +15,15 @@ interface Props {
 }
 
 export function CampaignRequiredScreenshotsFields({ form, set, readOnly }: Props) {
-  const [selectableSteps, setSelectableSteps] = useState<CampaignStepDto[]>([])
+  const [allSteps, setAllSteps] = useState<CampaignStepDto[]>([])
 
   useEffect(() => {
-    fetchStepConfig().then(setSelectableSteps)
+    fetchStepConfig().then(setAllSteps)
   }, [])
+
+  const allowedSteps = PROMOTION_CATEGORY_STEPS[form.category]
+  const forcedStep = PROMOTION_CATEGORY_FORCED_STEP[form.category]
+  const selectableSteps = allSteps.filter(step => allowedSteps.includes(step.type))
 
   function handleStepToggle(type: string, checked: boolean) {
     set('requiredSteps', checked
@@ -36,7 +43,7 @@ export function CampaignRequiredScreenshotsFields({ form, set, readOnly }: Props
             <input
               type="checkbox"
               checked={form.requiredSteps.includes(step.type)}
-              disabled={readOnly || step.type === 'ORDER'}
+              disabled={readOnly || step.type === forcedStep}
               onChange={e => handleStepToggle(step.type, e.target.checked)}
             />
             {step.label}

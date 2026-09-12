@@ -2,6 +2,9 @@ import type { ClaimStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
   'ORDERED':                    { label: 'Ordered',                    colorClass: 'text-neon-blue'   },
+  'DOWNLOADED_AND_INSTALLED':   { label: 'Downloaded & Installed',     colorClass: 'text-neon-blue'   },
+  'SUBSCRIBED':                 { label: 'Subscribed',                 colorClass: 'text-neon-blue'   },
+  'FOLLOWED':                   { label: 'Followed',                   colorClass: 'text-neon-blue'   },
   'DELIVERY_PROOF_SUBMITTED':   { label: 'Delivery Proof Submitted',   colorClass: 'text-neon-purple' },
   'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
   'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },
@@ -30,6 +33,7 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
   SCREENSHOT_TYPE_RETURN: { label: 'Return Request', tag: 'RETURN', tagClass: 'bg-neon-red/10    text-neon-red    border border-neon-red/25' },
   SCREENSHOT_TYPE_DELIVERY: { label: 'Delivery Proof', tag: 'DELIVERY', tagClass: 'bg-neon-pink/10   text-neon-pink   border border-neon-pink/25' },
   SCREENSHOT_TYPE_SELLER_FEEDBACK: { label: 'Seller Feedback', tag: 'FEEDBACK', tagClass: 'bg-neon-purple/10 text-neon-purple border border-neon-purple/25' },
+  SCREENSHOT_TYPE_DOWNLOAD_INSTALL: { label: 'Download & Install', tag: 'INSTALL', tagClass: 'bg-neon-blue/10 text-neon-blue border border-neon-blue/25' },
 }
 
 export const CLAIM_REVIEW_COLUMNS = [

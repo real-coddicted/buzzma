@@ -6,6 +6,7 @@ import { fetchCampaignStepConfig } from '../../../api/campaignApi'
 import { STEP_TYPE_COLORS, STEP_TYPE_TO_SCREENSHOT_TYPE, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { ScreenshotRejectionBanner } from '../ScreenshotRejectionBanner'
 import { OrderStep } from './OrderStep'
+import { DownloadInstallStep } from './DownloadInstallStep'
 import { DeliveryStep } from './DeliveryStep'
 import { RatingStep } from './RatingStep'
 import { ReviewStep } from './ReviewStep'
@@ -68,12 +69,13 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
       )}
 
       {stepType === 'ORDER'         && <OrderStep  deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'DOWNLOAD_INSTALL' && <DownloadInstallStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'DELIVERY'      && <DeliveryStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'RATING'        && <RatingStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'REVIEW'        && <ReviewStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'SELLER_FEEDBACK' && <SellerFeedbackStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
-      {stepType === 'CASHBACK'      && <CashbackStep />}
+      {stepType === 'CASHBACK'      && <CashbackStep claimStatus={effectiveClaim?.status} />}
     </div>
   )
 }

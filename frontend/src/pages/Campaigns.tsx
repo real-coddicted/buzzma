@@ -7,7 +7,7 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import { SharedCampaignsPage } from '../components/ui/campaign/SharedCampaignsPage'
-import type { Campaign, CampaignRequestDto, Platform, CampaignType } from '../types'
+import type { Campaign, CampaignRequestDto, Platform, CampaignType, PromotionCategory } from '../types'
 import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto } from '../api/campaignApi'
 import { getCurrentUser } from '../api/client'
 import { yyyymmddToIso } from '../utils/time'
@@ -23,6 +23,7 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
   const assignments = dto.assignments ?? []
   return {
     title: dto.title ?? '',
+    category: (dto.category ?? 'ECOMMERCE') as PromotionCategory,
     platform: (dto.platform ?? '') as Platform | '',
     productBrandName: dto.productBrandName ?? '',
     productName: dto.productName ?? '',

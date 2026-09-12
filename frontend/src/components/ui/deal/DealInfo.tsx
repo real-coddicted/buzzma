@@ -20,7 +20,9 @@ interface DealInfoProps {
 }
 
 export function DealInfo({ deal }: DealInfoProps) {
-  const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
+  const discount = deal.originalPricePaise > 0
+    ? Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
+    : 0
 
   const gallery = deal.productImages.filter(Boolean)
   const isCarousel = gallery.length > 1

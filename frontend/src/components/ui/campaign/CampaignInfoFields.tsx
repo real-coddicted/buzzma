@@ -1,14 +1,23 @@
-import type { Platform, CampaignType } from '../../../types'
-import { CAMPAIGN_TYPE_LABELS } from '../../../constants/campaigns'
+import type { Platform, CampaignType, PromotionCategory } from '../../../types'
+import {
+  CAMPAIGN_TYPE_LABELS,
+  PROMOTION_CATEGORY_PLATFORMS,
+  PROMOTION_CATEGORY_CAMPAIGN_TYPES,
+  PROMOTION_CATEGORY_STEPS,
+  PROMOTION_CATEGORY_FORCED_STEP,
+} from '../../../constants/campaigns'
 import { labelClass, inputClass, errorClass } from './campaignFormConstants'
+import { PromotionCategorySelector } from './PromotionCategorySelector'
 
 interface FormSlice {
   title: string
+  category: PromotionCategory
   platform: Platform | ''
   campaignType: CampaignType | ''
   startDate: string
   endDate: string
   commissionToAllRupees: string
+  requiredSteps: string[]
 }
 
 interface Props {
@@ -19,11 +28,29 @@ interface Props {
 }
 
 export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
-  const typeOptions = Object.keys(CAMPAIGN_TYPE_LABELS) as CampaignType[]
+  const typeOptions = PROMOTION_CATEGORY_CAMPAIGN_TYPES[form.category]
+
+  function onCategoryChange(category: PromotionCategory) {
+    set('category', category)
+    if (!PROMOTION_CATEGORY_PLATFORMS[category].includes(form.platform as Platform)) {
+      set('platform', '')
+    }
+    if (!PROMOTION_CATEGORY_CAMPAIGN_TYPES[category].includes(form.campaignType as CampaignType)) {
+      set('campaignType', '')
+    }
+    const allowedSteps = PROMOTION_CATEGORY_STEPS[category]
+    const forcedStep = PROMOTION_CATEGORY_FORCED_STEP[category]
+    const keptSteps = form.requiredSteps.filter(s => allowedSteps.includes(s))
+    set('requiredSteps', keptSteps.includes(forcedStep) ? keptSteps : [forcedStep, ...keptSteps])
+  }
 
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-blue">Basic Info</h3>
+      <div>
+        <label className={labelClass}>Promotion Category *</label>
+        <PromotionCategorySelector value={form.category} onChange={onCategoryChange} disabled={readOnly} />
+      </div>
       <div>
         <label className={labelClass}>Title *</label>
         <input className={inputClass} type="text" placeholder="e.g. Summer Sale 2025" value={form.title} onChange={e => set('title', e.target.value)} disabled={readOnly} />

@@ -535,6 +535,44 @@ export async function submitClaimReview(
   return mapClaim((await res.json()) as ClaimResponseDto)
 }
 
+export interface CreateAppReviewClaimParams {
+  campaignId: string
+  dealId: string
+  productName: string
+  accountName: string
+  screenshot: File
+}
+
+/** POST /claims/app-review — creates an App Promotion claim from a Download & Install screenshot. */
+export async function createAppReviewClaim(params: CreateAppReviewClaimParams): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('campaignId', params.campaignId)
+  formData.append('dealId', params.dealId)
+  formData.append('productName', params.productName)
+  formData.append('accountName', params.accountName)
+  formData.append('screenshot', params.screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/app-review`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to submit claim. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
 export async function submitClaim(params: SubmitClaimParams): Promise<ClaimResponseDto> {
   const formData = new FormData()
   formData.append('campaignId', params.campaignId)
