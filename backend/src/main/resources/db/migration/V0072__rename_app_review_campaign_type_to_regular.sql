@@ -1,0 +1,2 @@
+UPDATE campaigns SET type = 'CAMPAIGN_TYPE_REGULAR' WHERE type = 'CAMPAIGN_TYPE_APP_REVIEW';
+UPDATE campaign_type_step SET campaign_type = 'CAMPAIGN_TYPE_REGULAR' WHERE campaign_type = 'CAMPAIGN_TYPE_APP_REVIEW';
