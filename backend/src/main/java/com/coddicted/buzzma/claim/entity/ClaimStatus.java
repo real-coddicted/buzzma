@@ -6,6 +6,8 @@ import lombok.Getter;
 public enum ClaimStatus {
   ORDERED("Ordered"),
   DOWNLOADED_AND_INSTALLED("Downloaded & Installed"),
+  SUBSCRIBED("Subscribed"),
+  FOLLOWED("Followed"),
   DELIVERY_PROOF_SUBMITTED("Delivery Proof Submitted"),
   RATING_SUBMITTED("Rating Submitted"),
   REVIEW_SUBMITTED("Review Submitted"),

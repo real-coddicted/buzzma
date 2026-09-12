@@ -130,13 +130,18 @@ class CampaignControllerTest {
         .perform(get("/api/v1/campaigns/step-config"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].type").value("ORDER"))
-        .andExpect(jsonPath("$[1].type").value("DELIVERY"))
-        .andExpect(jsonPath("$[2].type").value("RATING"))
-        .andExpect(jsonPath("$[3].type").value("REVIEW"))
-        .andExpect(jsonPath("$[4].type").value("SELLER_FEEDBACK"))
-        .andExpect(jsonPath("$[5].type").value("RETURN_WINDOW"))
-        .andExpect(jsonPath("$[6].type").value("DOWNLOAD_INSTALL"))
-        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(7)));
+        .andExpect(jsonPath("$[1].type").value("DOWNLOAD_INSTALL"))
+        .andExpect(jsonPath("$[2].type").value("SUBSCRIBE_CHANNEL"))
+        .andExpect(jsonPath("$[3].type").value("FOLLOW"))
+        .andExpect(jsonPath("$[4].type").value("DELIVERY"))
+        .andExpect(jsonPath("$[5].type").value("RATING"))
+        .andExpect(jsonPath("$[6].type").value("REVIEW"))
+        .andExpect(jsonPath("$[7].type").value("PUBLISH_POST"))
+        .andExpect(jsonPath("$[8].type").value("PUBLISH_REEL"))
+        .andExpect(jsonPath("$[9].type").value("SELLER_FEEDBACK"))
+        .andExpect(jsonPath("$[10].type").value("RETURN_WINDOW"))
+        .andExpect(jsonPath("$[11].type").value("REWARD"))
+        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(12)));
   }
 
   // --- GET /api/v1/campaigns/{id}/step-config ---

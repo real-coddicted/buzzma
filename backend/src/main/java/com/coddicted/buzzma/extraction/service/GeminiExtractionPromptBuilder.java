@@ -124,6 +124,34 @@ public class GeminiExtractionPromptBuilder {
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String SUBSCRIBE_CHANNEL_PROMPT =
+      """
+      You are a channel-subscription-data extractor. Analyze the provided screenshot of a \
+      YouTube channel page and return ONLY valid JSON with no markdown fences, no extra text, and \
+      no explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "channelName": "<the channel name string or null>",
+        "accountName": "<the account or user name visible in the screenshot, or null>",
+        "subscribeStatus": "<the exact button or status text confirming the channel is subscribed (e.g. 'Subscribed'), or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String FOLLOW_PROMPT =
+      """
+      You are a page-follow-data extractor. Analyze the provided screenshot of an Instagram \
+      profile page and return ONLY valid JSON with no markdown fences, no extra text, and no \
+      explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "pageName": "<the profile or page name string or null>",
+        "accountName": "<the account or user name visible in the screenshot, or null>",
+        "followStatus": "<the exact button or status text confirming the page is followed (e.g. 'Following'), or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
   public String build() {
     return PROMPT;
   }
@@ -150,5 +178,13 @@ public class GeminiExtractionPromptBuilder {
 
   public String buildDownloadInstallPrompt() {
     return DOWNLOAD_INSTALL_PROMPT;
+  }
+
+  public String buildSubscribeChannelPrompt() {
+    return SUBSCRIBE_CHANNEL_PROMPT;
+  }
+
+  public String buildFollowPrompt() {
+    return FOLLOW_PROMPT;
   }
 }

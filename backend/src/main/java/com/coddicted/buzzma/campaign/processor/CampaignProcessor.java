@@ -128,8 +128,7 @@ public class CampaignProcessor {
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
-    CampaignPolicy.validatePlatformAndCampaignType(
-        request.getPlatform(), request.getCampaignType());
+    CampaignPolicy.validateCategoryAndPlatform(request.getCategory(), request.getPlatform());
     validateReward(request);
     validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
@@ -153,8 +152,7 @@ public class CampaignProcessor {
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
-    CampaignPolicy.validatePlatformAndCampaignType(
-        request.getPlatform(), request.getCampaignType());
+    CampaignPolicy.validateCategoryAndPlatform(request.getCategory(), request.getPlatform());
     validateReward(request);
     validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);

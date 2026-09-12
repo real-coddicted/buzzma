@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.claim.strategy;
+package com.coddicted.buzzma.claim.template;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
@@ -9,25 +9,33 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ClaimCreationStrategy {
+/**
+ * This class provides the template to create claims based on the promotion category.
+ *
+ * @author payam
+ */
+public abstract class ClaimCreationTemplate {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClaimCreationStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClaimCreationTemplate.class);
 
   private final DealService dealService;
   private final CampaignService campaignService;
@@ -38,7 +46,7 @@ public abstract class ClaimCreationStrategy {
   private final CodeGenerationService codeGenerationService;
   private final ClaimService claimService;
 
-  protected ClaimCreationStrategy(
+  protected ClaimCreationTemplate(
       final DealService dealService,
       final CampaignService campaignService,
       final CampaignSlotService campaignSlotService,
@@ -70,11 +78,36 @@ public abstract class ClaimCreationStrategy {
 
   protected void validate(final Campaign campaign, final Claim partial) {}
 
+  /**
+   * Hook for a pre-creation rejection (e.g. a duplicate order) that must run before any slot is
+   * consumed. No-op by default.
+   */
+  protected void checkDuplicate(final Claim partial) {}
+
+  /**
+   * Only called for a client-pre-scored flow; categories scored async via {@link ExtractionService}
+   * skip it.
+   */
+  protected ExtractedScoredResult scoreExtractedDetails(
+      final Claim partial,
+      final Map<String, ScoredValue> extractedDetails,
+      final Integer overallScore) {
+    return new ExtractedScoredResult(extractedDetails, overallScore);
+  }
+
+  protected ClaimService claimService() {
+    return this.claimService;
+  }
+
   public final Claim create(
       final Claim partial,
       final byte[] screenshot,
       final String screenshotFilename,
-      final String contentType) {
+      final String contentType,
+      final Map<String, ScoredValue> extractedDetails,
+      final Integer overallScore) {
+
+    checkDuplicate(partial);
 
     final Deal deal = this.dealService.getById(partial.getDealId());
     final Campaign campaign = loadActiveCampaign(partial);
@@ -85,11 +118,16 @@ public abstract class ClaimCreationStrategy {
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
 
+    final boolean preScored = extractedDetails != null || overallScore != null;
+    final ExtractedScoredResult scored =
+        preScored ? scoreExtractedDetails(partial, extractedDetails, overallScore) : null;
+
     final Claim.ClaimBuilder builder =
         partial.toBuilder()
             .code(code)
             .status(initialStatusFor(firstStep))
             .currentStep(firstStep)
+            .score(scored == null ? null : scored.overallScore())
             .isDeleted(false)
             .createdBy(partial.getOwnerId())
             .updatedBy(partial.getOwnerId());
@@ -99,9 +137,20 @@ public abstract class ClaimCreationStrategy {
     if (screenshotType.isPresent()) {
       final String storageKey =
           this.storageService.store("claims", screenshotFilename, contentType, screenshot);
-      final ClaimScreenshot claimScreenshot =
-          saveScreenshot(saved.getId(), storageKey, screenshotType.get(), saved.getOwnerId());
-      this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
+      if (preScored) {
+        saveScreenshot(
+            saved.getId(),
+            storageKey,
+            screenshotType.get(),
+            saved.getOwnerId(),
+            scored.extractedResult(),
+            scored.overallScore());
+      } else {
+        final ClaimScreenshot claimScreenshot =
+            saveScreenshot(
+                saved.getId(), storageKey, screenshotType.get(), saved.getOwnerId(), null, null);
+        this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
+      }
     }
 
     return saved;
@@ -131,13 +180,20 @@ public abstract class ClaimCreationStrategy {
   }
 
   private ClaimScreenshot saveScreenshot(
-      final UUID claimId, final String storageKey, final ScreenshotType type, final UUID actorId) {
+      final UUID claimId,
+      final String storageKey,
+      final ScreenshotType type,
+      final UUID actorId,
+      final Map<String, ScoredValue> extractedDetails,
+      final Integer score) {
     return this.claimService.saveScreenshot(
         ClaimScreenshot.builder()
             .claimId(claimId)
             .storageKey(storageKey)
             .type(type)
             .verificationStatus(ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .extractedDetails(extractedDetails)
+            .score(score)
             .isDeleted(false)
             .createdBy(actorId)
             .updatedBy(actorId)

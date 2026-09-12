@@ -2,9 +2,7 @@ package com.coddicted.buzzma.shared.enums;
 
 import lombok.Getter;
 
-// this should come from database, but for now we are hardcoding it as enum
-// the idea is that an admin should be enable/disable the platforms from the admin panel, and the
-// campaign can be created for the enabled platforms only.
+/** Platform supported (or to be supported) by Buzzmah. */
 @Getter
 public enum Platform {
   PLATFORM_AMAZON("Amazon"),
@@ -12,8 +10,14 @@ public enum Platform {
   PLATFORM_NYKAA("Nykaa"),
   PLATFORM_MYNTRA("Myntra"),
   PLATFORM_MEESHO("Meesho"),
+  PLATFORM_BLINKIT("Blinkit"),
+  PLATFORM_ZEPTO("Zepto"),
   PLATFORM_APPLE_APP_STORE("Apple App Store"),
-  PLATFORM_GOOGLE_PLAY_STORE("Google Play Store");
+  PLATFORM_GOOGLE_PLAY_STORE("Google Play Store"),
+  PLATFORM_YOUTUBE("YouTube"),
+  PLATFORM_INSTAGRAM("Instagram"),
+  PLATFORM_GOOGLE_REVIEWS("Google Reviews"),
+  PLATFORM_OTHER("Other");
 
   private final String displayName;
 

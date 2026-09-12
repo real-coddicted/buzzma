@@ -27,6 +27,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -92,39 +93,20 @@ class CampaignProcessorTest {
   }
 
   @Test
-  void testCreateAppReviewTypeOnNonAppStorePlatformThrows() {
-    final CampaignRequestDto request =
-        CampaignRequestDto.builder()
-            .endDate(20991231)
-            .platform(Platform.PLATFORM_AMAZON)
-            .campaignType(CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
-            .build();
-
-    final BusinessRuleViolationException ex =
-        assertThrows(
-            BusinessRuleViolationException.class,
-            () -> campaignProcessor.create(REQUESTER_ID, request));
-    assertEquals(
-        "App-review campaigns are only allowed on Apple App Store or Google Play Store",
-        ex.getMessage());
-  }
-
-  @Test
-  void testCreateAppStorePlatformWithNonAppReviewTypeThrows() {
+  void testCreateAppStorePlatformWithNonAppPromotionCategoryThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
             .platform(Platform.PLATFORM_APPLE_APP_STORE)
             .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .category(PromotionCategory.ECOMMERCE)
             .build();
 
     final BusinessRuleViolationException ex =
         assertThrows(
             BusinessRuleViolationException.class,
             () -> campaignProcessor.create(REQUESTER_ID, request));
-    assertEquals(
-        "Apple App Store and Google Play Store campaigns must be of type App Review",
-        ex.getMessage());
+    assertEquals("Ecommerce campaigns are not allowed on Apple App Store", ex.getMessage());
   }
 
   @Test
@@ -132,6 +114,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
             .build();
 
@@ -147,6 +130,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
             .exchangeProducts(List.of(ExchangeProduct.builder().productName(" ").build()))
             .build();
@@ -163,6 +147,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
             .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
             .build();
@@ -179,6 +164,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).build()))
             .build();
 
@@ -194,6 +180,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).value("0").build()))
             .build();
 
@@ -209,6 +196,7 @@ class CampaignProcessorTest {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
             .rewards(
                 List.of(
                     Reward.builder().type(RewardType.CASHBACK).value("500").build(),
@@ -278,7 +266,9 @@ class CampaignProcessorTest {
             BusinessRuleViolationException.class,
             () ->
                 campaignProcessor.updateCampaign(
-                    REQUESTER_ID, CAMPAIGN_ID_1, CampaignRequestDto.builder().build()));
+                    REQUESTER_ID,
+                    CAMPAIGN_ID_1,
+                    CampaignRequestDto.builder().platform(Platform.PLATFORM_AMAZON).build()));
     assertEquals("Cannot update a campaign that is not in draft status", ex.getMessage());
   }
 
@@ -286,6 +276,7 @@ class CampaignProcessorTest {
   void testUpdateCampaignNormalizesRequiredStepsForcingOrderAndDroppingCashback() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
+            .platform(Platform.PLATFORM_AMAZON)
             .requiredSteps(List.of(CampaignStepType.CASHBACK, CampaignStepType.REVIEW))
             .build();
     when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);

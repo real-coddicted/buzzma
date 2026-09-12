@@ -87,6 +87,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
+  public boolean existsActiveClaimForOrder(final String ecommerceOrderId, final Platform platform) {
+    return this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
+        ecommerceOrderId, platform);
+  }
+
+  @Override
   @Transactional
   public Claim createClaim(
       final Claim claim,

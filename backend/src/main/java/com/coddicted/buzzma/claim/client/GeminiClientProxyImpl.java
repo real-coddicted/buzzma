@@ -55,6 +55,9 @@ public class GeminiClientProxyImpl implements GeminiClientProxy {
           this.promptBuilder.buildSellerFeedbackPrompt();
       case ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL ->
           this.promptBuilder.buildDownloadInstallPrompt();
+      case ScreenshotType.SCREENSHOT_TYPE_SUBSCRIBE_CHANNEL ->
+          this.promptBuilder.buildSubscribeChannelPrompt();
+      case ScreenshotType.SCREENSHOT_TYPE_FOLLOW -> this.promptBuilder.buildFollowPrompt();
     };
   }
 }
