@@ -15,6 +15,7 @@ import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
 import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -67,6 +68,7 @@ class ClaimControllerAuthorizationTest {
   @MockBean private ClaimReviewMapper claimReviewMapper;
   @MockBean private ClaimReviewProcessor claimReviewProcessor;
   @MockBean private UserService userService;
+  @MockBean private ClaimCreationTemplateRegistry claimCreationTemplateRegistry;
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = AGENCY_ID)

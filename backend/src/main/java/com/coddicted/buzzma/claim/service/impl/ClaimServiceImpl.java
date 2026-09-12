@@ -4,7 +4,6 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
-import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
@@ -22,7 +21,6 @@ import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.policy.ClaimPolicy;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
@@ -64,7 +62,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
-  private final ClaimCreationTemplateRegistry claimCreationTemplateRegistry;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -76,8 +73,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignStepResolver campaignStepResolver,
       final StorageService storageService,
       final ExtractionService extractionService,
-      final CodeGenerationService codeGenerationService,
-      final ClaimCreationTemplateRegistry claimCreationTemplateRegistry) {
+      final CodeGenerationService codeGenerationService) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -87,7 +83,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.campaignStepResolver = campaignStepResolver;
     this.storageService = storageService;
     this.extractionService = extractionService;
-    this.claimCreationTemplateRegistry = claimCreationTemplateRegistry;
     this.codeGenerationService = codeGenerationService;
   }
 
@@ -164,18 +159,6 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         extractedScoredResult.overallScore());
 
     return saved;
-  }
-
-  @Override
-  @Transactional
-  public Claim createAppReviewClaim(
-      final Claim claim,
-      final byte[] screenshot,
-      final String screenshotFilename,
-      final String contentType) {
-    return this.claimCreationTemplateRegistry
-        .get(PromotionCategory.APP_PROMOTION)
-        .create(claim, screenshot, screenshotFilename, contentType, null, null);
   }
 
   @Override

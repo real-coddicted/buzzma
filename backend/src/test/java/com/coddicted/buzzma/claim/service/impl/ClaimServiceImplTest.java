@@ -25,7 +25,6 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
-import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
@@ -37,8 +36,6 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.claim.template.ClaimCreationTemplate;
-import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -73,8 +70,6 @@ class ClaimServiceImplTest {
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
-  @Mock private ClaimCreationTemplateRegistry mockClaimCreationTemplateRegistry;
-  @Mock private ClaimCreationTemplate mockAppPromotionClaimCreationTemplate;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -90,18 +85,8 @@ class ClaimServiceImplTest {
             this.mockCampaignStepResolver,
             this.mockStorageService,
             this.mockExtractionService,
-            this.mockCodeGenerationService,
-            this.mockClaimCreationTemplateRegistry);
+            this.mockCodeGenerationService);
   }
-
-  private static final Claim APP_REVIEW_CLAIM_INPUT =
-      Claim.builder()
-          .campaignId(CLAIM_INPUT.getCampaignId())
-          .dealId(DEAL_ID)
-          .ownerId(OWNER_ID)
-          .productName("Sample App")
-          .accountName("john.doe@gmail.com")
-          .build();
 
   @Test
   void testCreateClaim() {
@@ -374,26 +359,6 @@ class ClaimServiceImplTest {
     verify(this.mockCampaignSlotRepository, never())
         .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
     verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
-  }
-
-  @Test
-  void testCreateAppReviewClaimDelegatesToAppPromotionTemplate() {
-    when(this.mockClaimCreationTemplateRegistry.get(PromotionCategory.APP_PROMOTION))
-        .thenReturn(this.mockAppPromotionClaimCreationTemplate);
-    when(this.mockAppPromotionClaimCreationTemplate.create(
-            APP_REVIEW_CLAIM_INPUT,
-            SCREENSHOT_BYTES,
-            SCREENSHOT_FILENAME,
-            CONTENT_TYPE,
-            null,
-            null))
-        .thenReturn(CLAIM_1);
-
-    final Claim result =
-        this.claimService.createAppReviewClaim(
-            APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
-
-    assertEquals(CLAIM_1, result);
   }
 
   @Test

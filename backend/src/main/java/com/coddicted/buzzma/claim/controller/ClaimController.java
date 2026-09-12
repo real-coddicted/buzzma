@@ -2,6 +2,7 @@ package com.coddicted.buzzma.claim.controller;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimRequestDto;
@@ -26,6 +27,7 @@ import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.service.ClaimService.OrderUpdateFields;
+import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -73,6 +75,7 @@ public class ClaimController {
   private final ClaimReviewMapper claimReviewMapper;
   private final ClaimReviewProcessor claimReviewProcessor;
   private final UserService userService;
+  private final ClaimCreationTemplateRegistry claimCreationTemplateRegistry;
 
   public ClaimController(
       final ClaimService claimService,
@@ -83,7 +86,8 @@ public class ClaimController {
       final ClaimMapper claimMapper,
       final ClaimReviewMapper claimReviewMapper,
       final ClaimReviewProcessor claimReviewProcessor,
-      final UserService userService) {
+      final UserService userService,
+      final ClaimCreationTemplateRegistry claimCreationTemplateRegistry) {
     this.claimService = claimService;
     this.claimReviewService = claimReviewService;
     this.claimAccountingService = claimAccountingService;
@@ -93,6 +97,7 @@ public class ClaimController {
     this.claimReviewMapper = claimReviewMapper;
     this.claimReviewProcessor = claimReviewProcessor;
     this.userService = userService;
+    this.claimCreationTemplateRegistry = claimCreationTemplateRegistry;
   }
 
   @PostMapping
@@ -124,17 +129,21 @@ public class ClaimController {
 
     final MultipartFile screenshot = request.getScreenshot();
     final Claim claim =
-        this.claimService.createAppReviewClaim(
-            Claim.builder()
-                .campaignId(request.getCampaignId())
-                .dealId(request.getDealId())
-                .ownerId(requesterId)
-                .productName(request.getProductName())
-                .accountName(request.getAccountName())
-                .build(),
-            readBytes(screenshot),
-            screenshot.getOriginalFilename(),
-            screenshot.getContentType());
+        this.claimCreationTemplateRegistry
+            .get(PromotionCategory.APP_PROMOTION)
+            .create(
+                Claim.builder()
+                    .campaignId(request.getCampaignId())
+                    .dealId(request.getDealId())
+                    .ownerId(requesterId)
+                    .productName(request.getProductName())
+                    .accountName(request.getAccountName())
+                    .build(),
+                readBytes(screenshot),
+                screenshot.getOriginalFilename(),
+                screenshot.getContentType(),
+                null,
+                null);
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
