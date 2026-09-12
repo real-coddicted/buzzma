@@ -19,7 +19,7 @@ import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimAccountingService;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
+import com.coddicted.buzzma.claim.template.ClaimCreationOrchestrator;
 import com.coddicted.buzzma.identity.service.UserService;
 import java.math.BigInteger;
 import java.util.Collections;
@@ -52,7 +52,7 @@ class ClaimControllerTest {
   private ClaimReviewMapper claimReviewMapper;
   private ClaimReviewProcessor claimReviewProcessor;
   private UserService userService;
-  private ClaimCreationTemplateRegistry claimCreationTemplateRegistry;
+  private ClaimCreationOrchestrator claimCreationOrchestrator;
   private ClaimController controller;
 
   @BeforeEach
@@ -66,7 +66,7 @@ class ClaimControllerTest {
     this.claimReviewMapper = Mockito.mock(ClaimReviewMapper.class);
     this.claimReviewProcessor = Mockito.mock(ClaimReviewProcessor.class);
     this.userService = Mockito.mock(UserService.class);
-    this.claimCreationTemplateRegistry = Mockito.mock(ClaimCreationTemplateRegistry.class);
+    this.claimCreationOrchestrator = Mockito.mock(ClaimCreationOrchestrator.class);
     this.controller =
         new ClaimController(
             this.claimService,
@@ -78,7 +78,7 @@ class ClaimControllerTest {
             this.claimReviewMapper,
             this.claimReviewProcessor,
             this.userService,
-            this.claimCreationTemplateRegistry);
+            this.claimCreationOrchestrator);
   }
 
   @Test
