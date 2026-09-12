@@ -1,14 +1,12 @@
 package com.coddicted.buzzma.claim.service.impl;
 
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.DELIVERY_PROOF_SUBMITTED;
-import static com.coddicted.buzzma.claim.entity.ClaimStatus.DOWNLOADED_AND_INSTALLED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.UNDER_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DELIVERY;
-import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RATING;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
@@ -27,6 +25,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
@@ -38,9 +37,10 @@ import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.template.ClaimCreationTemplate;
+import com.coddicted.buzzma.claim.template.ClaimCreationTemplateRegistry;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
-import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -73,6 +73,8 @@ class ClaimServiceImplTest {
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
+  @Mock private ClaimCreationTemplateRegistry mockClaimCreationTemplateRegistry;
+  @Mock private ClaimCreationTemplate mockAppPromotionClaimCreationTemplate;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
@@ -88,7 +90,8 @@ class ClaimServiceImplTest {
             this.mockCampaignStepResolver,
             this.mockStorageService,
             this.mockExtractionService,
-            this.mockCodeGenerationService);
+            this.mockCodeGenerationService,
+            this.mockClaimCreationTemplateRegistry);
   }
 
   private static final Claim APP_REVIEW_CLAIM_INPUT =
@@ -374,87 +377,23 @@ class ClaimServiceImplTest {
   }
 
   @Test
-  void testCreateAppReviewClaim() {
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
-        .thenReturn(
-            Campaign.builder()
-                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
-                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
-                .build());
-    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
-    when(this.mockStorageService.store(
-            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
-        .thenReturn(SCREENSHOT_KEY);
-    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
-        .thenReturn(CLAIM_CODE);
-    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
-    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+  void testCreateAppReviewClaimDelegatesToAppPromotionTemplate() {
+    when(this.mockClaimCreationTemplateRegistry.get(PromotionCategory.APP_PROMOTION))
+        .thenReturn(this.mockAppPromotionClaimCreationTemplate);
+    when(this.mockAppPromotionClaimCreationTemplate.create(
+            APP_REVIEW_CLAIM_INPUT,
+            SCREENSHOT_BYTES,
+            SCREENSHOT_FILENAME,
+            CONTENT_TYPE,
+            null,
+            null))
+        .thenReturn(CLAIM_1);
 
     final Claim result =
         this.claimService.createAppReviewClaim(
             APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
 
     assertEquals(CLAIM_1, result);
-    final Claim saved = claimCaptor.getValue();
-    assertEquals(DOWNLOADED_AND_INSTALLED, saved.getStatus());
-    assertEquals("NA", saved.getEcommerceOrderId());
-    assertEquals(Platform.PLATFORM_GOOGLE_PLAY_STORE, saved.getPlatform());
-    assertEquals(CampaignStepType.DOWNLOAD_INSTALL, saved.getCurrentStep());
-    assertEquals(CLAIM_CODE, saved.getCode());
-    assertEquals(OWNER_ID, saved.getCreatedBy());
-    assertEquals(OWNER_ID, saved.getUpdatedBy());
-
-    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
-        ArgumentCaptor.forClass(ClaimScreenshot.class);
-    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
-    assertEquals(SCREENSHOT_TYPE_DOWNLOAD_INSTALL, screenshotCaptor.getValue().getType());
-    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
-  }
-
-  @Test
-  void testCreateAppReviewClaimWhenCampaignNotActive() {
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
-        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
-
-    final BusinessRuleViolationException ex =
-        assertThrows(
-            BusinessRuleViolationException.class,
-            () ->
-                this.claimService.createAppReviewClaim(
-                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
-
-    assertEquals(
-        "The campaign is not active anymore. Please go back to deals page and refresh once to"
-            + " confirm active deals",
-        ex.getMessage());
-    verify(this.mockCampaignSlotRepository, never())
-        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
-    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
-  }
-
-  @Test
-  void testCreateAppReviewClaimWhenSlotsExhausted() {
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
-        .thenReturn(
-            Campaign.builder()
-                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
-                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
-                .build());
-    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(0);
-
-    final BusinessRuleViolationException ex =
-        assertThrows(
-            BusinessRuleViolationException.class,
-            () ->
-                this.claimService.createAppReviewClaim(
-                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
-
-    assertEquals("All slots have been claimed for this deal", ex.getMessage());
-    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
   }
 
   @Test

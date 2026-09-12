@@ -294,6 +294,28 @@ class CampaignProcessorTest {
   }
 
   @Test
+  void testUpdateCampaignForcesDownloadInstallForAppPromotionCategory() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .platform(Platform.PLATFORM_APPLE_APP_STORE)
+            .category(PromotionCategory.APP_PROMOTION)
+            .requiredSteps(List.of(CampaignStepType.CASHBACK, CampaignStepType.REVIEW))
+            .build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(productProcessor.updateProduct(CAMPAIGN_1.getProduct(), request)).thenReturn(PRODUCT_1);
+
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(campaignService.update(captor.capture())).thenReturn(CAMPAIGN_1);
+    when(campaignMapper.toResponse(CAMPAIGN_1)).thenReturn(CampaignResponseDto.builder().build());
+
+    campaignProcessor.updateCampaign(REQUESTER_ID, CAMPAIGN_ID_1, request);
+
+    assertEquals(
+        List.of(CampaignStepType.DOWNLOAD_INSTALL, CampaignStepType.REVIEW),
+        captor.getValue().getRequiredSteps());
+  }
+
+  @Test
   void testShareCampaignWithBrandSuccess() {
     final UUID toUserId = ASSIGNEE_ID;
     final Campaign ownedCampaign = CAMPAIGN_1.toBuilder().ownerId(REQUESTER_ID).build();
