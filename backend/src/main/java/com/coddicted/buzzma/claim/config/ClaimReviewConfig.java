@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.config;
 import com.coddicted.buzzma.claim.processor.ChainedScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.DeliveryScreenshotProcessor;
+import com.coddicted.buzzma.claim.processor.DownloadInstallScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.OrderScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.RatingScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ReturnScreenshotProcessor;
@@ -29,7 +30,8 @@ public class ClaimReviewConfig {
       final ReviewScreenshotProcessor reviewScreenshotProcessor,
       final ReturnScreenshotProcessor returnScreenshotProcessor,
       final DeliveryScreenshotProcessor deliveryScreenshotProcessor,
-      final SellerFeedbackScreenshotProcessor sellerFeedbackScreenshotProcessor) {
+      final SellerFeedbackScreenshotProcessor sellerFeedbackScreenshotProcessor,
+      final DownloadInstallScreenshotProcessor downloadInstallScreenshotProcessor) {
     return new ChainedScreenshotProcessor(
         List.of(
             orderScreenshotProcessor,
@@ -37,7 +39,8 @@ public class ClaimReviewConfig {
             reviewScreenshotProcessor,
             returnScreenshotProcessor,
             deliveryScreenshotProcessor,
-            sellerFeedbackScreenshotProcessor));
+            sellerFeedbackScreenshotProcessor,
+            downloadInstallScreenshotProcessor));
   }
 
   @Bean("ClaimScreenshotScorer")

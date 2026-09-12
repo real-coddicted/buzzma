@@ -105,7 +105,6 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   }
 
   @Override
-  @Transactional
   public void process(final ExtractionJob job) {
     final UUID claimScreenshotId = job.getClaimScreenshotId();
     final ClaimScreenshot screenshot =
