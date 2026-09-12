@@ -182,7 +182,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.REVIEW_SUBMITTED)
+                .status(
+                    isFinalProofStep(steps, CampaignStepType.REVIEW)
+                        ? ClaimStatus.UNDER_REVIEW
+                        : ClaimStatus.REVIEW_SUBMITTED)
                 .currentStep(CampaignStepType.REVIEW)
                 .reviewUrl(reviewUrl)
                 .updatedBy(ownerId)
@@ -215,7 +218,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.RATING_SUBMITTED)
+                .status(
+                    isFinalProofStep(steps, CampaignStepType.RATING)
+                        ? ClaimStatus.UNDER_REVIEW
+                        : ClaimStatus.RATING_SUBMITTED)
                 .currentStep(CampaignStepType.RATING)
                 .updatedBy(ownerId)
                 .build());
@@ -279,7 +285,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.DELIVERY_PROOF_SUBMITTED)
+                .status(
+                    isFinalProofStep(steps, CampaignStepType.DELIVERY)
+                        ? ClaimStatus.UNDER_REVIEW
+                        : ClaimStatus.DELIVERY_PROOF_SUBMITTED)
                 .currentStep(CampaignStepType.DELIVERY)
                 .updatedBy(ownerId)
                 .build());
@@ -311,7 +320,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.SELLER_FEEDBACK_SUBMITTED)
+                .status(
+                    isFinalProofStep(steps, CampaignStepType.SELLER_FEEDBACK)
+                        ? ClaimStatus.UNDER_REVIEW
+                        : ClaimStatus.SELLER_FEEDBACK_SUBMITTED)
                 .currentStep(CampaignStepType.SELLER_FEEDBACK)
                 .updatedBy(ownerId)
                 .build());
@@ -595,6 +607,16 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
               + " confirm active deals");
     }
     return campaign;
+  }
+
+  /**
+   * True when {@code step} is the last proof step before the trailing {@code CASHBACK} step that
+   * {@link CampaignStepResolver#resolve} always appends — i.e. submitting it completes the
+   * campaign's required steps regardless of category, so the claim is ready for review.
+   */
+  private boolean isFinalProofStep(
+      final List<CampaignStepType> steps, final CampaignStepType step) {
+    return steps.size() >= 2 && steps.get(steps.size() - 2) == step;
   }
 
   private void validatePrecedingStep(
