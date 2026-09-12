@@ -12,6 +12,7 @@ import com.coddicted.buzzma.claim.processor.SellerFeedbackScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.ChainedScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.DeliveryScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.DownloadInstallScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
@@ -50,7 +51,8 @@ public class ClaimReviewConfig {
       final ReviewScreenshotScorer reviewScreenshotScorer,
       final ReturnScreenshotScorer returnScreenshotScorer,
       final DeliveryScreenshotScorer deliveryScreenshotScorer,
-      final SellerFeedbackScreenshotScorer sellerFeedbackScreenshotScorer) {
+      final SellerFeedbackScreenshotScorer sellerFeedbackScreenshotScorer,
+      final DownloadInstallScreenshotScorer downloadInstallScreenshotScorer) {
     return new ChainedScreenshotScorer(
         List.of(
             orderScreenshotScorer,
@@ -58,6 +60,7 @@ public class ClaimReviewConfig {
             reviewScreenshotScorer,
             returnScreenshotScorer,
             deliveryScreenshotScorer,
-            sellerFeedbackScreenshotScorer));
+            sellerFeedbackScreenshotScorer,
+            downloadInstallScreenshotScorer));
   }
 }
