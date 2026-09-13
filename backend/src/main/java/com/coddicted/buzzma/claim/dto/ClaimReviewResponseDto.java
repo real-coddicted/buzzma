@@ -35,6 +35,7 @@ public class ClaimReviewResponseDto {
   ClaimStatus claimStatus;
   String ecommerceOrderId;
   String exchangeProduct;
+  String reviewUrl;
 
   Boolean mediatorVerified;
   Boolean brandVerified;

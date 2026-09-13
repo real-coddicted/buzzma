@@ -58,6 +58,7 @@ class ClaimReviewWorksheetServiceImplTest {
       "Widget",
       "CLM-1",
       "APPROVED",
+      "https://example.com/screenshot.jpg",
       "88",
       "100.00",
       "Approved",

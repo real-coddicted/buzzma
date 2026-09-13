@@ -62,6 +62,14 @@ class ClaimReviewMapperTest {
   }
 
   @Test
+  void testToResponseMapsReviewUrlFromClaim() {
+    final Claim claim = Claim.builder().reviewUrl("https://example.com/screenshot.jpg").build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals("https://example.com/screenshot.jpg", mapper.toResponse(model).getReviewUrl());
+  }
+
+  @Test
   void testToResponseMapsCampaignTypeFromCampaign() {
     final ClaimReviewModel model =
         ClaimReviewModel.builder()

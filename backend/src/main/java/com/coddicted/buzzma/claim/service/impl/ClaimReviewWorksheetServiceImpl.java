@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetService {
 
-  private static final int EXPECTED_COLUMN_COUNT = 17;
+  private static final int EXPECTED_COLUMN_COUNT = 18;
 
   private final ClaimReviewWorksheetProperties properties;
   private final ClaimReviewWorksheetRepository worksheetRepository;
@@ -218,9 +218,17 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
     // aligned.
     col++;
 
-    return builder
+    builder
         .claimCode(WorkbookUtils.cellString(row, col++))
-        .claimStatus(WorkbookUtils.cellString(row, col++))
+        .claimStatus(WorkbookUtils.cellString(row, col++));
+
+    // Step over "Review URL" (ClaimReviewReportColumns index 13). It is written to the export as
+    // a clickable hyperlink for display only and is never read back from a re-uploaded worksheet,
+    // so no builder field consumes this position — but the counter must still advance to keep the
+    // columns below aligned.
+    col++;
+
+    return builder
         .matchScore(WorkbookUtils.cellString(row, col++))
         .amountApproved(WorkbookUtils.cellString(row, col++))
         .brandReview(WorkbookUtils.cellString(row, col++))

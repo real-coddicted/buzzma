@@ -28,6 +28,7 @@ public final class ClaimReviewReportColumns {
           new ExcelColumn<>("Exchange Product", ClaimReviewReportColumns::exchangeProduct),
           new ExcelColumn<>("Claim Code", ClaimReviewResponseDto::getClaimCode),
           new ExcelColumn<>("Claim Status", dto -> dto.getClaimStatus().getDisplayName()),
+          ExcelColumn.hyperlink("Review URL", ClaimReviewResponseDto::getReviewUrl),
           new ExcelColumn<>("Match Score", ClaimReviewResponseDto::getMatchScore),
           new ExcelColumn<>("Amount Approved", dto -> null),
           new ExcelColumn<>("Brand Review", dto -> null, List.of("Approved", "Rejected")),

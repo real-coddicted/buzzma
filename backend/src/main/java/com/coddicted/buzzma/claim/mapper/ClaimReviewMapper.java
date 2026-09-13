@@ -28,6 +28,7 @@ public interface ClaimReviewMapper {
   @Mapping(source = "claim.status", target = "claimStatus")
   @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
   @Mapping(source = "claim.exchangeProduct", target = "exchangeProduct")
+  @Mapping(source = "claim.reviewUrl", target = "reviewUrl")
   @Mapping(
       source = "claim.mediatorVerified",
       target = "mediatorVerified",

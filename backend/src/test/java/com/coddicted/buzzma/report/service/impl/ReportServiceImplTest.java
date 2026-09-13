@@ -69,6 +69,7 @@ class ReportServiceImplTest {
             .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
             .exchangeProduct("Widget")
             .claimStatus(ClaimStatus.APPROVED)
+            .reviewUrl("https://example.com/screenshot.jpg")
             .matchScore(BigInteger.valueOf(90))
             .mediatorVerified(true)
             .createdAt(Instant.parse("2026-01-01T10:00:00Z"))
@@ -111,9 +112,11 @@ class ReportServiceImplTest {
       assertEquals("Order Amount", header.getCell(9).getStringCellValue());
       assertEquals("Exchange Product", header.getCell(10).getStringCellValue());
       assertEquals("Claim Status", header.getCell(12).getStringCellValue());
-      assertEquals("Amount Approved", header.getCell(14).getStringCellValue());
-      assertEquals("Brand Review", header.getCell(15).getStringCellValue());
-      assertEquals("Remarks", header.getCell(16).getStringCellValue());
+      assertEquals("Review URL", header.getCell(13).getStringCellValue());
+      assertEquals("Match Score", header.getCell(14).getStringCellValue());
+      assertEquals("Amount Approved", header.getCell(15).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(16).getStringCellValue());
+      assertEquals("Remarks", header.getCell(17).getStringCellValue());
 
       final Row dataRow = sheet.getRow(1);
       assertEquals("Summer Sale", dataRow.getCell(0).getStringCellValue());
@@ -126,9 +129,13 @@ class ReportServiceImplTest {
       assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
       assertEquals("Widget", dataRow.getCell(10).getStringCellValue());
       assertEquals("Approved", dataRow.getCell(12).getStringCellValue());
-      assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
+      assertEquals("https://example.com/screenshot.jpg", dataRow.getCell(13).getStringCellValue());
+      assertEquals(
+          "https://example.com/screenshot.jpg", dataRow.getCell(13).getHyperlink().getAddress());
+      assertEquals(90.0, dataRow.getCell(14).getNumericCellValue(), 0.001);
       assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(16).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(17).getCellType());
     }
   }
 
@@ -193,20 +200,21 @@ class ReportServiceImplTest {
 
     try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
       final Row header = workbook.getSheet("Claim Review").getRow(0);
-      assertEquals(16, header.getLastCellNum());
+      assertEquals(17, header.getLastCellNum());
       for (int i = 0; i < header.getLastCellNum(); i++) {
         assertNotEquals("Amount Approved", header.getCell(i).getStringCellValue());
       }
       assertEquals("Exchange Product", header.getCell(10).getStringCellValue());
-      assertEquals("Match Score", header.getCell(13).getStringCellValue());
-      assertEquals("Brand Review", header.getCell(14).getStringCellValue());
-      assertEquals("Remarks", header.getCell(15).getStringCellValue());
+      assertEquals("Review URL", header.getCell(13).getStringCellValue());
+      assertEquals("Match Score", header.getCell(14).getStringCellValue());
+      assertEquals("Brand Review", header.getCell(15).getStringCellValue());
+      assertEquals("Remarks", header.getCell(16).getStringCellValue());
 
       final Row dataRow = workbook.getSheet("Claim Review").getRow(1);
       assertEquals(250.50, dataRow.getCell(9).getNumericCellValue(), 0.001);
       assertEquals("Approved", dataRow.getCell(12).getStringCellValue());
-      assertEquals(CellType.BLANK, dataRow.getCell(14).getCellType());
       assertEquals(CellType.BLANK, dataRow.getCell(15).getCellType());
+      assertEquals(CellType.BLANK, dataRow.getCell(16).getCellType());
     }
   }
 
