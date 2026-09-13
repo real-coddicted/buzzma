@@ -232,7 +232,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.REVIEW_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.REVIEW))
                 .currentStep(CampaignStepType.REVIEW)
                 .reviewUrl(reviewUrl)
                 .updatedBy(ownerId)
@@ -265,7 +265,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.RATING_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RATING))
                 .currentStep(CampaignStepType.RATING)
                 .updatedBy(ownerId)
                 .build());
@@ -297,7 +297,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.UNDER_REVIEW)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RETURN_WINDOW))
                 .currentStep(CampaignStepType.RETURN_WINDOW)
                 .updatedBy(ownerId)
                 .build());
@@ -329,7 +329,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.DELIVERY_PROOF_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.DELIVERY))
                 .currentStep(CampaignStepType.DELIVERY)
                 .updatedBy(ownerId)
                 .build());
@@ -361,7 +361,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.SELLER_FEEDBACK_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.SELLER_FEEDBACK))
                 .currentStep(CampaignStepType.SELLER_FEEDBACK)
                 .updatedBy(ownerId)
                 .build());
@@ -591,19 +591,45 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       // No need to update claim status (Which should be objected at this point)
       return claim;
     }
-    // Otherwise status update is needed depending on already completed steps
-    // setting default status values below
-    ClaimStatus claimStatus = ClaimStatus.ORDERED;
-
-    final boolean hasReturn =
-        screenshots.stream().anyMatch(s -> s.getType() == ScreenshotType.SCREENSHOT_TYPE_RETURN);
-
-    if (hasReturn) {
-      // This should be revisited in case of change in end step
-      claimStatus = ClaimStatus.UNDER_REVIEW;
-    }
+    // No screenshot is still pending rejection review, so the claim's status reflects whichever
+    // step it's currently on: the last required step makes it reviewable, any earlier step just
+    // reports its own "submitted" status.
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final ClaimStatus claimStatus = terminalStatusFor(campaign, claim.getCurrentStep());
 
     return claim.toBuilder().status(claimStatus).updatedBy(requesterId).build();
+  }
+
+  /**
+   * The claim status to use when {@code stepType} has just been (re)submitted: the universal
+   * ready-for-review status if it's the campaign's last required step (before Cashback), otherwise
+   * that step's own "submitted" status. Centralizing this avoids each step hardcoding whether it
+   * happens to be last, which previously only worked correctly for Return.
+   */
+  private ClaimStatus terminalStatusFor(final Campaign campaign, final CampaignStepType stepType) {
+    return isLastRequiredStep(campaign, stepType)
+        ? ClaimStatus.UNDER_REVIEW
+        : statusForStep(stepType);
+  }
+
+  private boolean isLastRequiredStep(final Campaign campaign, final CampaignStepType stepType) {
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(campaign);
+    final int index = steps.indexOf(stepType);
+    // CampaignStepResolver always appends CASHBACK last, so the step just before it is the last
+    // one the buyer is actually required to submit proof for.
+    return index >= 0 && index == steps.size() - 2;
+  }
+
+  private ClaimStatus statusForStep(final CampaignStepType stepType) {
+    return switch (stepType) {
+      case ORDER -> ClaimStatus.ORDERED;
+      case DOWNLOAD_INSTALL -> ClaimStatus.DOWNLOADED_AND_INSTALLED;
+      case RATING -> ClaimStatus.RATING_SUBMITTED;
+      case REVIEW -> ClaimStatus.REVIEW_SUBMITTED;
+      case DELIVERY -> ClaimStatus.DELIVERY_PROOF_SUBMITTED;
+      case SELLER_FEEDBACK -> ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
+      case RETURN_WINDOW, CASHBACK -> ClaimStatus.UNDER_REVIEW;
+    };
   }
 
   private ClaimScreenshot saveScreenshot(

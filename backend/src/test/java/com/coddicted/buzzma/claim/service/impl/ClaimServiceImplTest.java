@@ -15,6 +15,7 @@ import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_R
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_REVIEW;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK;
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.never;
@@ -48,6 +49,7 @@ import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -549,6 +551,35 @@ class ClaimServiceImplTest {
     assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
     assertEquals(SCREENSHOT_TYPE_REVIEW, screenshotCaptor.getValue().getType());
     verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testSubmitReviewSetsUnderReviewWhenReviewIsLastRequiredStep() {
+    // Regression test: previously only Return-type submissions ever became reviewable (UNDER_REVIEW
+    // was hardcoded to Return), so a campaign whose last step is Review got stuck showing
+    // REVIEW_SUBMITTED forever and agencies/mediators could never approve it.
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_2));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    this.claimService.submitReview(
+        CLAIM_ID, OWNER_ID, REVIEW_URL, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
+    assertEquals(CampaignStepType.REVIEW, claimCaptor.getValue().getCurrentStep());
   }
 
   @Test
@@ -1082,6 +1113,126 @@ class ClaimServiceImplTest {
         "Exchange product must be one of the campaign's configured exchange products",
         ex.getMessage());
     verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testUpdateScreenshotBecomesReviewableAfterRejectedScreenshotIsResubmittedOnLastStep() {
+    // Regression test: verifyAndUpdateClaimStatus previously only recognized a Return screenshot as
+    // making a claim reviewable (and otherwise reset status to ORDERED), so resubmitting a rejected
+    // screenshot for any other last-step type (here Review) never made the claim reviewable again.
+    final ClaimScreenshot existingReviewScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .type(SCREENSHOT_TYPE_REVIEW)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_REJECTED)
+            .build();
+    final ClaimScreenshot resubmittedScreenshot =
+        existingReviewScreenshot.toBuilder()
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .storageKey(SCREENSHOT_KEY)
+            .build();
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(existingReviewScreenshot));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any()))
+        .thenReturn(resubmittedScreenshot);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(resubmittedScreenshot));
+    when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
+        .thenReturn(DEAL_1.getCampaign());
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_REVIEW,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        null,
+        null);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
+  }
+
+  @Test
+  void testUpdateScreenshotOnNonLastStepStillBecomesReviewableWhenLaterStepAlreadyCompleted() {
+    // order -> rating -> review: buyer already finished Review (currentStep=REVIEW, the actual last
+    // step), then a reviewer rejects the earlier Rating screenshot. Resubmitting Rating - not the
+    // last step type itself - must still make the claim reviewable, because reviewability is driven
+    // by the claim's furthest-completed step (currentStep), not by which screenshot was just
+    // resubmitted.
+    final ClaimScreenshot existingRatingScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .type(SCREENSHOT_TYPE_RATING)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_REJECTED)
+            .build();
+    final ClaimScreenshot resubmittedRatingScreenshot =
+        existingRatingScreenshot.toBuilder()
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .storageKey(SCREENSHOT_KEY)
+            .build();
+    final ClaimScreenshot verifiedReviewScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .id(UUID.fromString("77777777-7777-7777-7777-777777777777"))
+            .type(SCREENSHOT_TYPE_REVIEW)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .build();
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+
+    // CLAIM_3's currentStep is REVIEW (see claim-3.json) - i.e. the buyer already completed every
+    // required step before Rating was retroactively rejected.
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(existingRatingScreenshot));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any()))
+        .thenReturn(resubmittedRatingScreenshot);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(resubmittedRatingScreenshot, verifiedReviewScreenshot));
+    when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
+        .thenReturn(DEAL_1.getCampaign());
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_RATING,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        null,
+        null);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
   }
 
   @Test
