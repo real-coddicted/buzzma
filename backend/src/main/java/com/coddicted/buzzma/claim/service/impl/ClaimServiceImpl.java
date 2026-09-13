@@ -9,6 +9,8 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.campaign.step.StepDefinition;
+import com.coddicted.buzzma.campaign.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
@@ -62,6 +64,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
+  private final StepDefinitionRegistry stepDefinitionRegistry;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -73,7 +76,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignStepResolver campaignStepResolver,
       final StorageService storageService,
       final ExtractionService extractionService,
-      final CodeGenerationService codeGenerationService) {
+      final CodeGenerationService codeGenerationService,
+      final StepDefinitionRegistry stepDefinitionRegistry) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -84,6 +88,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
+    this.stepDefinitionRegistry = stepDefinitionRegistry;
   }
 
   @Override
@@ -220,29 +225,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String filename,
       final String contentType) {
-
-    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
-    validatePrecedingStep(steps, CampaignStepType.REVIEW, claim.getCurrentStep());
-
-    final String screenshotKey =
-        this.storageService.store("claims", filename, contentType, screenshot);
-
-    final Claim updated =
-        this.claimRepository.save(
-            claim.toBuilder()
-                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.REVIEW))
-                .currentStep(CampaignStepType.REVIEW)
-                .reviewUrl(reviewUrl)
-                .updatedBy(ownerId)
-                .build());
-
-    final ClaimScreenshot reviewScreenshot =
-        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_REVIEW, ownerId);
-    this.extractionService.submitJob(reviewScreenshot.getId(), ownerId);
-
-    return new ClaimWithDeal(updated, deal);
+    return submitStep(
+        CampaignStepType.REVIEW, claimId, ownerId, reviewUrl, screenshot, filename, contentType);
   }
 
   @Override
@@ -253,28 +237,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String filename,
       final String contentType) {
-
-    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
-    validatePrecedingStep(steps, CampaignStepType.RATING, claim.getCurrentStep());
-
-    final String screenshotKey =
-        this.storageService.store("claims", filename, contentType, screenshot);
-
-    final Claim updated =
-        this.claimRepository.save(
-            claim.toBuilder()
-                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RATING))
-                .currentStep(CampaignStepType.RATING)
-                .updatedBy(ownerId)
-                .build());
-
-    final ClaimScreenshot ratingScreenshot =
-        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RATING, ownerId);
-    this.extractionService.submitJob(ratingScreenshot.getId(), ownerId);
-
-    return new ClaimWithDeal(updated, deal);
+    return submitStep(
+        CampaignStepType.RATING, claimId, ownerId, null, screenshot, filename, contentType);
   }
 
   @Override
@@ -285,28 +249,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String filename,
       final String contentType) {
-
-    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
-    validatePrecedingStep(steps, CampaignStepType.RETURN_WINDOW, claim.getCurrentStep());
-
-    final String screenshotKey =
-        this.storageService.store("claims", filename, contentType, screenshot);
-
-    final Claim updated =
-        this.claimRepository.save(
-            claim.toBuilder()
-                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RETURN_WINDOW))
-                .currentStep(CampaignStepType.RETURN_WINDOW)
-                .updatedBy(ownerId)
-                .build());
-
-    final ClaimScreenshot returnScreenshot =
-        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
-    this.extractionService.submitJob(returnScreenshot.getId(), ownerId);
-
-    return new ClaimWithDeal(updated, deal);
+    return submitStep(
+        CampaignStepType.RETURN_WINDOW, claimId, ownerId, null, screenshot, filename, contentType);
   }
 
   @Override
@@ -317,28 +261,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String filename,
       final String contentType) {
-
-    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
-    validatePrecedingStep(steps, CampaignStepType.DELIVERY, claim.getCurrentStep());
-
-    final String screenshotKey =
-        this.storageService.store("claims", filename, contentType, screenshot);
-
-    final Claim updated =
-        this.claimRepository.save(
-            claim.toBuilder()
-                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.DELIVERY))
-                .currentStep(CampaignStepType.DELIVERY)
-                .updatedBy(ownerId)
-                .build());
-
-    final ClaimScreenshot deliveryScreenshot =
-        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_DELIVERY, ownerId);
-    this.extractionService.submitJob(deliveryScreenshot.getId(), ownerId);
-
-    return new ClaimWithDeal(updated, deal);
+    return submitStep(
+        CampaignStepType.DELIVERY, claimId, ownerId, null, screenshot, filename, contentType);
   }
 
   @Override
@@ -349,27 +273,63 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final byte[] screenshot,
       final String filename,
       final String contentType) {
+    return submitStep(
+        CampaignStepType.SELLER_FEEDBACK,
+        claimId,
+        ownerId,
+        null,
+        screenshot,
+        filename,
+        contentType);
+  }
+
+  /**
+   * Common orchestration for the "submit a screenshot for the next step" flow: validate ownership
+   * and step order, store the media, transition the claim, save the {@code ClaimScreenshot}, then
+   * kick off extraction per the step's {@link StepDefinition}. {@code reviewUrl} is only meaningful
+   * for {@link CampaignStepType#REVIEW}; pass null otherwise.
+   */
+  private ClaimWithDeal submitStep(
+      final CampaignStepType stepType,
+      final UUID claimId,
+      final UUID ownerId,
+      final String reviewUrl,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
     final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
-    validatePrecedingStep(steps, CampaignStepType.SELLER_FEEDBACK, claim.getCurrentStep());
+    validatePrecedingStep(steps, stepType, claim.getCurrentStep());
 
+    final StepDefinition stepDefinition = this.stepDefinitionRegistry.get(stepType);
     final String screenshotKey =
         this.storageService.store("claims", filename, contentType, screenshot);
 
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.SELLER_FEEDBACK))
-                .currentStep(CampaignStepType.SELLER_FEEDBACK)
+                .status(terminalStatusFor(deal.getCampaign(), stepType))
+                .currentStep(stepType)
+                .reviewUrl(reviewUrl != null ? reviewUrl : claim.getReviewUrl())
                 .updatedBy(ownerId)
                 .build());
 
-    final ClaimScreenshot sellerFeedbackScreenshot =
+    final ClaimScreenshot claimScreenshot =
         saveScreenshot(
-            claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK, ownerId);
-    this.extractionService.submitJob(sellerFeedbackScreenshot.getId(), ownerId);
+            claimId,
+            screenshotKey,
+            stepDefinition
+                .screenshotType()
+                .orElseThrow(
+                    () ->
+                        new IllegalStateException("Step " + stepType + " has no screenshot type")),
+            ownerId);
+
+    if (stepDefinition.extractionPrompt().isPresent()) {
+      this.extractionService.submitJob(claimScreenshot.getId(), ownerId);
+    }
 
     return new ClaimWithDeal(updated, deal);
   }

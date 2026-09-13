@@ -33,14 +33,26 @@ import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
+import com.coddicted.buzzma.campaign.step.DeliveryStepDefinition;
+import com.coddicted.buzzma.campaign.step.RatingStepDefinition;
+import com.coddicted.buzzma.campaign.step.ReturnStepDefinition;
+import com.coddicted.buzzma.campaign.step.ReviewStepDefinition;
+import com.coddicted.buzzma.campaign.step.SellerFeedbackStepDefinition;
+import com.coddicted.buzzma.campaign.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.scorer.DeliveryScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ReviewScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.SellerFeedbackScreenshotScorer;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
+import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
@@ -76,10 +88,25 @@ class ClaimServiceImplTest {
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
+  @Mock private RatingScreenshotScorer mockRatingScreenshotScorer;
+  @Mock private ReviewScreenshotScorer mockReviewScreenshotScorer;
+  @Mock private ReturnScreenshotScorer mockReturnScreenshotScorer;
+  @Mock private DeliveryScreenshotScorer mockDeliveryScreenshotScorer;
+  @Mock private SellerFeedbackScreenshotScorer mockSellerFeedbackScreenshotScorer;
   private ClaimServiceImpl claimService;
 
   @BeforeEach
   void setUp() {
+    final GeminiExtractionPromptBuilder promptBuilder = new GeminiExtractionPromptBuilder();
+    final StepDefinitionRegistry stepDefinitionRegistry =
+        new StepDefinitionRegistry(
+            List.of(
+                new RatingStepDefinition(promptBuilder, this.mockRatingScreenshotScorer),
+                new ReviewStepDefinition(promptBuilder, this.mockReviewScreenshotScorer),
+                new ReturnStepDefinition(promptBuilder, this.mockReturnScreenshotScorer),
+                new DeliveryStepDefinition(promptBuilder, this.mockDeliveryScreenshotScorer),
+                new SellerFeedbackStepDefinition(
+                    promptBuilder, this.mockSellerFeedbackScreenshotScorer)));
     this.claimService =
         new ClaimServiceImpl(
             this.mockClaimRepository,
@@ -91,7 +118,8 @@ class ClaimServiceImplTest {
             this.mockCampaignStepResolver,
             this.mockStorageService,
             this.mockExtractionService,
-            this.mockCodeGenerationService);
+            this.mockCodeGenerationService,
+            stepDefinitionRegistry);
   }
 
   private static final Claim APP_REVIEW_CLAIM_INPUT =

@@ -1,62 +1,32 @@
 package com.coddicted.buzzma.claim.scorer;
 
-import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
-
 import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
 import com.coddicted.buzzma.claim.client.ScoreDatasetKeys;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
-import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
-import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
-import com.coddicted.buzzma.scoring.entity.ScoringJob;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
 import com.coddicted.buzzma.shared.score.PayloadItem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderScreenshotScorer implements ClaimScreenshotScorer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OrderScreenshotScorer.class);
-
-  private final ClaimScreenshotRepository screenshotRepository;
-  private final CampaignService campaignService;
-  private final ClaimService claimService;
   private final ScoreApiClientProxy scoreApiClientProxy;
 
-  public OrderScreenshotScorer(
-      final ClaimScreenshotRepository screenshotRepository,
-      final CampaignService campaignService,
-      final ClaimService claimService,
-      final ScoreApiClientProxy scoreApiClientProxy) {
-    this.screenshotRepository = screenshotRepository;
-    this.campaignService = campaignService;
-    this.claimService = claimService;
+  public OrderScreenshotScorer(final ScoreApiClientProxy scoreApiClientProxy) {
     this.scoreApiClientProxy = scoreApiClientProxy;
   }
 
   @Override
-  public boolean canScore(final ClaimScreenshot screenshot) {
-    return SCREENSHOT_TYPE_ORDER == screenshot.getType();
-  }
-
-  @Override
-  public void score(final ScoringJob job, final ClaimScreenshot screenshot) {
-    LOGGER.info(
-        "scoreOrderScreenshot: scoring job {}, screenshot {}", job.getId(), screenshot.getId());
-
-    final Claim claim =
-        this.claimService.getById(screenshot.getClaimId(), screenshot.getCreatedBy());
-    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+  public ExtractedScoredResult score(
+      final Claim claim, final Campaign campaign, final ClaimScreenshot screenshot) {
     final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
 
     final String orderDate = details.get(BuzzmahConstants.ORDER_DATE).getExtractedValue();
@@ -69,17 +39,8 @@ public class OrderScreenshotScorer implements ClaimScreenshotScorer {
         scoreFields(platformValue, productName, sellerName, orderDate, campaign);
     details.putAll(fieldScoring.extractedResult());
 
-    final ExtractedScoredResult extractedScoredResult =
-        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
-            claim, details, fieldScoring.overallScore());
-
-    screenshot.setExtractedDetails(extractedScoredResult.extractedResult());
-    screenshot.setScore(extractedScoredResult.overallScore());
-    this.screenshotRepository.save(screenshot);
-
-    this.claimService.updateClaimScore(screenshot.getClaimId());
-
-    LOGGER.info("scoreOrderScreenshot: saved score for screenshot {}", screenshot.getId());
+    return ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+        claim, details, fieldScoring.overallScore());
   }
 
   /**

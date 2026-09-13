@@ -14,7 +14,8 @@ public interface ClaimScreenshotService {
       UUID requesterId,
       UUID campaignId);
 
-  void process(ExtractionJob job);
+  /** Returns true if the extracted screenshot's step requires scoring. */
+  boolean process(ExtractionJob job);
 
   void processScoring(ScoringJob job);
 }
