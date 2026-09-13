@@ -23,5 +23,8 @@ public final class ClaimReviewPolicy {
     if (reviewerRole == UserRole.ROLE_BRAND && decision == ReviewerDecision.APPROVED) {
       throw new BusinessRuleViolationException("BRAND cannot approve a claim");
     }
+    if (reviewerRole == UserRole.ROLE_BRAND && decision == ReviewerDecision.REJECTED) {
+      throw new BusinessRuleViolationException("BRAND cannot reject a claim");
+    }
   }
 }

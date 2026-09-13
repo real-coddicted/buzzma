@@ -4,5 +4,6 @@ public enum ReviewerDecision {
   APPROVED,
   REJECTED,
   VERIFIED,
-  BRAND_VERIFIED
+  BRAND_VERIFIED,
+  PENDING
 }

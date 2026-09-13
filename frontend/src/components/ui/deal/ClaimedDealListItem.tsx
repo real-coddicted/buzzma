@@ -77,11 +77,6 @@ export function ClaimedDealListItem({ deal, currentStep = 0, onClick }: ClaimedD
                   {CLAIM_STATUS_CONFIG[deal.claimStatus].label}
                 </span>
               )}
-              {screenshotRejected && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-neon-red/30 bg-neon-red/10 text-neon-red">
-                  Rejected
-                </span>
-              )}
             </div>
           </div>
           <span className="text-sm font-bold text-neon-green shrink-0">

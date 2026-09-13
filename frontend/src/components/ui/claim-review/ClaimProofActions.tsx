@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Button } from '../Button'
 import { ConfirmModal } from '../ConfirmModal'
-import { IconCheck, IconX, IconCopyCheck } from '../icons'
+import { IconCheck, IconX, IconCopyCheck, IconEdit } from '../icons'
 import { ReviewerCommentBox } from './ReviewerCommentBox'
 import { RupeeInput } from '../RupeeInput'
 import { paiseToRupees } from '../../../utils/currency'
-import { canReviewClaims, canApproveClaims } from './claimUtils'
+import { canReviewClaims, canApproveClaims, canResetClaim } from './claimUtils'
+import type { ClaimStatus } from '../../../types'
 
 interface ClaimProofActionsProps {
   userRole: string | undefined
+  claimStatus: ClaimStatus
   isUnderReview: boolean
   mediatorVerified?: boolean
   brandVerified?: boolean
@@ -17,9 +19,10 @@ interface ClaimProofActionsProps {
   onVerified: () => void
   onBrandVerified: () => void
   onReject: (comment: string) => void
+  onReset: () => void
 }
 
-export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, brandVerified, initialAmountApprovedPaise, onApprove, onVerified, onBrandVerified, onReject }: ClaimProofActionsProps) {
+export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediatorVerified, brandVerified, initialAmountApprovedPaise, onApprove, onVerified, onBrandVerified, onReject, onReset }: ClaimProofActionsProps) {
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('')
   const [approvedAmountRupees, setApprovedAmountRupees] = useState(
@@ -27,8 +30,11 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, b
   )
   const [amountError, setAmountError] = useState('')
   const [showRejectConfirm, setShowRejectConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   if (!canReviewClaims(userRole) && userRole !== 'ROLE_MEDIATOR') return null
+
+  const canReset = canResetClaim(userRole, claimStatus)
 
   function handleRejectClick() {
     if (!comment.trim()) {
@@ -44,6 +50,11 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, b
     onReject(comment)
   }
 
+  function handleResetConfirm() {
+    setShowResetConfirm(false)
+    onReset()
+  }
+
   function handleApproveClick() {
     if (!approvedAmountRupees.trim()) {
       setAmountError('Approved amount is mandatory to approve a claim.')
@@ -57,7 +68,7 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, b
   return (
     <>
       <div className="space-y-3">
-        {canReviewClaims(userRole) && (
+        {canApproveClaims(userRole) && (
           <ReviewerCommentBox
             value={comment}
             onChange={v => { setComment(v); if (commentError) setCommentError('') }}
@@ -109,7 +120,7 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, b
               Verified
             </Button>
           )}
-          {canReviewClaims(userRole) && (
+          {canApproveClaims(userRole) && (
             <Button
               size="sm"
               variant="secondary"
@@ -135,18 +146,45 @@ export function ClaimProofActions({ userRole, isUnderReview, mediatorVerified, b
               Verified
             </Button>
           )}
+          {canReset && (
+            <Button
+              size="sm"
+              variant="secondary"
+              leftIcon={<IconEdit size={13} />}
+              onClick={() => setShowResetConfirm(true)}
+              className="!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"
+            >
+              Reset Review
+            </Button>
+          )}
         </div>
       </div>
 
       {showRejectConfirm && (
         <ConfirmModal
           title="Reject claim"
-          message="Are you sure you want to reject this claim?"
-          confirmLabel="Yes"
+          message="This cannot be undone — once rejected, the claim cannot be reopened. Are you sure you want to reject this claim?"
+          confirmLabel="Yes, reject"
           cancelLabel="No"
           tone="red"
           onConfirm={handleRejectConfirm}
           onCancel={() => setShowRejectConfirm(false)}
+        />
+      )}
+
+      {showResetConfirm && (
+        <ConfirmModal
+          title={userRole === 'ROLE_BRAND' ? 'Reset your verification' : 'Reset review'}
+          message={
+            userRole === 'ROLE_BRAND'
+              ? 'This clears your verification sign-off so you can re-review the claim. Note that screenshot-level review may still be locked — contact your agency if you need those reopened too.'
+              : 'This reopens the claim back to Under Review, so Approve/Reject and screenshot review become available again. Are you sure?'
+          }
+          confirmLabel="Yes, reset"
+          cancelLabel="No"
+          tone="blue"
+          onConfirm={handleResetConfirm}
+          onCancel={() => setShowResetConfirm(false)}
         />
       )}
     </>

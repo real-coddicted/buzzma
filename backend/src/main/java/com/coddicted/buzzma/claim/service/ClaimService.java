@@ -81,6 +81,14 @@ public interface ClaimService {
       OrderUpdateFields orderFields,
       String reviewUrl);
 
+  /**
+   * Recomputes a claim's status from its current screenshots and step, without persisting the
+   * result. If any screenshot is still rejected, the claim is returned unchanged; otherwise its
+   * status is set to whichever step it's now on (the universal ready-for-review status if that's
+   * the campaign's last required step, otherwise that step's own "submitted" status).
+   */
+  Claim verifyAndUpdateClaimStatus(Claim claim, UUID requesterId);
+
   void updateClaimScore(UUID claimId);
 
   void markAccountingCompleted(UUID claimId);

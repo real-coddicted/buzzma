@@ -452,7 +452,10 @@ export async function updateOrderScreenshot(
   return (await res.json()) as ClaimResponseDto
 }
 
-type ScreenshotVerificationAction = 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
+type ScreenshotVerificationAction =
+  | 'SCREENSHOT_VERIFICATION_STATUS_PENDING'
+  | 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED'
+  | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
 
 export async function reviewScreenshot(screenshotId: string, claimId: string, action: ScreenshotVerificationAction, reviewerComment?: string): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/screenshots/review`, {
@@ -515,7 +518,7 @@ export async function markClaimsReadyForAccounting(): Promise<{ updatedCount: nu
 
 export async function submitClaimReview(
   claimId: string,
-  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED' | 'BRAND_VERIFIED',
+  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED' | 'BRAND_VERIFIED' | 'PENDING',
   comment?: string,
   amountApprovedPaise?: number
 ): Promise<ClaimReviewItem> {

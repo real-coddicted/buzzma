@@ -576,7 +576,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return this.claimRepository.findClaimReviewModelsByIds(claimIds);
   }
 
-  private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
+  @Override
+  public Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
     final List<ClaimScreenshot> screenshots =
         this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
             claim.getId());

@@ -22,6 +22,7 @@ interface Props {
   onVerifiedClaim: () => void
   onBrandVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
+  onResetClaim: () => void
 }
 
 export function ClaimProofRightPanel({
@@ -39,6 +40,7 @@ export function ClaimProofRightPanel({
   onVerifiedClaim,
   onBrandVerifiedClaim,
   onRejectClaim,
+  onResetClaim,
 }: Props) {
   return (
     <div className="flex-1 min-w-0 overflow-y-auto">
@@ -111,6 +113,7 @@ export function ClaimProofRightPanel({
             <ClaimInfo claim={claim} campaignTitle={campaignTitle} campaignPricePaise={campaignPricePaise} userRole={userRole} isExchangeCampaign={isExchangeCampaign} />
             <ClaimProofActions
               userRole={userRole}
+              claimStatus={claim.claimStatus}
               isUnderReview={claim.isUnderReview ?? false}
               mediatorVerified={claim.mediatorVerified ?? false}
               brandVerified={claim.brandVerified ?? false}
@@ -119,6 +122,7 @@ export function ClaimProofRightPanel({
               onVerified={onVerifiedClaim}
               onBrandVerified={onBrandVerifiedClaim}
               onReject={onRejectClaim}
+              onReset={onResetClaim}
             />
           </div>
 

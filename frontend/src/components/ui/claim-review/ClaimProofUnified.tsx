@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ClaimProofLeftRail } from './ClaimProofLeftRail'
 import { ClaimProofRightPanel } from './ClaimProofRightPanel'
 import { ClaimProofScreenshotOverlay } from './ClaimProofScreenshotOverlay'
-import { getProofScore } from './claimUtils'
+import { getProofScore, isClaimLocked } from './claimUtils'
 import type { ClaimProofItem } from './ClaimProofGallery'
-import type { ClaimReviewItem } from '../../../types'
+import type { ClaimReviewItem, ScreenshotVerificationStatus } from '../../../types'
 
 interface Props {
   items: ClaimProofItem[]
@@ -14,12 +14,12 @@ interface Props {
   campaignTitle?: string
   campaignPricePaise?: number
   isExchangeCampaign?: boolean
-  onApproveScreenshot: (item: ClaimProofItem) => void
-  onRejectScreenshot: (item: ClaimProofItem, comment: string) => void
+  onReviewScreenshot: (item: ClaimProofItem, status: ScreenshotVerificationStatus, comment?: string) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
   onBrandVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
+  onResetClaim: () => void
 }
 
 export function ClaimProofUnified({
@@ -30,12 +30,12 @@ export function ClaimProofUnified({
   campaignTitle,
   campaignPricePaise,
   isExchangeCampaign,
-  onApproveScreenshot,
-  onRejectScreenshot,
+  onReviewScreenshot,
   onApproveClaim,
   onVerifiedClaim,
   onBrandVerifiedClaim,
   onRejectClaim,
+  onResetClaim,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overlayItem, setOverlayItem] = useState<ClaimProofItem | null>(null)
@@ -54,6 +54,16 @@ export function ClaimProofUnified({
   }
 
   const overlayIdx = overlayItem ? items.findIndex(i => i.id === overlayItem.id) : -1
+  const claimLocked = isClaimLocked(claim.claimStatus)
+
+  // Keep the open overlay's item in sync with the latest fetched data (e.g. after a review
+  // submission refetches `items` with new object references), so the status dropdown and the
+  // "already matches server value" submit guard reflect the just-saved value.
+  useEffect(() => {
+    if (overlayItem && overlayIdx >= 0 && items[overlayIdx] !== overlayItem) {
+      setOverlayItem(items[overlayIdx])
+    }
+  }, [items, overlayItem, overlayIdx])
 
   function handleOverlayNav(dir: -1 | 1) {
     const next = items[overlayIdx + dir]
@@ -72,7 +82,6 @@ export function ClaimProofUnified({
         activeId={effectiveActiveId}
         onSelect={handleRailSelect}
         onOpenOverlay={openOverlay}
-        onApprove={onApproveScreenshot}
       />
       <ClaimProofRightPanel
         items={items}
@@ -89,6 +98,7 @@ export function ClaimProofUnified({
         onVerifiedClaim={onVerifiedClaim}
         onBrandVerifiedClaim={onBrandVerifiedClaim}
         onRejectClaim={onRejectClaim}
+        onResetClaim={onResetClaim}
       />
       {overlayItem && (
         <ClaimProofScreenshotOverlay
@@ -96,19 +106,13 @@ export function ClaimProofUnified({
           idx={overlayIdx}
           score={getProofScore(overlayItem)}
           userRole={userRole}
+          claimLocked={claimLocked}
           hasPrev={overlayIdx > 0}
           hasNext={overlayIdx < items.length - 1}
           onPrev={() => handleOverlayNav(-1)}
           onNext={() => handleOverlayNav(1)}
           onClose={() => setOverlayItem(null)}
-          onApprove={() => {
-            onApproveScreenshot(overlayItem)
-            setOverlayItem(null)
-          }}
-          onReject={comment => {
-            onRejectScreenshot(overlayItem, comment)
-            setOverlayItem(null)
-          }}
+          onSubmitReview={(status, comment) => onReviewScreenshot(overlayItem, status, comment)}
         />
       )}
     </div>

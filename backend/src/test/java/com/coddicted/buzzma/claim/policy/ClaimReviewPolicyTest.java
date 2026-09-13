@@ -86,4 +86,15 @@ class ClaimReviewPolicyTest {
             ClaimReviewPolicy.validateSubmitClaimReview(
                 UserRole.ROLE_AGENCY, ReviewerDecision.REJECTED));
   }
+
+  @Test
+  void testRejectedByBrandThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                ClaimReviewPolicy.validateSubmitClaimReview(
+                    UserRole.ROLE_BRAND, ReviewerDecision.REJECTED));
+    assertEquals("BRAND cannot reject a claim", ex.getMessage());
+  }
 }
