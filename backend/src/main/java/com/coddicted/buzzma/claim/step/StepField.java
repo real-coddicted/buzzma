@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 /**
  * One data point this step collects. {@code userProvided} and {@code aiExtracted} are independent —

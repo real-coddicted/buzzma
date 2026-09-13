@@ -1,28 +1,30 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
-import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.DownloadInstallScreenshotScorer;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
+/** No scoring rubric defined yet; mirrors {@code DownloadInstallScreenshotScorer}'s no-op. */
 @Component
-public class RatingStepDefinition implements StepDefinition {
+public class DownloadInstallStepDefinition implements StepDefinition {
 
   private final GeminiExtractionPromptBuilder promptBuilder;
-  private final RatingScreenshotScorer scorer;
+  private final DownloadInstallScreenshotScorer scorer;
 
-  public RatingStepDefinition(
-      final GeminiExtractionPromptBuilder promptBuilder, final RatingScreenshotScorer scorer) {
+  public DownloadInstallStepDefinition(
+      final GeminiExtractionPromptBuilder promptBuilder,
+      final DownloadInstallScreenshotScorer scorer) {
     this.promptBuilder = promptBuilder;
     this.scorer = scorer;
   }
 
   @Override
   public CampaignStepType stepType() {
-    return CampaignStepType.RATING;
+    return CampaignStepType.DOWNLOAD_INSTALL;
   }
 
   @Override
@@ -37,17 +39,17 @@ public class RatingStepDefinition implements StepDefinition {
 
   @Override
   public Optional<String> extractionPrompt() {
-    return Optional.of(this.promptBuilder.buildRatingPrompt());
+    return Optional.of(this.promptBuilder.buildDownloadInstallPrompt());
   }
 
   @Override
   public boolean scoringRequired() {
-    return true;
+    return false;
   }
 
   @Override
   public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("rating", 1.0));
+    return List.of();
   }
 
   @Override
@@ -55,16 +57,13 @@ public class RatingStepDefinition implements StepDefinition {
     return this.scorer;
   }
 
-  /**
-   * accountName is also verified against {@code claim.getAccountName()} (see
-   * RatingScreenshotScorer).
-   */
   @Override
   public List<StepField> fields() {
     return List.of(
         new StepField("platform", false, true),
         new StepField("productName", false, true),
-        new StepField("accountName", true, true),
-        new StepField("rating", false, true));
+        new StepField("accountName", false, true),
+        new StepField("installStatus", false, true),
+        new StepField("appVersion", false, true));
   }
 }

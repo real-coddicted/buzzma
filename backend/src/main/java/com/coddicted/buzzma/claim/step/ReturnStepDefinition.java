@@ -1,28 +1,28 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
-import com.coddicted.buzzma.claim.scorer.DeliveryScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeliveryStepDefinition implements StepDefinition {
+public class ReturnStepDefinition implements StepDefinition {
 
   private final GeminiExtractionPromptBuilder promptBuilder;
-  private final DeliveryScreenshotScorer scorer;
+  private final ReturnScreenshotScorer scorer;
 
-  public DeliveryStepDefinition(
-      final GeminiExtractionPromptBuilder promptBuilder, final DeliveryScreenshotScorer scorer) {
+  public ReturnStepDefinition(
+      final GeminiExtractionPromptBuilder promptBuilder, final ReturnScreenshotScorer scorer) {
     this.promptBuilder = promptBuilder;
     this.scorer = scorer;
   }
 
   @Override
   public CampaignStepType stepType() {
-    return CampaignStepType.DELIVERY;
+    return CampaignStepType.RETURN_WINDOW;
   }
 
   @Override
@@ -37,7 +37,7 @@ public class DeliveryStepDefinition implements StepDefinition {
 
   @Override
   public Optional<String> extractionPrompt() {
-    return Optional.of(this.promptBuilder.buildDeliveryPrompt());
+    return Optional.of(this.promptBuilder.buildReturnPrompt());
   }
 
   @Override
@@ -47,7 +47,7 @@ public class DeliveryStepDefinition implements StepDefinition {
 
   @Override
   public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("deliveryStatus", 1.0));
+    return List.of(new ScoringCriterion("returnWindowClosedText", 1.0));
   }
 
   @Override
@@ -55,14 +55,17 @@ public class DeliveryStepDefinition implements StepDefinition {
     return this.scorer;
   }
 
+  /**
+   * accountName is also verified against {@code claim.getAccountName()} (see
+   * ReturnScreenshotScorer).
+   */
   @Override
   public List<StepField> fields() {
     return List.of(
         new StepField("platform", false, true),
         new StepField("productName", false, true),
-        new StepField("orderId", false, true),
-        new StepField("deliveryDate", false, true),
-        new StepField("deliveryStatus", false, true),
-        new StepField("orderedBy", false, true));
+        new StepField("accountName", true, true),
+        new StepField("returnWindowClosedText", false, true),
+        new StepField("returnWindowClosedDate", false, true));
   }
 }
