@@ -16,6 +16,11 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.service.CampaignService;
+import com.coddicted.buzzma.campaign.step.OrderStepDefinition;
+import com.coddicted.buzzma.campaign.step.RatingStepDefinition;
+import com.coddicted.buzzma.campaign.step.ReturnStepDefinition;
+import com.coddicted.buzzma.campaign.step.ReviewStepDefinition;
+import com.coddicted.buzzma.campaign.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.claim.client.GeminiClientProxy;
 import com.coddicted.buzzma.claim.client.GeminiClientProxyImpl;
 import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
@@ -26,14 +31,8 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
-import com.coddicted.buzzma.claim.processor.ChainedScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
-import com.coddicted.buzzma.claim.processor.OrderScreenshotProcessor;
-import com.coddicted.buzzma.claim.processor.RatingScreenshotProcessor;
-import com.coddicted.buzzma.claim.processor.ReturnScreenshotProcessor;
-import com.coddicted.buzzma.claim.processor.ReviewScreenshotProcessor;
-import com.coddicted.buzzma.claim.scorer.ChainedScreenshotScorer;
-import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
+import com.coddicted.buzzma.claim.processor.GenericScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
@@ -92,59 +91,42 @@ class ClaimScreenshotServiceImplTest {
   @BeforeEach
   void setUp() {
     final GeminiClientProxy geminiClientProxy =
-        new GeminiClientProxyImpl(
-            this.mockGeminiClient, new GeminiExtractionPromptBuilder(), new ObjectMapper());
+        new GeminiClientProxyImpl(this.mockGeminiClient, new ObjectMapper());
     final ScoreApiClientProxy scoreApiClientProxy =
         new ScoreApiClientProxyImpl(this.mockScoreApiClient);
 
-    final ClaimScreenshotProcessor processor =
-        new ChainedScreenshotProcessor(
-            List.of(
-                new OrderScreenshotProcessor(
-                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
-                new RatingScreenshotProcessor(
-                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
-                new ReviewScreenshotProcessor(
-                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService),
-                new ReturnScreenshotProcessor(
-                    this.mockScreenshotRepository, geminiClientProxy, this.mockStorageService)));
-
+    final GeminiExtractionPromptBuilder promptBuilder = new GeminiExtractionPromptBuilder();
     final OrderScreenshotScorer orderScreenshotScorer =
-        new OrderScreenshotScorer(
-            this.mockScreenshotRepository,
-            this.mockCampaignService,
-            this.mockClaimService,
-            scoreApiClientProxy);
-    final ClaimScreenshotScorer scorer =
-        new ChainedScreenshotScorer(
+        new OrderScreenshotScorer(scoreApiClientProxy);
+    final StepDefinitionRegistry stepDefinitionRegistry =
+        new StepDefinitionRegistry(
             List.of(
-                orderScreenshotScorer,
-                new RatingScreenshotScorer(
-                    this.mockScreenshotRepository,
-                    this.mockCampaignService,
-                    scoreApiClientProxy,
-                    this.mockClaimService),
-                new ReviewScreenshotScorer(
-                    this.mockScreenshotRepository,
-                    this.mockCampaignService,
-                    scoreApiClientProxy,
-                    this.mockClaimService),
-                new ReturnScreenshotScorer(
-                    this.mockScreenshotRepository,
-                    this.mockCampaignService,
-                    scoreApiClientProxy,
-                    this.mockClaimService)));
+                new OrderStepDefinition(promptBuilder, orderScreenshotScorer),
+                new RatingStepDefinition(
+                    promptBuilder, new RatingScreenshotScorer(scoreApiClientProxy)),
+                new ReviewStepDefinition(
+                    promptBuilder, new ReviewScreenshotScorer(scoreApiClientProxy)),
+                new ReturnStepDefinition(
+                    promptBuilder, new ReturnScreenshotScorer(scoreApiClientProxy))));
+
+    final ClaimScreenshotProcessor processor =
+        new GenericScreenshotProcessor(
+            this.mockStorageService,
+            geminiClientProxy,
+            this.mockScreenshotRepository,
+            stepDefinitionRegistry);
 
     this.service =
         new ClaimScreenshotServiceImpl(
             processor,
-            scorer,
             this.mockScreenshotRepository,
             this.mockClaimRepository,
             geminiClientProxy,
             new ExtractionResultValidator(),
             this.mockCampaignService,
-            orderScreenshotScorer);
+            orderScreenshotScorer,
+            stepDefinitionRegistry,
+            this.mockClaimService);
 
     when(this.mockStorageService.retrieve(STORAGE_KEY))
         .thenReturn(
@@ -158,7 +140,6 @@ class ClaimScreenshotServiceImplTest {
             .ecommerceOrderId("403-1234567-8901234")
             .accountName("john.doe")
             .build();
-    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(claim);
     when(this.mockClaimRepository.findByIdForUpdate(CLAIM_ID)).thenReturn(Optional.of(claim));
 
     final Campaign campaign =
@@ -392,15 +373,16 @@ class ClaimScreenshotServiceImplTest {
         extracted.getExtractedDetails().get("reviewUrl").getExtractedValue());
     assertNull(extracted.getExtractedDetails().get("reviewUrl").getScore());
 
-    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID))
+    when(this.mockClaimRepository.findByIdForUpdate(CLAIM_ID))
         .thenReturn(
-            Claim.builder()
-                .id(CLAIM_ID)
-                .campaignId(CAMPAIGN_ID)
-                .platform(Platform.PLATFORM_AMAZON)
-                .accountName("john.doe")
-                .reviewUrl("https://amazon.in/review/123")
-                .build());
+            Optional.of(
+                Claim.builder()
+                    .id(CLAIM_ID)
+                    .campaignId(CAMPAIGN_ID)
+                    .platform(Platform.PLATFORM_AMAZON)
+                    .accountName("john.doe")
+                    .reviewUrl("https://amazon.in/review/123")
+                    .build()));
     mockScoreApi(
         ScoreDatasetKeys.REVIEW,
         Map.of(

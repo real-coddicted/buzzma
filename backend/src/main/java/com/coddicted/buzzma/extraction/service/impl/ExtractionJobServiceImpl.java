@@ -43,7 +43,7 @@ public class ExtractionJobServiceImpl implements ExtractionJobService {
     current = this.jobRepository.save(current);
 
     try {
-      this.claimScreenshotService.process(current);
+      final boolean scoringRequired = this.claimScreenshotService.process(current);
 
       current =
           current.toBuilder()
@@ -52,8 +52,13 @@ public class ExtractionJobServiceImpl implements ExtractionJobService {
               .build();
       LOGGER.debug("processJob: completed job {}", current.getId());
 
-      // create the job for next step of scoring
-      this.scoringService.submitJob(current.getClaimScreenshotId(), current.getCreatedBy());
+      if (scoringRequired) {
+        this.scoringService.submitJob(current.getClaimScreenshotId(), current.getCreatedBy());
+      } else {
+        LOGGER.debug(
+            "processJob: step has no scoring rubric, skipping ScoringJob for {}",
+            current.getClaimScreenshotId());
+      }
 
     } catch (final RuntimeException e) {
       final boolean exhausted = current.getAttemptCount() >= MAX_ATTEMPTS;
