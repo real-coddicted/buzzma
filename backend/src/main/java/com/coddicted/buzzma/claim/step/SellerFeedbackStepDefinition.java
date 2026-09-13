@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;

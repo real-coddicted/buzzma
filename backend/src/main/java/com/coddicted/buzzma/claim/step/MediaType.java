@@ -1,4 +1,4 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 public enum MediaType {
   URL,

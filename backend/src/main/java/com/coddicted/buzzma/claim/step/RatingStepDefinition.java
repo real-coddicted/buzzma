@@ -1,28 +1,28 @@
-package com.coddicted.buzzma.campaign.step;
+package com.coddicted.buzzma.claim.step;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
-import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
+import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ReturnStepDefinition implements StepDefinition {
+public class RatingStepDefinition implements StepDefinition {
 
   private final GeminiExtractionPromptBuilder promptBuilder;
-  private final ReturnScreenshotScorer scorer;
+  private final RatingScreenshotScorer scorer;
 
-  public ReturnStepDefinition(
-      final GeminiExtractionPromptBuilder promptBuilder, final ReturnScreenshotScorer scorer) {
+  public RatingStepDefinition(
+      final GeminiExtractionPromptBuilder promptBuilder, final RatingScreenshotScorer scorer) {
     this.promptBuilder = promptBuilder;
     this.scorer = scorer;
   }
 
   @Override
   public CampaignStepType stepType() {
-    return CampaignStepType.RETURN_WINDOW;
+    return CampaignStepType.RATING;
   }
 
   @Override
@@ -37,7 +37,7 @@ public class ReturnStepDefinition implements StepDefinition {
 
   @Override
   public Optional<String> extractionPrompt() {
-    return Optional.of(this.promptBuilder.buildReturnPrompt());
+    return Optional.of(this.promptBuilder.buildRatingPrompt());
   }
 
   @Override
@@ -47,7 +47,7 @@ public class ReturnStepDefinition implements StepDefinition {
 
   @Override
   public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("returnWindowClosedText", 1.0));
+    return List.of(new ScoringCriterion("rating", 1.0));
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ReturnStepDefinition implements StepDefinition {
 
   /**
    * accountName is also verified against {@code claim.getAccountName()} (see
-   * ReturnScreenshotScorer).
+   * RatingScreenshotScorer).
    */
   @Override
   public List<StepField> fields() {
@@ -65,7 +65,6 @@ public class ReturnStepDefinition implements StepDefinition {
         new StepField("platform", false, true),
         new StepField("productName", false, true),
         new StepField("accountName", true, true),
-        new StepField("returnWindowClosedText", false, true),
-        new StepField("returnWindowClosedDate", false, true));
+        new StepField("rating", false, true));
   }
 }

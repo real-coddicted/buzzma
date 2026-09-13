@@ -1,10 +1,10 @@
 package com.coddicted.buzzma.claim.processor;
 
-import com.coddicted.buzzma.campaign.step.StepDefinition;
-import com.coddicted.buzzma.campaign.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.claim.client.GeminiClientProxy;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.step.StepDefinition;
+import com.coddicted.buzzma.claim.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotProcessorUtils;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
