@@ -35,6 +35,7 @@ import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
@@ -105,8 +106,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaim() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -166,8 +167,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaimDropsSellerNameWhenCampaignHasNoSellerName() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -197,8 +198,8 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenCampaignNotActive() {
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
@@ -227,8 +228,8 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateClaimWhenAlreadyClaimed() {
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(true);
 
     final BusinessRuleViolationException ex =
@@ -246,10 +247,43 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testCreateClaimSucceedsWhenPriorClaimForSameOrderWasRejected() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName("Acme Sellers")
+                .build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+
+    final Claim result =
+        this.claimService.createClaim(
+            CLAIM_INPUT,
+            SCREENSHOT_BYTES,
+            SCREENSHOT_FILENAME,
+            CONTENT_TYPE,
+            EXTRACTED_DETAILS,
+            85);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
   void testCreateClaimRequiresExchangeProductForExchangeCampaign() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
         .thenReturn(
@@ -280,8 +314,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaimRejectsExchangeProductNotInCampaignList() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
         .thenReturn(
@@ -314,8 +348,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaimSucceedsWithConfiguredExchangeProduct() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -347,8 +381,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaimRejectsExchangeProductOnNonExchangeCampaign() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
         .thenReturn(

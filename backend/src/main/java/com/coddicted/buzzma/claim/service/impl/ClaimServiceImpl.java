@@ -96,8 +96,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Map<String, ScoredValue> extractedDetails,
       final Integer overallScore) {
 
-    if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-        claim.getEcommerceOrderId(), claim.getPlatform())) {
+    if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+        claim.getEcommerceOrderId(), claim.getPlatform(), ClaimStatus.REJECTED)) {
       LOGGER.warn(
           "Order {} on platform {} has already been claimed",
           claim.getEcommerceOrderId(),
