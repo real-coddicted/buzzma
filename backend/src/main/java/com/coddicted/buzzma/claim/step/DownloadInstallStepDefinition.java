@@ -48,11 +48,6 @@ public class DownloadInstallStepDefinition implements StepDefinition {
   }
 
   @Override
-  public List<ScoringCriterion> scoringCriteria() {
-    return List.of();
-  }
-
-  @Override
   public ClaimScreenshotScorer scorer() {
     return this.scorer;
   }

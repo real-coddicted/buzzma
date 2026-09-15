@@ -47,11 +47,6 @@ public class SellerFeedbackStepDefinition implements StepDefinition {
   }
 
   @Override
-  public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("rating", 1.0));
-  }
-
-  @Override
   public ClaimScreenshotScorer scorer() {
     return this.scorer;
   }

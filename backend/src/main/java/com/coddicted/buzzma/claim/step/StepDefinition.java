@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.step;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
+import com.coddicted.buzzma.extraction.entity.ValidationError;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,10 +52,16 @@ public interface StepDefinition {
    */
   Optional<String> extractionPrompt();
 
-  boolean scoringRequired();
+  /**
+   * Checks the raw extracted field values (keyed by {@link StepField#name()}) for step-specific
+   * format/presence rules, e.g. Order validating its order-ID format per platform. Empty by
+   * default; most steps have no rules beyond what extraction and scoring already surface.
+   */
+  default List<ValidationError> validate(Map<String, String> extractedFields) {
+    return List.of();
+  }
 
-  /** Empty when {@link #scoringRequired()} is false. */
-  List<ScoringCriterion> scoringCriteria();
+  boolean scoringRequired();
 
   /**
    * This step's scorer. Dispatch goes through here (one lookup, no chain-of-responsibility scan) —
@@ -63,22 +70,4 @@ public interface StepDefinition {
    * manual rating cutoff does not feed into the overall score at all).
    */
   ClaimScreenshotScorer scorer();
-
-  /** Weighted average of {@code criterionScores} over {@link #scoringCriteria()}. */
-  default double calculateOverallScore(final Map<String, Double> criterionScores) {
-    if (!scoringRequired() || scoringCriteria().isEmpty()) {
-      return 0;
-    }
-    double weightedSum = 0;
-    double totalWeight = 0;
-    for (final ScoringCriterion criterion : scoringCriteria()) {
-      final Double score = criterionScores.get(criterion.name());
-      if (score == null) {
-        continue;
-      }
-      weightedSum += score * criterion.weight();
-      totalWeight += criterion.weight();
-    }
-    return totalWeight == 0 ? 0 : weightedSum / totalWeight;
-  }
 }

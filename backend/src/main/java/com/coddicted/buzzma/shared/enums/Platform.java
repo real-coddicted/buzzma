@@ -20,4 +20,16 @@ public enum Platform {
   Platform(final String displayName) {
     this.displayName = displayName;
   }
+
+  /** Null-safe, exception-safe parse for values coming from outside the system (e.g. Gemini). */
+  public static Platform parse(final String raw) {
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return Platform.valueOf(raw);
+    } catch (final IllegalArgumentException e) {
+      return null;
+    }
+  }
 }

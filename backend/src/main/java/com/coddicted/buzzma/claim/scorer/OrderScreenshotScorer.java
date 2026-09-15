@@ -5,7 +5,6 @@ import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
 import com.coddicted.buzzma.claim.client.ScoreDatasetKeys;
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
@@ -16,7 +15,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderScreenshotScorer implements ClaimScreenshotScorer {
+public class OrderScreenshotScorer extends AbstractScoreApiScorer {
 
   private final ScoreApiClientProxy scoreApiClientProxy;
 
@@ -25,32 +24,29 @@ public class OrderScreenshotScorer implements ClaimScreenshotScorer {
   }
 
   @Override
-  public ExtractedScoredResult score(
-      final Claim claim, final Campaign campaign, final ClaimScreenshot screenshot) {
-    final Map<String, ScoredValue> details = new HashMap<>(screenshot.getExtractedDetails());
+  protected ExtractedScoredResult computeScoring(
+      final Claim claim, final Campaign campaign, final Map<String, ScoredValue> details) {
+    return scoreFields(
+        ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.PLATFORM),
+        ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.PRODUCT_NAME),
+        ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.SELLER_NAME),
+        ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.ORDER_DATE),
+        campaign);
+  }
 
-    final String orderDate = details.get(BuzzmahConstants.ORDER_DATE).getExtractedValue();
-    final String platformValue = details.get(BuzzmahConstants.PLATFORM).getExtractedValue();
-    final String productName = details.get(BuzzmahConstants.PRODUCT_NAME).getExtractedValue();
-    final ScoredValue sellerNameValue = details.get(BuzzmahConstants.SELLER_NAME);
-    final String sellerName = sellerNameValue != null ? sellerNameValue.getExtractedValue() : null;
-
-    final ExtractedScoredResult fieldScoring =
-        scoreFields(platformValue, productName, sellerName, orderDate, campaign);
-    details.putAll(fieldScoring.extractedResult());
-
+  @Override
+  protected ExtractedScoredResult reconcile(
+      final Claim claim, final Map<String, ScoredValue> details, final Integer overallScore) {
     return ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
-        claim, details, fieldScoring.overallScore());
+        claim, details, overallScore);
   }
 
   /**
    * Scores the platform/productName/sellerName fields of an order screenshot against the campaign
    * via the Score API, plus the locally-computed orderDate score, and combines them into a single
-   * overall score. Exposed for reuse by the synchronous extract-and-score preview
-   * (ClaimScreenshotServiceImpl.extractSync), which scores the same raw fields before a Claim
-   * exists.
+   * overall score.
    */
-  public ExtractedScoredResult scoreFields(
+  private ExtractedScoredResult scoreFields(
       final String platform,
       final String productName,
       final String sellerName,

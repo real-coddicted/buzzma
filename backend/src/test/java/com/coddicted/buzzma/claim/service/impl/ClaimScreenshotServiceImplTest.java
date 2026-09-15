@@ -40,7 +40,6 @@ import com.coddicted.buzzma.claim.step.ReviewStepDefinition;
 import com.coddicted.buzzma.claim.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
-import com.coddicted.buzzma.extraction.service.ExtractionResultValidator;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import com.coddicted.buzzma.scoring.entity.ScoringJob;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
@@ -122,9 +121,7 @@ class ClaimScreenshotServiceImplTest {
             this.mockScreenshotRepository,
             this.mockClaimRepository,
             geminiClientProxy,
-            new ExtractionResultValidator(),
             this.mockCampaignService,
-            orderScreenshotScorer,
             stepDefinitionRegistry,
             this.mockClaimService);
 
