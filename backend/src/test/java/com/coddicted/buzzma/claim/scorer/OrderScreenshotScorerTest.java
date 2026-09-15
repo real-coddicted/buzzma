@@ -73,10 +73,20 @@ class OrderScreenshotScorerTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  void testScoreFieldsExcludesSellerNameFromPayloadWhenCampaignHasNone() {
+  void testScoreExcludesSellerNameFromPayloadWhenCampaignHasNone() {
     final OrderScreenshotScorer scorer = new OrderScreenshotScorer(this.mockScoreApiClientProxy);
 
     final Campaign campaignNoSeller = CAMPAIGN.toBuilder().sellerName(null).build();
+    final ClaimScreenshot screenshot =
+        ClaimScreenshot.builder()
+            .id(SCREENSHOT_ID)
+            .claimId(CLAIM.getId())
+            .createdBy(CLAIM.getOwnerId())
+            .type(ScreenshotType.SCREENSHOT_TYPE_ORDER)
+            .extractedDetails(
+                Fixtures.loadExtractedDetails(
+                    "/fixtures/output/claim/processor/order-extracted-details.json"))
+            .build();
     when(this.mockScoreApiClientProxy.score(eq(ScoreDatasetKeys.ORDER), any()))
         .thenReturn(
             new ExtractedScoredResult(
@@ -87,8 +97,7 @@ class OrderScreenshotScorerTest {
                         ScoredValue.builder().extractedValue("Test Product").score(100).build()),
                 100));
 
-    scorer.scoreFields(
-        "PLATFORM_AMAZON", "Test Product", "Acme Sellers", "2026-06-15", campaignNoSeller);
+    scorer.score(CLAIM, campaignNoSeller, screenshot);
 
     final ArgumentCaptor<List<PayloadItem>> captor =
         ArgumentCaptor.forClass((Class<List<PayloadItem>>) (Class<?>) List.class);

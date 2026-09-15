@@ -11,6 +11,7 @@ export async function extractOrderDetails(file: File, campaignId: string, reques
   formData.append('image', file)
 
   const url = new URL('/api/v1/extraction/sync', window.location.origin)
+  url.searchParams.append('stepType', 'ORDER')
   url.searchParams.append('campaignId', campaignId)
   if (requesterId) {
     url.searchParams.append('requesterId', requesterId)

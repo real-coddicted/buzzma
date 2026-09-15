@@ -46,11 +46,6 @@ public class ReviewStepDefinition implements StepDefinition {
   }
 
   @Override
-  public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("reviewText", 1.0));
-  }
-
-  @Override
   public ClaimScreenshotScorer scorer() {
     return this.scorer;
   }

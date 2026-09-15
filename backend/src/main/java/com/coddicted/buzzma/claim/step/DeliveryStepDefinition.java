@@ -46,11 +46,6 @@ public class DeliveryStepDefinition implements StepDefinition {
   }
 
   @Override
-  public List<ScoringCriterion> scoringCriteria() {
-    return List.of(new ScoringCriterion("deliveryStatus", 1.0));
-  }
-
-  @Override
   public ClaimScreenshotScorer scorer() {
     return this.scorer;
   }

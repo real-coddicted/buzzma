@@ -11,15 +11,14 @@ import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
-import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.step.StepDefinition;
 import com.coddicted.buzzma.claim.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
 import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.entity.ValidationError;
-import com.coddicted.buzzma.extraction.service.ExtractionResultValidator;
 import com.coddicted.buzzma.scoring.entity.ScoringJob;
 import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -44,9 +43,7 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   private final ClaimScreenshotRepository screenshotRepository;
   private final ClaimRepository claimRepository;
   private final GeminiClientProxy geminiClientProxy;
-  private final ExtractionResultValidator validator;
   private final CampaignService campaignService;
-  private final OrderScreenshotScorer orderScreenshotScorer;
   private final StepDefinitionRegistry stepDefinitionRegistry;
   private final ClaimService claimService;
 
@@ -55,18 +52,14 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       final ClaimScreenshotRepository screenshotRepository,
       final ClaimRepository claimRepository,
       final GeminiClientProxy geminiClientProxy,
-      final ExtractionResultValidator validator,
       final CampaignService campaignService,
-      final OrderScreenshotScorer orderScreenshotScorer,
       final StepDefinitionRegistry stepDefinitionRegistry,
       final ClaimService claimService) {
     this.processor = processor;
     this.screenshotRepository = screenshotRepository;
     this.claimRepository = claimRepository;
     this.geminiClientProxy = geminiClientProxy;
-    this.validator = validator;
     this.campaignService = campaignService;
-    this.orderScreenshotScorer = orderScreenshotScorer;
     this.stepDefinitionRegistry = stepDefinitionRegistry;
     this.claimService = claimService;
   }
@@ -74,36 +67,29 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   @Override
   @Transactional
   public ExtractionResult extractSync(
+      final CampaignStepType stepType,
       final byte[] imageBytes,
       final String originalFilename,
       final String contentType,
       final UUID requesterId,
       final UUID campaignId) {
-    LOGGER.debug("extractSync: starting for requester {}, campaign {}", requesterId, campaignId);
+    LOGGER.debug(
+        "extractSync: starting for requester {}, campaign {}, step {}",
+        requesterId,
+        campaignId,
+        stepType);
 
+    final StepDefinition stepDefinition = this.stepDefinitionRegistry.get(stepType);
     final String prompt =
-        this.stepDefinitionRegistry
-            .get(CampaignStepType.ORDER)
+        stepDefinition
             .extractionPrompt()
-            .orElseThrow(() -> new IllegalStateException("Order step has no extraction prompt"));
+            .orElseThrow(
+                () ->
+                    new IllegalStateException("Step " + stepType + " does not support extraction"));
     final Map<String, String> extracted =
         this.geminiClientProxy.extract(prompt, imageBytes, contentType);
-    final ExtractionResult raw =
-        ExtractionResult.builder()
-            .platform(
-                extracted.get("platform") != null
-                    ? Platform.valueOf(extracted.get("platform"))
-                    : null)
-            .orderId(extracted.get("orderId"))
-            .orderDate(extracted.get("orderDate"))
-            .productName(extracted.get("productName"))
-            .sellerName(extracted.get("sellerName"))
-            .amount(
-                extracted.get("amount") != null ? new BigDecimal(extracted.get("amount")) : null)
-            .orderedBy(extracted.get("orderedBy"))
-            .build();
 
-    final List<ValidationError> errors = this.validator.validate(raw);
+    final List<ValidationError> errors = stepDefinition.validate(extracted);
     if (!errors.isEmpty()) {
       final String errorSummary =
           errors.stream()
@@ -112,21 +98,30 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       LOGGER.warn("extractSync: validation failed for requester {}: {}", requesterId, errorSummary);
     }
 
-    final Campaign campaign = this.campaignService.getById(campaignId);
-    final ExtractedScoredResult scoring = scoreFields(raw, campaign);
+    this.campaignService.getById(campaignId); // fail fast if the campaign doesn't exist
 
     return ExtractionResult.builder()
-        .platform(raw.getPlatform())
-        .orderId(raw.getOrderId())
-        .orderDate(raw.getOrderDate())
-        .productName(raw.getProductName())
-        .sellerName(raw.getSellerName())
-        .amount(raw.getAmount())
-        .orderedBy(raw.getOrderedBy())
+        .platform(Platform.parse(extracted.get(BuzzmahConstants.PLATFORM)))
+        .orderId(extracted.get(BuzzmahConstants.ORDER_ID))
+        .orderDate(extracted.get(BuzzmahConstants.ORDER_DATE))
+        .productName(extracted.get(BuzzmahConstants.PRODUCT_NAME))
+        .sellerName(extracted.get(BuzzmahConstants.SELLER_NAME))
+        .amount(parseAmount(extracted.get(BuzzmahConstants.AMOUNT)))
+        .orderedBy(extracted.get(BuzzmahConstants.ORDERED_BY))
         .validationErrors(errors)
-        .extractedResult(scoring.extractedResult())
-        .overallScore(scoring.overallScore())
+        .extractedResult(toScoredValues(extracted))
         .build();
+  }
+
+  private BigDecimal parseAmount(final String raw) {
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return new BigDecimal(raw);
+    } catch (final NumberFormatException e) {
+      return null;
+    }
   }
 
   @Override
@@ -139,7 +134,16 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
             .orElseThrow(
                 () -> new NotFoundException("ClaimScreenshot not found: " + claimScreenshotId));
     this.processor.process(job, screenshot);
-    return this.stepDefinitionRegistry.get(screenshot.getType()).scoringRequired();
+
+    final boolean scoringRequired =
+        this.stepDefinitionRegistry.get(screenshot.getType()).scoringRequired();
+    if (!scoringRequired) {
+      // No ScoringJob will follow for this step, so processScoring's updateClaimScore call never
+      // runs for it — re-affirm here instead, so the claim's aggregate score isn't left stale
+      // after a step completes.
+      this.claimService.updateClaimScore(screenshot.getClaimId());
+    }
+    return scoringRequired;
   }
 
   @Override
@@ -174,34 +178,17 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
     this.claimService.updateClaimScore(screenshot.getClaimId());
   }
 
-  private ExtractedScoredResult scoreFields(
-      final ExtractionResult result, final Campaign campaign) {
-    final String platformValue = result.getPlatform() != null ? result.getPlatform().name() : null;
-
-    final ExtractedScoredResult fieldScoring =
-        this.orderScreenshotScorer.scoreFields(
-            platformValue,
-            result.getProductName(),
-            result.getSellerName(),
-            result.getOrderDate(),
-            campaign);
-
-    final Map<String, ScoredValue> map = new HashMap<>(fieldScoring.extractedResult());
-
-    // Unscored fields
-    map.put(
-        BuzzmahConstants.AMOUNT,
-        ScoredValue.builder()
-            .extractedValue(result.getAmount() != null ? result.getAmount().toPlainString() : null)
-            .score(null)
-            .build());
-    map.put(
-        BuzzmahConstants.ORDER_ID,
-        ScoredValue.builder().extractedValue(result.getOrderId()).score(null).build());
-    map.put(
-        BuzzmahConstants.ORDERED_BY,
-        ScoredValue.builder().extractedValue(result.getOrderedBy()).score(null).build());
-
-    return new ExtractedScoredResult(map, fieldScoring.overallScore());
+  /**
+   * extractSync runs before a {@code Claim} exists, and every {@code ClaimScreenshotScorer} needs
+   * one to compare against, so scoring isn't possible here regardless of step type — this returns
+   * raw extracted values unscored, matching what the async scheduler path ({@code
+   * GenericScreenshotProcessor}) stores before its own later, claim-bound scoring step.
+   */
+  private Map<String, ScoredValue> toScoredValues(final Map<String, String> extracted) {
+    final Map<String, ScoredValue> result = new HashMap<>();
+    extracted.forEach(
+        (key, value) ->
+            result.put(key, ScoredValue.builder().extractedValue(value).score(null).build()));
+    return result;
   }
 }
