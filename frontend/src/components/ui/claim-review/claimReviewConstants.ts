@@ -2,6 +2,7 @@ import type { ClaimStatus, ApprovalMethod } from '../../../types'
 
 export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClass: string }> = {
   'ORDERED':                    { label: 'Ordered',                    colorClass: 'text-neon-blue'   },
+  'DOWNLOADED_AND_INSTALLED':   { label: 'Downloaded & Installed',     colorClass: 'text-neon-plum'   },
   'DELIVERY_PROOF_SUBMITTED':   { label: 'Delivery Proof Submitted',   colorClass: 'text-neon-purple' },
   'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
   'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },

@@ -660,6 +660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/app-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createAppReviewClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/claim-review/worksheets": {
         parameters: {
             query?: never;
@@ -670,6 +686,22 @@ export interface paths {
         get: operations["listWorkbooks"];
         put?: never;
         post: operations["uploadWorksheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-review/markReadyForAccounting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markReadyForAccounting"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1967,7 +1999,7 @@ export interface components {
         ClaimReviewFilterRequestDto: {
             campaignIds?: string[];
             mediatorIds?: string[];
-            claimStatuses?: ("ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            claimStatuses?: ("ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
             platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
         };
@@ -2137,7 +2169,7 @@ export interface components {
             code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -2171,7 +2203,7 @@ export interface components {
             id?: string;
             storageKey?: string;
             /** @enum {string} */
-            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK";
+            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
             /** @enum {string} */
             verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
             /** Format: int32 */
@@ -2212,12 +2244,18 @@ export interface components {
             /** Format: int32 */
             endDate?: number;
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+        };
+        ExchangeProduct: {
+            productName?: string;
+            /** Format: url */
+            productImageUrl?: string;
         };
         UpdateClaimRequestDto: {
             /** Format: uuid */
             screenshotId: string;
             /** @enum {string} */
-            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK";
+            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
             /** Format: binary */
             screenshot: string;
             /** @enum {string} */
@@ -2236,7 +2274,7 @@ export interface components {
             /** Format: uuid */
             claimId?: string;
             /** @enum {string} */
-            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED" | "BRAND_VERIFIED";
+            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED" | "BRAND_VERIFIED" | "PENDING";
             reviewerComment?: string;
             amountApprovedPaise?: number;
         };
@@ -2278,9 +2316,10 @@ export interface components {
             claimId?: string;
             claimCode?: string;
             /** @enum {string} */
-            claimStatus?: "ORDERED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            claimStatus?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
             exchangeProduct?: string;
+            reviewUrl?: string;
             mediatorVerified?: boolean;
             brandVerified?: boolean;
             matchScore?: number;
@@ -2332,6 +2371,16 @@ export interface components {
             property?: string;
             ignoreCase?: boolean;
         };
+        CreateAppReviewClaimRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
+            /** Format: uuid */
+            dealId: string;
+            productName: string;
+            accountName: string;
+            /** Format: binary */
+            screenshot: string;
+        };
         ClaimReviewWorksheetResponseDto: {
             /** Format: uuid */
             id?: string;
@@ -2344,6 +2393,10 @@ export interface components {
             status?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
             /** Format: date-time */
             createdAt?: string;
+        };
+        MarkClaimsReadyForAccountingResponseDto: {
+            /** Format: int32 */
+            updatedCount?: number;
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
@@ -2363,6 +2416,8 @@ export interface components {
             ownerId: string;
             /** @enum {string} */
             platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
             productName: string;
             productImageUrl: string;
             productUrl: string;
@@ -2387,16 +2442,11 @@ export interface components {
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             /** @enum {string} */
             action?: "CAMPAIGN_ACTION_PUBLISH" | "CAMPAIGN_ACTION_PAUSE" | "CAMPAIGN_ACTION_RESUME" | "CAMPAIGN_ACTION_CLOSE" | "CAMPAIGN_ACTION_COMPLETE";
-        };
-        ExchangeProduct: {
-            productName?: string;
-            /** Format: url */
-            productImageUrl?: string;
         };
         Reward: {
             /** @enum {string} */
@@ -2447,7 +2497,7 @@ export interface components {
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             openToAll?: boolean;
@@ -4246,6 +4296,28 @@ export interface operations {
             };
         };
     };
+    createAppReviewClaim: {
+        parameters: {
+            query: {
+                request: components["schemas"]["CreateAppReviewClaimRequestDto"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
     listWorkbooks: {
         parameters: {
             query?: never;
@@ -4289,6 +4361,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClaimReviewWorksheetResponseDto"];
+                };
+            };
+        };
+    };
+    markReadyForAccounting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MarkClaimsReadyForAccountingResponseDto"];
                 };
             };
         };

@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.campaign.dto;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.shared.enums.Platform;
@@ -33,4 +34,5 @@ public class DealResponseDto {
   Integer startDate;
   Integer endDate;
   List<ExchangeProduct> exchangeProducts;
+  List<CampaignStepType> requiredSteps;
 }

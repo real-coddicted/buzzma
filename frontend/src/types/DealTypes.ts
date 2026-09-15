@@ -37,6 +37,7 @@ export interface Deal {
   endDate?: string
   termsAndConditions?: string
   slotsAvailable?: number
+  requiredSteps?: string[]
   status: DealStatus
   currentStep?: number
   claimId?: string

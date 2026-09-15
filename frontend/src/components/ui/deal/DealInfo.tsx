@@ -3,6 +3,7 @@ import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
+import { RequiredStepTags } from './RequiredStepTags'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { formatShortDate } from '../../../utils/time'
 
@@ -97,6 +98,15 @@ export function DealInfo({ deal }: DealInfoProps) {
           <Row label="Offered Price"  value={`₹${formatRupees(paiseToRupees(deal.offeredPricePaise))}`} />
           <Row label="You Save"       value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise - deal.offeredPricePaise))} (${discount}%)`} />
         </div>
+
+        {deal.requiredSteps && deal.requiredSteps.length > 0 && (
+          <div className="pt-2 border-t border-surface-light-border dark:border-surface-dark-border space-y-2">
+            <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Claim Steps</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <RequiredStepTags requiredSteps={deal.requiredSteps} />
+            </div>
+          </div>
+        )}
 
         <div className="pt-2 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-ink-light-primary dark:text-ink-dark-primary">

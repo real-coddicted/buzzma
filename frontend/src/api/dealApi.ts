@@ -80,6 +80,7 @@ export function dealResponseToDeal(dto: DealResponseDto): Deal {
     slotsAvailable: dto.slotsAvailable,
     startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
     endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
+    requiredSteps: dto.requiredSteps,
     status: 'explore',
   }
 }

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
@@ -91,6 +92,27 @@ class DealMapperTest {
     final DealResponseDto response = this.dealMapper.toDealResponse(deal);
 
     assertEquals(List.of(exchangeProduct), response.getExchangeProducts());
+  }
+
+  @Test
+  void toDealResponseCarriesCampaignRequiredSteps()
+      throws MalformedURLException, URISyntaxException {
+    final Product product =
+        Product.builder()
+            .name("Test Product")
+            .productLink(new URI("https://example.com/product").toURL())
+            .pricePaise(BigInteger.valueOf(99900))
+            .build();
+    final List<CampaignStepType> requiredSteps =
+        List.of(CampaignStepType.ORDER, CampaignStepType.RATING, CampaignStepType.REVIEW);
+    final Campaign campaign =
+        Campaign.builder().product(product).requiredSteps(requiredSteps).build();
+    final Deal deal =
+        Deal.builder().campaign(campaign).dealPricePaise(BigInteger.valueOf(49900)).build();
+
+    final DealResponseDto response = this.dealMapper.toDealResponse(deal);
+
+    assertEquals(requiredSteps, response.getRequiredSteps());
   }
 
   private Deal dealWithAffiliateUrl(final String affiliateUrl)

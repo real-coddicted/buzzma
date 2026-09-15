@@ -39,6 +39,7 @@ export const STATUS_COLORS: Record<CampaignStatus, ChipColors> = {
 
 export const CLAIM_STATUS_COLORS: Record<ClaimStatus, ChipColors> = {
   ORDERED:                    { base: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/25',   selected: 'bg-neon-blue/20   text-neon-blue   border-neon-blue/50' },
+  DOWNLOADED_AND_INSTALLED:   { base: 'bg-neon-plum/10   text-neon-plum   border-neon-plum/25',   selected: 'bg-neon-plum/20   text-neon-plum   border-neon-plum/50' },
   DELIVERY_PROOF_SUBMITTED:   { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   RATING_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   REVIEW_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },

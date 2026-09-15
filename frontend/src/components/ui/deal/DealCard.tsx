@@ -3,6 +3,7 @@ import { isDealSoldOut } from '../../../types/DealTypes'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
+import { RequiredStepTags } from './RequiredStepTags'
 import { Badge } from '../Badge'
 import { Chip } from '../Chip'
 import { Button } from '../Button'
@@ -115,6 +116,14 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             )}
           </div>
           <OrderOnPlatformLink productUrl={deal.productUrl} platformLabel={deal.platformLabel} disabled={soldOut} />
+          {deal.requiredSteps && deal.requiredSteps.length > 0 && (
+            <div className="pt-3 border-t border-surface-light-border dark:border-surface-dark-border space-y-1.5">
+              <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Claim Steps</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <RequiredStepTags requiredSteps={deal.requiredSteps} />
+              </div>
+            </div>
+          )}
           <Button
             variant="primary"
             className="w-full !bg-[#2B6CB0] dark:!bg-[#3182CE] !text-white !shadow-none hover:!bg-[#2C5282] dark:hover:!bg-[#4299E1] hover:!brightness-100"
