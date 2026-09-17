@@ -85,6 +85,18 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
   }
 }
 
+/** Merges a submitReview response into an existing grid row, preserving fields the response never populates. */
+export function mergeReviewedClaim(current: ClaimReviewItem, updated: ClaimReviewItem): ClaimReviewItem {
+  return {
+    ...current,
+    ...updated,
+    campaignName: current.campaignName,
+    mediatorName: current.mediatorName,
+    brandName: current.brandName,
+    buyerName: current.buyerName,
+  }
+}
+
 export async function fetchClaims(): Promise<ClaimReviewItem[]> {
   const res = await fetchWithAuth(`${API_BASE}/claims`)
   const data = (await res.json()) as ClaimResponseDto[]

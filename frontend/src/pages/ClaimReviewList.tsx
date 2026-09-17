@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ClaimReviewGrid } from '../components/ui/claim-review/ClaimReviewGrid'
 import { Toast } from '../components/ui/Toast'
-import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews, markClaimsReadyForAccounting } from '../api/claimApi'
+import { fetchClaimsToReview, submitClaimReview, bulkApproveClaimReviews, markClaimsReadyForAccounting, mergeReviewedClaim } from '../api/claimApi'
 import { type ClaimReviewFilters, emptyFilters } from '../components/ui/claim-review/filters/ClaimReviewFilterTypes'
 import type { ClaimReviewItem } from '../types'
 
@@ -41,7 +41,7 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
   function handleApprove(row: ClaimReviewItem, amountApprovedPaise?: number) {
     submitClaimReview(row.id, 'APPROVED', undefined, amountApprovedPaise)
       .then(updated => {
-        setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
+        setClaims(prev => prev.map(c => (c.id === row.id ? mergeReviewedClaim(c, updated) : c)))
       })
       .catch(err => setError((err as Error).message))
   }
@@ -49,7 +49,7 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
   function handleBrandVerify(row: ClaimReviewItem) {
     submitClaimReview(row.id, 'BRAND_VERIFIED')
       .then(updated => {
-        setClaims(prev => prev.map(c => (c.id === row.id ? { ...c, ...updated, campaignName: c.campaignName, mediatorName: c.mediatorName } : c)))
+        setClaims(prev => prev.map(c => (c.id === row.id ? mergeReviewedClaim(c, updated) : c)))
       })
       .catch(err => setError((err as Error).message))
   }
