@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { Button } from '../Button'
 import { Toast } from '../Toast'
-import { IconCheck, IconPlay, IconCopy, IconCopyCheck } from '../icons'
+import { IconCheck, IconPlay, IconCopy, IconCopyCheck, IconEye } from '../icons'
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import type { CampaignRequestDto } from '../../../types'
 import { rupeesToPaise } from '../../../utils/currency'
@@ -12,6 +12,8 @@ import { CampaignProductFields } from './CampaignProductFields'
 import { CampaignExchangeProductsFields } from './CampaignExchangeProductsFields'
 import { CampaignRequiredScreenshotsFields } from './CampaignRequiredScreenshotsFields'
 import { CampaignSettingsFields } from './CampaignSettingsFields'
+import { DealCard } from '../deal/DealCard'
+import { campaignFormToDeal } from './formToDeal'
 
 interface Props {
   onBack: () => void
@@ -36,6 +38,7 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
   const [launching, setLaunching] = useState(false)
   const [toastError, setToastError] = useState<string | null>(null)
   const [codeCopied, setCodeCopied] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   function handleCopyCode() {
     if (!campaignCode) return
@@ -153,79 +156,101 @@ export function NewCampaignPage({ onBack, onSubmit, initialForm, readOnly, campa
             {readOnly ? 'Campaign details (read-only).' : isEdit ? 'Update the details for this campaign.' : 'Fill in the details to create a new campaign.'}
           </p>
         </div>
+        <label className="inline-flex items-center gap-2 text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={previewOpen}
+            onChange={e => setPreviewOpen(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-surface-light-border dark:border-surface-dark-border text-neon-blue focus:ring-neon-blue/30"
+          />
+          <IconEye size={13} />
+          Preview Deal
+        </label>
       </div>
 
-      <form id="new-campaign-form" onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 gap-6">
-          <CampaignInfoFields form={form} errors={errors} set={set} readOnly={readOnly} />
+      <div className={previewOpen ? 'grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] gap-6 lg:h-[calc(100vh-10rem)]' : ''}>
+        <div className={previewOpen ? 'lg:h-full lg:overflow-y-auto lg:pr-1' : ''}>
+          <form id="new-campaign-form" onSubmit={handleSubmit} noValidate>
+            <div className="grid grid-cols-1 gap-6">
+              <CampaignInfoFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
-          <CampaignProductFields form={form} errors={errors} set={set} readOnly={readOnly} />
+              <CampaignProductFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
-          <CampaignExchangeProductsFields form={form} errors={errors} set={set} readOnly={readOnly} />
+              <CampaignExchangeProductsFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
-          <CampaignIncentiveFields form={form} errors={errors} set={set} readOnly={readOnly} />
+              <CampaignIncentiveFields form={form} errors={errors} set={set} readOnly={readOnly} />
 
-          <CampaignRequiredScreenshotsFields form={form} set={set} readOnly={readOnly} />
+              <CampaignRequiredScreenshotsFields form={form} set={set} readOnly={readOnly} />
 
-          <CampaignSettingsFields
-            form={form}
-            errors={errors}
-            set={set}
-            readOnly={readOnly}
-          />
+              <CampaignSettingsFields
+                form={form}
+                errors={errors}
+                set={set}
+                readOnly={readOnly}
+              />
+            </div>
+
+            <section className="mt-6 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-2">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-purple">Terms & Conditions</h3>
+              <textarea
+                rows={5}
+                placeholder="Enter campaign terms and conditions…"
+                value={form.termsAndConditions}
+                onChange={e => set('termsAndConditions', e.target.value)}
+                disabled={readOnly}
+                className="w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border text-xs text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted px-3 py-2 outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all resize-none"
+              />
+            </section>
+
+            {errors.assignedSlots && (
+              <div className="flex items-center gap-2 mt-4 px-4 py-3 rounded-xl border border-neon-red/40 bg-neon-red/10 text-neon-red text-sm font-medium">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                {errors.assignedSlots}
+              </div>
+            )}
+
+            {/* Footer actions */}
+            {!readOnly && (
+              <div className="flex items-center justify-end gap-2 mt-6">
+                <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<IconCheck size={13} />}
+                  loading={loading}
+                  disabled={launching}
+                >
+                  {isEdit ? 'Update Campaign' : 'Save Draft'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<IconPlay size={13} />}
+                  loading={launching}
+                  disabled={loading}
+                  onClick={handleLaunch}
+                >
+                  Launch Campaign
+                </Button>
+              </div>
+            )}
+          </form>
         </div>
 
-        <section className="mt-6 rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-2">
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-purple">Terms & Conditions</h3>
-          <textarea
-            rows={5}
-            placeholder="Enter campaign terms and conditions…"
-            value={form.termsAndConditions}
-            onChange={e => set('termsAndConditions', e.target.value)}
-            disabled={readOnly}
-            className="w-full rounded-lg border bg-surface-light-hover dark:bg-surface-dark-hover border-surface-light-border dark:border-surface-dark-border text-xs text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted px-3 py-2 outline-none focus:border-neon-blue/60 focus:ring-1 focus:ring-neon-blue/30 transition-all resize-none"
-          />
-        </section>
-
-        {errors.assignedSlots && (
-          <div className="flex items-center gap-2 mt-4 px-4 py-3 rounded-xl border border-neon-red/40 bg-neon-red/10 text-neon-red text-sm font-medium">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            {errors.assignedSlots}
+        {previewOpen && (
+          <div className="flex justify-center lg:justify-start lg:h-full lg:overflow-hidden">
+            <div className="w-72 mx-auto">
+              <DealCard deal={campaignFormToDeal(form)} onClick={() => {}} />
+            </div>
           </div>
         )}
-
-        {/* Footer actions */}
-        {!readOnly && (
-          <div className="flex items-center justify-end gap-2 mt-6">
-            <Button variant="secondary" size="sm" type="button" onClick={onBack} disabled={loading || launching}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              size="sm"
-              leftIcon={<IconCheck size={13} />}
-              loading={loading}
-              disabled={launching}
-            >
-              {isEdit ? 'Update Campaign' : 'Save Draft'}
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              leftIcon={<IconPlay size={13} />}
-              loading={launching}
-              disabled={loading}
-              onClick={handleLaunch}
-            >
-              Launch Campaign
-            </Button>
-          </div>
-        )}
-      </form>
+      </div>
 
       {toastError && (
         <Toast message={toastError} type="error" onDismiss={() => setToastError(null)} />
