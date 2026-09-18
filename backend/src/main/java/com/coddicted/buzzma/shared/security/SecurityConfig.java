@@ -6,6 +6,8 @@ import com.coddicted.buzzma.shared.ratelimit.AuthBucketCache;
 import com.coddicted.buzzma.shared.ratelimit.RateLimitFilter;
 import com.coddicted.buzzma.shared.ratelimit.UserBucketCache;
 import java.util.List;
+import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,14 +16,18 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,14 +40,17 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final AuthBucketCache authBucketCache;
   private final UserBucketCache userBucketCache;
+  private final IpAddressMatcher metricsNetworkMatcher;
 
   public SecurityConfig(
       final JwtAuthenticationFilter jwtAuthenticationFilter,
       final AuthBucketCache authBucketCache,
-      final UserBucketCache userBucketCache) {
+      final UserBucketCache userBucketCache,
+      @Value("${docker.network.cidr:127.0.0.1/32}") final String dockerNetworkCidr) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.authBucketCache = authBucketCache;
     this.userBucketCache = userBucketCache;
+    this.metricsNetworkMatcher = new IpAddressMatcher(dockerNetworkCidr);
   }
 
   @Bean
@@ -54,6 +63,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .access(this::isFromMetricsNetwork)
                     .requestMatchers(
                         "/api/v1/auth/**",
                         "/api/health/**",
@@ -71,6 +82,11 @@ public class SecurityConfig {
         .addFilterAfter(
             new RateLimitFilter(authBucketCache, userBucketCache), JwtAuthenticationFilter.class);
     return http.build();
+  }
+
+  private AuthorizationDecision isFromMetricsNetwork(
+      final Supplier<Authentication> authentication, final RequestAuthorizationContext context) {
+    return new AuthorizationDecision(this.metricsNetworkMatcher.matches(context.getRequest()));
   }
 
   @Bean

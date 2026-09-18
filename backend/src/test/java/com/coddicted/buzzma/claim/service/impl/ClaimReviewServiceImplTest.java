@@ -12,20 +12,25 @@ import static com.coddicted.buzzma.claim.service.impl.Fixtures.OWNER_ID;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.REVIEWER_COMMENTS;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_1;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.SCREENSHOT_ID;
+import static com.coddicted.buzzma.claim.service.impl.Fixtures.SLOT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -40,6 +45,7 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.enums.Platform;
+import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.Collection;
 import java.util.List;
@@ -80,6 +86,7 @@ class ClaimReviewServiceImplTest {
   @Mock private CampaignService mockCampaignService;
   @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
+  @Mock private CampaignSlotRepository mockCampaignSlotRepository;
   @Mock private ClaimReviewEventPublisher mockClaimReviewEventPublisher;
   @Captor ArgumentCaptor<Collection<UUID>> campaignIdsCaptor;
   @Captor ArgumentCaptor<Collection<UUID>> mediatorIdsCaptor;
@@ -97,6 +104,7 @@ class ClaimReviewServiceImplTest {
             this.mockCampaignService,
             this.mockCampaignShareService,
             this.mockDealService,
+            this.mockCampaignSlotRepository,
             this.mockClaimReviewEventPublisher);
   }
 
@@ -489,6 +497,112 @@ class ClaimReviewServiceImplTest {
   }
 
   @Test
+  void testReviewScreenshotOnLockedClaimThrows() {
+    final Claim approvedClaim = CLAIM_1.toBuilder().status(ClaimStatus.APPROVED).build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(approvedClaim);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.reviewScreenshot(
+                    SCREENSHOT_ID,
+                    CLAIM_ID,
+                    SCREENSHOT_VERIFICATION_STATUS_VERIFIED,
+                    OWNER_ID,
+                    null));
+
+    assertEquals("Claim is already Approved and cannot be reviewed", ex.getMessage());
+    verifyNoInteractions(this.mockDealService);
+    verify(this.mockClaimService, never()).saveScreenshot(any());
+  }
+
+  @Test
+  void testReviewScreenshotRevertsProofRejectedClaimWhenNoScreenshotsRemainRejected() {
+    final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
+    when(this.mockClaimService.listScreenshots(CLAIM_ID))
+        .thenReturn(
+            List.of(
+                SCREENSHOT_1.toBuilder()
+                    .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
+                    .build()));
+    final Claim recomputedClaim =
+        proofRejectedClaim.toBuilder().status(ClaimStatus.UNDER_REVIEW).updatedBy(OWNER_ID).build();
+    when(this.mockClaimService.verifyAndUpdateClaimStatus(proofRejectedClaim, OWNER_ID))
+        .thenReturn(recomputedClaim);
+    when(this.mockClaimService.save(recomputedClaim)).thenReturn(recomputedClaim);
+
+    final ClaimWithDeal result =
+        this.claimReviewService.reviewScreenshot(
+            SCREENSHOT_ID, CLAIM_ID, SCREENSHOT_VERIFICATION_STATUS_VERIFIED, OWNER_ID, null);
+
+    assertEquals(ClaimStatus.UNDER_REVIEW, result.claim().getStatus());
+    assertEquals(OWNER_ID, result.claim().getUpdatedBy());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+  }
+
+  @Test
+  void testReviewScreenshotUsesStepAwareStatusWhenNotAllStepsSubmitted() {
+    // Regression test: reverting a PROOF_REJECTED claim must defer to the same step-aware status
+    // computation used elsewhere, not blindly jump to UNDER_REVIEW when other required steps
+    // (e.g. return window) haven't been submitted yet.
+    final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
+    when(this.mockClaimService.listScreenshots(CLAIM_ID))
+        .thenReturn(
+            List.of(
+                SCREENSHOT_1.toBuilder()
+                    .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
+                    .build()));
+    final Claim recomputedClaim =
+        proofRejectedClaim.toBuilder()
+            .status(ClaimStatus.REVIEW_SUBMITTED)
+            .updatedBy(OWNER_ID)
+            .build();
+    when(this.mockClaimService.verifyAndUpdateClaimStatus(proofRejectedClaim, OWNER_ID))
+        .thenReturn(recomputedClaim);
+    when(this.mockClaimService.save(recomputedClaim)).thenReturn(recomputedClaim);
+
+    final ClaimWithDeal result =
+        this.claimReviewService.reviewScreenshot(
+            SCREENSHOT_ID, CLAIM_ID, SCREENSHOT_VERIFICATION_STATUS_VERIFIED, OWNER_ID, null);
+
+    assertEquals(ClaimStatus.REVIEW_SUBMITTED, result.claim().getStatus());
+  }
+
+  @Test
+  void testReviewScreenshotDoesNotRevertProofRejectedClaimWhileAnotherScreenshotStaysRejected() {
+    final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
+    final ClaimScreenshot stillRejectedScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .id(UUID.fromString("99999999-9999-9999-9999-999999999999"))
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_REJECTED)
+            .build();
+    when(this.mockClaimService.listScreenshots(CLAIM_ID))
+        .thenReturn(
+            List.of(
+                SCREENSHOT_1.toBuilder()
+                    .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_VERIFIED)
+                    .build(),
+                stillRejectedScreenshot));
+
+    final ClaimWithDeal result =
+        this.claimReviewService.reviewScreenshot(
+            SCREENSHOT_ID, CLAIM_ID, SCREENSHOT_VERIFICATION_STATUS_VERIFIED, OWNER_ID, null);
+
+    assertEquals(ClaimStatus.PROOF_REJECTED, result.claim().getStatus());
+    verify(this.mockClaimService, never()).save(any());
+  }
+
+  @Test
   void testBulkApproveClaimReviews() {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
     when(this.mockClaimService.listScreenshots(CLAIM_ID)).thenReturn(List.of(SCREENSHOT_1));
@@ -551,6 +665,7 @@ class ClaimReviewServiceImplTest {
     assertEquals(ClaimStatus.APPROVED, saved.getStatus());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(CLAIM_1, ClaimStatus.APPROVED, REVIEWER_COMMENTS);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
   }
 
   @Test
@@ -573,6 +688,7 @@ class ClaimReviewServiceImplTest {
     assertEquals(ClaimStatus.REJECTED, claimCaptor.getValue().getStatus());
     verify(this.mockClaimReviewEventPublisher)
         .publishClaimDecisionEvent(rejectedClaim, ClaimStatus.REJECTED, REVIEWER_COMMENTS);
+    verify(this.mockCampaignSlotRepository).incrementSlotsAvailableIfBelowTotal(SLOT_ID);
   }
 
   @Test
@@ -585,5 +701,231 @@ class ClaimReviewServiceImplTest {
         CLAIM_ID, OWNER_ID, UserRole.ROLE_MEDIATOR, ReviewerDecision.VERIFIED, null, null);
 
     verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
+  }
+
+  @Test
+  void testSubmitClaimReviewBrandVerifiedSetsFlagWithoutChangingClaimStatus() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.BRAND_VERIFIED, null, null);
+
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(true, saved.getBrandVerified());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+    assertEquals(ClaimStatus.ORDERED, saved.getStatus());
+    assertNull(saved.getAmountApprovedPaise());
+    assertNull(saved.getReviewerId());
+    assertNull(saved.getReviewerComments());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
+    verify(this.mockClaimService).getById(CLAIM_ID, OWNER_ID);
+    verify(this.mockClaimService).save(saved);
+    verifyNoMoreInteractions(this.mockClaimService);
+  }
+
+  @Test
+  void testSubmitClaimReviewBrandVerifiedLeavesMediatorVerifiedUntouched() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.BRAND_VERIFIED, null, null);
+
+    assertNull(claimCaptor.getValue().getMediatorVerified());
+  }
+
+  @Test
+  void testSubmitClaimReviewBrandVerifiedByAgencyThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_AGENCY,
+                    ReviewerDecision.BRAND_VERIFIED,
+                    null,
+                    null));
+    assertEquals("BRAND_VERIFIED decision is only allowed for BRAND role", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitClaimReviewApprovedByBrandThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_BRAND,
+                    ReviewerDecision.APPROVED,
+                    REVIEWER_COMMENTS,
+                    AMOUNT_APPROVED_PAISE));
+    assertEquals("BRAND cannot approve a claim", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitClaimReviewVerifiedByBrandThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_BRAND,
+                    ReviewerDecision.VERIFIED,
+                    null,
+                    null));
+    assertEquals("VERIFIED decision is only allowed for MEDIATOR role", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitClaimReviewRejectedByBrandThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_BRAND,
+                    ReviewerDecision.REJECTED,
+                    REVIEWER_COMMENTS,
+                    null));
+    assertEquals("BRAND cannot reject a claim", ex.getMessage());
+    verifyNoInteractions(this.mockClaimService);
+  }
+
+  @Test
+  void testSubmitClaimReviewResetByAgencyReopensClaimAndClearsVerificationFlags() {
+    final Claim approvedClaim =
+        CLAIM_1.toBuilder()
+            .status(ClaimStatus.APPROVED)
+            .mediatorVerified(true)
+            .brandVerified(true)
+            .build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(approvedClaim);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(approvedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID, OWNER_ID, UserRole.ROLE_AGENCY, ReviewerDecision.PENDING, null, null);
+
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(ClaimStatus.UNDER_REVIEW, saved.getStatus());
+    assertEquals(false, saved.getMediatorVerified());
+    assertEquals(false, saved.getBrandVerified());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
+  }
+
+  @Test
+  void testSubmitClaimReviewResetByBrandOnlyFlipsBrandVerified() {
+    final Claim approvedClaim =
+        CLAIM_1.toBuilder()
+            .status(ClaimStatus.APPROVED)
+            .mediatorVerified(true)
+            .brandVerified(true)
+            .build();
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(approvedClaim);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(approvedClaim);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimReviewService.submitClaimReview(
+        CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.PENDING, null, null);
+
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(ClaimStatus.APPROVED, saved.getStatus());
+    assertEquals(false, saved.getBrandVerified());
+    assertEquals(true, saved.getMediatorVerified());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verifyNoInteractions(this.mockCampaignSlotRepository);
+  }
+
+  @Test
+  void testSubmitClaimReviewResetOnNonApprovedClaimThrows() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_AGENCY,
+                    ReviewerDecision.PENDING,
+                    null,
+                    null));
+
+    assertEquals("Only an approved claim can be reset for review", ex.getMessage());
+    verify(this.mockClaimService, never()).save(any());
+  }
+
+  @Test
+  void testSubmitClaimReviewResetByMediatorThrows() {
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimReviewService.submitClaimReview(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    UserRole.ROLE_MEDIATOR,
+                    ReviewerDecision.PENDING,
+                    null,
+                    null));
+
+    assertEquals("MEDIATOR can only submit VERIFIED decision", ex.getMessage());
+    verifyNoInteractions(this.mockClaimService);
+  }
+
+  @Test
+  void testBulkBrandVerifyClaimReviewsSetsFlagWithoutApproving() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    final List<ClaimWithDeal> results =
+        this.claimReviewService.bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), OWNER_ID);
+
+    assertEquals(1, results.size());
+    assertEquals(DEAL_1, results.get(0).deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(true, saved.getBrandVerified());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+    assertEquals(ClaimStatus.ORDERED, saved.getStatus());
+    assertNull(saved.getAmountApprovedPaise());
+    assertNull(saved.getReviewerId());
+    verifyNoInteractions(this.mockClaimReviewEventPublisher);
+    verify(this.mockClaimService, never()).saveScreenshot(SCREENSHOT_1);
+  }
+
+  @Test
+  void testBulkBrandVerifyClaimReviewsWhenClaimNotFound() {
+    when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID))
+        .thenThrow(new NotFoundException("Claim not found: " + CLAIM_ID));
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () -> this.claimReviewService.bulkBrandVerifyClaimReviews(List.of(CLAIM_ID), OWNER_ID));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 }

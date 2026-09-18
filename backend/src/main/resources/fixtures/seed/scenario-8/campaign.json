@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0008-0000-0000-000000000001",
     "name": "Himalaya Purifying Neem Face Wash 150ml",
-    "imageUrl": "https://www.nykaa.com/media/catalog/product/h/w/himalaya-neem-facewash.jpg",
+    "imageUrls": ["https://www.nykaa.com/media/catalog/product/h/w/himalaya-neem-facewash.jpg"],
     "productLink": "https://www.nykaa.com/himalaya-purifying-neem-face-wash/p/1234",
     "pricePaise": 14900
   },

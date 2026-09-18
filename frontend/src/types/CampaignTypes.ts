@@ -82,12 +82,22 @@ export type Platform =
   | 'PLATFORM_NYKAA'
   | 'PLATFORM_MYNTRA'
   | 'PLATFORM_MEESHO'
+  | 'PLATFORM_APPLE_APP_STORE'
+  | 'PLATFORM_GOOGLE_PLAY_STORE'
 
 export type CampaignType =
   | 'CAMPAIGN_TYPE_RATING'
   | 'CAMPAIGN_TYPE_REVIEW'
   | 'CAMPAIGN_TYPE_ORDER'
   | 'CAMPAIGN_TYPE_DISCOUNT'
+  | 'CAMPAIGN_TYPE_APP_REVIEW'
+  | 'CAMPAIGN_TYPE_EXCHANGE'
+
+/** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
+export interface ExchangeProductSelection {
+  productName: string
+  productImageUrl: string | null
+}
 
 export interface CampaignRequestDto {
   title: string
@@ -109,6 +119,8 @@ export interface CampaignRequestDto {
   termsAndConditions: string | null
   startDate: string | null
   endDate: string | null
+  requiredSteps: string[]
+  exchangeProducts: ExchangeProductSelection[]
   action?: 'CAMPAIGN_ACTION_PUBLISH' | 'CAMPAIGN_ACTION_PAUSE' | 'CAMPAIGN_ACTION_RESUME' | 'CAMPAIGN_ACTION_CLOSE' | 'CAMPAIGN_ACTION_COMPLETE'
 }
 

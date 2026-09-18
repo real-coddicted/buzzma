@@ -11,9 +11,15 @@ import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.campaign.entity.Reward;
+import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
+import com.coddicted.buzzma.campaign.policy.CampaignPolicy;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
@@ -22,11 +28,15 @@ import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,6 +128,10 @@ public class CampaignProcessor {
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
+    CampaignPolicy.validatePlatformAndCampaignType(
+        request.getPlatform(), request.getCampaignType());
+    validateReward(request);
+    validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
     final Campaign savedCampaign =
         this.service.create(
@@ -126,6 +140,7 @@ public class CampaignProcessor {
                 .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
+                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -138,14 +153,26 @@ public class CampaignProcessor {
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
+    CampaignPolicy.validatePlatformAndCampaignType(
+        request.getPlatform(), request.getCampaignType());
+    validateReward(request);
+    validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
+    if (existingCampaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_DRAFT) {
+      throw new BusinessRuleViolationException(
+          "Cannot update a campaign that is not in draft status");
+    }
 
     final Product updatedProduct =
         this.productProcessor.updateProduct(existingCampaign.getProduct(), request);
     this.campaignMapper.updateCampaign(request, existingCampaign);
 
     final Campaign updatedCampaign =
-        existingCampaign.toBuilder().product(updatedProduct).updatedBy(requesterId).build();
+        existingCampaign.toBuilder()
+            .product(updatedProduct)
+            .updatedBy(requesterId)
+            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+            .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -179,13 +206,10 @@ public class CampaignProcessor {
       return response;
     }
     final Map<UUID, String> nameById =
-        this.userService
-            .getByIds(
-                response.getAssignments().stream()
-                    .map(CampaignAssignmentResponseDto::getAssigneeId)
-                    .toList())
-            .stream()
-            .collect(Collectors.toMap(u -> u.getId(), u -> u.getName()));
+        this.userService.getNamesByIds(
+            response.getAssignments().stream()
+                .map(CampaignAssignmentResponseDto::getAssigneeId)
+                .toList());
     return response.toBuilder()
         .assignments(
             response.getAssignments().stream()
@@ -284,6 +308,74 @@ public class CampaignProcessor {
               .build());
     }
     return this.campaignAssignmentService.create(assignments);
+  }
+
+  /**
+   * ORDER is always required — it's the claim-creation screenshot — regardless of what the request
+   * selected, and CASHBACK is implicit (appended by {@code CampaignStepResolver}) so it is never
+   * persisted as part of the selection.
+   */
+  private static List<CampaignStepType> normalizeRequiredSteps(
+      final List<CampaignStepType> requiredSteps) {
+    final Set<CampaignStepType> steps =
+        requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
+    steps.add(CampaignStepType.ORDER);
+    steps.remove(CampaignStepType.CASHBACK);
+    return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
+  }
+
+  /**
+   * A campaign may carry at most one reward per type; a CASHBACK reward must carry a positive paise
+   * amount.
+   */
+  private static void validateReward(final CampaignRequestDto request) {
+    final List<Reward> rewards = request.getRewards();
+    if (rewards == null) {
+      return;
+    }
+    final Set<RewardType> seenTypes = EnumSet.noneOf(RewardType.class);
+    for (final Reward reward : rewards) {
+      if (!seenTypes.add(reward.getType())) {
+        throw new BusinessRuleViolationException(
+            "A campaign can only have one reward of type " + reward.getType());
+      }
+      if (reward.getType() == RewardType.CASHBACK) {
+        final BigInteger amount;
+        try {
+          amount = new BigInteger(reward.getValue());
+        } catch (NumberFormatException | NullPointerException e) {
+          throw new BusinessRuleViolationException(
+              "A cashback reward requires a positive cashback amount");
+        }
+        if (amount.signum() <= 0) {
+          throw new BusinessRuleViolationException(
+              "A cashback reward requires a positive cashback amount");
+        }
+      }
+    }
+  }
+
+  /**
+   * Exchange products are mandatory for an exchange campaign, and disallowed for every other
+   * campaign type.
+   */
+  private static void validateExchangeProducts(final CampaignRequestDto request) {
+    final List<ExchangeProduct> exchangeProducts = request.getExchangeProducts();
+    final boolean exchangeType = request.getCampaignType() == CampaignType.CAMPAIGN_TYPE_EXCHANGE;
+    if (exchangeType) {
+      if (exchangeProducts == null || exchangeProducts.isEmpty()) {
+        throw new BusinessRuleViolationException(
+            "Exchange campaigns require at least one exchange product");
+      }
+      if (exchangeProducts.stream()
+          .anyMatch(
+              product -> product.getProductName() == null || product.getProductName().isBlank())) {
+        throw new BusinessRuleViolationException("Every exchange product requires a product name");
+      }
+    } else if (exchangeProducts != null && !exchangeProducts.isEmpty()) {
+      throw new BusinessRuleViolationException(
+          "Exchange products are only allowed on exchange campaigns");
+    }
   }
 
   private void validateCampaignSlots(final CampaignRequestDto request) {

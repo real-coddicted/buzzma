@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,8 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetDownloadDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewWorksheetResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheet;
+import com.coddicted.buzzma.claim.entity.ClaimReviewWorksheetRow;
 import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
+import com.coddicted.buzzma.claim.mapper.ClaimReviewWorksheetMapperImpl;
+import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetRowService;
 import com.coddicted.buzzma.claim.service.ClaimReviewWorksheetService;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.config.ConfigProvider;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
@@ -30,13 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(ClaimReviewController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, ClaimReviewWorksheetMapperImpl.class})
 class ClaimReviewControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -48,6 +54,8 @@ class ClaimReviewControllerTest {
   @MockBean private UsersRepository usersRepository;
 
   @MockBean private ClaimReviewWorksheetService worksheetService;
+  @MockBean private ClaimReviewWorksheetRowService worksheetRowService;
+  @MockBean private ClaimService claimService;
 
   private ClaimReviewWorksheet sampleWorksheet;
   private MockMultipartFile sampleFile;
@@ -94,10 +102,8 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void listWorkbooks_withBrandRole_returns200() throws Exception {
-    when(worksheetService.listWorkbooks(any())).thenReturn(List.of());
-
-    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isOk());
+  void listWorkbooks_withBrandRole_returns403() throws Exception {
+    mockMvc.perform(get("/api/v1/claim-review/worksheets")).andExpect(status().isForbidden());
   }
 
   @Test
@@ -125,12 +131,10 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void uploadWorksheet_withBrandRole_returns201() throws Exception {
-    when(worksheetService.uploadWorksheet(any(), any())).thenReturn(sampleWorksheet);
-
+  void uploadWorksheet_withBrandRole_returns403() throws Exception {
     mockMvc
         .perform(multipart("/api/v1/claim-review/worksheets").file(sampleFile))
-        .andExpect(status().isCreated());
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -202,12 +206,10 @@ class ClaimReviewControllerTest {
 
   @Test
   @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
-  void downloadWorksheet_withBrandRole_returns200() throws Exception {
-    final UUID id = sampleWorksheet.getId();
-    when(worksheetService.downloadWorksheet(eq(id)))
-        .thenReturn(new ClaimReviewWorksheetDownloadDto("review.xlsx", new byte[] {1}));
-
-    mockMvc.perform(get("/api/v1/claim-review/worksheets/{id}", id)).andExpect(status().isOk());
+  void downloadWorksheet_withBrandRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}", sampleWorksheet.getId()))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -235,5 +237,113 @@ class ClaimReviewControllerTest {
     mockMvc
         .perform(get("/api/v1/claim-review/worksheets/{id}", id))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = "11111111-1111-1111-1111-111111111111")
+  void listWorksheetRows_withAgencyRole_returns200WithPage() throws Exception {
+    final UUID id = sampleWorksheet.getId();
+    final UUID currentUserId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    final ClaimReviewWorksheetRow row =
+        ClaimReviewWorksheetRow.builder()
+            .id(UUID.randomUUID())
+            .worksheetId(id)
+            .claimCode("CLAIM-1")
+            .processingStatus(WorksheetRowStatus.PENDING)
+            .retryCount(0)
+            .build();
+    when(worksheetRowService.listRows(eq(id), eq(currentUserId), eq(null), any()))
+        .thenReturn(new PageImpl<>(List.of(row)));
+
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].claimCode").value("CLAIM-1"))
+        .andExpect(jsonPath("$.content[0].processingStatus").value("PENDING"));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = "22222222-2222-2222-2222-222222222222")
+  void listWorksheetRows_withStatusFilter_passesStatusToService() throws Exception {
+    final UUID id = sampleWorksheet.getId();
+    final UUID currentUserId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    when(worksheetRowService.listRows(
+            eq(id), eq(currentUserId), eq(WorksheetRowStatus.ERROR), any()))
+        .thenReturn(new PageImpl<>(List.of()));
+
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", id).param("status", "ERROR"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isEmpty());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void listWorksheetRows_withBrandRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", UUID.randomUUID()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void listWorksheetRows_withMediatorRole_returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", UUID.randomUUID()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void listWorksheetRows_unauthenticated_returns401() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", UUID.randomUUID()))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY)
+  void listWorksheetRows_notFound_returns404() throws Exception {
+    final UUID id = UUID.randomUUID();
+    when(worksheetRowService.listRows(eq(id), any(), eq(null), any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    mockMvc
+        .perform(get("/api/v1/claim-review/worksheets/{id}/rows", id))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_AGENCY, id = "33333333-3333-3333-3333-333333333333")
+  void markReadyForAccounting_withAgencyRole_returns200WithUpdatedCount() throws Exception {
+    final UUID agencyId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+    when(claimService.markApprovedClaimsReadyForAccounting(eq(agencyId))).thenReturn(4);
+
+    mockMvc
+        .perform(post("/api/v1/claim-review/markReadyForAccounting"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.updatedCount").value(4));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_BRAND)
+  void markReadyForAccounting_withBrandRole_returns403() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/claim-review/markReadyForAccounting"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_MEDIATOR)
+  void markReadyForAccounting_withMediatorRole_returns403() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/claim-review/markReadyForAccounting"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void markReadyForAccounting_unauthenticated_returns401() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/claim-review/markReadyForAccounting"))
+        .andExpect(status().isUnauthorized());
   }
 }

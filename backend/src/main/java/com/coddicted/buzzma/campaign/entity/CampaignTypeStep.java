@@ -6,6 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+/**
+ * Superseded by {@code Campaign#requiredSteps} + {@code CampaignStepResolver}. Retained for one
+ * release cycle before deletion in a follow-up cleanup issue.
+ */
+@Deprecated
 @Getter
 @Entity
 @Table(name = "campaign_type_step")

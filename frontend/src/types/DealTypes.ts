@@ -20,6 +20,8 @@ export interface Deal {
   campaignCode?: string
   productName: string
   productImageUrl: string
+  /** Primary image first, then any exchange-product images. Feeds the image carousel. */
+  productImages: string[]
   productUrl: string
   platform: Platform
   platformLabel: string
@@ -30,10 +32,12 @@ export interface Deal {
   offeredPricePaise: number
   sellerName?: string
   mediatorName?: string
+  agencyName?: string
   startDate?: string
   endDate?: string
   termsAndConditions?: string
   slotsAvailable?: number
+  requiredSteps?: string[]
   status: DealStatus
   currentStep?: number
   claimId?: string
@@ -41,4 +45,8 @@ export interface Deal {
   claimStatus?: ClaimStatus
   screenshots?: Array<{ type?: string; verificationStatus?: string }>
   amountApprovedPaise?: number
+}
+
+export function isDealSoldOut(deal: Deal): boolean {
+  return deal.slotsAvailable === 0
 }

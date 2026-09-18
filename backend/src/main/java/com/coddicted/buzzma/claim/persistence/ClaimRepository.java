@@ -34,8 +34,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
   Optional<Claim> findByCodeAndIsDeletedFalse(String code);
 
-  boolean existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-      String ecommerceOrderId, Platform platform);
+  boolean existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+      String ecommerceOrderId, Platform platform, ClaimStatus status);
 
   @Modifying
   @Transactional
@@ -82,9 +82,30 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       nativeQuery = true,
       value =
           """
-      UPDATE claims SET accounting_status = 'COMPLETED' WHERE id = :claimId
+      UPDATE claims
+      SET accounting_status = 'COMPLETED',
+          status            = 'REWARD_PENDING'
+      WHERE id = :claimId
       """)
   void markAccountingCompleted(@Param("claimId") UUID claimId);
+
+  @Modifying
+  @Transactional
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+      UPDATE claims c
+      SET status     = 'READY_FOR_ACCOUNTING',
+          updated_at = NOW(),
+          updated_by = :agencyId
+      FROM campaigns camp
+      WHERE c.campaign_id = camp.id
+        AND camp.owner_id = :agencyId
+        AND c.status       = 'APPROVED'
+        AND c.is_deleted   = false
+      """)
+  int markApprovedClaimsReadyForAccounting(@Param("agencyId") UUID agencyId);
 
   @Query(
       value =

@@ -73,6 +73,57 @@ public class GeminiExtractionPromptBuilder {
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String DELIVERY_PROMPT =
+      """
+      You are a delivery-proof-data extractor. Analyze the provided screenshot showing an order's \
+      delivery status (e.g. a "Delivered" order tracking page) and return ONLY valid JSON with no \
+      markdown fences, no extra text, and no explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "productName": "<product name string or null>",
+        "orderId": "<order identifier string or null>",
+        "deliveryDate": "<the date the order was delivered in YYYY-MM-DD format, or null>",
+        "deliveryStatus": "<the delivery status text shown (e.g. 'Delivered'), or null>",
+        "orderedBy": "<customer full name or null>"
+      }
+      Extract only what is clearly visible; use null for any field that cannot be determined \
+      from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String SELLER_FEEDBACK_PROMPT =
+      """
+      You are a seller-feedback-data extractor. Analyze the provided screenshot of a "Leave \
+      Seller Feedback" or "Rate your experience" UI and return ONLY valid JSON with no markdown \
+      fences, no extra text, and no explanation. The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "sellerName": "<the seller or sold-by name string, or null>",
+        "productName": "<product name string or null>",
+        "orderId": "<order identifier string or null>",
+        "rating": <the numeric star rating given to the seller as an integer between 1 and 5, or null>,
+        "feedbackText": "<the short feedback label visible in the screenshot (e.g. 'Excellent', 'Good', 'Fair', 'Poor'), or null>",
+        "comment": "<the full free-text comment the customer wrote about the seller, if any (e.g. under a 'Comments' heading), or null>",
+        "reviewerName": "<the name of the customer/reviewer who left the feedback, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String DOWNLOAD_INSTALL_PROMPT =
+      """
+      You are an app-install-data extractor. Analyze the provided screenshot of an app store \
+      listing (Google Play Store or Apple App Store) for the installed app and return ONLY valid \
+      JSON with no markdown fences, no extra text, and no explanation. The JSON must match this \
+      exact schema:
+      {
+        "platform": "<%s|null>",
+        "productName": "<the app name string or null>",
+        "accountName": "<the account or user name visible in the screenshot, or null>",
+        "installStatus": "<the exact button or status text confirming the app is installed (e.g. 'Open', 'Installed', 'Uninstall', 'Update'), or null>",
+        "appVersion": "<the app's version number as shown in the listing, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
   public String build() {
     return PROMPT;
   }
@@ -81,11 +132,23 @@ public class GeminiExtractionPromptBuilder {
     return RATING_PROMPT;
   }
 
+  public String buildSellerFeedbackPrompt() {
+    return SELLER_FEEDBACK_PROMPT;
+  }
+
   public String buildReviewPrompt() {
     return REVIEW_PROMPT;
   }
 
   public String buildReturnPrompt() {
     return RETURN_PROMPT;
+  }
+
+  public String buildDeliveryPrompt() {
+    return DELIVERY_PROMPT;
+  }
+
+  public String buildDownloadInstallPrompt() {
+    return DOWNLOAD_INSTALL_PROMPT;
   }
 }

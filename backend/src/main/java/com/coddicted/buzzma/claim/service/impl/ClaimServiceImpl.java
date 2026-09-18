@@ -1,12 +1,13 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
@@ -18,6 +19,7 @@ import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.policy.ClaimPolicy;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
@@ -31,7 +33,6 @@ import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,7 +58,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final CampaignShareService campaignShareService;
   private final DealService dealService;
   private final CampaignSlotRepository campaignSlotRepository;
-  private final CampaignTypeStepService campaignTypeStepService;
+  private final CampaignStepResolver campaignStepResolver;
   private final StorageService storageService;
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
@@ -69,7 +70,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final CampaignShareService campaignShareService,
       final DealService dealService,
       final CampaignSlotRepository campaignSlotRepository,
-      final CampaignTypeStepService campaignTypeStepService,
+      final CampaignStepResolver campaignStepResolver,
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService) {
@@ -79,7 +80,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.campaignShareService = campaignShareService;
     this.dealService = dealService;
     this.campaignSlotRepository = campaignSlotRepository;
-    this.campaignTypeStepService = campaignTypeStepService;
+    this.campaignStepResolver = campaignStepResolver;
     this.storageService = storageService;
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
@@ -95,8 +96,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Map<String, ScoredValue> extractedDetails,
       final Integer overallScore) {
 
-    if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-        claim.getEcommerceOrderId(), claim.getPlatform())) {
+    if (this.claimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+        claim.getEcommerceOrderId(), claim.getPlatform(), ClaimStatus.REJECTED)) {
       LOGGER.warn(
           "Order {} on platform {} has already been claimed",
           claim.getEcommerceOrderId(),
@@ -105,6 +106,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     }
 
     final Deal deal = this.dealService.getById(claim.getDealId());
+
+    final Campaign campaign = loadActiveCampaign(claim);
+
+    ClaimPolicy.validateExchangeProduct(campaign, claim);
 
     final int updated =
         this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
@@ -124,8 +129,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
 
-    final boolean campaignHasSellerName =
-        this.campaignService.getById(claim.getCampaignId()).getSellerName() != null;
+    final boolean campaignHasSellerName = campaign.getSellerName() != null;
 
     final Claim saved =
         this.claimRepository.save(
@@ -151,6 +155,62 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return saved;
   }
 
+  /**
+   * App Promotion has no order ID and no client-side pre-scoring, so this mirrors {@code
+   * createClaim}'s shape (slot check, active-campaign check, claim creation) but skips the order-ID
+   * duplicate check (meaningless for an app install - see {@code ecommerceOrderId} below) and the
+   * exchange-product validation (App Review campaigns are never exchange campaigns), and submits
+   * the screenshot for async extraction the same way the submit* methods do, instead of requiring
+   * the client to have already scored it.
+   */
+  @Override
+  @Transactional
+  public Claim createAppReviewClaim(
+      final Claim claim,
+      final byte[] screenshot,
+      final String screenshotFilename,
+      final String contentType) {
+
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Campaign campaign = loadActiveCampaign(claim);
+
+    final int updated =
+        this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
+            deal.getCampaignSlot().getId());
+    if (updated == 0) {
+      LOGGER.warn("All slots claimed for deal {}", claim.getDealId());
+      throw new BusinessRuleViolationException("All slots have been claimed for this deal");
+    }
+
+    final String screenshotKey =
+        this.storageService.store("claims", screenshotFilename, contentType, screenshot);
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
+
+    final Claim saved =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .code(code)
+                .status(ClaimStatus.DOWNLOADED_AND_INSTALLED)
+                .ecommerceOrderId("NA")
+                .platform(campaign.getPlatform())
+                .currentStep(CampaignStepType.DOWNLOAD_INSTALL)
+                .isDeleted(false)
+                .createdBy(claim.getOwnerId())
+                .updatedBy(claim.getOwnerId())
+                .build());
+
+    final ClaimScreenshot downloadInstallScreenshot =
+        saveScreenshot(
+            saved.getId(),
+            screenshotKey,
+            ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL,
+            saved.getOwnerId());
+    this.extractionService.submitJob(downloadInstallScreenshot.getId(), saved.getOwnerId());
+
+    return saved;
+  }
+
   @Override
   @Transactional
   public ClaimWithDeal submitReview(
@@ -163,10 +223,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.REVIEW, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -175,7 +232,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.REVIEW_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.REVIEW))
                 .currentStep(CampaignStepType.REVIEW)
                 .reviewUrl(reviewUrl)
                 .updatedBy(ownerId)
@@ -199,10 +256,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.RATING, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -211,7 +265,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.RATING_SUBMITTED)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RATING))
                 .currentStep(CampaignStepType.RATING)
                 .updatedBy(ownerId)
                 .build());
@@ -234,10 +288,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
     final Deal deal = this.dealService.getById(claim.getDealId());
-    final List<CampaignTypeStep> steps =
-        this.campaignTypeStepService
-            .getStepConfig()
-            .getOrDefault(deal.getCampaign().getType(), List.of());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, CampaignStepType.RETURN_WINDOW, claim.getCurrentStep());
 
     final String screenshotKey =
@@ -246,7 +297,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim updated =
         this.claimRepository.save(
             claim.toBuilder()
-                .status(ClaimStatus.UNDER_REVIEW)
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.RETURN_WINDOW))
                 .currentStep(CampaignStepType.RETURN_WINDOW)
                 .updatedBy(ownerId)
                 .build());
@@ -254,6 +305,71 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final ClaimScreenshot returnScreenshot =
         saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_RETURN, ownerId);
     this.extractionService.submitJob(returnScreenshot.getId(), ownerId);
+
+    return new ClaimWithDeal(updated, deal);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitDelivery(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
+    validatePrecedingStep(steps, CampaignStepType.DELIVERY, claim.getCurrentStep());
+
+    final String screenshotKey =
+        this.storageService.store("claims", filename, contentType, screenshot);
+
+    final Claim updated =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.DELIVERY))
+                .currentStep(CampaignStepType.DELIVERY)
+                .updatedBy(ownerId)
+                .build());
+
+    final ClaimScreenshot deliveryScreenshot =
+        saveScreenshot(claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_DELIVERY, ownerId);
+    this.extractionService.submitJob(deliveryScreenshot.getId(), ownerId);
+
+    return new ClaimWithDeal(updated, deal);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitSellerFeedback(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+
+    final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
+    validatePrecedingStep(steps, CampaignStepType.SELLER_FEEDBACK, claim.getCurrentStep());
+
+    final String screenshotKey =
+        this.storageService.store("claims", filename, contentType, screenshot);
+
+    final Claim updated =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .status(terminalStatusFor(deal.getCampaign(), CampaignStepType.SELLER_FEEDBACK))
+                .currentStep(CampaignStepType.SELLER_FEEDBACK)
+                .updatedBy(ownerId)
+                .build());
+
+    final ClaimScreenshot sellerFeedbackScreenshot =
+        saveScreenshot(
+            claimId, screenshotKey, ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK, ownerId);
+    this.extractionService.submitJob(sellerFeedbackScreenshot.getId(), ownerId);
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -379,6 +495,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       if (orderFields.accountName() != null) {
         b.accountName(orderFields.accountName());
       }
+      if (orderFields.exchangeProduct() != null) {
+        b.exchangeProduct(orderFields.exchangeProduct());
+        ClaimPolicy.validateExchangeProduct(
+            this.campaignService.getById(claim.getCampaignId()), b.build());
+      }
     }
     claim = verifyAndUpdateClaimStatus(b.build(), requesterId);
     claim = this.claimRepository.save(claim);
@@ -395,6 +516,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Transactional
   public void markAccountingCompleted(final UUID claimId) {
     this.claimRepository.markAccountingCompleted(claimId);
+  }
+
+  @Override
+  @Transactional
+  public int markApprovedClaimsReadyForAccounting(final UUID agencyId) {
+    return this.claimRepository.markApprovedClaimsReadyForAccounting(agencyId);
   }
 
   @Override
@@ -449,7 +576,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     return this.claimRepository.findClaimReviewModelsByIds(claimIds);
   }
 
-  private Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
+  @Override
+  public Claim verifyAndUpdateClaimStatus(final Claim claim, final UUID requesterId) {
     final List<ClaimScreenshot> screenshots =
         this.claimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
             claim.getId());
@@ -464,19 +592,45 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       // No need to update claim status (Which should be objected at this point)
       return claim;
     }
-    // Otherwise status update is needed depending on already completed steps
-    // setting default status values below
-    ClaimStatus claimStatus = ClaimStatus.ORDERED;
-
-    final boolean hasReturn =
-        screenshots.stream().anyMatch(s -> s.getType() == ScreenshotType.SCREENSHOT_TYPE_RETURN);
-
-    if (hasReturn) {
-      // This should be revisited in case of change in end step
-      claimStatus = ClaimStatus.UNDER_REVIEW;
-    }
+    // No screenshot is still pending rejection review, so the claim's status reflects whichever
+    // step it's currently on: the last required step makes it reviewable, any earlier step just
+    // reports its own "submitted" status.
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    final ClaimStatus claimStatus = terminalStatusFor(campaign, claim.getCurrentStep());
 
     return claim.toBuilder().status(claimStatus).updatedBy(requesterId).build();
+  }
+
+  /**
+   * The claim status to use when {@code stepType} has just been (re)submitted: the universal
+   * ready-for-review status if it's the campaign's last required step (before Cashback), otherwise
+   * that step's own "submitted" status. Centralizing this avoids each step hardcoding whether it
+   * happens to be last, which previously only worked correctly for Return.
+   */
+  private ClaimStatus terminalStatusFor(final Campaign campaign, final CampaignStepType stepType) {
+    return isLastRequiredStep(campaign, stepType)
+        ? ClaimStatus.UNDER_REVIEW
+        : statusForStep(stepType);
+  }
+
+  private boolean isLastRequiredStep(final Campaign campaign, final CampaignStepType stepType) {
+    final List<CampaignStepType> steps = this.campaignStepResolver.resolve(campaign);
+    final int index = steps.indexOf(stepType);
+    // CampaignStepResolver always appends CASHBACK last, so the step just before it is the last
+    // one the buyer is actually required to submit proof for.
+    return index >= 0 && index == steps.size() - 2;
+  }
+
+  private ClaimStatus statusForStep(final CampaignStepType stepType) {
+    return switch (stepType) {
+      case ORDER -> ClaimStatus.ORDERED;
+      case DOWNLOAD_INSTALL -> ClaimStatus.DOWNLOADED_AND_INSTALLED;
+      case RATING -> ClaimStatus.RATING_SUBMITTED;
+      case REVIEW -> ClaimStatus.REVIEW_SUBMITTED;
+      case DELIVERY -> ClaimStatus.DELIVERY_PROOF_SUBMITTED;
+      case SELLER_FEEDBACK -> ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
+      case RETURN_WINDOW, CASHBACK -> ClaimStatus.UNDER_REVIEW;
+    };
   }
 
   private ClaimScreenshot saveScreenshot(
@@ -505,23 +659,30 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .build());
   }
 
+  private Campaign loadActiveCampaign(final Claim claim) {
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    if (campaign.getStatus() != CampaignStatus.CAMPAIGN_STATUS_ACTIVE) {
+      LOGGER.warn(
+          "Claim rejected for deal {}: campaign {} is not active (status {})",
+          claim.getDealId(),
+          claim.getCampaignId(),
+          campaign.getStatus());
+      throw new BusinessRuleViolationException(
+          "The campaign is not active anymore. Please go back to deals page and refresh once to"
+              + " confirm active deals");
+    }
+    return campaign;
+  }
+
   private void validatePrecedingStep(
-      final List<CampaignTypeStep> steps,
+      final List<CampaignStepType> steps,
       final CampaignStepType targetStep,
       final CampaignStepType currentStep) {
-    final List<CampaignTypeStep> sorted =
-        steps.stream().sorted(Comparator.comparingInt(CampaignTypeStep::getStepOrder)).toList();
-    int targetIndex = -1;
-    for (int i = 0; i < sorted.size(); i++) {
-      if (sorted.get(i).getId().getStepType() == targetStep) {
-        targetIndex = i;
-        break;
-      }
-    }
+    final int targetIndex = steps.indexOf(targetStep);
     if (targetIndex <= 0) {
       throw new BusinessRuleViolationException("Invalid step configuration for " + targetStep);
     }
-    final CampaignStepType expectedStep = sorted.get(targetIndex - 1).getId().getStepType();
+    final CampaignStepType expectedStep = steps.get(targetIndex - 1);
     if (currentStep != expectedStep) {
       LOGGER.warn(
           "Cannot submit {} — currentStep is {}, expected {}",

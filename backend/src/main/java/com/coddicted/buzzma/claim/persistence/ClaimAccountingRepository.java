@@ -8,7 +8,9 @@ import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import jakarta.persistence.LockModeType;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,10 @@ import org.springframework.stereotype.Repository;
 public interface ClaimAccountingRepository extends JpaRepository<ClaimAccounting, UUID> {
 
   boolean existsByClaimId(UUID claimId);
+
+  Optional<ClaimAccounting> findByClaimId(UUID claimId);
+
+  List<ClaimAccounting> findByClaimIdIn(Collection<UUID> claimIds);
 
   // ── Payout pending lists ──────────────────────────────────────────────────
 

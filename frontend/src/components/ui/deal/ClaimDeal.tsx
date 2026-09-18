@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
+import { isDealSoldOut } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import { ClaimStepForm } from './ClaimStepForm'
 
@@ -20,6 +21,14 @@ export function ClaimDeal({ deal, initialStep = 0, readOnly = false, claimRespon
   function handleStepChange(step: number) {
     setCurrentStep(step)
     onStepChange?.(step)
+  }
+
+  if (isDealSoldOut(deal) && !claimResponse) {
+    return (
+      <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-6 flex items-center justify-center text-sm text-ink-light-muted dark:text-ink-dark-muted">
+        This deal is sold out — all slots have been claimed.
+      </div>
+    )
   }
 
   return (

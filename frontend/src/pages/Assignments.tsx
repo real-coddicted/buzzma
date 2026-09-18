@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { Loading } from '../components/ui/Loading'
 import { Toast } from '../components/ui/Toast'
@@ -12,7 +12,6 @@ import { getAssignmentById } from '../api/assignmentApi'
 
 export function Assignments() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const activeTab: AssignmentTab = (searchParams.get('tab') as AssignmentTab) ?? 'unpublished'
   const assignmentId = searchParams.get('id')
   const isDetailView = searchParams.get('view') === 'detail' && !!assignmentId
@@ -56,7 +55,7 @@ export function Assignments() {
     return (
       <AssignmentDetail
         item={assignment}
-        onBack={() => navigate(-1)}
+        onBack={() => setSearchParams({ tab: activeTab })}
         readOnly={activeTab === 'published'}
       />
     )

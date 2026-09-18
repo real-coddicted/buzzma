@@ -15,11 +15,14 @@ interface Props {
   claim: ClaimReviewItem
   campaignTitle?: string
   campaignPricePaise?: number
+  isExchangeCampaign?: boolean
   userRole: string | undefined
   onOpenOverlay: (item: ClaimProofItem) => void
   onApproveClaim: (comment: string, amountApprovedPaise?: number) => void
   onVerifiedClaim: () => void
+  onBrandVerifiedClaim: () => void
   onRejectClaim: (comment: string) => void
+  onResetClaim: () => void
 }
 
 export function ClaimProofRightPanel({
@@ -30,11 +33,14 @@ export function ClaimProofRightPanel({
   claim,
   campaignTitle,
   campaignPricePaise,
+  isExchangeCampaign,
   userRole,
   onOpenOverlay,
   onApproveClaim,
   onVerifiedClaim,
+  onBrandVerifiedClaim,
   onRejectClaim,
+  onResetClaim,
 }: Props) {
   return (
     <div className="flex-1 min-w-0 overflow-y-auto">
@@ -104,15 +110,19 @@ export function ClaimProofRightPanel({
               </span>
               <div className="h-px flex-1 bg-surface-light-border dark:bg-surface-dark-border" />
             </div>
-            <ClaimInfo claim={claim} campaignTitle={campaignTitle} campaignPricePaise={campaignPricePaise} userRole={userRole} />
+            <ClaimInfo claim={claim} campaignTitle={campaignTitle} campaignPricePaise={campaignPricePaise} userRole={userRole} isExchangeCampaign={isExchangeCampaign} />
             <ClaimProofActions
               userRole={userRole}
+              claimStatus={claim.claimStatus}
               isUnderReview={claim.isUnderReview ?? false}
               mediatorVerified={claim.mediatorVerified ?? false}
+              brandVerified={claim.brandVerified ?? false}
               initialAmountApprovedPaise={claim.amountApprovedPaise}
               onApprove={onApproveClaim}
               onVerified={onVerifiedClaim}
+              onBrandVerified={onBrandVerifiedClaim}
               onReject={onRejectClaim}
+              onReset={onResetClaim}
             />
           </div>
 

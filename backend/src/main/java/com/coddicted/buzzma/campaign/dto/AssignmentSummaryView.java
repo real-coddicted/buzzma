@@ -20,4 +20,5 @@ public record AssignmentSummaryView(
     String dealCode,
     String campaignCode,
     Integer startDate,
-    Integer endDate) {}
+    Integer endDate,
+    UUID campaignOwnerId) {}

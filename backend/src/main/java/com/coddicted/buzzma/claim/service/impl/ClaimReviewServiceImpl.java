@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.model.CampaignSummary;
+import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.DealService;
@@ -15,6 +16,7 @@ import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
+import com.coddicted.buzzma.claim.policy.ClaimReviewPolicy;
 import com.coddicted.buzzma.claim.service.ClaimReviewService;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -47,10 +49,22 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClaimReviewServiceImpl.class);
 
+  // Statuses a claim reaches once it has been decided and moved to accounting or beyond; neither
+  // screenshot review nor claim review can touch a claim in one of these anymore.
+  private static final Set<ClaimStatus> LOCKED_CLAIM_STATUSES =
+      Set.of(
+          ClaimStatus.APPROVED,
+          ClaimStatus.REJECTED,
+          ClaimStatus.READY_FOR_ACCOUNTING,
+          ClaimStatus.REWARD_PENDING,
+          ClaimStatus.COMPLETED,
+          ClaimStatus.FAILED);
+
   private final ClaimService claimService;
   private final CampaignService campaignService;
   private final CampaignShareService campaignShareService;
   private final DealService dealService;
+  private final CampaignSlotRepository campaignSlotRepository;
   private final ClaimReviewEventPublisher claimReviewEventPublisher;
 
   public ClaimReviewServiceImpl(
@@ -58,11 +72,13 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final CampaignService campaignService,
       final CampaignShareService campaignShareService,
       final DealService dealService,
+      final CampaignSlotRepository campaignSlotRepository,
       final ClaimReviewEventPublisher claimReviewEventPublisher) {
     this.claimService = claimService;
     this.campaignService = campaignService;
     this.campaignShareService = campaignShareService;
     this.dealService = dealService;
+    this.campaignSlotRepository = campaignSlotRepository;
     this.claimReviewEventPublisher = claimReviewEventPublisher;
   }
 
@@ -124,6 +140,10 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final String reviewerComments) {
 
     Claim claim = this.claimService.getById(claimId, reviewerId);
+    if (LOCKED_CLAIM_STATUSES.contains(claim.getStatus())) {
+      throw new BusinessRuleViolationException(
+          "Claim is already " + claim.getStatus().getDisplayName() + " and cannot be reviewed");
+    }
     final Deal deal = this.dealService.getById(claim.getDealId());
 
     final ClaimScreenshot screenshot = this.claimService.getScreenshotById(screenshotId);
@@ -146,9 +166,24 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
               claim.toBuilder().status(ClaimStatus.PROOF_REJECTED).updatedBy(reviewerId).build());
       this.claimReviewEventPublisher.publishScreenshotReviewedEvent(
           claim, deal, screenshot.getType(), action, reviewerId, reviewerComments);
+    } else if (claim.getStatus() == ClaimStatus.PROOF_REJECTED && !anyScreenshotRejected(claimId)) {
+      // Mirrors the auto-revert that happens when a buyer resubmits a rejected screenshot: once no
+      // screenshot on the claim remains rejected, the claim comes back out of PROOF_REJECTED via
+      // the same step-aware status computation used elsewhere, rather than assuming every
+      // required step is complete.
+      claim =
+          this.claimService.save(this.claimService.verifyAndUpdateClaimStatus(claim, reviewerId));
     }
 
     return new ClaimWithDeal(claim, deal);
+  }
+
+  private boolean anyScreenshotRejected(final UUID claimId) {
+    return this.claimService.listScreenshots(claimId).stream()
+        .anyMatch(
+            s ->
+                s.getVerificationStatus()
+                    == ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED);
   }
 
   @Override
@@ -160,22 +195,18 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final ReviewerDecision decision,
       final String reviewerComment,
       final BigInteger amountApprovedPaise) {
-
+    ClaimReviewPolicy.validateSubmitClaimReview(reviewerRole, decision);
     final Claim claim = this.claimService.getById(claimId, reviewerId);
-
-    if (decision == ReviewerDecision.VERIFIED && reviewerRole != UserRole.ROLE_MEDIATOR) {
-      throw new BusinessRuleViolationException(
-          "VERIFIED decision is only allowed for MEDIATOR role");
-    }
-    if (reviewerRole == UserRole.ROLE_MEDIATOR && decision != ReviewerDecision.VERIFIED) {
-      throw new BusinessRuleViolationException("MEDIATOR can only submit VERIFIED decision");
-    }
-
+    final Deal deal = this.dealService.getById(claim.getDealId());
     final Claim updated;
-    if (reviewerRole == UserRole.ROLE_MEDIATOR) {
+    if (decision == ReviewerDecision.PENDING) {
+      updated = resetClaimReview(claim, reviewerRole, reviewerId);
+    } else if (reviewerRole == UserRole.ROLE_MEDIATOR) {
       updated =
           this.claimService.save(
               claim.toBuilder().mediatorVerified(true).updatedBy(reviewerId).build());
+    } else if (decision == ReviewerDecision.BRAND_VERIFIED) {
+      updated = brandVerifyClaim(claim, reviewerId);
     } else if (decision == ReviewerDecision.APPROVED) {
       updated =
           approveClaimWithScreenshots(claim, reviewerId, amountApprovedPaise, reviewerComment);
@@ -189,11 +220,13 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
                   .updatedAt(Instant.now())
                   .updatedBy(reviewerId)
                   .build());
+      this.campaignSlotRepository.incrementSlotsAvailableIfBelowTotal(
+          deal.getCampaignSlot().getId());
       this.claimReviewEventPublisher.publishClaimDecisionEvent(
           updated, ClaimStatus.REJECTED, reviewerComment);
     }
 
-    return new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId()));
+    return new ClaimWithDeal(updated, deal);
   }
 
   @Override
@@ -207,6 +240,53 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
     }
     return results;
+  }
+
+  @Override
+  @Transactional
+  public List<ClaimWithDeal> bulkBrandVerifyClaimReviews(
+      final Collection<UUID> claimIds, final UUID reviewerId) {
+    final List<ClaimWithDeal> results = new ArrayList<>();
+    for (final UUID claimId : claimIds) {
+      final Claim updated =
+          brandVerifyClaim(this.claimService.getById(claimId, reviewerId), reviewerId);
+      results.add(new ClaimWithDeal(updated, this.dealService.getById(updated.getDealId())));
+    }
+    return results;
+  }
+
+  /**
+   * Records a brand's sign-off. Like mediator verification this only flips a flag: the claim
+   * status, approved amount and screenshots are untouched and no decision event is published.
+   */
+  private Claim brandVerifyClaim(final Claim claim, final UUID reviewerId) {
+    return this.claimService.save(
+        claim.toBuilder().brandVerified(true).updatedBy(reviewerId).build());
+  }
+
+  /**
+   * Reopens a decided claim for review. Only an APPROVED claim can be reset — once it has moved to
+   * ready-for-accounting or further it is locked for both roles, and rejected claims are never
+   * reset (rejection is final). Brand's reset only flips its own sign-off flag back off; the claim
+   * status itself is untouched. Agency's reset reopens the claim itself, clearing both verification
+   * flags so Approve/Reject and Verify are all available again.
+   */
+  private Claim resetClaimReview(
+      final Claim claim, final UserRole reviewerRole, final UUID reviewerId) {
+    if (claim.getStatus() != ClaimStatus.APPROVED) {
+      throw new BusinessRuleViolationException("Only an approved claim can be reset for review");
+    }
+    if (reviewerRole == UserRole.ROLE_BRAND) {
+      return this.claimService.save(
+          claim.toBuilder().brandVerified(false).updatedBy(reviewerId).build());
+    }
+    return this.claimService.save(
+        claim.toBuilder()
+            .status(ClaimStatus.UNDER_REVIEW)
+            .mediatorVerified(false)
+            .brandVerified(false)
+            .updatedBy(reviewerId)
+            .build());
   }
 
   private Claim approveClaimWithScreenshots(

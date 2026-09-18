@@ -13,13 +13,19 @@ import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -101,6 +107,22 @@ class UserServiceImplTest {
   }
 
   @Test
+  void testGetNamesByIdsWhenEmpty() {
+    final Map<UUID, String> result = this.userService.getNamesByIds(Set.of());
+
+    assertEquals(Map.of(), result);
+  }
+
+  @Test
+  void testGetNamesByIdsWhenNonEmpty() {
+    when(this.mockUsersRepository.findAllById(Set.of(USER_ID))).thenReturn(List.of(USER_2));
+
+    final Map<UUID, String> result = this.userService.getNamesByIds(Set.of(USER_ID));
+
+    assertEquals(Map.of(USER_ID, USER_2.getName()), result);
+  }
+
+  @Test
   void testGetByMobileWhenFound() {
     when(this.mockUsersRepository.findByMobileAndIsDeletedFalse(MOBILE))
         .thenReturn(Optional.of(USER_2));
@@ -118,6 +140,18 @@ class UserServiceImplTest {
     final NotFoundException ex =
         assertThrows(NotFoundException.class, () -> this.userService.getByMobile(MOBILE));
     assertEquals("user not found: " + MOBILE, ex.getMessage());
+  }
+
+  @Test
+  void testSearchUsers() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    when(this.mockUsersRepository.searchByNameOrMobile(SEARCH_TERM, pageable))
+        .thenReturn(new PageImpl<>(List.of(USER_2), pageable, 1));
+
+    final var result = this.userService.searchUsers(SEARCH_TERM, pageable);
+
+    assertEquals(List.of(USER_2), result.getContent());
+    assertEquals(1, result.getTotalElements());
   }
 
   @Test

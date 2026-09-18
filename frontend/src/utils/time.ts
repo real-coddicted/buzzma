@@ -23,6 +23,15 @@ export function formatDateTime(iso: string): string {
 
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
+/** Formats time remaining until a 'YYYY-MM-DD' end date as 'X days left' / 'Ends today', or null once past. */
+export function formatDaysLeft(iso: string): string | null {
+  const end = new Date(iso.split('T')[0] + 'T23:59:59')
+  const days = Math.ceil((end.getTime() - Date.now()) / 86_400_000)
+  if (days < 0) return null
+  if (days === 0) return 'Ends today'
+  return days === 1 ? '1 day left' : `${days} days left`
+}
+
 /** Formats a 'YYYY-MM-DD' date (or a full ISO date-time) as 'Mon D, YYYY'. */
 export function formatShortDate(iso: string | null): string {
   if (!iso) return 'TBD'

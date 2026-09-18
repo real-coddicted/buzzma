@@ -11,13 +11,14 @@ type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type BackendClaimStatus = NonNullable<ClaimResponseDto['status']>
 type ClaimReviewResponseDto = components['schemas']['ClaimReviewResponseDto']
 type PageClaimReviewResponseDto = components['schemas']['PageClaimReviewResponseDto']
+export type ClaimReviewWorksheetResponseDto = components['schemas']['ClaimReviewWorksheetResponseDto']
 
 
 function toClaimStatus(status: BackendClaimStatus): ClaimStatus {
   return status
 }
 
-function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
+export function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
   const status = dto.status ?? 'ORDERED'
   return {
     id: dto.id ?? '',
@@ -31,12 +32,14 @@ function mapClaim(dto: ClaimResponseDto): ClaimReviewItem {
     claimStatus: toClaimStatus(status),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
+    brandVerified: dto.brandVerified ?? false,
     matchPct: dto.score ?? 0,
     platform: (dto.platform ?? '') as Platform,
     brandName: '',
     accountName: dto.accountName ?? undefined,
     orderedBy: dto.orderedBy ?? undefined,
     productName: dto.productName ?? dto.deal?.productName ?? undefined,
+    exchangeProduct: dto.exchangeProduct ?? undefined,
     sellerName: dto.sellerName ?? undefined,
     productPricePaise: dto.deal?.originalPricePaise ?? undefined,
     dealOfferedPricePaise: dto.deal?.offeredPricePaise ?? undefined,
@@ -72,12 +75,25 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
     claimStatus: toClaimStatus(backendStatus),
     approvalMethod: 'manual',
     mediatorVerified: dto.mediatorVerified ?? false,
+    brandVerified: dto.brandVerified ?? false,
     matchPct: dto.matchScore ?? 0,
     platform: (dto.platform ?? '') as Platform,
     brandName: dto.brandName ?? '',
     amountPaise: dto.amountPaise ?? undefined,
     amountApprovedPaise: dto.amountApprovedPaise ?? undefined,
     isUnderReview: backendStatus === 'UNDER_REVIEW',
+  }
+}
+
+/** Merges a submitReview response into an existing grid row, preserving fields the response never populates. */
+export function mergeReviewedClaim(current: ClaimReviewItem, updated: ClaimReviewItem): ClaimReviewItem {
+  return {
+    ...current,
+    ...updated,
+    campaignName: current.campaignName,
+    mediatorName: current.mediatorName,
+    brandName: current.brandName,
+    buyerName: current.buyerName,
   }
 }
 
@@ -174,6 +190,53 @@ function filenameFromContentDisposition(header: string | null): string | undefin
   return header?.match(/filename="?([^"]+)"?/)?.[1]
 }
 
+/** GET /claim-review/worksheets — lists previously uploaded claim review worksheets. */
+export async function listClaimReviewWorksheets(): Promise<ClaimReviewWorksheetResponseDto[]> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets`)
+  return (await res.json()) as ClaimReviewWorksheetResponseDto[]
+}
+
+/** POST /claim-review/worksheets — uploads an Excel worksheet of claims to be processed. */
+export async function uploadClaimReviewWorksheet(file: File): Promise<ClaimReviewWorksheetResponseDto> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets`, {
+    method: 'POST',
+    body: formData,
+  })
+  return (await res.json()) as ClaimReviewWorksheetResponseDto
+}
+
+/** GET /claim-review/worksheets/{id} — downloads the original uploaded worksheet file. */
+export async function downloadClaimReviewWorksheet(id: string, fallbackFilename: string): Promise<void> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets/${id}`)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filenameFromContentDisposition(res.headers.get('Content-Disposition')) ?? fallbackFilename
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+export type ClaimReviewWorksheetRowResponseDto = components['schemas']['ClaimReviewWorksheetRowResponseDto']
+
+export interface PagedClaimReviewWorksheetRows {
+  items: ClaimReviewWorksheetRowResponseDto[]
+  totalPages: number
+}
+
+/** GET /claim-review/worksheets/{id}/rows — lists the parsed rows for a worksheet, paginated. */
+export async function listClaimReviewWorksheetRows(
+  worksheetId: string,
+  page: number,
+  size: number
+): Promise<PagedClaimReviewWorksheetRows> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/worksheets/${worksheetId}/rows?page=${page - 1}&size=${size}`)
+  const data = (await res.json()) as components['schemas']['PageClaimReviewWorksheetRowResponseDto']
+  return { items: data.content ?? [], totalPages: data.totalPages ?? 1 }
+}
+
 type ScoredValue = components['schemas']['ScoredValue']
 
 export interface SubmitClaimParams {
@@ -184,6 +247,7 @@ export interface SubmitClaimParams {
   amount: number
   productName: string
   sellerName?: string
+  exchangeProduct?: string
   orderDate: string   // YYYY-MM-DD from date picker
   accountName: string
   screenshot: File
@@ -206,6 +270,56 @@ export async function submitReturn(claimId: string, screenshot: File): Promise<C
 
   if (!res.ok) {
     let message = 'Failed to submit return screenshot. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export async function submitDelivery(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/delivery`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to submit delivery screenshot. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export async function submitSellerFeedback(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/seller-feedback`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to submit seller feedback screenshot. Please try again.'
     try {
       const body = (await res.clone().json()) as Record<string, unknown>
       if (typeof body['message'] === 'string') message = body['message']
@@ -311,6 +425,7 @@ export async function updateOrderScreenshot(
     amount: number
     productName: string
     sellerName?: string
+    exchangeProduct?: string
     orderDate: string
     accountName: string
   }
@@ -324,6 +439,7 @@ export async function updateOrderScreenshot(
   formData.append('amount', String(rupeesToPaise(fields.amount)))
   formData.append('productName', fields.productName)
   if (fields.sellerName) formData.append('sellerName', fields.sellerName)
+  if (fields.exchangeProduct) formData.append('exchangeProduct', fields.exchangeProduct)
   formData.append('orderDate', fields.orderDate.replace(/-/g, ''))
   formData.append('accountName', fields.accountName)
 
@@ -348,7 +464,10 @@ export async function updateOrderScreenshot(
   return (await res.json()) as ClaimResponseDto
 }
 
-type ScreenshotVerificationAction = 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED' | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
+type ScreenshotVerificationAction =
+  | 'SCREENSHOT_VERIFICATION_STATUS_PENDING'
+  | 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED'
+  | 'SCREENSHOT_VERIFICATION_STATUS_REJECTED'
 
 export async function reviewScreenshot(screenshotId: string, claimId: string, action: ScreenshotVerificationAction, reviewerComment?: string): Promise<ClaimReviewItem> {
   const res = await fetchWithAuth(`${API_BASE}/claims/screenshots/review`, {
@@ -392,9 +511,26 @@ export async function bulkApproveClaimReviews(
   return ((await res.json()) as ClaimReviewResponseDto[]).map(mapClaimReview)
 }
 
+/** POST /claim-review/markReadyForAccounting — marks all of the agency's APPROVED claims as READY_FOR_ACCOUNTING. */
+export async function markClaimsReadyForAccounting(): Promise<{ updatedCount: number }> {
+  const res = await fetchWithAuth(`${API_BASE}/claim-review/markReadyForAccounting`, {
+    method: 'POST',
+  })
+  if (!res.ok) {
+    let message = 'Failed to mark claims ready for accounting.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  const data = (await res.json()) as { updatedCount?: number }
+  return { updatedCount: data.updatedCount ?? 0 }
+}
+
 export async function submitClaimReview(
   claimId: string,
-  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED',
+  decision: 'APPROVED' | 'REJECTED' | 'VERIFIED' | 'BRAND_VERIFIED' | 'PENDING',
   comment?: string,
   amountApprovedPaise?: number
 ): Promise<ClaimReviewItem> {
@@ -423,6 +559,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   formData.append('amount', String(rupeesToPaise(params.amount)))
   formData.append('productName', params.productName)
   if (params.sellerName) formData.append('sellerName', params.sellerName)
+  if (params.exchangeProduct) formData.append('exchangeProduct', params.exchangeProduct)
   // Convert YYYY-MM-DD to YYYYMMDD integer expected by the backend
   formData.append('orderDate', params.orderDate.replace(/-/g, ''))
   formData.append('accountName', params.accountName)

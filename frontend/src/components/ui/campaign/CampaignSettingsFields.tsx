@@ -9,6 +9,7 @@ interface FormSlice {
   returnWindowDays: string
   openToAll: boolean
   assignees: LinkedEntity[]
+  affiliateLinkAllowed: boolean
 }
 
 interface Props {
@@ -32,6 +33,20 @@ export function CampaignSettingsFields({ form, errors, set, readOnly }: Props) {
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-neon-orange">Campaign Settings</h3>
+      <div>
+        <label className={labelClass}>Affiliate link allowed by mediator?</label>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
+            <input type="radio" name="affiliateLinkAllowed" checked={form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', true)} disabled={readOnly} />
+            Yes
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-ink-light-primary dark:text-ink-dark-primary">
+            <input type="radio" name="affiliateLinkAllowed" checked={!form.affiliateLinkAllowed} onChange={() => set('affiliateLinkAllowed', false)} disabled={readOnly} />
+            No
+          </label>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Total Slots</label>

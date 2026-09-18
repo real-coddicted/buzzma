@@ -1,11 +1,59 @@
 import { PLATFORM_LABELS } from '../../../constants/campaigns'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
-import type { Platform, Deal, ClaimReviewItem } from '../../../types'
+import type { Platform, Deal, ClaimReviewItem, ClaimStatus, ScreenshotVerificationStatus } from '../../../types'
 import type { ClaimProofItem } from './ClaimProofGallery'
 
-/** Agencies and brands can approve/reject claims; brands are scoped server-side to campaigns shared with them. */
+/**
+ * Agencies and brands can review claims — reviewing individual screenshots and (agency-only)
+ * approving/rejecting the claim itself. Brands are scoped server-side to campaigns shared with
+ * them.
+ */
 export function canReviewClaims(userRole: string | undefined): boolean {
   return userRole === 'ROLE_AGENCY' || userRole === 'ROLE_BRAND'
+}
+
+/**
+ * Agencies hold sole final-decision authority: only they approve or reject a claim and set the
+ * approved amount. Brands can only verify (their own sign-off), never approve or reject.
+ */
+export function canApproveClaims(userRole: string | undefined): boolean {
+  return userRole === 'ROLE_AGENCY'
+}
+
+/**
+ * A claim reaches one of these statuses once it has been decided and moved to accounting or
+ * beyond — neither claim review nor screenshot review can touch it anymore for either role.
+ */
+export function isClaimLocked(status: ClaimStatus | undefined): boolean {
+  return (
+    status === 'APPROVED' ||
+    status === 'REJECTED' ||
+    status === 'READY_FOR_ACCOUNTING' ||
+    status === 'REWARD_PENDING' ||
+    status === 'COMPLETED' ||
+    status === 'FAILED'
+  )
+}
+
+/**
+ * Reset Review is available to both Agency and Brand, but only while the claim is still
+ * APPROVED — rejected claims are never reset, and once the claim moves further (ready for
+ * accounting or beyond) it is locked for both roles.
+ */
+export function canResetClaim(userRole: string | undefined, claimStatus: ClaimStatus): boolean {
+  return canReviewClaims(userRole) && claimStatus === 'APPROVED'
+}
+
+/**
+ * The screenshot review Submit button is a no-op guard: disabled once the claim itself is
+ * locked, or when the selected status already matches what's stored on the server.
+ */
+export function isReviewSubmitDisabled(
+  claimLocked: boolean,
+  selectedStatus: ScreenshotVerificationStatus,
+  serverStatus: ScreenshotVerificationStatus,
+): boolean {
+  return claimLocked || selectedStatus === serverStatus
 }
 
 export function formatExtractedValue(key: string, raw: string): string {

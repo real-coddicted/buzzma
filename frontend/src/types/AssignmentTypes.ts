@@ -18,6 +18,7 @@ export interface AssignmentSummary {
   campaignCode?: string
   startDate?: string
   endDate?: string
+  agencyName?: string
 }
 
 export interface AssignmentItem extends AssignmentSummary {

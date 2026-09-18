@@ -3,7 +3,6 @@ package com.coddicted.buzzma.support.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.support.dto.TicketResponseDto;
 import com.coddicted.buzzma.support.entity.Ticket;
@@ -19,6 +18,7 @@ import com.coddicted.buzzma.support.service.TicketCategoryService;
 import com.coddicted.buzzma.support.service.TicketCommentService;
 import com.coddicted.buzzma.support.service.TicketService;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,8 +70,8 @@ class TicketControllerTest {
             .build();
     when(this.ticketService.getById(TICKET_ID)).thenReturn(ticket);
 
-    when(this.userService.getByIds(List.of(REQUESTER_ID)))
-        .thenReturn(List.of(BuzzmaUser.builder().id(REQUESTER_ID).name(RAISED_BY_NAME).build()));
+    when(this.userService.getNamesByIds(List.of(REQUESTER_ID)))
+        .thenReturn(Map.of(REQUESTER_ID, RAISED_BY_NAME));
 
     when(this.ticketCategoryService.getById(CATEGORY_ID))
         .thenReturn(TicketCategory.builder().id(CATEGORY_ID).name("Claim").build());

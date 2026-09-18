@@ -2,7 +2,7 @@ import type { CampaignType } from '../../../../types'
 import { CAMPAIGN_TYPE_LABELS } from '../../../../constants/campaigns'
 import { TYPE_COLORS } from './chipColors'
 
-const TYPES: CampaignType[] = ['CAMPAIGN_TYPE_RATING', 'CAMPAIGN_TYPE_REVIEW', 'CAMPAIGN_TYPE_ORDER', 'CAMPAIGN_TYPE_DISCOUNT']
+const TYPES: CampaignType[] = ['CAMPAIGN_TYPE_RATING', 'CAMPAIGN_TYPE_REVIEW', 'CAMPAIGN_TYPE_ORDER', 'CAMPAIGN_TYPE_DISCOUNT', 'CAMPAIGN_TYPE_APP_REVIEW']
 
 const inactive = 'border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover'
 

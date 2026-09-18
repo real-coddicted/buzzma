@@ -123,13 +123,9 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
         claim={effectiveClaim}
         campaignTitle={deal?.title}
         campaignPricePaise={deal?.offeredPricePaise}
-        onApproveScreenshot={item =>
-          reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_VERIFIED')
-            .then(updated => setClaimDetail(updated))
-            .catch(err => setError((err as Error).message))
-        }
-        onRejectScreenshot={(item, comment) =>
-          reviewScreenshot(item.id, claim.id, 'SCREENSHOT_VERIFICATION_STATUS_REJECTED', comment)
+        isExchangeCampaign={deal?.dealType === 'CAMPAIGN_TYPE_EXCHANGE'}
+        onReviewScreenshot={(item, status, comment) =>
+          reviewScreenshot(item.id, claim.id, status, comment)
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
@@ -143,8 +139,18 @@ export function ClaimDetails({ claim, onBack }: ClaimDetailsProps) {
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }
+        onBrandVerifiedClaim={() =>
+          submitClaimReview(claim.id, 'BRAND_VERIFIED')
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
         onRejectClaim={comment =>
           submitClaimReview(claim.id, 'REJECTED', comment)
+            .then(updated => setClaimDetail(updated))
+            .catch(err => setError((err as Error).message))
+        }
+        onResetClaim={() =>
+          submitClaimReview(claim.id, 'PENDING')
             .then(updated => setClaimDetail(updated))
             .catch(err => setError((err as Error).message))
         }

@@ -16,7 +16,7 @@
     "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "name": "Test Product",
     "brandName": "Test Brand",
-    "imageUrl": "https://example.com/image.jpg",
+    "imageUrls": ["https://example.com/image.jpg"],
     "productLink": "https://example.com/product",
     "pricePaise": 99900
   }

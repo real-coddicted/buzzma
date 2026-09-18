@@ -39,6 +39,7 @@ import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -529,7 +530,8 @@ class CampaignServiceImplTest {
     when(this.mockCampaignSlotRepository.findByCampaignIdInAndIsDeletedFalse(
             List.of(CAMPAIGN_ID_1)))
         .thenReturn(List.of(SLOT_1));
-    when(this.mockUserService.getByIds(List.of(OWNER_ID))).thenReturn(List.of(OWNER_USER));
+    when(this.mockUserService.getNamesByIds(List.of(OWNER_ID)))
+        .thenReturn(Map.of(OWNER_ID, OWNER_USER.getName()));
 
     final Page<CampaignSummary> result =
         this.campaignService.findSharedCampaigns(

@@ -2,8 +2,12 @@ package com.coddicted.buzzma.identity.service;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -14,6 +18,9 @@ public interface UserService {
   /** Of {@code ids}, only those users directly connected (as parent or child) to {@code userId}. */
   List<BuzzmaUser> getConnectedByIds(List<UUID> ids, UUID userId);
 
+  /** Map of user id to name, for the given {@code ids}. */
+  Map<UUID, String> getNamesByIds(Collection<UUID> ids);
+
   // Todo: pass requesterId in write methods
   BuzzmaUser create(BuzzmaUser user);
 
@@ -22,6 +29,9 @@ public interface UserService {
   BuzzmaUser updateProfile(String email, UUID requesterId);
 
   BuzzmaUser getByMobile(String mobile);
+
+  /** Case-insensitive partial match on name or mobile. */
+  Page<BuzzmaUser> searchUsers(String term, Pageable pageable);
 
   BuzzmaUser getByRole(UserRole role);
 

@@ -17,6 +17,8 @@ public final class Fixtures {
 
   static final String MOBILE = "9876543210";
 
+  static final String SEARCH_TERM = "alice";
+
   static final String USER_CODE = "test-user-code";
 
   static final BuzzmaUser USER_1 =

@@ -443,12 +443,50 @@ export function IconFileSpreadsheet({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconUpload({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3v12" />
+      <path d="M7 8l5-5 5 5" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
+export function IconDownload({ size = 16, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
 export function IconWarning({ size = 18, ...p }: IconProps) {
   return (
     <svg {...base(size, p)}>
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  )
+}
+
+export function IconSparkle({ size = 14, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+      <path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75L19 15z" />
+    </svg>
+  )
+}
+
+export function IconClock({ size = 14, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
     </svg>
   )
 }

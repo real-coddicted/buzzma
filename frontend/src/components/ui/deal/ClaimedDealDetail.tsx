@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
 import type { StepperStep } from '../Stepper'
-import { fetchStepConfig } from '../../../api/campaignApi'
+import { fetchCampaignStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps, getStepVerificationStatuses } from '../../../constants/claimSteps'
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext'
 import { StepperHeader } from '../StepperHeader'
@@ -26,12 +26,11 @@ export function ClaimedDealDetail({ deal, onBack, claimResponse }: ClaimedDealDe
   const [rawStepTypes, setRawStepTypes] = useState<string[]>([])
 
   useEffect(() => {
-    fetchStepConfig().then(config => {
-      const cfg = config[deal.dealType] ?? []
+    fetchCampaignStepConfig(deal.campaignId).then(cfg => {
       setSteps(toStepperSteps(cfg))
       setRawStepTypes(cfg.map(s => s.type))
     })
-  }, [deal.dealType])
+  }, [deal.campaignId])
 
   const didLandOnRejected = useRef(false)
   useEffect(() => {

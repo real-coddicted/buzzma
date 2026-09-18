@@ -4,13 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.DataValidationConstraint;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -31,7 +34,7 @@ public class ExcelReportWriter {
     try {
       final Sheet sheet = workbook.createSheet(sheetName);
       writeHeaderRow(sheet, columns, headerStyle(workbook));
-      writeDataRows(sheet, columns, rows);
+      writeDataRows(workbook, sheet, columns, rows, hyperlinkStyle(workbook));
       writeDropdowns(sheet, columns, rows.size());
       return toBytes(workbook);
     } catch (final IOException e) {
@@ -53,12 +56,26 @@ public class ExcelReportWriter {
   }
 
   private <T> void writeDataRows(
-      final Sheet sheet, final List<ExcelColumn<T>> columns, final List<T> rows) {
+      final SXSSFWorkbook workbook,
+      final Sheet sheet,
+      final List<ExcelColumn<T>> columns,
+      final List<T> rows,
+      final CellStyle hyperlinkStyle) {
+    final CreationHelper creationHelper = workbook.getCreationHelper();
     for (int r = 0; r < rows.size(); r++) {
       final Row row = sheet.createRow(r + 1);
       final T rowData = rows.get(r);
       for (int c = 0; c < columns.size(); c++) {
-        setCellValue(row.createCell(c), columns.get(c).valueExtractor().apply(rowData));
+        final ExcelColumn<T> column = columns.get(c);
+        final Object value = column.valueExtractor().apply(rowData);
+        final Cell cell = row.createCell(c);
+        setCellValue(cell, value);
+        if (column.hyperlink() && value != null) {
+          final Hyperlink link = creationHelper.createHyperlink(HyperlinkType.URL);
+          link.setAddress(value.toString());
+          cell.setHyperlink(link);
+          cell.setCellStyle(hyperlinkStyle);
+        }
       }
     }
   }
@@ -103,6 +120,15 @@ public class ExcelReportWriter {
     style.setFont(boldFont);
     style.setFillForegroundColor(IndexedColors.BLUE.getIndex());
     style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    return style;
+  }
+
+  private CellStyle hyperlinkStyle(final SXSSFWorkbook workbook) {
+    final Font linkFont = workbook.createFont();
+    linkFont.setUnderline(Font.U_SINGLE);
+    linkFont.setColor(IndexedColors.BLUE.getIndex());
+    final CellStyle style = workbook.createCellStyle();
+    style.setFont(linkFont);
     return style;
   }
 

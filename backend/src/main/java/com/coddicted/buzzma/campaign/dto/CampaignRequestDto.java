@@ -2,7 +2,11 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
+import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -26,6 +30,9 @@ public class CampaignRequestDto {
   @NotNull UUID ownerId;
 
   @NotNull Platform platform;
+
+  /** Defaults to ECOMMERCE until campaign creation lets the owner choose it (App Promotion etc). */
+  @Nullable @Builder.Default PromotionCategory category = PromotionCategory.ECOMMERCE;
 
   @NotBlank String productName;
 
@@ -62,6 +69,12 @@ public class CampaignRequestDto {
   @Nullable String termsAndConditions;
 
   @Nullable String sellerName;
+
+  @Nullable List<CampaignStepType> requiredSteps;
+
+  @Nullable List<Reward> rewards;
+
+  @Nullable List<ExchangeProduct> exchangeProducts;
 
   @Nullable CampaignAction action;
 }

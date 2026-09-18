@@ -116,6 +116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/agency/exchange-products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_1"];
+        post?: never;
+        delete: operations["delete_5"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me": {
         parameters: {
             query?: never;
@@ -516,6 +532,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/{id}/seller-feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitSellerFeedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/claims/{id}/review": {
         parameters: {
             query?: never;
@@ -558,6 +590,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["submitRating"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/{id}/delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitDelivery"];
         delete?: never;
         options?: never;
         head?: never;
@@ -612,6 +660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/app-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createAppReviewClaim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/claim-review/worksheets": {
         parameters: {
             query?: never;
@@ -622,6 +686,22 @@ export interface paths {
         get: operations["listWorkbooks"];
         put?: never;
         post: operations["uploadWorksheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-review/markReadyForAccounting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["markReadyForAccounting"];
         delete?: never;
         options?: never;
         head?: never;
@@ -884,6 +964,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/agency/exchange-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_5"];
+        put?: never;
+        post: operations["create_7"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets/{id}/status": {
         parameters: {
             query?: never;
@@ -939,7 +1035,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["searchByMobile"];
+        get: operations["searchUsers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1348,6 +1444,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/deals/active/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getActiveDealById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/connections/parent": {
         parameters: {
             query?: never;
@@ -1436,6 +1548,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["downloadWorksheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claim-review/worksheets/{id}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listWorksheetRows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/campaigns/{id}/step-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getStepConfigForCampaign"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1704,6 +1848,20 @@ export interface components {
         UserSettingsFlagsResponseDto: {
             flags?: components["schemas"]["UserSettingsFlagDto"][];
         };
+        ExchangeProductRequestDto: {
+            name: string;
+        };
+        ExchangeProductResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            agencyId?: string;
+            name?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         UpdateProfileRequestDto: {
             email: string;
         };
@@ -1841,9 +1999,9 @@ export interface components {
         ClaimReviewFilterRequestDto: {
             campaignIds?: string[];
             mediatorIds?: string[];
-            claimStatuses?: ("ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            claimStatuses?: ("ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
         };
         RecordPaymentRequestDto: {
             /** @enum {string} */
@@ -1924,7 +2082,7 @@ export interface components {
         };
         ExtractionResult: {
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             orderId?: string;
             orderDate?: string;
             productName?: string;
@@ -1988,11 +2146,12 @@ export interface components {
             /** Format: uuid */
             dealId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             orderId: string;
             amount: number;
             productName: string;
             sellerName?: string;
+            exchangeProduct?: string;
             /** Format: int32 */
             orderDate?: number;
             accountName: string;
@@ -2010,7 +2169,7 @@ export interface components {
             code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -2018,6 +2177,7 @@ export interface components {
             amountApprovedPaise?: number;
             productName?: string;
             sellerName?: string;
+            exchangeProduct?: string;
             /** Format: int32 */
             orderDate?: number;
             accountName?: string;
@@ -2025,13 +2185,14 @@ export interface components {
             reviewUrl?: string;
             screenshots?: components["schemas"]["ClaimScreenshotResponseDto"][];
             mediatorVerified?: boolean;
+            brandVerified?: boolean;
             /** Format: int32 */
             score?: number;
             reviewerComments?: string;
             /** Format: uuid */
             reviewerId?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -2042,7 +2203,7 @@ export interface components {
             id?: string;
             storageKey?: string;
             /** @enum {string} */
-            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
+            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
             /** @enum {string} */
             verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
             /** Format: int32 */
@@ -2067,9 +2228,9 @@ export interface components {
             productUrl?: string;
             code?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             originalPricePaise?: number;
             offeredPricePaise?: number;
             /** Format: int32 */
@@ -2082,20 +2243,28 @@ export interface components {
             startDate?: number;
             /** Format: int32 */
             endDate?: number;
+            exchangeProducts?: components["schemas"]["ExchangeProduct"][];
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+        };
+        ExchangeProduct: {
+            productName?: string;
+            /** Format: url */
+            productImageUrl?: string;
         };
         UpdateClaimRequestDto: {
             /** Format: uuid */
             screenshotId: string;
             /** @enum {string} */
-            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN";
+            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
             /** Format: binary */
             screenshot: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             orderId?: string;
             amount?: number;
             productName?: string;
             sellerName?: string;
+            exchangeProduct?: string;
             /** Format: int32 */
             orderDate?: number;
             accountName?: string;
@@ -2105,7 +2274,7 @@ export interface components {
             /** Format: uuid */
             claimId?: string;
             /** @enum {string} */
-            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED";
+            reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED" | "BRAND_VERIFIED" | "PENDING";
             reviewerComment?: string;
             amountApprovedPaise?: number;
         };
@@ -2132,6 +2301,8 @@ export interface components {
             campaignId?: string;
             campaignName?: string;
             campaignCode?: string;
+            /** @enum {string} */
+            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: uuid */
             dealId?: string;
             /** Format: uuid */
@@ -2145,14 +2316,17 @@ export interface components {
             claimId?: string;
             claimCode?: string;
             /** @enum {string} */
-            claimStatus?: "ORDERED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            claimStatus?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
+            exchangeProduct?: string;
+            reviewUrl?: string;
             mediatorVerified?: boolean;
+            brandVerified?: boolean;
             matchScore?: number;
             amountPaise?: number;
             amountApprovedPaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** Format: int32 */
             orderDate?: number;
             brandName?: string;
@@ -2162,10 +2336,10 @@ export interface components {
             updatedAt?: string;
         };
         PageClaimReviewResponseDto: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
             first?: boolean;
             last?: boolean;
             /** Format: int32 */
@@ -2174,21 +2348,21 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"][];
-            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -2196,6 +2370,16 @@ export interface components {
             ascending?: boolean;
             property?: string;
             ignoreCase?: boolean;
+        };
+        CreateAppReviewClaimRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
+            /** Format: uuid */
+            dealId: string;
+            productName: string;
+            accountName: string;
+            /** Format: binary */
+            screenshot: string;
         };
         ClaimReviewWorksheetResponseDto: {
             /** Format: uuid */
@@ -2209,6 +2393,10 @@ export interface components {
             status?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
             /** Format: date-time */
             createdAt?: string;
+        };
+        MarkClaimsReadyForAccountingResponseDto: {
+            /** Format: int32 */
+            updatedCount?: number;
         };
         CampaignAssignmentRequestDto: {
             /** Format: uuid */
@@ -2227,7 +2415,9 @@ export interface components {
             /** Format: uuid */
             ownerId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
             productName: string;
             productImageUrl: string;
             productUrl: string;
@@ -2238,7 +2428,7 @@ export interface components {
             /** Format: int32 */
             endDate?: number;
             /** @enum {string} */
-            campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             campaignPricePaise: number;
@@ -2252,8 +2442,16 @@ export interface components {
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+            rewards?: components["schemas"]["Reward"][];
+            exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             /** @enum {string} */
             action?: "CAMPAIGN_ACTION_PUBLISH" | "CAMPAIGN_ACTION_PAUSE" | "CAMPAIGN_ACTION_RESUME" | "CAMPAIGN_ACTION_CLOSE" | "CAMPAIGN_ACTION_COMPLETE";
+        };
+        Reward: {
+            /** @enum {string} */
+            type?: "CASHBACK";
+            value?: string;
         };
         CampaignAssignmentResponseDto: {
             /** Format: uuid */
@@ -2276,7 +2474,7 @@ export interface components {
             /** Format: int32 */
             totalSlots?: number;
             /** @enum {string} */
-            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** Format: int32 */
@@ -2293,12 +2491,15 @@ export interface components {
             productLink?: string;
             productPricePaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             campaignPricePaise?: number;
             /** Format: int32 */
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
+            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+            rewards?: components["schemas"]["Reward"][];
+            exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             openToAll?: boolean;
             affiliateLinkAllowed?: boolean;
             commissionToAllPaise?: number;
@@ -2329,8 +2530,8 @@ export interface components {
         };
         CampaignSearchRequestDto: {
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO")[];
-            types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
+            types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE")[];
             statuses?: ("CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED")[];
             /** Format: int32 */
             fromDate?: number;
@@ -2353,9 +2554,9 @@ export interface components {
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: int32 */
             totalSlots?: number;
             /** Format: int32 */
@@ -2380,7 +2581,7 @@ export interface components {
             title?: string;
             productBrandName?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
         };
         UserSignInRequestDto: {
             mobile: string;
@@ -2472,6 +2673,15 @@ export interface components {
         TicketStatusUpdateRequestDto: {
             /** @enum {string} */
             action: "TICKET_ACTION_CLOSE" | "TICKET_ACTION_MARK_RESOLVE" | "TICKET_ACTION_REQUEST_ADDITIONAL_INFO" | "TICKET_ACTION_INFO_PROVIDED" | "TICKET_ACTION_REOPEN";
+        };
+        PagedUsersResponseDto: {
+            items?: components["schemas"]["UserSummaryDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         TicketCategoryResponseDto: {
             /** Format: uuid */
@@ -2667,6 +2877,53 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        ClaimReviewWorksheetRowResponseDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            worksheetId?: string;
+            campaign?: string;
+            campaignCode?: string;
+            brand?: string;
+            mediator?: string;
+            buyer?: string;
+            profileName?: string;
+            platform?: string;
+            orderId?: string;
+            orderDate?: string;
+            orderAmount?: string;
+            claimCode?: string;
+            claimStatus?: string;
+            matchScore?: string;
+            amountApproved?: string;
+            brandReview?: string;
+            remarks?: string;
+            /** @enum {string} */
+            processingStatus?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
+            errorRemarks?: string;
+            /** Format: int32 */
+            retryCount?: number;
+            /** Format: date-time */
+            lastAttemptedAt?: string;
+        };
+        PageClaimReviewWorksheetRowResponseDto: {
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["ClaimReviewWorksheetRowResponseDto"][];
+            /** Format: int32 */
+            number?: number;
+            sort?: components["schemas"]["SortObject"][];
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            empty?: boolean;
+        };
         CampaignStepDto: {
             type?: string;
             label?: string;
@@ -2738,9 +2995,9 @@ export interface components {
             productName?: string;
             productImageUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
@@ -2753,6 +3010,9 @@ export interface components {
             endDate?: number;
             dealCode?: string;
             campaignCode?: string;
+            /** Format: uuid */
+            agencyId?: string;
+            agencyName?: string;
         };
         PagedAssignmentsResponseDto: {
             items?: components["schemas"]["AssignmentSummaryResponseDto"][];
@@ -2776,9 +3036,9 @@ export interface components {
             productImageUrl?: string;
             productUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
@@ -2796,6 +3056,9 @@ export interface components {
             sellerName?: string;
             affiliateLinkAllowed?: boolean;
             dealCode?: string;
+            /** Format: uuid */
+            agencyId?: string;
+            agencyName?: string;
         };
         CommissionResponseDto: {
             /** Format: uuid */
@@ -3016,6 +3279,52 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeProductRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExchangeProductResponseDto"];
+                };
+            };
+        };
+    };
+    delete_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -3766,6 +4075,35 @@ export interface operations {
             };
         };
     };
+    submitSellerFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
     submitReview: {
         parameters: {
             query?: {
@@ -3827,6 +4165,35 @@ export interface operations {
         };
     };
     submitRating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    submitDelivery: {
         parameters: {
             query?: never;
             header?: never;
@@ -3929,6 +4296,28 @@ export interface operations {
             };
         };
     };
+    createAppReviewClaim: {
+        parameters: {
+            query: {
+                request: components["schemas"]["CreateAppReviewClaimRequestDto"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
     listWorkbooks: {
         parameters: {
             query?: never;
@@ -3972,6 +4361,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClaimReviewWorksheetResponseDto"];
+                };
+            };
+        };
+    };
+    markReadyForAccounting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MarkClaimsReadyForAccountingResponseDto"];
                 };
             };
         };
@@ -4382,6 +4791,50 @@ export interface operations {
             };
         };
     };
+    list_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExchangeProductResponseDto"][];
+                };
+            };
+        };
+    };
+    create_7: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeProductRequestDto"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExchangeProductResponseDto"];
+                };
+            };
+        };
+    };
     updateStatus: {
         parameters: {
             query?: never;
@@ -4498,10 +4951,12 @@ export interface operations {
             };
         };
     };
-    searchByMobile: {
+    searchUsers: {
         parameters: {
             query: {
-                mobile: string;
+                q: string;
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -4515,7 +4970,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserSummaryDto"];
+                    "*/*": components["schemas"]["PagedUsersResponseDto"];
                 };
             };
         };
@@ -5084,6 +5539,28 @@ export interface operations {
             };
         };
     };
+    getActiveDealById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DealResponseDto"];
+                };
+            };
+        };
+    };
     listParentConnections: {
         parameters: {
             query?: {
@@ -5212,6 +5689,53 @@ export interface operations {
             };
         };
     };
+    listWorksheetRows: {
+        parameters: {
+            query: {
+                status?: "PENDING" | "IN_PROGRESS" | "SUCCESS" | "ERROR";
+                pageable: components["schemas"]["Pageable"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageClaimReviewWorksheetRowResponseDto"];
+                };
+            };
+        };
+    };
+    getStepConfigForCampaign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CampaignStepDto"][];
+                };
+            };
+        };
+    };
     getStepConfig: {
         parameters: {
             query?: never;
@@ -5227,9 +5751,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": {
-                        [key: string]: components["schemas"]["CampaignStepDto"][];
-                    };
+                    "*/*": components["schemas"]["CampaignStepDto"][];
                 };
             };
         };

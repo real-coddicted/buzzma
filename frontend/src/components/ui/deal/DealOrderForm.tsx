@@ -24,6 +24,9 @@ interface DealOrderFormProps {
   claimValues?: Partial<FormFields>
   resubmit?: ResubmitConfig
   sellerNameOptional?: boolean
+  /** Exchange product names configured on the campaign. When present & non-empty, a mandatory
+   *  "Exchange Product" dropdown is shown (exchange-type campaigns only). */
+  exchangeProductOptions?: string[]
 }
 
 export interface FormFields {
@@ -32,6 +35,7 @@ export interface FormFields {
   amount: string
   productName: string
   sellerName: string
+  exchangeProduct: string
   orderDate: string
   accountName: string
 }
@@ -44,13 +48,14 @@ const scoreKeyMap: Partial<Record<string, keyof FormFields>> = {
   amount:      'amount',
 }
 
-export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit, sellerNameOptional = false }: DealOrderFormProps) {
+export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit, sellerNameOptional = false, exchangeProductOptions }: DealOrderFormProps) {
   const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
     orderId:     '',
     amount:      '',
     productName: '',
     sellerName:  '',
+    exchangeProduct: '',
     orderDate:   '',
     accountName: '',
     ...claimValues,
@@ -113,10 +118,21 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
     setFieldScores(scores)
   }
 
+  const campaignExchangeOptions = exchangeProductOptions ?? []
+  const hasExchangeProducts = campaignExchangeOptions.length > 0
+  // Keep a previously-saved value visible even if the agency later edited the campaign's product list.
+  const exchangeOptions = fields.exchangeProduct && !campaignExchangeOptions.includes(fields.exchangeProduct)
+    ? [fields.exchangeProduct, ...campaignExchangeOptions]
+    : campaignExchangeOptions
+
   const isValid =
     screenshotFile !== null &&
     !isExtracting &&
-    Object.entries(fields).every(([key, v]) => (sellerNameOptional && key === 'sellerName') || v.trim() !== '')
+    Object.entries(fields).every(([key, v]) => {
+      if (sellerNameOptional && key === 'sellerName') return true
+      if (key === 'exchangeProduct') return !hasExchangeProducts || v.trim() !== ''
+      return v.trim() !== ''
+    })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -132,6 +148,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             amount:      parseFloat(fields.amount),
             productName: fields.productName,
             sellerName:  sellerNameOptional ? undefined : fields.sellerName,
+            exchangeProduct: fields.exchangeProduct || undefined,
             orderDate:   fields.orderDate,
             accountName: fields.accountName,
           })
@@ -143,6 +160,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             amount:          parseFloat(fields.amount),
             productName:     fields.productName,
             sellerName:      sellerNameOptional ? undefined : fields.sellerName,
+            exchangeProduct: fields.exchangeProduct || undefined,
             orderDate:       fields.orderDate,
             accountName:     fields.accountName,
             screenshot:      screenshotFile,
@@ -196,6 +214,20 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
         <Field label="Order ID"     placeholder="e.g. 403-1234567-8901234" value={fields.orderId}     onChange={set('orderId')}    error={extractionErrors.orderId}    readOnly={readOnly} />
         <Field label="Amount"       placeholder="e.g. 1499"                value={fields.amount}      onChange={set('amount')}      error={extractionErrors.amount}     score={fieldScores.amount}     readOnly={readOnly} />
         <Field label="Product Name" placeholder="Enter product name"        value={fields.productName} onChange={set('productName')} error={extractionErrors.productName} score={fieldScores.productName} readOnly={readOnly} />
+        {hasExchangeProducts && (
+          <Field
+            as="select"
+            label="Exchange Product"
+            placeholder="Select exchange product"
+            value={fields.exchangeProduct}
+            onChange={set('exchangeProduct')}
+            readOnly={readOnly}
+            options={[
+              { value: '', label: 'Select exchange product' },
+              ...exchangeOptions.map(name => ({ value: name, label: name })),
+            ]}
+          />
+        )}
         {!sellerNameOptional && <Field label="Seller Name"  placeholder="Enter seller name"         value={fields.sellerName}  onChange={set('sellerName')}  error={extractionErrors.sellerName}  score={fieldScores.sellerName}  readOnly={readOnly} />}
 
         <div>

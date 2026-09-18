@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0005-0000-0000-000000000001",
     "name": "boAt Rockerz 450 Wireless Headphones",
-    "imageUrl": "https://m.media-amazon.com/images/I/61EtyKDXzQL.jpg",
+    "imageUrls": ["https://m.media-amazon.com/images/I/61EtyKDXzQL.jpg"],
     "productLink": "https://www.amazon.in/dp/B08FG4CVNT",
     "pricePaise": 149900
   },

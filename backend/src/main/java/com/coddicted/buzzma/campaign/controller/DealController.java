@@ -8,11 +8,10 @@ import com.coddicted.buzzma.campaign.mapper.DealMapper;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,11 +64,7 @@ public class DealController {
         ownerIds.isEmpty()
             ? Page.empty(PageRequest.of(page, size))
             : this.dealService.getActiveDeals(ownerIds, requesterId, page, size);
-    final Map<UUID, String> ownerNames =
-        ownerIds.isEmpty()
-            ? Map.of()
-            : this.userService.getByIds(new ArrayList<>(ownerIds)).stream()
-                .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
     final List<DealResponseDto> items =
         this.dealMapper.toDealResponse(dealsPage.getContent()).stream()
             .map(item -> item.toBuilder().ownerName(ownerNames.get(item.getOwnerId())).build())
@@ -79,6 +74,27 @@ public class DealController {
         .total(dealsPage.getTotalElements())
         .page(page)
         .totalPages(dealsPage.getTotalPages())
+        .build();
+  }
+
+  @GetMapping("/active/{id}")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public DealResponseDto getActiveDealById(
+      @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
+    final Set<UUID> ownerIds =
+        this.connectionService
+            .getConnectionsByToUserIdAndStatus(
+                requesterId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+            .stream()
+            .map(view -> view.getConnection().getFromUserId())
+            .collect(Collectors.toSet());
+    final Deal deal =
+        this.dealService
+            .getActiveDealById(id, ownerIds)
+            .orElseThrow(() -> new NotFoundException("Deal not found: " + id));
+    final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
+    return this.dealMapper.toDealResponse(deal).toBuilder()
+        .ownerName(ownerNames.get(deal.getOwnerId()))
         .build();
   }
 

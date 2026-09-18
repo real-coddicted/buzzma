@@ -13,7 +13,7 @@
   "product": {
     "id": "5eed0002-0007-0000-0000-000000000001",
     "name": "boAt Rockerz 450 Bluetooth Headphone",
-    "imageUrl": "https://m.media-amazon.com/images/I/61NIIgoCRnL.jpg",
+    "imageUrls": ["https://m.media-amazon.com/images/I/61NIIgoCRnL.jpg"],
     "productLink": "https://www.amazon.in/dp/B07V7Y8T5V",
     "pricePaise": 179900
   },

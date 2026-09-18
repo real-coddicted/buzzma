@@ -3,6 +3,8 @@ package com.coddicted.buzzma.claim.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import org.junit.jupiter.api.Test;
@@ -28,10 +30,53 @@ class ClaimReviewMapperTest {
   }
 
   @Test
+  void testToResponseDefaultsBrandVerifiedToFalseWhenNull() {
+    final Claim claim = Claim.builder().brandVerified(null).build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertFalse(mapper.toResponse(model).getBrandVerified());
+  }
+
+  @Test
+  void testToResponsePreservesExplicitBrandVerified() {
+    final Claim claim = Claim.builder().brandVerified(true).build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals(true, mapper.toResponse(model).getBrandVerified());
+  }
+
+  @Test
   void testToResponseMapsAccountNameFromClaim() {
     final Claim claim = Claim.builder().accountName("Profile A").build();
     final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
 
     assertEquals("Profile A", mapper.toResponse(model).getAccountName());
+  }
+
+  @Test
+  void testToResponseMapsExchangeProductFromClaim() {
+    final Claim claim = Claim.builder().exchangeProduct("Widget").build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals("Widget", mapper.toResponse(model).getExchangeProduct());
+  }
+
+  @Test
+  void testToResponseMapsReviewUrlFromClaim() {
+    final Claim claim = Claim.builder().reviewUrl("https://example.com/screenshot.jpg").build();
+    final ClaimReviewModel model = ClaimReviewModel.builder().claim(claim).build();
+
+    assertEquals("https://example.com/screenshot.jpg", mapper.toResponse(model).getReviewUrl());
+  }
+
+  @Test
+  void testToResponseMapsCampaignTypeFromCampaign() {
+    final ClaimReviewModel model =
+        ClaimReviewModel.builder()
+            .claim(Claim.builder().build())
+            .campaign(Campaign.builder().type(CampaignType.CAMPAIGN_TYPE_EXCHANGE).build())
+            .build();
+
+    assertEquals(CampaignType.CAMPAIGN_TYPE_EXCHANGE, mapper.toResponse(model).getCampaignType());
   }
 }

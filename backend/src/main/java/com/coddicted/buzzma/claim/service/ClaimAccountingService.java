@@ -8,7 +8,9 @@ import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
 import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,10 @@ public interface ClaimAccountingService {
   List<UUID> claimBatchForProcessing(int batchSize, int maxRetries);
 
   void processAccounting(Claim claim);
+
+  Optional<ClaimAccounting> getByClaimId(UUID claimId);
+
+  List<ClaimAccounting> getByClaimIdIn(Collection<UUID> claimIds);
 
   // ── Payout pending lists ──────────────────────────────────────────────────
 

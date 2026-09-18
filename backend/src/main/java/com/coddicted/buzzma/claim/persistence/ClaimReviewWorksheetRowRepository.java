@@ -5,6 +5,8 @@ import com.coddicted.buzzma.claim.entity.WorksheetRowStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +17,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface ClaimReviewWorksheetRowRepository
     extends JpaRepository<ClaimReviewWorksheetRow, UUID> {
+
+  @Query(
+      value =
+          """
+          SELECT r FROM ClaimReviewWorksheetRow r
+          WHERE r.worksheetId = :worksheetId
+            AND r.worksheetId IN (SELECT w.id FROM ClaimReviewWorksheet w WHERE w.uploadedBy = :uploadedBy)
+            AND (:statuses IS NULL OR r.processingStatus IN :statuses)
+          """,
+      countQuery =
+          """
+          SELECT COUNT(r) FROM ClaimReviewWorksheetRow r
+          WHERE r.worksheetId = :worksheetId
+            AND r.worksheetId IN (SELECT w.id FROM ClaimReviewWorksheet w WHERE w.uploadedBy = :uploadedBy)
+            AND (:statuses IS NULL OR r.processingStatus IN :statuses)
+          """)
+  Page<ClaimReviewWorksheetRow> findByWorksheetIdAndUploadByAndStatuses(
+      @Param("worksheetId") UUID worksheetId,
+      @Param("uploadedBy") UUID uploadedBy,
+      @Param("statuses") Collection<WorksheetRowStatus> statuses,
+      Pageable pageable);
 
   @Query(
       "SELECT r.worksheetId, COUNT(r) FROM ClaimReviewWorksheetRow r"

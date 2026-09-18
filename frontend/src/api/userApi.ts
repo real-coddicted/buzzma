@@ -4,6 +4,7 @@ import type { UserActivityDto } from '../types/ProfileTypes'
 
 export type UserSummaryDto      = components['schemas']['UserSummaryDto']
 export type UserBankingDetailDto = components['schemas']['UserBankingDetailDto']
+export type PagedUsersResponseDto = components['schemas']['PagedUsersResponseDto']
 
 export async function fetchCurrentUser(): Promise<UserSummaryDto> {
   const res = await fetchWithAuth('/api/v1/users/me')
@@ -36,9 +37,11 @@ export async function verifyEmailOtp(code: string): Promise<UserSummaryDto> {
   return user
 }
 
-export async function searchUserByMobile(mobile: string): Promise<UserSummaryDto> {
-  const res = await fetchWithAuth(`/api/v1/users/search?mobile=${encodeURIComponent(mobile)}`)
-  return res.json() as Promise<UserSummaryDto>
+export async function searchUsers(term: string, page = 0, size = 20): Promise<PagedUsersResponseDto> {
+  const res = await fetchWithAuth(
+    `/api/v1/users/search?q=${encodeURIComponent(term)}&page=${page}&size=${size}`,
+  )
+  return res.json() as Promise<PagedUsersResponseDto>
 }
 
 export async function fetchUserById(userId: string): Promise<UserSummaryDto> {

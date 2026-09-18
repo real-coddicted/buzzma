@@ -16,6 +16,8 @@ public interface DealService {
 
   Page<Deal> getActiveDeals(Collection<UUID> ownerIds, UUID requesterId, int page, int size);
 
+  Optional<Deal> getActiveDealById(UUID id, Collection<UUID> ownerIds);
+
   List<Campaign> getPublishedCampaigns(UUID mediatorId);
 
   List<String> getPublishedBrandNames(UUID mediatorId);

@@ -94,4 +94,27 @@ class DealServiceImplTest {
         .findActiveDeals(eq(List.of(OWNER_ID)), todayCaptor.capture(), eq(PageRequest.of(0, 10)));
     assertEquals(DateTimeUtils.getAsianTodayDate(), todayCaptor.getValue());
   }
+
+  @Test
+  void testGetActiveDealByIdWhenFound() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    when(this.mockDealRepository.findActiveDealById(DEAL_ID, List.of(OWNER_ID), today))
+        .thenReturn(Optional.of(DEAL_1));
+
+    final Optional<Deal> result = this.dealService.getActiveDealById(DEAL_ID, List.of(OWNER_ID));
+
+    assertEquals(Optional.of(DEAL_1), result);
+  }
+
+  @Test
+  void testGetActiveDealByIdWhenNotAccessible() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    when(this.mockDealRepository.findActiveDealById(DEAL_ID, List.of(NON_OWNER_ID), today))
+        .thenReturn(Optional.empty());
+
+    final Optional<Deal> result =
+        this.dealService.getActiveDealById(DEAL_ID, List.of(NON_OWNER_ID));
+
+    assertEquals(Optional.empty(), result);
+  }
 }

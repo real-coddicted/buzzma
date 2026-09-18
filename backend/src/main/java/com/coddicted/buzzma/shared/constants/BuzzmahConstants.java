@@ -10,4 +10,5 @@ public class BuzzmahConstants {
   public static final String ORDER_DATE = "orderDate";
   public static final String AMOUNT = "amount";
   public static final String ORDERED_BY = "orderedBy";
+  public static final String REVIEWER_NAME = "reviewerName";
 }

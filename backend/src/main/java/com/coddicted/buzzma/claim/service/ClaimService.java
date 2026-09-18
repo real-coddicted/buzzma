@@ -25,7 +25,8 @@ public interface ClaimService {
       String productName,
       String sellerName,
       Integer orderDate,
-      String accountName) {}
+      String accountName,
+      String exchangeProduct) {}
 
   Claim createClaim(
       Claim claim,
@@ -34,6 +35,10 @@ public interface ClaimService {
       String contentType,
       Map<String, ScoredValue> extractedDetails,
       Integer overallScore);
+
+  /** Claim creation for App Promotion (App Review campaigns) - no order ID, async extraction. */
+  Claim createAppReviewClaim(
+      Claim claim, byte[] screenshot, String screenshotFilename, String contentType);
 
   ClaimWithDeal submitReview(
       UUID claimId,
@@ -47,6 +52,12 @@ public interface ClaimService {
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
   ClaimWithDeal submitReturn(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitDelivery(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitSellerFeedback(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
   Claim getById(UUID claimId, UUID ownerId);
@@ -70,9 +81,19 @@ public interface ClaimService {
       OrderUpdateFields orderFields,
       String reviewUrl);
 
+  /**
+   * Recomputes a claim's status from its current screenshots and step, without persisting the
+   * result. If any screenshot is still rejected, the claim is returned unchanged; otherwise its
+   * status is set to whichever step it's now on (the universal ready-for-review status if that's
+   * the campaign's last required step, otherwise that step's own "submitted" status).
+   */
+  Claim verifyAndUpdateClaimStatus(Claim claim, UUID requesterId);
+
   void updateClaimScore(UUID claimId);
 
   void markAccountingCompleted(UUID claimId);
+
+  int markApprovedClaimsReadyForAccounting(UUID agencyId);
 
   Claim save(Claim claim);
 

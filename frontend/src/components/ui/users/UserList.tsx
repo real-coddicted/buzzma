@@ -3,7 +3,7 @@ import { Card } from '../Card'
 import { Toast } from '../Toast'
 import { UserListToolbar } from './UserListToolbar'
 import { UserListItem } from './UserListItem'
-import { searchUserByMobile, type UserSummaryDto } from '../../../api/userApi'
+import { searchUsers, type UserSummaryDto } from '../../../api/userApi'
 
 interface UserListProps {
   onUserClick?: (user: UserSummaryDto) => void
@@ -12,7 +12,7 @@ interface UserListProps {
 type SearchState =
   | { kind: 'idle' }
   | { kind: 'loading' }
-  | { kind: 'result'; user: UserSummaryDto }
+  | { kind: 'result'; users: UserSummaryDto[] }
 
 export function UserList({ onUserClick }: UserListProps) {
   const [search, setSearch] = useState('')
@@ -20,12 +20,12 @@ export function UserList({ onUserClick }: UserListProps) {
   const [error, setError]   = useState<string | null>(null)
 
   async function handleSubmit() {
-    const mobile = search.trim()
-    if (!mobile) return
+    const term = search.trim()
+    if (!term) return
     setState({ kind: 'loading' })
     try {
-      const user = await searchUserByMobile(mobile)
-      setState({ kind: 'result', user })
+      const { items } = await searchUsers(term)
+      setState({ kind: 'result', users: items ?? [] })
     } catch (err) {
       setState({ kind: 'idle' })
       setError((err as Error).message)
@@ -44,7 +44,7 @@ export function UserList({ onUserClick }: UserListProps) {
       <div className="min-h-[80px]">
         {state.kind === 'idle' && (
           <p className="flex justify-center py-10 text-xs text-ink-light-muted dark:text-ink-dark-muted">
-            Enter a mobile number to search.
+            Enter a name or mobile number to search.
           </p>
         )}
 
@@ -54,12 +54,21 @@ export function UserList({ onUserClick }: UserListProps) {
           </p>
         )}
 
-        {state.kind === 'result' && (
+        {state.kind === 'result' && state.users.length === 0 && (
+          <p className="flex justify-center py-10 text-xs text-ink-light-muted dark:text-ink-dark-muted">
+            No users found.
+          </p>
+        )}
+
+        {state.kind === 'result' && state.users.length > 0 && (
           <ul>
-            <UserListItem
-              user={state.user}
-              onClick={onUserClick && state.user.id ? () => onUserClick(state.user) : undefined}
-            />
+            {state.users.map(user => (
+              <UserListItem
+                key={user.id}
+                user={user}
+                onClick={onUserClick && user.id ? () => onUserClick(user) : undefined}
+              />
+            ))}
           </ul>
         )}
       </div>

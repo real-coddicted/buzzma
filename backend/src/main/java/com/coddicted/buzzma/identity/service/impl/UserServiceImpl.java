@@ -9,10 +9,15 @@ import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +78,12 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Page<BuzzmaUser> searchUsers(final String term, final Pageable pageable) {
+    return this.repository.searchByNameOrMobile(term, pageable);
+  }
+
+  @Override
   public void delete(final UUID id, final UUID requesterId) {
     final BuzzmaUser existingEntity = mustFind(this.repository, id, "Users");
     this.repository.save(existingEntity.toBuilder().isDeleted(true).updatedBy(requesterId).build());
@@ -82,6 +93,16 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
   @Transactional(readOnly = true)
   public List<BuzzmaUser> getByIds(final List<UUID> ids) {
     return this.repository.findAllById(ids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, String> getNamesByIds(final Collection<UUID> ids) {
+    if (ids.isEmpty()) {
+      return Map.of();
+    }
+    return this.repository.findAllById(ids).stream()
+        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
   }
 
   @Override

@@ -2,8 +2,10 @@ import { useRef, useState } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
-import { IconDashboard, IconCampaign, IconUsers, IconBolt, IconFeedback, IconList, IconTicket, IconSettings, IconChart, IconLogout, IconProfile, IconX, IconRupee, IconPayouts, IconCheck } from '../ui/icons'
+import { IconSettings, IconLogout, IconX } from '../ui/icons'
+import { NAV_ITEMS } from '../../config/navItems'
 import { getCurrentUser } from '../../api/client'
+import { isPageVisible, isSettingsMenuVisible } from '../../utils/tabRedirect'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
 
@@ -53,8 +55,6 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings }: SidebarProps) {
-  // When settings haven't loaded yet (null), show all items by default
-  const show = (flag?: boolean) => !userSettings || flag !== false
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -110,109 +110,34 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
 
         <SectionLabel label="Main" />
         <div className="flex flex-col gap-1">
-          {show(userSettings?.dashboardTabEnabled) && (
-            <NavItem
-              icon={<IconDashboard />}
-              label="Dashboard"
-              active={activePage === 'dashboard'}
-              onClick={() => onNavigate('dashboard')}
-            />
-          )}
-          {show(userSettings?.campaignsTabEnabled) && (
-            <NavItem
-              icon={<IconCampaign />}
-              label="Campaigns"
-              active={activePage === 'campaigns'}
-              onClick={() => onNavigate('campaigns')}
-            />
-          )}
-          {show(userSettings?.assignmentsTabEnabled) && (
-            <NavItem
-              icon={<IconList />}
-              label="Assigned Campaigns"
-              active={activePage === 'assignments'}
-              onClick={() => onNavigate('assignments')}
-            />
-          )}
-          {show(userSettings?.dealTabEnabled) && (
-            <NavItem
-              icon={<IconBolt />}
-              label="Deals"
-              active={activePage === 'deals'}
-              onClick={() => onNavigate('deals')}
-            />
-          )}
-          {show(userSettings?.myClaimsTabEnabled) && (
-            <NavItem
-              icon={<IconCheck size={18} />}
-              label="My Claims"
-              active={activePage === 'my-claims'}
-              onClick={() => onNavigate('my-claims')}
-            />
-          )}
-          {show(userSettings?.claimReviewEnabled) && (
-            <NavItem
-              icon={<IconChart />}
-              label="Claim Review"
-              active={activePage === 'claim-review'}
-              onClick={() => onNavigate('claim-review')}
-            />
-          )}
-          {show(userSettings?.myPaymentsTabEnabled) && (
-            <NavItem
-              icon={<IconRupee />}
-              label="My Payments"
-              active={activePage === 'my-payments'}
-              onClick={() => onNavigate('my-payments')}
-            />
-          )}
-          {show(userSettings?.userPayoutsTabEnabled) && (
-            <NavItem
-              icon={<IconPayouts />}
-              label="User Payouts"
-              active={activePage === 'user-payouts'}
-              onClick={() => onNavigate('user-payouts')}
-            />
-          )}
-          {show(userSettings?.connectionsTabEnabled) && (
-            <NavItem
-              icon={<IconUsers />}
-              label="My Network"
-              active={activePage === 'connections'}
-              onClick={() => onNavigate('connections')}
-            />
-          )}
-          {show(userSettings?.usersTabEnabled) && (
-            <NavItem
-              icon={<IconProfile />}
-              label="Users"
-              active={activePage === 'users'}
-              onClick={() => onNavigate('users')}
-            />
-          )}
+          {NAV_ITEMS.filter(item => item.section === 'main').map(item => (
+            isPageVisible(item.page, userSettings) && (
+              <NavItem
+                key={item.page}
+                icon={<item.icon size={item.iconSize} />}
+                label={item.label}
+                active={activePage === item.page}
+                onClick={() => onNavigate(item.page)}
+              />
+            )
+          ))}
         </div>
 
         <div className="flex-1" />
 
-        {show(userSettings?.ticketsTabEnabled) && (
-          <NavItem
-            icon={<IconTicket />}
-            label="My Tickets"
-            active={activePage === 'my-tickets'}
-            onClick={() => onNavigate('my-tickets')}
-          />
-        )}
+        {NAV_ITEMS.filter(item => item.section === 'footer').map(item => (
+          isPageVisible(item.page, userSettings) && (
+            <NavItem
+              key={item.page}
+              icon={<item.icon size={item.iconSize} />}
+              label={item.label}
+              active={activePage === item.page}
+              onClick={() => onNavigate(item.page)}
+            />
+          )
+        ))}
 
-        {show(userSettings?.feedbackTabEnabled) && (
-          <NavItem
-            icon={<IconFeedback />}
-            label="Feedback"
-            active={activePage === 'feedback'}
-            onClick={() => onNavigate('feedback')}
-          />
-        )}
-
-        {show(userSettings?.settingsTabEnabled) && (
+        {isSettingsMenuVisible(userSettings) && (
           <div
             ref={triggerRef}
             onMouseEnter={openMenu}

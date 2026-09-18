@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.support.controller;
 
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import com.coddicted.buzzma.support.dto.TicketAssignRequestDto;
@@ -26,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -213,8 +211,7 @@ public class TicketController {
         ids.add(t.getAssigneeId());
       }
     }
-    return this.userService.getByIds(ids).stream()
-        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    return this.userService.getNamesByIds(ids);
   }
 
   private Map<UUID, String> buildCategoryNameMap(final List<Ticket> tickets) {
@@ -252,8 +249,7 @@ public class TicketController {
 
   private Map<UUID, String> buildCommentNameMap(final List<TicketComment> comments) {
     final List<UUID> ids = comments.stream().map(TicketComment::getAuthorId).toList();
-    return this.userService.getByIds(ids).stream()
-        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    return this.userService.getNamesByIds(ids);
   }
 
   private TicketCommentResponseDto toCommentResponseWithName(final TicketComment comment) {

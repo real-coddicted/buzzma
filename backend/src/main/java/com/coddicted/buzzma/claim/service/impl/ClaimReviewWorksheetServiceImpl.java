@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetService {
 
-  private static final int EXPECTED_COLUMN_COUNT = 17;
+  private static final int EXPECTED_COLUMN_COUNT = 18;
 
   private final ClaimReviewWorksheetProperties properties;
   private final ClaimReviewWorksheetRepository worksheetRepository;
@@ -71,7 +71,7 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
         storageService.store(
             "claim-review-worksheets", file.getOriginalFilename(), file.getContentType(), bytes);
 
-    final int dataRowCount = WorkbookUtils.countDataRows(sheet);
+    final int dataRowCount = WorkbookUtils.countDataRows(sheet, EXPECTED_COLUMN_COUNT);
 
     final ClaimReviewWorksheet worksheet =
         worksheetRepository.save(
@@ -137,7 +137,7 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
 
     for (int r = 1; r <= sheet.getLastRowNum(); r++) {
       final Row row = sheet.getRow(r);
-      if (row == null || row.getLastCellNum() <= 0) {
+      if (!WorkbookUtils.isDataRow(row, EXPECTED_COLUMN_COUNT)) {
         continue;
       }
       worksheetRow = toRowEntity(row, worksheetId);
@@ -189,26 +189,50 @@ public class ClaimReviewWorksheetServiceImpl implements ClaimReviewWorksheetServ
     worksheetRow.setErrorRemarks("Duplicate worksheet entry");
   }
 
+  /**
+   * Reads cells back by position in the exact order of {@link ClaimReviewReportColumns#COLUMNS}.
+   * The running {@code col} counter is advanced once per column so that inserting or removing a
+   * column in that list only means adding/removing the matching line here — no block of indices to
+   * renumber. Columns present in the export but not stored on the row (see the skip below) still
+   * consume a position and must be stepped over explicitly.
+   */
   private ClaimReviewWorksheetRow toRowEntity(final Row row, final UUID worksheetId) {
-    return ClaimReviewWorksheetRow.builder()
-        .worksheetId(worksheetId)
-        .campaign(WorkbookUtils.cellString(row, 0))
-        .campaignCode(WorkbookUtils.cellString(row, 1))
-        .brand(WorkbookUtils.cellString(row, 2))
-        .mediator(WorkbookUtils.cellString(row, 3))
-        .buyer(WorkbookUtils.cellString(row, 4))
-        .profileName(WorkbookUtils.cellString(row, 5))
-        .platform(WorkbookUtils.cellString(row, 6))
-        .orderId(WorkbookUtils.cellString(row, 7))
-        .orderDate(WorkbookUtils.cellString(row, 8))
-        .orderAmount(WorkbookUtils.cellString(row, 9))
-        .claimCode(WorkbookUtils.cellString(row, 10))
-        .claimStatus(WorkbookUtils.cellString(row, 11))
-        .matchScore(WorkbookUtils.cellString(row, 12))
-        .reviewStatus(WorkbookUtils.cellString(row, 13))
-        .amountApproved(WorkbookUtils.cellString(row, 14))
-        .brandReview(WorkbookUtils.cellString(row, 15))
-        .remarks(WorkbookUtils.cellString(row, 16))
+    int col = 0;
+    final ClaimReviewWorksheetRow.ClaimReviewWorksheetRowBuilder builder =
+        ClaimReviewWorksheetRow.builder()
+            .worksheetId(worksheetId)
+            .campaign(WorkbookUtils.cellString(row, col++))
+            .campaignCode(WorkbookUtils.cellString(row, col++))
+            .brand(WorkbookUtils.cellString(row, col++))
+            .mediator(WorkbookUtils.cellString(row, col++))
+            .buyer(WorkbookUtils.cellString(row, col++))
+            .profileName(WorkbookUtils.cellString(row, col++))
+            .platform(WorkbookUtils.cellString(row, col++))
+            .orderId(WorkbookUtils.cellString(row, col++))
+            .orderDate(WorkbookUtils.cellString(row, col++))
+            .orderAmount(WorkbookUtils.cellString(row, col++));
+
+    // Step over "Exchange Product" (ClaimReviewReportColumns index 10). It is written to the export
+    // for display only and is never read back from a re-uploaded worksheet, so no builder field
+    // consumes this position — but the counter must still advance to keep the columns below
+    // aligned.
+    col++;
+
+    builder
+        .claimCode(WorkbookUtils.cellString(row, col++))
+        .claimStatus(WorkbookUtils.cellString(row, col++));
+
+    // Step over "Review URL" (ClaimReviewReportColumns index 13). It is written to the export as
+    // a clickable hyperlink for display only and is never read back from a re-uploaded worksheet,
+    // so no builder field consumes this position — but the counter must still advance to keep the
+    // columns below aligned.
+    col++;
+
+    return builder
+        .matchScore(WorkbookUtils.cellString(row, col++))
+        .amountApproved(WorkbookUtils.cellString(row, col++))
+        .brandReview(WorkbookUtils.cellString(row, col++))
+        .remarks(WorkbookUtils.cellString(row, col++))
         .processingStatus(WorksheetRowStatus.PENDING)
         .build();
   }

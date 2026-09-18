@@ -46,6 +46,13 @@ function responseToForm(dto: CampaignResponseDto): CampaignForm {
       commissionOffered: paiseToRupees(a.commissionOfferedPaise ?? 0),
     })),
     termsAndConditions: dto.termsAndConditions ?? '',
+    requiredSteps: dto.requiredSteps ?? ['ORDER'],
+    exchangeProducts: (dto.exchangeProducts ?? []).map(p => ({
+      productName: p.productName ?? '',
+      productImageUrl: p.productImageUrl ?? '',
+      selected: true,
+      prefilled: true,
+    })),
   }
 }
 
@@ -228,7 +235,7 @@ export function Campaigns() {
   }
 
   function handleBack() {
-    navigate(-1)
+    setSearchParams({})
   }
 
   async function handleCreateCampaign(dto: CampaignRequestDto): Promise<void> {

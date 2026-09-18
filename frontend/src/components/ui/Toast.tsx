@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
+import { addToast, removeToast, setToastHeight, getToastOffset, subscribeToasts } from './toastStack'
 
 type ToastType = 'success' | 'error'
 
@@ -7,6 +9,8 @@ interface ToastProps {
   type?: ToastType
   duration?: number
   onDismiss: () => void
+  actionLabel?: string
+  onAction?: () => void
 }
 
 const typeClasses: Record<ToastType, string> = {
@@ -19,14 +23,54 @@ const iconPath: Record<ToastType, string> = {
   error:   'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
 }
 
-export function Toast({ message, type = 'success', duration = 10000, onDismiss }: ToastProps) {
+/** Distance (px) from the bottom of the viewport to the lowest toast. */
+const TOAST_BASE_OFFSET_PX = 20
+
+/**
+ * Places this Toast in the shared stack so concurrent toasts don't overlap, and
+ * returns how far above the bottom anchor it should sit. Heights are measured
+ * from the DOM rather than assumed, so multi-line messages still stack cleanly.
+ */
+function useToastStackOffset(ref: RefObject<HTMLDivElement>): number {
+  const idRef = useRef<string | null>(null)
+  const [, forceUpdate] = useState(0)
+
+  useLayoutEffect(() => {
+    idRef.current = addToast()
+    forceUpdate(n => n + 1)
+    return () => {
+      if (idRef.current) removeToast(idRef.current)
+      idRef.current = null
+    }
+  }, [])
+
+  // Re-measure after every render: the message (and so the height) can change.
+  // setToastHeight is a no-op when the height is unchanged, so this settles.
+  useLayoutEffect(() => {
+    if (!idRef.current || !ref.current) return
+    setToastHeight(idRef.current, ref.current.getBoundingClientRect().height)
+  })
+
+  useEffect(() => subscribeToasts(() => forceUpdate(n => n + 1)), [])
+
+  return idRef.current ? getToastOffset(idRef.current) : 0
+}
+
+export function Toast({ message, type = 'success', duration = 10000, onDismiss, actionLabel, onAction }: ToastProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const stackOffset = useToastStackOffset(containerRef)
+
   useEffect(() => {
     const timer = setTimeout(onDismiss, duration)
     return () => clearTimeout(timer)
   }, [duration, onDismiss])
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 animate-fade-in">
+    <div
+      ref={containerRef}
+      className="fixed right-5 z-50 animate-fade-in"
+      style={{ bottom: `${TOAST_BASE_OFFSET_PX + stackOffset}px` }}
+    >
       <div className={[
         'flex items-start gap-3 px-4 py-3 rounded-xl border shadow-card-dark max-w-sm',
         typeClasses[type],
@@ -35,6 +79,14 @@ export function Toast({ message, type = 'success', duration = 10000, onDismiss }
           <path strokeLinecap="round" strokeLinejoin="round" d={iconPath[type]} />
         </svg>
         <p className="text-sm font-medium leading-snug">{message}</p>
+        {actionLabel && onAction && (
+          <button
+            onClick={onAction}
+            className="flex-shrink-0 text-xs font-semibold underline hover:no-underline"
+          >
+            {actionLabel}
+          </button>
+        )}
         <button
           onClick={onDismiss}
           className="ml-auto flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity"

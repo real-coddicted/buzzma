@@ -23,6 +23,12 @@ import com.coddicted.buzzma.campaign.entity.CampaignAction;
 import com.coddicted.buzzma.campaign.entity.CampaignAssignment;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignSlot;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.Reward;
+import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
 import com.coddicted.buzzma.campaign.notification.CampaignEventPublisher;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
@@ -31,6 +37,7 @@ import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.time.Instant;
 import java.util.List;
@@ -84,6 +91,137 @@ class CampaignProcessorTest {
     assertEquals("Campaign end date cannot be in the past", ex.getMessage());
   }
 
+  @Test
+  void testCreateAppReviewTypeOnNonAppStorePlatformThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "App-review campaigns are only allowed on Apple App Store or Google Play Store",
+        ex.getMessage());
+  }
+
+  @Test
+  void testCreateAppStorePlatformWithNonAppReviewTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_APPLE_APP_STORE)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "Apple App Store and Google Play Store campaigns must be of type App Review",
+        ex.getMessage());
+  }
+
+  @Test
+  void testCreateExchangeTypeWithoutExchangeProductsThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Exchange campaigns require at least one exchange product", ex.getMessage());
+  }
+
+  @Test
+  void testCreateExchangeTypeWithBlankProductNameThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .exchangeProducts(List.of(ExchangeProduct.builder().productName(" ").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Every exchange product requires a product name", ex.getMessage());
+  }
+
+  @Test
+  void testCreateNonExchangeTypeWithExchangeProductsThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Exchange products are only allowed on exchange campaigns", ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackRewardWithoutAmountThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A cashback reward requires a positive cashback amount", ex.getMessage());
+  }
+
+  @Test
+  void testCreateCashbackRewardWithNonPositiveAmountThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(List.of(Reward.builder().type(RewardType.CASHBACK).value("0").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A cashback reward requires a positive cashback amount", ex.getMessage());
+  }
+
+  @Test
+  void testCreateDuplicateRewardTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .rewards(
+                List.of(
+                    Reward.builder().type(RewardType.CASHBACK).value("500").build(),
+                    Reward.builder().type(RewardType.CASHBACK).value("1000").build()))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("A campaign can only have one reward of type CASHBACK", ex.getMessage());
+  }
+
   // Campaign/CampaignSlot/CampaignAssignment are JPA entities without an equals() override, so
   // the instances CampaignProcessor builds internally (via toBuilder()/builder() calls) can never
   // equal a pre-built fixture object. ArgumentCaptor.capture() is used for those specific
@@ -127,6 +265,41 @@ class CampaignProcessorTest {
     assertEquals(ASSIGNEE_ID, assignmentsCaptor.getValue().get(0).getAssigneeId());
 
     verify(campaignMapper).toResponse(CAMPAIGN_1_PUBLISHED, expectedAssignments);
+  }
+
+  @Test
+  void testUpdateCampaignOnNonDraftCampaignThrows() {
+    final Campaign activeCampaign =
+        CAMPAIGN_1.toBuilder().status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE).build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(activeCampaign);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                campaignProcessor.updateCampaign(
+                    REQUESTER_ID, CAMPAIGN_ID_1, CampaignRequestDto.builder().build()));
+    assertEquals("Cannot update a campaign that is not in draft status", ex.getMessage());
+  }
+
+  @Test
+  void testUpdateCampaignNormalizesRequiredStepsForcingOrderAndDroppingCashback() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .requiredSteps(List.of(CampaignStepType.CASHBACK, CampaignStepType.REVIEW))
+            .build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(productProcessor.updateProduct(CAMPAIGN_1.getProduct(), request)).thenReturn(PRODUCT_1);
+
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(campaignService.update(captor.capture())).thenReturn(CAMPAIGN_1);
+    when(campaignMapper.toResponse(CAMPAIGN_1)).thenReturn(CampaignResponseDto.builder().build());
+
+    campaignProcessor.updateCampaign(REQUESTER_ID, CAMPAIGN_ID_1, request);
+
+    assertEquals(
+        List.of(CampaignStepType.ORDER, CampaignStepType.REVIEW),
+        captor.getValue().getRequiredSteps());
   }
 
   @Test

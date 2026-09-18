@@ -13,6 +13,8 @@ export const PLATFORM_COLORS: Record<Platform, ChipColors> = {
   PLATFORM_NYKAA:    { base: 'bg-neon-pink/10   text-neon-pink   border-neon-pink/25',   selected: 'bg-neon-pink/20   text-neon-pink   border-neon-pink/50' },
   PLATFORM_MYNTRA:   { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   PLATFORM_MEESHO:   { base: 'bg-neon-plum/10   text-neon-plum   border-neon-plum/25',   selected: 'bg-neon-plum/20   text-neon-plum   border-neon-plum/50' },
+  PLATFORM_APPLE_APP_STORE:   { base: 'bg-neon-blue/10 text-neon-blue border-neon-blue/25', selected: 'bg-neon-blue/20 text-neon-blue border-neon-blue/50' },
+  PLATFORM_GOOGLE_PLAY_STORE: { base: 'bg-neon-green/10 text-neon-green border-neon-green/25', selected: 'bg-neon-green/20 text-neon-green border-neon-green/50' },
 }
 
 export const TYPE_COLORS: Record<CampaignType, ChipColors> = {
@@ -20,6 +22,8 @@ export const TYPE_COLORS: Record<CampaignType, ChipColors> = {
   CAMPAIGN_TYPE_REVIEW:   { base: 'bg-neon-cyan/10   text-neon-cyan   border-neon-cyan/25',   selected: 'bg-neon-cyan/20   text-neon-cyan   border-neon-cyan/50' },
   CAMPAIGN_TYPE_ORDER:    { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },
   CAMPAIGN_TYPE_DISCOUNT: { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
+  CAMPAIGN_TYPE_APP_REVIEW: { base: 'bg-neon-cyan/10  text-neon-cyan   border-neon-cyan/25',   selected: 'bg-neon-cyan/20   text-neon-cyan   border-neon-cyan/50' },
+  CAMPAIGN_TYPE_EXCHANGE: { base: 'bg-neon-pink/10   text-neon-pink   border-neon-pink/25',   selected: 'bg-neon-pink/20   text-neon-pink   border-neon-pink/50' },
 }
 
 export const STATUS_COLORS: Record<CampaignStatus, ChipColors> = {
@@ -35,13 +39,17 @@ export const STATUS_COLORS: Record<CampaignStatus, ChipColors> = {
 
 export const CLAIM_STATUS_COLORS: Record<ClaimStatus, ChipColors> = {
   ORDERED:                    { base: 'bg-neon-blue/10   text-neon-blue   border-neon-blue/25',   selected: 'bg-neon-blue/20   text-neon-blue   border-neon-blue/50' },
+  DOWNLOADED_AND_INSTALLED:   { base: 'bg-neon-plum/10   text-neon-plum   border-neon-plum/25',   selected: 'bg-neon-plum/20   text-neon-plum   border-neon-plum/50' },
+  DELIVERY_PROOF_SUBMITTED:   { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   RATING_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   REVIEW_SUBMITTED:           { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
+  SELLER_FEEDBACK_SUBMITTED:  { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   PROOF_SUBMITTED:            { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   PROOF_REJECTED:             { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
   UNDER_REVIEW:                { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
   ADDITIONAL_PROOF_REQUESTED: { base: 'bg-neon-orange/10 text-neon-orange border-neon-orange/25', selected: 'bg-neon-orange/20 text-neon-orange border-neon-orange/50' },
   APPROVED:                   { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },
+  READY_FOR_ACCOUNTING:       { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },
   REJECTED:                   { base: 'bg-neon-red/10    text-neon-red    border-neon-red/25',    selected: 'bg-neon-red/20    text-neon-red    border-neon-red/50' },
   REWARD_PENDING:              { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
   COMPLETED:                  { base: 'bg-neon-green/10  text-neon-green  border-neon-green/25',  selected: 'bg-neon-green/20  text-neon-green  border-neon-green/50' },

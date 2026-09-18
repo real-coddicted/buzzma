@@ -12,7 +12,7 @@ type AssignmentSummaryResponseDto = components['schemas']['AssignmentSummaryResp
 type PublishAssignmentRequestDto = components['schemas']['PublishAssignmentRequestDto']
 type AssignmentSummaryWithStatus = AssignmentSummaryResponseDto & { campaignStatus?: RawCampaignStatus }
 
-function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
+export function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
   const platform = dto.platform ?? 'PLATFORM_AMAZON'
   const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as AssignmentSummary['dealType']
   return {
@@ -31,10 +31,11 @@ function mapSummary(dto: AssignmentSummaryWithStatus): AssignmentSummary {
     campaignCode: dto.campaignCode,
     startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
     endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
+    agencyName: dto.agencyName,
   }
 }
 
-function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
+export function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
   const platform = dto.platform ?? 'PLATFORM_AMAZON'
   const dealType = (dto.dealType ?? 'CAMPAIGN_TYPE_ORDER') as AssignmentItem['dealType']
   return {
@@ -59,6 +60,7 @@ function mapAssignment(dto: AssignmentResponseDto): AssignmentItem {
     dealCode: dto.dealCode,
     startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
     endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
+    agencyName: dto.agencyName,
   }
 }
 

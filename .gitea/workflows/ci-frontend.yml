@@ -73,6 +73,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+            VITE_APP_BASE_URL=https://buzzmah.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false

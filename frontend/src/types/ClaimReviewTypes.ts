@@ -5,13 +5,17 @@ type ScoredValue = components['schemas']['ScoredValue']
 
 export type ClaimStatus =
   | 'ORDERED'
+  | 'DOWNLOADED_AND_INSTALLED'
+  | 'DELIVERY_PROOF_SUBMITTED'
   | 'RATING_SUBMITTED'
   | 'REVIEW_SUBMITTED'
+  | 'SELLER_FEEDBACK_SUBMITTED'
   | 'PROOF_SUBMITTED'
   | 'PROOF_REJECTED'
   | 'UNDER_REVIEW'
   | 'ADDITIONAL_PROOF_REQUESTED'
   | 'APPROVED'
+  | 'READY_FOR_ACCOUNTING'
   | 'REJECTED'
   | 'REWARD_PENDING'
   | 'COMPLETED'
@@ -45,6 +49,7 @@ export interface ClaimReviewItem {
   claimStatus: ClaimStatus
   approvalMethod: ApprovalMethod
   mediatorVerified: boolean
+  brandVerified: boolean
   matchPct: number
   platform: Platform
   brandName: string
@@ -52,6 +57,7 @@ export interface ClaimReviewItem {
   accountName?: string
   orderedBy?: string
   productName?: string
+  exchangeProduct?: string
   sellerName?: string
   productPricePaise?: number
   dealOfferedPricePaise?: number

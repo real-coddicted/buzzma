@@ -67,6 +67,11 @@ public class Campaign implements Auditable {
   private Platform platform;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "category", nullable = false)
+  @Builder.Default
+  private PromotionCategory category = PromotionCategory.ECOMMERCE;
+
+  @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private CampaignType type;
 
@@ -104,6 +109,18 @@ public class Campaign implements Auditable {
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "assignments_draft", columnDefinition = "jsonb")
   private List<CampaignAssignmentRequestDto> assignmentsDraft;
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "required_steps", columnDefinition = "jsonb")
+  private List<CampaignStepType> requiredSteps;
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "rewards", columnDefinition = "jsonb")
+  private List<Reward> rewards;
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "exchange_products", columnDefinition = "jsonb")
+  private List<ExchangeProduct> exchangeProducts;
 
   // Audit fields
   @Column(name = "created_by")

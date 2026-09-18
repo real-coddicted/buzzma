@@ -33,6 +33,19 @@ export default {
       })
     }
 
-    return env.ASSETS.fetch(request)
+    const assetResponse = await env.ASSETS.fetch(request)
+    if (env.APP_BASE_URL && assetResponse.headers.get('content-type')?.includes('text/html')) {
+      return new HTMLRewriter()
+        .on('head', {
+          element(element) {
+            element.append(
+              `<script>window.__APP_BASE_URL__=${JSON.stringify(env.APP_BASE_URL)}</script>`,
+              { html: true },
+            )
+          },
+        })
+        .transform(assetResponse)
+    }
+    return assetResponse
   },
 }

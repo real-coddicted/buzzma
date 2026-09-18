@@ -12,7 +12,7 @@ export function UserListToolbar({
   search,
   onSearchChange,
   onSubmit,
-  searchPlaceholder = 'Search by mobile number…',
+  searchPlaceholder = 'Search by name or mobile number…',
 }: UserListToolbarProps) {
   return (
     <div className="p-4 border-b border-surface-light-border dark:border-surface-dark-border">

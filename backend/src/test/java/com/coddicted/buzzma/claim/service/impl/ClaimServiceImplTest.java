@@ -1,47 +1,56 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.DELIVERY_PROOF_SUBMITTED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.DOWNLOADED_AND_INSTALLED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.ORDERED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.RATING_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.REVIEW_SUBMITTED;
+import static com.coddicted.buzzma.claim.entity.ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
 import static com.coddicted.buzzma.claim.entity.ClaimStatus.UNDER_REVIEW;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DELIVERY;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_ORDER;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RATING;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_RETURN;
 import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_REVIEW;
+import static com.coddicted.buzzma.claim.entity.ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK;
 import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING;
+import static com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_REJECTED;
 import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
+import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStep;
-import com.coddicted.buzzma.campaign.entity.CampaignTypeStepId;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.persistence.CampaignSlotRepository;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignShareService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.extraction.service.ExtractionService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -63,7 +72,7 @@ class ClaimServiceImplTest {
   @Mock private CampaignShareService mockCampaignShareService;
   @Mock private DealService mockDealService;
   @Mock private CampaignSlotRepository mockCampaignSlotRepository;
-  @Mock private CampaignTypeStepService mockCampaignTypeStepService;
+  @Mock private CampaignStepResolver mockCampaignStepResolver;
   @Mock private StorageService mockStorageService;
   @Mock private ExtractionService mockExtractionService;
   @Mock private CodeGenerationService mockCodeGenerationService;
@@ -79,17 +88,26 @@ class ClaimServiceImplTest {
             this.mockCampaignShareService,
             this.mockDealService,
             this.mockCampaignSlotRepository,
-            this.mockCampaignTypeStepService,
+            this.mockCampaignStepResolver,
             this.mockStorageService,
             this.mockExtractionService,
             this.mockCodeGenerationService);
   }
 
+  private static final Claim APP_REVIEW_CLAIM_INPUT =
+      Claim.builder()
+          .campaignId(CLAIM_INPUT.getCampaignId())
+          .dealId(DEAL_ID)
+          .ownerId(OWNER_ID)
+          .productName("Sample App")
+          .accountName("john.doe@gmail.com")
+          .build();
+
   @Test
   void testCreateClaim() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -98,7 +116,11 @@ class ClaimServiceImplTest {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
         .thenReturn(CLAIM_CODE);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
-        .thenReturn(Campaign.builder().sellerName("Acme Sellers").build());
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName("Acme Sellers")
+                .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
@@ -145,8 +167,8 @@ class ClaimServiceImplTest {
   @Test
   void testCreateClaimDropsSellerNameWhenCampaignHasNoSellerName() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(false);
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
@@ -155,7 +177,11 @@ class ClaimServiceImplTest {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
         .thenReturn(CLAIM_CODE);
     when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
-        .thenReturn(Campaign.builder().sellerName(null).build());
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName(null)
+                .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
 
@@ -171,9 +197,39 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testCreateClaimWhenCampaignNotActive() {
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createClaim(
+                    CLAIM_INPUT,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS,
+                    null));
+
+    assertEquals(
+        "The campaign is not active anymore. Please go back to deals page and refresh once to"
+            + " confirm active deals",
+        ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
   void testCreateClaimWhenAlreadyClaimed() {
-    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndIsDeletedFalse(
-            ECOMMERCE_ORDER_ID, PLATFORM))
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
         .thenReturn(true);
 
     final BusinessRuleViolationException ex =
@@ -191,12 +247,258 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testCreateClaimSucceedsWhenPriorClaimForSameOrderWasRejected() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .sellerName("Acme Sellers")
+                .build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+
+    final Claim result =
+        this.claimService.createClaim(
+            CLAIM_INPUT,
+            SCREENSHOT_BYTES,
+            SCREENSHOT_FILENAME,
+            CONTENT_TYPE,
+            EXTRACTED_DETAILS,
+            85);
+
+    assertEquals(CLAIM_1, result);
+  }
+
+  @Test
+  void testCreateClaimRequiresExchangeProductForExchangeCampaign() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createClaim(
+                    CLAIM_INPUT,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS,
+                    null));
+
+    assertEquals("Exchange product is required for exchange campaigns", ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateClaimRejectsExchangeProductNotInCampaignList() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createClaim(
+                    CLAIM_INPUT.toBuilder().exchangeProduct("Gadget").build(),
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS,
+                    null));
+
+    assertEquals(
+        "Exchange product must be one of the campaign's configured exchange products",
+        ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateClaimSucceedsWithConfiguredExchangeProduct() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+
+    this.claimService.createClaim(
+        CLAIM_INPUT.toBuilder().exchangeProduct("Widget").build(),
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        EXTRACTED_DETAILS,
+        85);
+
+    assertEquals("Widget", claimCaptor.getValue().getExchangeProduct());
+  }
+
+  @Test
+  void testCreateClaimRejectsExchangeProductOnNonExchangeCampaign() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .type(CampaignType.CAMPAIGN_TYPE_REVIEW)
+                .build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createClaim(
+                    CLAIM_INPUT.toBuilder().exchangeProduct("Widget").build(),
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    EXTRACTED_DETAILS,
+                    null));
+
+    assertEquals("Exchange product is only allowed on exchange campaigns", ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateAppReviewClaim() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+                .build());
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final Claim result =
+        this.claimService.createAppReviewClaim(
+            APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_1, result);
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(DOWNLOADED_AND_INSTALLED, saved.getStatus());
+    assertEquals("NA", saved.getEcommerceOrderId());
+    assertEquals(Platform.PLATFORM_GOOGLE_PLAY_STORE, saved.getPlatform());
+    assertEquals(CampaignStepType.DOWNLOAD_INSTALL, saved.getCurrentStep());
+    assertEquals(CLAIM_CODE, saved.getCode());
+    assertEquals(OWNER_ID, saved.getCreatedBy());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(SCREENSHOT_TYPE_DOWNLOAD_INSTALL, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testCreateAppReviewClaimWhenCampaignNotActive() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_CLOSED).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createAppReviewClaim(
+                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+
+    assertEquals(
+        "The campaign is not active anymore. Please go back to deals page and refresh once to"
+            + " confirm active deals",
+        ex.getMessage());
+    verify(this.mockCampaignSlotRepository, never())
+        .decrementSlotsAvailableIfPositive(ArgumentMatchers.any());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testCreateAppReviewClaimWhenSlotsExhausted() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+                .build());
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(0);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.createAppReviewClaim(
+                    APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+
+    assertEquals("All slots have been claimed for this deal", ex.getMessage());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
   void testSubmitRating() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -228,8 +530,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -237,7 +538,7 @@ class ClaimServiceImplTest {
             () ->
                 this.claimService.submitRating(
                     CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
-    assertEquals("Rating can only be submitted after Order & Upload", ex.getMessage());
+    assertEquals("Rating can only be submitted after Order", ex.getMessage());
   }
 
   @Test
@@ -258,8 +559,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -288,12 +588,40 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testSubmitReviewSetsUnderReviewWhenReviewIsLastRequiredStep() {
+    // Regression test: previously only Return-type submissions ever became reviewable (UNDER_REVIEW
+    // was hardcoded to Return), so a campaign whose last step is Review got stuck showing
+    // REVIEW_SUBMITTED forever and agencies/mediators could never approve it.
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_2));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    this.claimService.submitReview(
+        CLAIM_ID, OWNER_ID, REVIEW_URL, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
+    assertEquals(CampaignStepType.REVIEW, claimCaptor.getValue().getCurrentStep());
+  }
+
+  @Test
   void testSubmitReviewWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -353,8 +681,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_3));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
         .thenReturn(SCREENSHOT_KEY);
@@ -386,8 +713,7 @@ class ClaimServiceImplTest {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
-    final var steps = stepConfig();
-    when(this.mockCampaignTypeStepService.getStepConfig()).thenReturn(steps);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
         assertThrows(
@@ -425,6 +751,132 @@ class ClaimServiceImplTest {
                 this.claimService.submitReturn(
                     CLAIM_ID, NON_OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
     assertEquals("Access denied", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitDelivery() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_DELIVERY);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_2);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final ClaimWithDeal result =
+        this.claimService.submitDelivery(
+            CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_2, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(DELIVERY_PROOF_SUBMITTED, saved.getStatus());
+    assertEquals(CampaignStepType.DELIVERY, saved.getCurrentStep());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
+    assertEquals(SCREENSHOT_TYPE_DELIVERY, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testSubmitDeliveryWhenWrongStep() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_2));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_DELIVERY);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.submitDelivery(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Delivery can only be submitted after Order", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitDeliveryWhenNotFound() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimService.submitDelivery(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
+  }
+
+  @Test
+  void testSubmitSellerFeedback() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    final ClaimWithDeal result =
+        this.claimService.submitSellerFeedback(
+            CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(CLAIM_1, result.claim());
+    assertEquals(DEAL_1, result.deal());
+    final Claim saved = claimCaptor.getValue();
+    assertEquals(SELLER_FEEDBACK_SUBMITTED, saved.getStatus());
+    assertEquals(CampaignStepType.SELLER_FEEDBACK, saved.getCurrentStep());
+    assertEquals(OWNER_ID, saved.getUpdatedBy());
+
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
+    assertEquals(CLAIM_ID, screenshotCaptor.getValue().getClaimId());
+    assertEquals(SCREENSHOT_TYPE_SELLER_FEEDBACK, screenshotCaptor.getValue().getType());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testSubmitSellerFeedbackWhenWrongStep() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
+        .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.submitSellerFeedback(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Seller Feedback can only be submitted after Review", ex.getMessage());
+  }
+
+  @Test
+  void testSubmitSellerFeedbackWhenNotFound() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                this.claimService.submitSellerFeedback(
+                    CLAIM_ID, OWNER_ID, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE));
+    assertEquals("Claim not found: " + CLAIM_ID, ex.getMessage());
   }
 
   @Test
@@ -548,7 +1000,7 @@ class ClaimServiceImplTest {
         SCREENSHOT_BYTES,
         SCREENSHOT_FILENAME,
         CONTENT_TYPE,
-        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null),
+        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null, null),
         null);
 
     assertEquals("New Seller", claimCaptor.getValue().getSellerName());
@@ -582,10 +1034,239 @@ class ClaimServiceImplTest {
         SCREENSHOT_BYTES,
         SCREENSHOT_FILENAME,
         CONTENT_TYPE,
-        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null),
+        new ClaimService.OrderUpdateFields(null, null, null, null, "New Seller", null, null, null),
         null);
 
     assertNull(claimCaptor.getValue().getSellerName());
+  }
+
+  @Test
+  void testUpdateScreenshotAppliesExchangeProductForOrderScreenshot() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_ORDER,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        new ClaimService.OrderUpdateFields(null, null, null, null, null, null, null, "Widget"),
+        null);
+
+    assertEquals("Widget", claimCaptor.getValue().getExchangeProduct());
+  }
+
+  @Test
+  void testUpdateScreenshotRejectsExchangeProductOnNonExchangeCampaign() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().type(CampaignType.CAMPAIGN_TYPE_REVIEW).build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.updateScreenshot(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    SCREENSHOT_ID,
+                    SCREENSHOT_TYPE_ORDER,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    new ClaimService.OrderUpdateFields(
+                        null, null, null, null, null, null, null, "Widget"),
+                    null));
+
+    assertEquals("Exchange product is only allowed on exchange campaigns", ex.getMessage());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testUpdateScreenshotRejectsExchangeProductNotConfiguredOnExchangeCampaign() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_1));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(
+            Campaign.builder()
+                .type(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+                .exchangeProducts(List.of(ExchangeProduct.builder().productName("Widget").build()))
+                .build());
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () ->
+                this.claimService.updateScreenshot(
+                    CLAIM_ID,
+                    OWNER_ID,
+                    SCREENSHOT_ID,
+                    SCREENSHOT_TYPE_ORDER,
+                    SCREENSHOT_BYTES,
+                    SCREENSHOT_FILENAME,
+                    CONTENT_TYPE,
+                    new ClaimService.OrderUpdateFields(
+                        null, null, null, null, null, null, null, "Gadget"),
+                    null));
+
+    assertEquals(
+        "Exchange product must be one of the campaign's configured exchange products",
+        ex.getMessage());
+    verify(this.mockClaimRepository, never()).save(ArgumentMatchers.any());
+  }
+
+  @Test
+  void testUpdateScreenshotBecomesReviewableAfterRejectedScreenshotIsResubmittedOnLastStep() {
+    // Regression test: verifyAndUpdateClaimStatus previously only recognized a Return screenshot as
+    // making a claim reviewable (and otherwise reset status to ORDERED), so resubmitting a rejected
+    // screenshot for any other last-step type (here Review) never made the claim reviewable again.
+    final ClaimScreenshot existingReviewScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .type(SCREENSHOT_TYPE_REVIEW)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_REJECTED)
+            .build();
+    final ClaimScreenshot resubmittedScreenshot =
+        existingReviewScreenshot.toBuilder()
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .storageKey(SCREENSHOT_KEY)
+            .build();
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(existingReviewScreenshot));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any()))
+        .thenReturn(resubmittedScreenshot);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(resubmittedScreenshot));
+    when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
+        .thenReturn(DEAL_1.getCampaign());
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_REVIEW,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        null,
+        null);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
+  }
+
+  @Test
+  void testUpdateScreenshotOnNonLastStepStillBecomesReviewableWhenLaterStepAlreadyCompleted() {
+    // order -> rating -> review: buyer already finished Review (currentStep=REVIEW, the actual last
+    // step), then a reviewer rejects the earlier Rating screenshot. Resubmitting Rating - not the
+    // last step type itself - must still make the claim reviewable, because reviewability is driven
+    // by the claim's furthest-completed step (currentStep), not by which screenshot was just
+    // resubmitted.
+    final ClaimScreenshot existingRatingScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .type(SCREENSHOT_TYPE_RATING)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_REJECTED)
+            .build();
+    final ClaimScreenshot resubmittedRatingScreenshot =
+        existingRatingScreenshot.toBuilder()
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .storageKey(SCREENSHOT_KEY)
+            .build();
+    final ClaimScreenshot verifiedReviewScreenshot =
+        SCREENSHOT_1.toBuilder()
+            .id(UUID.fromString("77777777-7777-7777-7777-777777777777"))
+            .type(SCREENSHOT_TYPE_REVIEW)
+            .verificationStatus(SCREENSHOT_VERIFICATION_STATUS_PENDING)
+            .build();
+    final List<CampaignStepType> stepsReviewLast =
+        List.of(
+            CampaignStepType.ORDER,
+            CampaignStepType.RATING,
+            CampaignStepType.REVIEW,
+            CampaignStepType.CASHBACK);
+
+    // CLAIM_3's currentStep is REVIEW (see claim-3.json) - i.e. the buyer already completed every
+    // required step before Rating was retroactively rejected.
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_3));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(existingRatingScreenshot));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any()))
+        .thenReturn(resubmittedRatingScreenshot);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(resubmittedRatingScreenshot, verifiedReviewScreenshot));
+    when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
+        .thenReturn(DEAL_1.getCampaign());
+    when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_RATING,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        null,
+        null);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
   }
 
   @Test
@@ -599,21 +1280,29 @@ class ClaimServiceImplTest {
     assertEquals(List.of(SCREENSHOT_1), result);
   }
 
-  private Map<com.coddicted.buzzma.campaign.entity.CampaignType, List<CampaignTypeStep>>
-      stepConfig() {
-    return Map.of(
-        CAMPAIGN_TYPE,
-        List.of(
-            mockStep(CampaignStepType.ORDER, 1),
-            mockStep(CampaignStepType.RATING, 2),
-            mockStep(CampaignStepType.REVIEW, 3),
-            mockStep(CampaignStepType.RETURN_WINDOW, 4)));
-  }
+  private static final List<CampaignStepType> STEPS =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
 
-  private CampaignTypeStep mockStep(final CampaignStepType type, final int order) {
-    final CampaignTypeStep step = mock(CampaignTypeStep.class);
-    lenient().when(step.getId()).thenReturn(new CampaignTypeStepId(CAMPAIGN_TYPE, type));
-    when(step.getStepOrder()).thenReturn(order);
-    return step;
-  }
+  private static final List<CampaignStepType> STEPS_WITH_DELIVERY =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.DELIVERY,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
+
+  private static final List<CampaignStepType> STEPS_WITH_SELLER_FEEDBACK =
+      List.of(
+          CampaignStepType.ORDER,
+          CampaignStepType.RATING,
+          CampaignStepType.REVIEW,
+          CampaignStepType.SELLER_FEEDBACK,
+          CampaignStepType.RETURN_WINDOW,
+          CampaignStepType.CASHBACK);
 }

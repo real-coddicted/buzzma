@@ -1,10 +1,12 @@
 package com.coddicted.buzzma.report.excel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -72,6 +74,33 @@ class ExcelReportWriterTest {
       assertEquals(1, range.getLastColumn());
       assertEquals(1, range.getFirstRow());
       assertEquals(2, range.getLastRow());
+    }
+  }
+
+  @Test
+  void testWriteRendersHyperlinkForColumnsMarkedAsLinks() throws Exception {
+    final List<ExcelColumn<Person>> columns =
+        List.of(
+            new ExcelColumn<>("Name", Person::name),
+            ExcelColumn.hyperlink("Profile", p -> "https://example.com/" + p.name()));
+    final byte[] bytes = writer.write("People", columns, List.of(new Person("Alice", 30)));
+
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+      final Cell linkCell = workbook.getSheet("People").getRow(1).getCell(1);
+      assertEquals("https://example.com/Alice", linkCell.getStringCellValue());
+      assertEquals("https://example.com/Alice", linkCell.getHyperlink().getAddress());
+    }
+  }
+
+  @Test
+  void testWriteSkipsHyperlinkWhenValueIsNull() throws Exception {
+    final List<ExcelColumn<Person>> columns =
+        List.of(ExcelColumn.<Person>hyperlink("Profile", p -> null));
+    final byte[] bytes = writer.write("People", columns, List.of(new Person("Alice", 30)));
+
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+      final Cell linkCell = workbook.getSheet("People").getRow(1).getCell(0);
+      assertNull(linkCell.getHyperlink());
     }
   }
 }

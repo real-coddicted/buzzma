@@ -10,6 +10,12 @@ const API_BASE = '/api/v1'
 type DealResponseDto = components['schemas']['DealResponseDto']
 type PagedDealsResponseDto = components['schemas']['PagedDealsResponseDto']
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
+type ExchangeProduct = components['schemas']['ExchangeProduct']
+
+/** Primary image first, then each exchange product's image, dropping blanks. */
+function toProductImages(primary: string | undefined, exchangeProducts: ExchangeProduct[] | undefined): string[] {
+  return [primary, ...(exchangeProducts ?? []).map(p => p.productImageUrl)].filter((u): u is string => !!u)
+}
 
 export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
   const d = dto.deal ?? {}
@@ -23,6 +29,7 @@ export function claimResponseToDeal(dto: ClaimResponseDto): Deal {
     campaignId: d.campaignId ?? '',
     productName: d.productName ?? '',
     productImageUrl: d.productImageUrl ?? '',
+    productImages: toProductImages(d.productImageUrl, d.exchangeProducts),
     productUrl: d.productUrl ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
@@ -59,6 +66,7 @@ export function dealResponseToDeal(dto: DealResponseDto): Deal {
     campaignId: dto.campaignId ?? '',
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
+    productImages: toProductImages(dto.productImageUrl, dto.exchangeProducts),
     productUrl: dto.productUrl ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,
@@ -72,6 +80,7 @@ export function dealResponseToDeal(dto: DealResponseDto): Deal {
     slotsAvailable: dto.slotsAvailable,
     startDate: dto.startDate ? yyyymmddToIso(dto.startDate) : undefined,
     endDate: dto.endDate ? yyyymmddToIso(dto.endDate) : undefined,
+    requiredSteps: dto.requiredSteps,
     status: 'explore',
   }
 }
@@ -88,6 +97,12 @@ export async function fetchExploreDeals(page: number): Promise<ExploreDealsPage>
   const total = data.total ?? items.length
   const totalPages = data.totalPages ?? Math.max(1, Math.ceil(total / EXPLORE_PAGE_SIZE))
   return { items, total, page: (data.page ?? page - 1) + 1, totalPages }
+}
+
+/** GET /deals/active/{id} — a single active deal by id, independent of pagination (used to resolve deep links). */
+export async function fetchActiveDealById(id: string): Promise<Deal> {
+  const res = await fetchWithAuth(`${API_BASE}/deals/active/${encodeURIComponent(id)}`)
+  return dealResponseToDeal((await res.json()) as DealResponseDto)
 }
 
 /** GET /deals/campaigns — id+title+code of campaigns the current mediator has a published deal on, for typeahead pickers. */
@@ -118,6 +133,7 @@ export function campaignToDeal(dto: CampaignResponseDto): Deal {
     title: dto.title,
     productName: dto.productName ?? '',
     productImageUrl: dto.productImageUrl ?? '',
+    productImages: toProductImages(dto.productImageUrl, dto.exchangeProducts),
     productUrl: dto.productLink ?? '',
     platform,
     platformLabel: PLATFORM_LABELS[platform] ?? platform,

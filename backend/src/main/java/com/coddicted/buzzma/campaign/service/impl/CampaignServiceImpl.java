@@ -18,7 +18,6 @@ import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.service.CampaignAssignmentService;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.campaign.service.CampaignStateMachine;
-import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
@@ -290,8 +289,7 @@ public class CampaignServiceImpl extends BaseCrudService implements CampaignServ
 
   private Map<UUID, String> loadOwnerNames(final List<Campaign> campaigns) {
     final List<UUID> ownerIds = campaigns.stream().map(Campaign::getOwnerId).distinct().toList();
-    return this.userService.getByIds(ownerIds).stream()
-        .collect(Collectors.toMap(BuzzmaUser::getId, BuzzmaUser::getName));
+    return this.userService.getNamesByIds(ownerIds);
   }
 
   @Override

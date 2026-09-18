@@ -42,6 +42,24 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       Pageable pageable);
 
   @Query(
+      value =
+          """
+          SELECT d.* FROM deals d, campaigns c
+          WHERE d.id = :id
+            AND d.owner_id IN (:ownerIds)
+            AND d.is_deleted = false
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
+          """,
+      nativeQuery = true)
+  Optional<Deal> findActiveDealById(
+      @Param("id") UUID id,
+      @Param("ownerIds") Collection<UUID> ownerIds,
+      @Param("today") Integer today);
+
+  @Query(
       """
       SELECT DISTINCT c FROM Deal d
         JOIN d.campaign c

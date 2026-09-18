@@ -25,12 +25,14 @@ public class ClaimResponseDto {
   BigInteger amountApprovedPaise;
   String productName;
   String sellerName;
+  String exchangeProduct;
   int orderDate;
   String accountName;
   String orderedBy;
   String reviewUrl;
   List<ClaimScreenshotResponseDto> screenshots;
   Boolean mediatorVerified;
+  Boolean brandVerified;
   Integer score;
   String reviewerComments;
   UUID reviewerId;

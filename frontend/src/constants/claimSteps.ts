@@ -6,11 +6,13 @@ const FALLBACK_COLORS: Omit<StepperStep, 'label'> = {
 }
 
 export const STEP_TYPE_COLORS: Record<string, Omit<StepperStep, 'label'>> = {
-  ORDER:         { color: 'text-neon-blue',   dotColor: 'bg-neon-blue',   lineColor: 'bg-neon-blue/40'   },
-  RATING:        { color: 'text-neon-purple', dotColor: 'bg-neon-purple', lineColor: 'bg-neon-purple/40' },
-  REVIEW:        { color: 'text-neon-cyan',   dotColor: 'bg-neon-cyan',   lineColor: 'bg-neon-cyan/40'   },
-  RETURN_WINDOW: { color: 'text-neon-orange', dotColor: 'bg-neon-orange', lineColor: 'bg-neon-orange/40' },
-  CASHBACK:      { color: 'text-neon-green',  dotColor: 'bg-neon-green',  lineColor: 'bg-neon-green/40'  },
+  ORDER:           { color: 'text-neon-blue',   dotColor: 'bg-neon-blue',   lineColor: 'bg-neon-blue/40'   },
+  DELIVERY:        { color: 'text-neon-pink',   dotColor: 'bg-neon-pink',   lineColor: 'bg-neon-pink/40'   },
+  RATING:          { color: 'text-neon-purple', dotColor: 'bg-neon-purple', lineColor: 'bg-neon-purple/40' },
+  REVIEW:          { color: 'text-neon-cyan',   dotColor: 'bg-neon-cyan',   lineColor: 'bg-neon-cyan/40'   },
+  SELLER_FEEDBACK: { color: 'text-neon-yellow', dotColor: 'bg-neon-yellow', lineColor: 'bg-neon-yellow/40' },
+  RETURN_WINDOW:   { color: 'text-neon-orange', dotColor: 'bg-neon-orange', lineColor: 'bg-neon-orange/40' },
+  CASHBACK:        { color: 'text-neon-green',  dotColor: 'bg-neon-green',  lineColor: 'bg-neon-green/40'  },
 }
 
 export function toStepperSteps(steps: CampaignStepDto[]): StepperStep[] {
@@ -19,15 +21,19 @@ export function toStepperSteps(steps: CampaignStepDto[]): StepperStep[] {
 
 export const STEP_TYPE_TO_SCREENSHOT_TYPE: Record<string, string> = {
   ORDER: 'SCREENSHOT_TYPE_ORDER',
+  DELIVERY: 'SCREENSHOT_TYPE_DELIVERY',
   RATING: 'SCREENSHOT_TYPE_RATING',
   REVIEW: 'SCREENSHOT_TYPE_REVIEW',
+  SELLER_FEEDBACK: 'SCREENSHOT_TYPE_SELLER_FEEDBACK',
   RETURN_WINDOW: 'SCREENSHOT_TYPE_RETURN',
 }
 
 const SCREENSHOT_TYPE_TO_STEP_TYPE: Record<string, string> = {
   SCREENSHOT_TYPE_ORDER:   'ORDER',
+  SCREENSHOT_TYPE_DELIVERY: 'DELIVERY',
   SCREENSHOT_TYPE_RATING:  'RATING',
   SCREENSHOT_TYPE_REVIEW:  'REVIEW',
+  SCREENSHOT_TYPE_SELLER_FEEDBACK: 'SELLER_FEEDBACK',
   SCREENSHOT_TYPE_RETURN:  'RETURN_WINDOW',
 }
 

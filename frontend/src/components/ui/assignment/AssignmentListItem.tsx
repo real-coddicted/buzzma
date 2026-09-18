@@ -58,6 +58,12 @@ export function AssignmentListItem({ item, onClick, showShare = false }: Assignm
           <StatusBadge status={item.campaignStatus} textClass="text-[10px] font-semibold" />
         </div>
 
+        {item.agencyName && (
+          <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
+            Agency: <span className="font-semibold text-ink-light-primary dark:text-ink-dark-primary">{item.agencyName}</span>
+          </p>
+        )}
+
         {(item.startDate || item.endDate) && (
           <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">
             {[item.startDate, item.endDate].filter(Boolean).map(d => fmtDate(d as string)).join(' - ')}

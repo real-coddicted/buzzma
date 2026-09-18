@@ -15,6 +15,7 @@ function makeRow(overrides: Partial<ClaimReviewItem> = {}): ClaimReviewItem {
     claimStatus: 'ORDERED',
     approvalMethod: 'manual',
     mediatorVerified: false,
+    brandVerified: false,
     matchPct: 90,
     platform: 'PLATFORM_AMAZON',
     brandName: 'Nike',

@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
+/**
+ * @see com.coddicted.buzzma.campaign.entity.CampaignTypeStep
+ */
+@Deprecated
 @Service
 public class CampaignTypeStepServiceImpl implements CampaignTypeStepService {
 

@@ -15,6 +15,7 @@ public interface ClaimReviewMapper {
   @Mapping(source = "campaign.id", target = "campaignId")
   @Mapping(source = "campaign.title", target = "campaignName")
   @Mapping(source = "campaign.code", target = "campaignCode")
+  @Mapping(source = "campaign.type", target = "campaignType")
   @Mapping(source = "claim.dealId", target = "dealId")
   @Mapping(source = "dealOwnerId", target = "dealOwnerId")
   @Mapping(source = "dealOwnerName", target = "dealOwnerName")
@@ -26,9 +27,15 @@ public interface ClaimReviewMapper {
   @Mapping(source = "claim.code", target = "claimCode")
   @Mapping(source = "claim.status", target = "claimStatus")
   @Mapping(source = "claim.ecommerceOrderId", target = "ecommerceOrderId")
+  @Mapping(source = "claim.exchangeProduct", target = "exchangeProduct")
+  @Mapping(source = "claim.reviewUrl", target = "reviewUrl")
   @Mapping(
       source = "claim.mediatorVerified",
       target = "mediatorVerified",
+      defaultExpression = "java(Boolean.FALSE)")
+  @Mapping(
+      source = "claim.brandVerified",
+      target = "brandVerified",
       defaultExpression = "java(Boolean.FALSE)")
   @Mapping(source = "claim.score", target = "matchScore")
   @Mapping(source = "claim.amountPaise", target = "amountPaise")

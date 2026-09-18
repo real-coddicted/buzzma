@@ -11,18 +11,24 @@ const API_BASE = '/api/v1'
 export interface CampaignStepDto {
   type: string
   label: string
+  stepOrder: number
 }
 
-export type StepConfig = Record<string, CampaignStepDto[]>
+let stepConfigCache: Promise<CampaignStepDto[]> | null = null
 
-let stepConfigCache: Promise<StepConfig> | null = null
-
-export function fetchStepConfig(): Promise<StepConfig> {
+/** GET /campaigns/step-config — the flat set of screenshot steps selectable when configuring a campaign. */
+export function fetchStepConfig(): Promise<CampaignStepDto[]> {
   if (!stepConfigCache) {
     stepConfigCache = fetchWithAuth(`${API_BASE}/campaigns/step-config`)
-      .then(r => r.json() as Promise<StepConfig>)
+      .then(r => r.json() as Promise<CampaignStepDto[]>)
   }
   return stepConfigCache
+}
+
+/** GET /campaigns/{id}/step-config — the resolved, ordered claim steps for one campaign. */
+export function fetchCampaignStepConfig(campaignId: string): Promise<CampaignStepDto[]> {
+  return fetchWithAuth(`${API_BASE}/campaigns/${campaignId}/step-config`)
+    .then(r => r.json() as Promise<CampaignStepDto[]>)
 }
 
 type BackendRequest = components['schemas']['CampaignRequestDto']
@@ -45,6 +51,7 @@ function isoToYYYYMMDD(iso: string): number {
 export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignResponseDto> {
   const user = getCurrentUser()
   if (!user?.id) throw new Error('You must be signed in to create a campaign.')
+  if (dto.totalSlots == null) throw new Error('Total slots is required.')
 
   const body: BackendRequest = {
     title: dto.title,
@@ -58,9 +65,14 @@ export async function createCampaign(dto: CampaignRequestDto): Promise<CampaignR
     campaignPricePaise: dto.campaignPricePaise,
     campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
     campaignStatus: 'CAMPAIGN_STATUS_DRAFT',
-    totalSlots: dto.totalSlots ?? 1,
+    totalSlots: dto.totalSlots,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
+    exchangeProducts: dto.exchangeProducts.map(p => ({
+      productName: p.productName,
+      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
+    })),
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),
@@ -232,6 +244,12 @@ export async function fetchCampaignById(id: string): Promise<CampaignResponseDto
   return res.json() as Promise<CampaignResponseDto>
 }
 
+/** GET /campaigns/{id} — the configured exchange product names for a campaign (empty for non-exchange campaigns). */
+export async function fetchCampaignExchangeProductNames(campaignId: string): Promise<string[]> {
+  const dto = await fetchCampaignById(campaignId)
+  return (dto.exchangeProducts ?? []).map(p => p.productName ?? '').filter(Boolean)
+}
+
 export interface CampaignBriefDto {
   id: string
   title: string
@@ -260,6 +278,7 @@ export async function updateCampaign(
 ): Promise<CampaignResponseDto> {
   const user = getCurrentUser()
   if (!user?.id) throw new Error('You must be signed in to update a campaign.')
+  if (dto.totalSlots == null) throw new Error('Total slots is required.')
 
   const body: BackendRequest = {
     title: dto.title,
@@ -273,9 +292,14 @@ export async function updateCampaign(
     campaignPricePaise: dto.campaignPricePaise,
     campaignType: (dto.campaignType ?? 'CAMPAIGN_TYPE_ORDER') as BackendRequest['campaignType'],
     campaignStatus,
-    totalSlots: dto.totalSlots ?? 1,
+    totalSlots: dto.totalSlots,
     openToAll: dto.openToAll ?? true,
     affiliateLinkAllowed: dto.affiliateLinkAllowed ?? false,
+    requiredSteps: dto.requiredSteps as BackendRequest['requiredSteps'],
+    exchangeProducts: dto.exchangeProducts.map(p => ({
+      productName: p.productName,
+      ...(p.productImageUrl ? { productImageUrl: p.productImageUrl } : {}),
+    })),
     ...(dto.commissionToAllPaise ? { commissionToAllPaise: dto.commissionToAllPaise } : {}),
     ...(dto.returnWindowDays != null ? { returnWindowDays: dto.returnWindowDays } : {}),
     ...(dto.termsAndConditions ? { termsAndConditions: dto.termsAndConditions } : {}),

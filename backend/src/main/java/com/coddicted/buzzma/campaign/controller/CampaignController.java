@@ -13,9 +13,10 @@ import com.coddicted.buzzma.campaign.dto.PagedSharedCampaignViewResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignRequestDto;
 import com.coddicted.buzzma.campaign.dto.ShareCampaignResponseDto;
 import com.coddicted.buzzma.campaign.dto.ShareableCampaignResponseDto;
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignAction;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
-import com.coddicted.buzzma.campaign.mapper.CampaignTypeStepMapper;
 import com.coddicted.buzzma.campaign.mapper.ShareableCampaignMapper;
 import com.coddicted.buzzma.campaign.mapper.SharedCampaignSummaryMapper;
 import com.coddicted.buzzma.campaign.model.CampaignSearchCriteria;
@@ -23,12 +24,11 @@ import com.coddicted.buzzma.campaign.model.CampaignSummary;
 import com.coddicted.buzzma.campaign.persistence.SharedCampaignSummaryView;
 import com.coddicted.buzzma.campaign.processor.CampaignProcessor;
 import com.coddicted.buzzma.campaign.service.CampaignService;
-import com.coddicted.buzzma.campaign.service.CampaignTypeStepService;
+import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -55,33 +55,37 @@ public class CampaignController {
 
   private final CampaignService service;
   private final CampaignMapper campaignMapper;
-  private final CampaignTypeStepMapper campaignTypeStepMapper;
   private final CampaignProcessor campaignProcessor;
-  private final CampaignTypeStepService campaignTypeStepService;
+  private final CampaignStepResolver campaignStepResolver;
   private final ShareableCampaignMapper shareableCampaignMapper;
   private final SharedCampaignSummaryMapper sharedCampaignSummaryMapper;
 
   public CampaignController(
       final CampaignService service,
       final CampaignMapper campaignMapper,
-      final CampaignTypeStepMapper campaignTypeStepMapper,
       final CampaignProcessor campaignProcessor,
-      final CampaignTypeStepService campaignTypeStepService,
+      final CampaignStepResolver campaignStepResolver,
       final ShareableCampaignMapper shareableCampaignMapper,
       final SharedCampaignSummaryMapper sharedCampaignSummaryMapper) {
     this.service = service;
     this.campaignMapper = campaignMapper;
-    this.campaignTypeStepMapper = campaignTypeStepMapper;
     this.campaignProcessor = campaignProcessor;
-    this.campaignTypeStepService = campaignTypeStepService;
+    this.campaignStepResolver = campaignStepResolver;
     this.shareableCampaignMapper = shareableCampaignMapper;
     this.sharedCampaignSummaryMapper = sharedCampaignSummaryMapper;
   }
 
+  /** The full set of screenshot steps selectable when configuring a campaign. */
   @GetMapping("/step-config")
-  public Map<String, List<CampaignStepDto>> getStepConfig() {
-    return this.campaignTypeStepMapper.toCampaignStepDtoMap(
-        this.campaignTypeStepService.getStepConfig());
+  public List<CampaignStepDto> getStepConfig() {
+    return CampaignStepDto.toDtoList(CampaignStepType.selectableTypes());
+  }
+
+  /** The resolved, ordered claim steps for one campaign (used by the buyer claim flow). */
+  @GetMapping("/{id}/step-config")
+  public List<CampaignStepDto> getStepConfigForCampaign(@PathVariable final UUID id) {
+    final Campaign campaign = this.service.getById(id);
+    return CampaignStepDto.toDtoList(this.campaignStepResolver.resolve(campaign));
   }
 
   @GetMapping

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { StepperStep } from '../Stepper'
-import { fetchStepConfig } from '../../../api/campaignApi'
+import { fetchCampaignStepConfig } from '../../../api/campaignApi'
 import { toStepperSteps } from '../../../constants/claimSteps'
 import { StepperHeader } from '../StepperHeader'
 import { DealSummaryRow } from './DealSummaryRow'
@@ -25,10 +25,8 @@ export function ClaimedDealDrawer({ deal, onClose }: ClaimedDealDrawerProps) {
   }, [onClose])
 
   useEffect(() => {
-    fetchStepConfig().then(config => {
-      setSteps(toStepperSteps(config[deal.dealType] ?? []))
-    })
-  }, [deal.dealType])
+    fetchCampaignStepConfig(deal.campaignId).then(cfg => setSteps(toStepperSteps(cfg)))
+  }, [deal.campaignId])
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">

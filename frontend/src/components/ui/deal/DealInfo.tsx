@@ -3,6 +3,7 @@ import { PLATFORM_COLORS, DEAL_TYPE_COLORS } from '../../../constants/deal'
 import { ProductThumbnail } from './ProductThumbnail'
 import { OrderOnPlatformLink } from './OrderOnPlatformLink'
 import { CopyableCode } from '../CopyableCode'
+import { RequiredStepTags } from './RequiredStepTags'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
 import { formatShortDate } from '../../../utils/time'
 
@@ -22,24 +23,31 @@ interface DealInfoProps {
 export function DealInfo({ deal }: DealInfoProps) {
   const discount = Math.round((1 - deal.offeredPricePaise / deal.originalPricePaise) * 100)
 
+  const gallery = deal.productImages.filter(Boolean)
+  const isCarousel = gallery.length > 1
+
   return (
     <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card overflow-y-auto flex flex-col">
       <div className="relative h-64">
-        <a
-          href={deal.productUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative h-64 block group"
-          aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
-        >
-          <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-          {discount > 0 && (
-            <span className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
-              -{discount}%
-            </span>
-          )}
-        </a>
+        {isCarousel ? (
+          <ProductThumbnail src={gallery} alt={deal.productName} className="h-full" autoPlay secondaryLabel="Exchange option" />
+        ) : (
+          <a
+            href={deal.productUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative block h-64 group"
+            aria-label={`Order ${deal.productName} on ${deal.platformLabel}`}
+          >
+            <ProductThumbnail src={deal.productImageUrl} alt={deal.productName} className="h-full" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+          </a>
+        )}
+        {discount > 0 && (
+          <span className="absolute top-3 right-3 z-10 text-[10px] font-bold px-2.5 py-1 rounded-full bg-neon-red text-white">
+            -{discount}%
+          </span>
+        )}
       </div>
 
       {/* badges + title + price */}
@@ -74,6 +82,7 @@ export function DealInfo({ deal }: DealInfoProps) {
             </div>
           )}
           {deal.mediatorName && <Row label="Mediator" value={deal.mediatorName} />}
+          {deal.agencyName && <Row label="Agency" value={deal.agencyName} />}
           <Row label="Platform"       value={deal.platformLabel} />
           {deal.campaignCode && (
             <div className="flex justify-between items-center py-3 border-b border-surface-light-border dark:border-surface-dark-border last:border-0">
@@ -89,6 +98,15 @@ export function DealInfo({ deal }: DealInfoProps) {
           <Row label="Offered Price"  value={`₹${formatRupees(paiseToRupees(deal.offeredPricePaise))}`} />
           <Row label="You Save"       value={`₹${formatRupees(paiseToRupees(deal.originalPricePaise - deal.offeredPricePaise))} (${discount}%)`} />
         </div>
+
+        {deal.requiredSteps && deal.requiredSteps.length > 0 && (
+          <div className="pt-2 border-t border-surface-light-border dark:border-surface-dark-border space-y-2">
+            <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted">Claim Steps</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <RequiredStepTags requiredSteps={deal.requiredSteps} />
+            </div>
+          </div>
+        )}
 
         <div className="pt-2 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-ink-light-primary dark:text-ink-dark-primary">

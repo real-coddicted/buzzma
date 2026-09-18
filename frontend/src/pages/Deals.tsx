@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { DealCard } from '../components/ui/deal/DealCard'
 import { DealDetail } from '../components/ui/deal/DealDetail'
 import { DealFilterBar } from '../components/ui/deal/DealFilterBar'
 import type { DealTypeFilter, DealPlatformFilter } from '../components/ui/deal/DealFilterBar'
 import type { Deal } from '../types/DealTypes'
-import { fetchExploreDeals } from '../api/dealApi'
+import { fetchExploreDeals, fetchActiveDealById } from '../api/dealApi'
 import type { ExploreDealsPage } from '../api/dealApi'
 import { Loading } from '../components/ui/Loading'
 import { PaginationToolbar } from '../components/ui/PaginationToolbar'
@@ -14,8 +14,8 @@ import { Toast } from '../components/ui/Toast'
 
 export function Deals() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const view     = searchParams.get('view')
+  const dealId   = searchParams.get('id')
 
   const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
   const [search, setSearch]                 = useState('')
@@ -27,6 +27,25 @@ export function Deals() {
   const [currentPage, setCurrentPage]       = useState(1)
 
   const [toastError, setToastError]         = useState<string | null>(null)
+
+  useEffect(() => {
+    if (view !== 'detail' || !dealId || selectedDeal) return
+    const local = explorePage?.items.find(d => d.id === dealId)
+    if (local) {
+      setSelectedDeal(local)
+      return
+    }
+    if (!explorePage) return
+    let cancelled = false
+    fetchActiveDealById(dealId)
+      .then(deal => { if (!cancelled) setSelectedDeal(deal) })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setToastError(err instanceof Error ? err.message : 'Failed to load deal.')
+        setSearchParams({})
+      })
+    return () => { cancelled = true }
+  }, [view, dealId, selectedDeal, explorePage, setSearchParams])
 
   useEffect(() => {
     let cancelled = false
@@ -60,10 +79,11 @@ export function Deals() {
   }, [explorePage, search, typeFilter, platformFilter])
 
   if (view === 'detail' && selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => navigate(-1)} />
+    return <DealDetail deal={selectedDeal} onBack={() => { setSelectedDeal(null); setSearchParams({}) }} />
   }
 
   const totalPages = explorePage?.totalPages ?? 1
+  const resolvingDetail = view === 'detail' && !!dealId && !selectedDeal
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
@@ -73,43 +93,39 @@ export function Deals() {
         </h1>
       </div>
 
-      <Card padded={false}>
-        <div className="p-4 border-b border-surface-light-border dark:border-surface-dark-border">
-          <DealFilterBar
-            search={search}
-            onSearchChange={setSearch}
-            typeFilter={typeFilter}
-            platformFilter={platformFilter}
-            onTypeChange={setTypeFilter}
-            onPlatformChange={setPlatformFilter}
-          />
-        </div>
-
-        <div className="p-4">
-          {exploreLoading ? (
-            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
-              <Loading size={32} />
-            </div>
-          ) : filteredExplore.length === 0 ? (
-            <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
-              No deals match your filters.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredExplore.map(deal => (
-                <DealCard key={deal.id} deal={deal} onClick={() => { setSelectedDeal(deal); setSearchParams({ view: 'detail', id: deal.id }) }} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <PaginationToolbar
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          disabled={exploreLoading}
+      <Card>
+        <DealFilterBar
+          search={search}
+          onSearchChange={setSearch}
+          typeFilter={typeFilter}
+          platformFilter={platformFilter}
+          onTypeChange={setTypeFilter}
+          onPlatformChange={setPlatformFilter}
         />
       </Card>
+
+      {exploreLoading || resolvingDetail ? (
+        <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted">
+          <Loading size={32} />
+        </div>
+      ) : filteredExplore.length === 0 ? (
+        <div className="flex justify-center py-20 text-ink-light-muted dark:text-ink-dark-muted text-sm">
+          No deals match your filters.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredExplore.map(deal => (
+            <DealCard key={deal.id} deal={deal} onClick={() => { setSelectedDeal(deal); setSearchParams({ view: 'detail', id: deal.id }) }} />
+          ))}
+        </div>
+      )}
+
+      <PaginationToolbar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        disabled={exploreLoading}
+      />
 
       {toastError && (
         <Toast
