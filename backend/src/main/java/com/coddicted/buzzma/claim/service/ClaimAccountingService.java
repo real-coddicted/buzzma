@@ -2,11 +2,11 @@ package com.coddicted.buzzma.claim.service;
 
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
-import com.coddicted.buzzma.claim.persistence.projection.AwaitedPaymentProjection;
-import com.coddicted.buzzma.claim.persistence.projection.MadePaymentProjection;
-import com.coddicted.buzzma.claim.persistence.projection.PaidPayoutProjection;
-import com.coddicted.buzzma.claim.persistence.projection.PendingPayoutProjection;
-import com.coddicted.buzzma.claim.persistence.projection.ReceivedPaymentProjection;
+import com.coddicted.buzzma.payment.persistence.projection.AwaitedPaymentProjection;
+import com.coddicted.buzzma.payment.persistence.projection.MadePaymentProjection;
+import com.coddicted.buzzma.payment.persistence.projection.PaidPayoutProjection;
+import com.coddicted.buzzma.payment.persistence.projection.PendingPayoutProjection;
+import com.coddicted.buzzma.payment.persistence.projection.ReceivedPaymentProjection;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
