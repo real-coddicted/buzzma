@@ -15,6 +15,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -140,7 +141,8 @@ public class CampaignProcessor {
                 .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
-                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+                .requiredSteps(
+                    normalizeRequiredSteps(request.getRequiredSteps(), request.getCategory()))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -171,7 +173,8 @@ public class CampaignProcessor {
         existingCampaign.toBuilder()
             .product(updatedProduct)
             .updatedBy(requesterId)
-            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+            .requiredSteps(
+                normalizeRequiredSteps(request.getRequiredSteps(), request.getCategory()))
             .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
@@ -316,12 +319,23 @@ public class CampaignProcessor {
    * persisted as part of the selection.
    */
   private static List<CampaignStepType> normalizeRequiredSteps(
-      final List<CampaignStepType> requiredSteps) {
+      final List<CampaignStepType> requiredSteps, final PromotionCategory category) {
     final Set<CampaignStepType> steps =
         requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
-    steps.add(CampaignStepType.ORDER);
+    steps.add(forcedStepFor(category));
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
+  }
+
+  /**
+   * The step every campaign in a category is forced to require, regardless of what the client sent
+   * - ORDER for most categories, DOWNLOAD_INSTALL for App Promotion, which has no real order
+   * concept.
+   */
+  private static CampaignStepType forcedStepFor(final PromotionCategory category) {
+    return category == PromotionCategory.APP_PROMOTION
+        ? CampaignStepType.DOWNLOAD_INSTALL
+        : CampaignStepType.ORDER;
   }
 
   /**

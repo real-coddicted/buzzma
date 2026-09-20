@@ -130,12 +130,12 @@ class CampaignControllerTest {
         .perform(get("/api/v1/campaigns/step-config"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].type").value("ORDER"))
-        .andExpect(jsonPath("$[1].type").value("DELIVERY"))
-        .andExpect(jsonPath("$[2].type").value("RATING"))
-        .andExpect(jsonPath("$[3].type").value("REVIEW"))
-        .andExpect(jsonPath("$[4].type").value("SELLER_FEEDBACK"))
-        .andExpect(jsonPath("$[5].type").value("RETURN_WINDOW"))
-        .andExpect(jsonPath("$[6].type").value("DOWNLOAD_INSTALL"))
+        .andExpect(jsonPath("$[1].type").value("DOWNLOAD_INSTALL"))
+        .andExpect(jsonPath("$[2].type").value("DELIVERY"))
+        .andExpect(jsonPath("$[3].type").value("RATING"))
+        .andExpect(jsonPath("$[4].type").value("REVIEW"))
+        .andExpect(jsonPath("$[5].type").value("SELLER_FEEDBACK"))
+        .andExpect(jsonPath("$[6].type").value("RETURN_WINDOW"))
         .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(7)));
   }
 
