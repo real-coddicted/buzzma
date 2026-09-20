@@ -1,11 +1,12 @@
 package com.coddicted.buzzma.claim.client;
 
-import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.utils.ClaimScreenshotProcessorUtils;
-import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.gemini.GeminiClient;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -15,46 +16,27 @@ public class GeminiClientProxyImpl implements GeminiClientProxy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GeminiClientProxyImpl.class);
   private final GeminiClient geminiClient;
-  private final GeminiExtractionPromptBuilder promptBuilder;
   private final ObjectMapper objectMapper;
 
-  public GeminiClientProxyImpl(
-      final GeminiClient geminiClient,
-      final GeminiExtractionPromptBuilder promptBuilder,
-      final ObjectMapper objectMapper) {
+  public GeminiClientProxyImpl(final GeminiClient geminiClient, final ObjectMapper objectMapper) {
     this.geminiClient = geminiClient;
-    this.promptBuilder = promptBuilder;
     this.objectMapper = objectMapper;
   }
 
   @Override
-  public <T> T extract(
-      final ScreenshotType screenshotType,
-      final byte[] imageBytes,
-      final String mimeType,
-      final Class<T> valueType) {
-    final String rawText =
-        this.geminiClient.generateContent(getPrompt(screenshotType), imageBytes, mimeType);
+  public Map<String, String> extract(
+      final String prompt, final byte[] imageBytes, final String mimeType) {
+    final String rawText = this.geminiClient.generateContent(prompt, imageBytes, mimeType);
     final String json = ClaimScreenshotProcessorUtils.sanitizeJson(rawText);
     try {
-      return this.objectMapper.readValue(json, valueType);
+      final Map<String, Object> raw =
+          this.objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+      final Map<String, String> result = new HashMap<>();
+      raw.forEach((key, value) -> result.put(key, value != null ? value.toString() : null));
+      return result;
     } catch (final Exception e) {
       LOGGER.warn("Extraction failed: {} {}", json, e.getMessage());
       throw new BusinessRuleViolationException("Extraction failed: " + e.getMessage());
     }
-  }
-
-  private String getPrompt(final ScreenshotType screenshotType) {
-    return switch (screenshotType) {
-      case ScreenshotType.SCREENSHOT_TYPE_ORDER -> this.promptBuilder.build();
-      case ScreenshotType.SCREENSHOT_TYPE_RATING -> this.promptBuilder.buildRatingPrompt();
-      case ScreenshotType.SCREENSHOT_TYPE_REVIEW -> this.promptBuilder.buildReviewPrompt();
-      case ScreenshotType.SCREENSHOT_TYPE_RETURN -> this.promptBuilder.buildReturnPrompt();
-      case ScreenshotType.SCREENSHOT_TYPE_DELIVERY -> this.promptBuilder.buildDeliveryPrompt();
-      case ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK ->
-          this.promptBuilder.buildSellerFeedbackPrompt();
-      case ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL ->
-          this.promptBuilder.buildDownloadInstallPrompt();
-    };
   }
 }

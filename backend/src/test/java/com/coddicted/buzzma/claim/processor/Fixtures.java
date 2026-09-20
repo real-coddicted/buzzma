@@ -1,7 +1,6 @@
 package com.coddicted.buzzma.claim.processor;
 
 import com.coddicted.buzzma.claim.client.GeminiClientProxy;
-import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,12 +21,20 @@ final class Fixtures {
   static final String MIME_TYPE = "image/jpeg";
   static final byte[] IMAGE_BYTES = {1, 2, 3};
 
+  static Map<String, String> loadExtractionResult(final String resourcePath) {
+    return load(resourcePath, new TypeReference<Map<String, String>>() {});
+  }
+
   static Map<String, ScoredValue> loadExtractedDetails(final String resourcePath) {
+    return load(resourcePath, new TypeReference<Map<String, ScoredValue>>() {});
+  }
+
+  private static <T> T load(final String resourcePath, final TypeReference<T> typeReference) {
     try (InputStream stream = Fixtures.class.getResourceAsStream(resourcePath)) {
       if (stream == null) {
         throw new IllegalArgumentException("file resource not found: " + resourcePath);
       }
-      return MAPPER.readValue(stream, new TypeReference<Map<String, ScoredValue>>() {});
+      return MAPPER.readValue(stream, typeReference);
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -36,34 +43,28 @@ final class Fixtures {
   private Fixtures() {}
 
   /**
-   * Fake GeminiClientProxy returning a fixed, fixture-loaded extraction result regardless of the
+   * Fake GeminiClientProxy returning a fixed, fixture-loaded field map regardless of the prompt or
    * image bytes given, while recording the arguments it was called with for assertions. Used
    * instead of a Mockito mock because the real byte[] argument (round-tripped through
    * StorageService/ResponseBytes) has no reliable value-based equality to stub against.
    */
   static final class FixedResultGeminiClientProxy implements GeminiClientProxy {
-    private final Object result;
-    ScreenshotType lastScreenshotType;
+    private final Map<String, String> result;
+    String lastPrompt;
     byte[] lastImageBytes;
     String lastMimeType;
-    Class<?> lastValueType;
 
-    FixedResultGeminiClientProxy(final Object result) {
+    FixedResultGeminiClientProxy(final Map<String, String> result) {
       this.result = result;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T extract(
-        final ScreenshotType screenshotType,
-        final byte[] imageBytes,
-        final String mimeType,
-        final Class<T> valueType) {
-      this.lastScreenshotType = screenshotType;
+    public Map<String, String> extract(
+        final String prompt, final byte[] imageBytes, final String mimeType) {
+      this.lastPrompt = prompt;
       this.lastImageBytes = imageBytes;
       this.lastMimeType = mimeType;
-      this.lastValueType = valueType;
-      return (T) this.result;
+      return this.result;
     }
   }
 }

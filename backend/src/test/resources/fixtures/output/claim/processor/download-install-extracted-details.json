@@ -1,0 +1,7 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": null },
+  "productName": { "extractedValue": "Test Product", "score": null },
+  "accountName": { "extractedValue": "john.doe", "score": null },
+  "installStatus": { "extractedValue": "Installed", "score": null },
+  "appVersion": { "extractedValue": "2.3.1", "score": null }
+}

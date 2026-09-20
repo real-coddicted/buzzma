@@ -1,11 +1,10 @@
 package com.coddicted.buzzma.claim.client;
 
-import com.coddicted.buzzma.claim.entity.ScreenshotType;
+import java.util.Map;
 
 public interface GeminiClientProxy {
-  <T> T extract(
-      final ScreenshotType screenshotType,
-      final byte[] imageBytes,
-      final String mimeType,
-      final Class<T> valueType);
+  /**
+   * Runs {@code prompt} against the image and returns the extracted fields as a flat string map.
+   */
+  Map<String, String> extract(final String prompt, final byte[] imageBytes, final String mimeType);
 }

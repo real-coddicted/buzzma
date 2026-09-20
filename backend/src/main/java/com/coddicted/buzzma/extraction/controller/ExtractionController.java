@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.extraction.controller;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.service.ClaimScreenshotService;
 import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import java.io.IOException;
@@ -26,11 +27,13 @@ public class ExtractionController {
 
   @PostMapping(value = "/sync", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ExtractionResult extractSync(
+      @RequestParam(name = "stepType") final CampaignStepType stepType,
       @RequestParam(name = "requesterId", required = false) final UUID requesterId,
       @RequestParam(name = "campaignId") final UUID campaignId,
       @RequestPart("image") final MultipartFile image)
       throws IOException {
     return claimScreenshotService.extractSync(
+        stepType,
         image.getBytes(),
         image.getOriginalFilename(),
         image.getContentType(),

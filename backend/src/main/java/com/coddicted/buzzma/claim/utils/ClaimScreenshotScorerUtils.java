@@ -97,6 +97,12 @@ public final class ClaimScreenshotScorerUtils {
         .build();
   }
 
+  /** Null-safe lookup of a previously-extracted field's value. */
+  public static String valueOf(final Map<String, ScoredValue> details, final String key) {
+    final ScoredValue value = details.get(key);
+    return value != null ? value.getExtractedValue() : null;
+  }
+
   public static ExtractedScoredResult updateExtractedDataForMatchWithManualEntryInOrder(
       final Claim claim, final Map<String, ScoredValue> extractedDetails, Integer overallScore) {
 
