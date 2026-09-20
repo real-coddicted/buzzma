@@ -27,6 +27,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -92,12 +93,12 @@ class CampaignProcessorTest {
   }
 
   @Test
-  void testCreateAppReviewTypeOnNonAppStorePlatformThrows() {
+  void testCreateRegularTypeOnNonAppStorePlatformThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
             .platform(Platform.PLATFORM_AMAZON)
-            .campaignType(CampaignType.CAMPAIGN_TYPE_APP_REVIEW)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_REGULAR)
             .build();
 
     final BusinessRuleViolationException ex =
@@ -105,12 +106,12 @@ class CampaignProcessorTest {
             BusinessRuleViolationException.class,
             () -> campaignProcessor.create(REQUESTER_ID, request));
     assertEquals(
-        "App-review campaigns are only allowed on Apple App Store or Google Play Store",
+        "Regular campaigns are only allowed on Apple App Store or Google Play Store",
         ex.getMessage());
   }
 
   @Test
-  void testCreateAppStorePlatformWithNonAppReviewTypeThrows() {
+  void testCreateAppStorePlatformWithNonRegularTypeThrows() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
             .endDate(20991231)
@@ -123,8 +124,41 @@ class CampaignProcessorTest {
             BusinessRuleViolationException.class,
             () -> campaignProcessor.create(REQUESTER_ID, request));
     assertEquals(
-        "Apple App Store and Google Play Store campaigns must be of type App Review",
-        ex.getMessage());
+        "Apple App Store and Google Play Store campaigns must be of type Regular", ex.getMessage());
+  }
+
+  @Test
+  void testCreateRegularTypeWithNonAppPromotionCategoryThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_APPLE_APP_STORE)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_REGULAR)
+            .category(PromotionCategory.ECOMMERCE)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("Only App Promotion campaigns can be of type Regular", ex.getMessage());
+  }
+
+  @Test
+  void testCreateAppPromotionCategoryWithNonRegularTypeThrows() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_AMAZON)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .category(PromotionCategory.APP_PROMOTION)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals("App Promotion campaigns must be of type Regular", ex.getMessage());
   }
 
   @Test

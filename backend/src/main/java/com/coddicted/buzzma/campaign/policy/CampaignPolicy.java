@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.campaign.policy;
 
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import java.util.EnumSet;
@@ -20,20 +21,30 @@ public final class CampaignPolicy {
       EnumSet.of(Platform.PLATFORM_APPLE_APP_STORE, Platform.PLATFORM_GOOGLE_PLAY_STORE);
 
   /**
-   * App-review campaigns only make sense on an app store, and the app stores only host app-review
-   * campaigns — the pairing is enforced both ways.
+   * Regular-type campaigns only make sense on an app store, and the app stores only host
+   * regular-type campaigns — the pairing is enforced both ways. Likewise, Regular is exclusively
+   * the App Promotion category's campaign type, so the two must agree.
    */
-  public static void validatePlatformAndCampaignType(
-      final Platform platform, final CampaignType campaignType) {
+  public static void validatePlatformCampaignTypeAndCategory(
+      final Platform platform, final CampaignType campaignType, final PromotionCategory category) {
     final boolean appPromotionPlatform = APP_PROMOTION_PLATFORMS.contains(platform);
-    final boolean appReviewType = campaignType == CampaignType.CAMPAIGN_TYPE_APP_REVIEW;
-    if (appReviewType && !appPromotionPlatform) {
+    final boolean regularType = campaignType == CampaignType.CAMPAIGN_TYPE_REGULAR;
+    if (regularType && !appPromotionPlatform) {
       throw new BusinessRuleViolationException(
-          "App-review campaigns are only allowed on Apple App Store or Google Play Store");
+          "Regular campaigns are only allowed on Apple App Store or Google Play Store");
     }
-    if (appPromotionPlatform && !appReviewType) {
+    if (appPromotionPlatform && !regularType) {
       throw new BusinessRuleViolationException(
-          "Apple App Store and Google Play Store campaigns must be of type App Review");
+          "Apple App Store and Google Play Store campaigns must be of type Regular");
+    }
+
+    final boolean appPromotionCategory = category == PromotionCategory.APP_PROMOTION;
+    if (appPromotionCategory && !regularType) {
+      throw new BusinessRuleViolationException("App Promotion campaigns must be of type Regular");
+    }
+    if (regularType && !appPromotionCategory) {
+      throw new BusinessRuleViolationException(
+          "Only App Promotion campaigns can be of type Regular");
     }
   }
 }
