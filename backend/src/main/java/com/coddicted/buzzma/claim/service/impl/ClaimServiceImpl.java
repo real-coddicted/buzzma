@@ -196,7 +196,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         this.claimRepository.save(
             claim.toBuilder()
                 .code(code)
-                .status(ClaimStatus.DOWNLOADED_AND_INSTALLED)
+                .status(terminalStatusFor(campaign, CampaignStepType.DOWNLOAD_INSTALL))
                 .ecommerceOrderId("NA")
                 .platform(campaign.getPlatform())
                 .currentStep(CampaignStepType.DOWNLOAD_INSTALL)
