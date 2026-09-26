@@ -66,6 +66,25 @@ class ClaimScreenshotScorerUtilsTest {
   }
 
   @Test
+  void nullOverallScoreWithNoMismatchStaysNullNoNpe() {
+    // Regression test: ExtractedScoredResult.overallScore used to be a primitive int, so
+    // passing a null overallScore (the client may omit it when no client-side score was
+    // computed) threw a NullPointerException unboxing null into the record's constructor.
+    Claim claim =
+        buildClaim(
+            Platform.PLATFORM_AMAZON, "ORD-123", 20260615, BigInteger.valueOf(50000), "john.doe");
+    Map<String, ScoredValue> input =
+        details("PLATFORM_AMAZON", "ORD-123", "2026-06-15", "500.00", "john.doe");
+
+    ExtractedScoredResult result =
+        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+            claim, input, null);
+
+    assertFalse(result.extractedResult().get(BuzzmahConstants.ORDER_ID).isMismatch());
+    assertNull(result.overallScore());
+  }
+
+  @Test
   void orderIdMismatchForcesScoreToZero() {
     Claim claim =
         buildClaim(

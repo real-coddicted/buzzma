@@ -4,6 +4,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
@@ -52,6 +53,8 @@ public class CampaignResponseDto {
   BigInteger productPricePaise;
 
   Platform platform;
+
+  PromotionCategory category;
 
   BigInteger campaignPricePaise;
 

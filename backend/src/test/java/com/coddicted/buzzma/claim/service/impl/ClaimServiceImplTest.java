@@ -439,13 +439,20 @@ class ClaimServiceImplTest {
 
   @Test
   void testCreateAppReviewClaim() {
+    final Campaign appPromotionCampaign =
+        Campaign.builder()
+            .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+            .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+            .build();
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(appPromotionCampaign);
+    when(this.mockCampaignStepResolver.resolve(appPromotionCampaign))
         .thenReturn(
-            Campaign.builder()
-                .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
-                .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
-                .build());
+            List.of(
+                CampaignStepType.DOWNLOAD_INSTALL,
+                CampaignStepType.REVIEW,
+                CampaignStepType.CASHBACK));
     when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
@@ -475,6 +482,39 @@ class ClaimServiceImplTest {
     verify(this.mockClaimScreenshotRepository).save(screenshotCaptor.capture());
     assertEquals(SCREENSHOT_TYPE_DOWNLOAD_INSTALL, screenshotCaptor.getValue().getType());
     verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), OWNER_ID);
+  }
+
+  @Test
+  void testCreateAppReviewClaimSetsUnderReviewWhenDownloadInstallIsLastRequiredStep() {
+    // Regression test: createAppReviewClaim hardcoded DOWNLOADED_AND_INSTALLED regardless of
+    // whether Download & Install was the campaign's only required step, so an App Promotion
+    // campaign with no Rating/Review requirement never became reviewable and agencies/mediators
+    // could never approve it.
+    final Campaign appPromotionCampaign =
+        Campaign.builder()
+            .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+            .platform(Platform.PLATFORM_GOOGLE_PLAY_STORE)
+            .build();
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockCampaignService.getById(APP_REVIEW_CLAIM_INPUT.getCampaignId()))
+        .thenReturn(appPromotionCampaign);
+    when(this.mockCampaignStepResolver.resolve(appPromotionCampaign))
+        .thenReturn(List.of(CampaignStepType.DOWNLOAD_INSTALL, CampaignStepType.CASHBACK));
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockClaimScreenshotRepository.save(ArgumentMatchers.any())).thenReturn(SCREENSHOT_1);
+
+    this.claimService.createAppReviewClaim(
+        APP_REVIEW_CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE);
+
+    assertEquals(UNDER_REVIEW, claimCaptor.getValue().getStatus());
+    assertEquals(CampaignStepType.DOWNLOAD_INSTALL, claimCaptor.getValue().getCurrentStep());
   }
 
   @Test

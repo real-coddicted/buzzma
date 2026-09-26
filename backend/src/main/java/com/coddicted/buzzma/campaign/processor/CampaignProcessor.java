@@ -1,5 +1,7 @@
 package com.coddicted.buzzma.campaign.processor;
 
+import com.coddicted.buzzma.campaign.category.PromotionCategoryDefinition;
+import com.coddicted.buzzma.campaign.category.PromotionCategoryDefinitionRegistry;
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentRequestDto;
 import com.coddicted.buzzma.campaign.dto.CampaignAssignmentResponseDto;
 import com.coddicted.buzzma.campaign.dto.CampaignRequestDto;
@@ -52,6 +54,7 @@ public class CampaignProcessor {
   private final ConnectionService connectionService;
   private final UserService userService;
   private final CampaignShareService campaignShareService;
+  private final PromotionCategoryDefinitionRegistry categoryDefinitionRegistry;
 
   public CampaignProcessor(
       final CampaignService service,
@@ -62,7 +65,8 @@ public class CampaignProcessor {
       final CampaignEventPublisher campaignEventPublisher,
       final ConnectionService connectionService,
       final UserService userService,
-      final CampaignShareService campaignShareService) {
+      final CampaignShareService campaignShareService,
+      final PromotionCategoryDefinitionRegistry categoryDefinitionRegistry) {
     this.service = service;
     this.campaignMapper = campaignMapper;
     this.productProcessor = productProcessor;
@@ -72,6 +76,7 @@ public class CampaignProcessor {
     this.connectionService = connectionService;
     this.userService = userService;
     this.campaignShareService = campaignShareService;
+    this.categoryDefinitionRegistry = categoryDefinitionRegistry;
   }
 
   @Transactional
@@ -128,8 +133,10 @@ public class CampaignProcessor {
   public CampaignResponseDto create(final UUID requesterId, final CampaignRequestDto request) {
     DateTimeUtils.validateEndDateNotInPast(request.getEndDate());
     validateCampaignSlots(request);
+    final PromotionCategoryDefinition categoryDefinition =
+        this.categoryDefinitionRegistry.get(request.getCategory());
     CampaignPolicy.validatePlatformAndCampaignType(
-        request.getPlatform(), request.getCampaignType());
+        request.getPlatform(), request.getCampaignType(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
@@ -140,7 +147,8 @@ public class CampaignProcessor {
                 .status(CampaignStatus.CAMPAIGN_STATUS_DRAFT)
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
-                .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+                .requiredSteps(
+                    normalizeRequiredSteps(request.getRequiredSteps(), categoryDefinition))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -153,8 +161,10 @@ public class CampaignProcessor {
   public CampaignResponseDto updateCampaign(
       final UUID requesterId, final UUID id, final CampaignRequestDto request) {
     validateCampaignSlots(request);
+    final PromotionCategoryDefinition categoryDefinition =
+        this.categoryDefinitionRegistry.get(request.getCategory());
     CampaignPolicy.validatePlatformAndCampaignType(
-        request.getPlatform(), request.getCampaignType());
+        request.getPlatform(), request.getCampaignType(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
@@ -171,7 +181,7 @@ public class CampaignProcessor {
         existingCampaign.toBuilder()
             .product(updatedProduct)
             .updatedBy(requesterId)
-            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps()))
+            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps(), categoryDefinition))
             .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
@@ -311,15 +321,19 @@ public class CampaignProcessor {
   }
 
   /**
-   * ORDER is always required — it's the claim-creation screenshot — regardless of what the request
-   * selected, and CASHBACK is implicit (appended by {@code CampaignStepResolver}) so it is never
-   * persisted as part of the selection.
+   * Drops any step the category doesn't allow (e.g. a stale ORDER left over from before a
+   * campaign's category-specific steps were enforced), then adds the category's forced step - its
+   * claim-creation screenshot, always required regardless of what the request selected. CASHBACK is
+   * implicit (appended by {@code CampaignStepResolver}) so it is never persisted as part of the
+   * selection.
    */
   private static List<CampaignStepType> normalizeRequiredSteps(
-      final List<CampaignStepType> requiredSteps) {
+      final List<CampaignStepType> requiredSteps,
+      final PromotionCategoryDefinition categoryDefinition) {
     final Set<CampaignStepType> steps =
         requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
-    steps.add(CampaignStepType.ORDER);
+    steps.retainAll(categoryDefinition.allowedSteps());
+    steps.add(categoryDefinition.forcedStep());
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
   }

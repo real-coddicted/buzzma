@@ -7,12 +7,12 @@ import lombok.Getter;
 @Getter
 public enum CampaignStepType {
   ORDER("Order"),
+  DOWNLOAD_INSTALL("Download & Install"),
   DELIVERY("Delivery"),
   RATING("Rating"),
   REVIEW("Review"),
   SELLER_FEEDBACK("Seller Feedback"),
   RETURN_WINDOW("Return Window"),
-  DOWNLOAD_INSTALL("Download & Install"),
   CASHBACK("Cashback");
 
   private final String label;
