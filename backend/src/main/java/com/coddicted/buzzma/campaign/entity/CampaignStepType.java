@@ -13,6 +13,11 @@ public enum CampaignStepType {
   REVIEW("Review"),
   SELLER_FEEDBACK("Seller Feedback"),
   RETURN_WINDOW("Return Window"),
+  VIEW("View"),
+  LIKE("Like"),
+  FOLLOW("Follow"),
+  COMMENT("Comment"),
+  SUBSCRIBE("Subscribe"),
   CASHBACK("Cashback");
 
   private final String label;

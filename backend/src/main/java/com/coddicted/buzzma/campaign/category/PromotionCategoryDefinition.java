@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -24,6 +25,14 @@ public interface PromotionCategoryDefinition {
   /** The steps a campaign owner can select from when configuring required screenshots. */
   List<CampaignStepType> allowedSteps();
 
+  /**
+   * The steps allowed for a specific platform. Defaults to {@link #allowedSteps()} — override when
+   * different platforms within the same category support different actions.
+   */
+  default Set<CampaignStepType> allowedStepsForPlatform(Platform platform) {
+    return Set.copyOf(allowedSteps());
+  }
+
   /** The step every campaign in this category is forced to require, regardless of selection. */
-  CampaignStepType forcedStep();
+  Optional<CampaignStepType> forcedStep();
 }

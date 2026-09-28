@@ -28,6 +28,7 @@ import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignSlotService;
 import com.coddicted.buzzma.connection.service.ConnectionService;
 import com.coddicted.buzzma.identity.service.UserService;
+import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.util.DateTimeUtils;
 import java.math.BigInteger;
@@ -137,6 +138,8 @@ public class CampaignProcessor {
         this.categoryDefinitionRegistry.get(request.getCategory());
     CampaignPolicy.validatePlatformAndCampaignType(
         request.getPlatform(), request.getCampaignType(), categoryDefinition);
+    CampaignPolicy.validateRequiredSteps(
+        request.getRequiredSteps(), request.getPlatform(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
@@ -148,7 +151,8 @@ public class CampaignProcessor {
                 .createdBy(requesterId)
                 .updatedBy(requesterId)
                 .requiredSteps(
-                    normalizeRequiredSteps(request.getRequiredSteps(), categoryDefinition))
+                    normalizeRequiredSteps(
+                        request.getRequiredSteps(), request.getPlatform(), categoryDefinition))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -165,6 +169,8 @@ public class CampaignProcessor {
         this.categoryDefinitionRegistry.get(request.getCategory());
     CampaignPolicy.validatePlatformAndCampaignType(
         request.getPlatform(), request.getCampaignType(), categoryDefinition);
+    CampaignPolicy.validateRequiredSteps(
+        request.getRequiredSteps(), request.getPlatform(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
@@ -181,7 +187,9 @@ public class CampaignProcessor {
         existingCampaign.toBuilder()
             .product(updatedProduct)
             .updatedBy(requesterId)
-            .requiredSteps(normalizeRequiredSteps(request.getRequiredSteps(), categoryDefinition))
+            .requiredSteps(
+                normalizeRequiredSteps(
+                    request.getRequiredSteps(), request.getPlatform(), categoryDefinition))
             .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
@@ -329,11 +337,12 @@ public class CampaignProcessor {
    */
   private static List<CampaignStepType> normalizeRequiredSteps(
       final List<CampaignStepType> requiredSteps,
+      final Platform platform,
       final PromotionCategoryDefinition categoryDefinition) {
     final Set<CampaignStepType> steps =
         requiredSteps == null ? new HashSet<>() : new HashSet<>(requiredSteps);
-    steps.retainAll(categoryDefinition.allowedSteps());
-    steps.add(categoryDefinition.forcedStep());
+    steps.retainAll(categoryDefinition.allowedStepsForPlatform(platform));
+    categoryDefinition.forcedStep().ifPresent(steps::add);
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
   }

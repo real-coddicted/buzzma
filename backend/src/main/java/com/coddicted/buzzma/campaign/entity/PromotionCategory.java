@@ -12,7 +12,8 @@ import lombok.Getter;
 public enum PromotionCategory {
   ECOMMERCE("Ecommerce"),
   QUICK_COMMERCE("Quick Commerce"),
-  APP_PROMOTION("App Promotion");
+  APP_PROMOTION("App Promotion"),
+  SOCIAL_PAGE_PROMOTION("Social Page Promotion");
 
   private final String displayName;
 

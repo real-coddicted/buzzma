@@ -5,6 +5,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class AppPromotionCategoryDefinition implements PromotionCategoryDefiniti
   }
 
   @Override
-  public CampaignStepType forcedStep() {
-    return CampaignStepType.DOWNLOAD_INSTALL;
+  public Optional<CampaignStepType> forcedStep() {
+    return Optional.of(CampaignStepType.DOWNLOAD_INSTALL);
   }
 }

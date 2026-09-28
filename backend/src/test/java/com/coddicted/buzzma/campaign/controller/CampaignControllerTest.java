@@ -136,7 +136,12 @@ class CampaignControllerTest {
         .andExpect(jsonPath("$[4].type").value("REVIEW"))
         .andExpect(jsonPath("$[5].type").value("SELLER_FEEDBACK"))
         .andExpect(jsonPath("$[6].type").value("RETURN_WINDOW"))
-        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(7)));
+        .andExpect(jsonPath("$[7].type").value("VIEW"))
+        .andExpect(jsonPath("$[8].type").value("LIKE"))
+        .andExpect(jsonPath("$[9].type").value("FOLLOW"))
+        .andExpect(jsonPath("$[10].type").value("COMMENT"))
+        .andExpect(jsonPath("$[11].type").value("SUBSCRIBE"))
+        .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(12)));
   }
 
   // --- GET /api/v1/campaigns/{id}/step-config ---

@@ -589,6 +589,11 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       case REVIEW -> ClaimStatus.REVIEW_SUBMITTED;
       case DELIVERY -> ClaimStatus.DELIVERY_PROOF_SUBMITTED;
       case SELLER_FEEDBACK -> ClaimStatus.SELLER_FEEDBACK_SUBMITTED;
+      case VIEW -> ClaimStatus.VIEW_PROOF_SUBMITTED;
+      case LIKE -> ClaimStatus.LIKE_PROOF_SUBMITTED;
+      case FOLLOW -> ClaimStatus.FOLLOW_PROOF_SUBMITTED;
+      case COMMENT -> ClaimStatus.COMMENT_PROOF_SUBMITTED;
+      case SUBSCRIBE -> ClaimStatus.SUBSCRIBE_PROOF_SUBMITTED;
       case RETURN_WINDOW, CASHBACK -> ClaimStatus.UNDER_REVIEW;
     };
   }

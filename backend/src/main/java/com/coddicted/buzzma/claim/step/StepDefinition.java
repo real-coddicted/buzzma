@@ -31,6 +31,11 @@ public interface StepDefinition {
       case DELIVERY -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_DELIVERY);
       case SELLER_FEEDBACK -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_SELLER_FEEDBACK);
       case DOWNLOAD_INSTALL -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL);
+      case VIEW -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_VIEW);
+      case LIKE -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_LIKE);
+      case FOLLOW -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_FOLLOW);
+      case COMMENT -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_COMMENT);
+      case SUBSCRIBE -> Optional.of(ScreenshotType.SCREENSHOT_TYPE_SUBSCRIBE);
       case CASHBACK -> Optional.empty();
     };
   }
