@@ -2230,7 +2230,7 @@ export interface components {
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             originalPricePaise?: number;
             offeredPricePaise?: number;
             /** Format: int32 */
@@ -2244,7 +2244,7 @@ export interface components {
             /** Format: int32 */
             endDate?: number;
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
-            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
         };
         ExchangeProduct: {
             productName?: string;
@@ -2302,7 +2302,7 @@ export interface components {
             campaignName?: string;
             campaignCode?: string;
             /** @enum {string} */
-            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: uuid */
             dealId?: string;
             /** Format: uuid */
@@ -2357,12 +2357,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
-            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -2428,7 +2428,7 @@ export interface components {
             /** Format: int32 */
             endDate?: number;
             /** @enum {string} */
-            campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            campaignType: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             campaignPricePaise: number;
@@ -2442,7 +2442,7 @@ export interface components {
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             /** @enum {string} */
@@ -2474,7 +2474,7 @@ export interface components {
             /** Format: int32 */
             totalSlots?: number;
             /** @enum {string} */
-            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            campaignType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** Format: int32 */
@@ -2492,12 +2492,14 @@ export interface components {
             productPricePaise?: number;
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
             campaignPricePaise?: number;
             /** Format: int32 */
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "DOWNLOAD_INSTALL" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             openToAll?: boolean;
@@ -2531,7 +2533,7 @@ export interface components {
         CampaignSearchRequestDto: {
             brands?: string[];
             platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
-            types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE")[];
+            types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE")[];
             statuses?: ("CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED")[];
             /** Format: int32 */
             fromDate?: number;
@@ -2556,7 +2558,7 @@ export interface components {
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: int32 */
             totalSlots?: number;
             /** Format: int32 */
@@ -2997,7 +2999,7 @@ export interface components {
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
@@ -3038,7 +3040,7 @@ export interface components {
             /** @enum {string} */
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
             /** @enum {string} */
-            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_APP_REVIEW" | "CAMPAIGN_TYPE_EXCHANGE";
+            dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
             campaignStatus?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             originalPricePaise?: number;
@@ -3905,6 +3907,7 @@ export interface operations {
     extractSync: {
         parameters: {
             query: {
+                stepType: "ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK";
                 requesterId?: string;
                 campaignId: string;
             };

@@ -1,4 +1,4 @@
-import type { Platform, CampaignType, LinkedEntity } from '../../../types'
+import type { Platform, CampaignType, LinkedEntity, PromotionCategory } from '../../../types'
 
 /**
  * One row in the campaign-creation "Exchange Products" section.
@@ -14,6 +14,7 @@ export interface ExchangeProductRow {
 
 export const EMPTY_FORM = {
   title: '',
+  category: 'ECOMMERCE' as PromotionCategory,
   platform: '' as Platform | '',
   productBrandName: '',
   productName: '',
