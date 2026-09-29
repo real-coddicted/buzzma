@@ -237,6 +237,63 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  @PostMapping("/{id}/like")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitLike(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitLike(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/view")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitView(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitView(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/comment")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitComment(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitComment(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
   @PostMapping("/{id}/update")
   @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto updateScreenshot(

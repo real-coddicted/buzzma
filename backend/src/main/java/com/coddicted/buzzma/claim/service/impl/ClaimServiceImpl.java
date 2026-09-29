@@ -283,6 +283,42 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         contentType);
   }
 
+  @Override
+  @Transactional
+  public ClaimWithDeal submitLike(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+    return submitStep(
+        CampaignStepType.LIKE, claimId, ownerId, null, screenshot, filename, contentType);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitView(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+    return submitStep(
+        CampaignStepType.VIEW, claimId, ownerId, null, screenshot, filename, contentType);
+  }
+
+  @Override
+  @Transactional
+  public ClaimWithDeal submitComment(
+      final UUID claimId,
+      final UUID ownerId,
+      final byte[] screenshot,
+      final String filename,
+      final String contentType) {
+    return submitStep(
+        CampaignStepType.COMMENT, claimId, ownerId, null, screenshot, filename, contentType);
+  }
+
   /**
    * Common orchestration for the "submit a screenshot for the next step" flow: validate ownership
    * and step order, store the media, transition the claim, save the {@code ClaimScreenshot}, then

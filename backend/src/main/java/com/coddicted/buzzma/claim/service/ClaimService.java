@@ -60,6 +60,15 @@ public interface ClaimService {
   ClaimWithDeal submitSellerFeedback(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
+  ClaimWithDeal submitLike(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitView(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitComment(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
   Claim getById(UUID claimId, UUID ownerId);
 
   Claim getByCode(String code);
