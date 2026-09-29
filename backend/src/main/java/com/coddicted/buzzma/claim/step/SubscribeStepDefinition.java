@@ -3,6 +3,7 @@ package com.coddicted.buzzma.claim.step;
 import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.scorer.ClaimScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.SubscribeScreenshotScorer;
+import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -10,9 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscribeStepDefinition implements StepDefinition {
 
+  private final GeminiExtractionPromptBuilder promptBuilder;
   private final SubscribeScreenshotScorer scorer;
 
-  public SubscribeStepDefinition(final SubscribeScreenshotScorer scorer) {
+  public SubscribeStepDefinition(
+      final GeminiExtractionPromptBuilder promptBuilder, final SubscribeScreenshotScorer scorer) {
+    this.promptBuilder = promptBuilder;
     this.scorer = scorer;
   }
 
@@ -33,12 +37,12 @@ public class SubscribeStepDefinition implements StepDefinition {
 
   @Override
   public Optional<String> extractionPrompt() {
-    return Optional.empty();
+    return Optional.of(this.promptBuilder.buildSubscribePrompt());
   }
 
   @Override
   public boolean scoringRequired() {
-    return false;
+    return true;
   }
 
   @Override
@@ -48,6 +52,10 @@ public class SubscribeStepDefinition implements StepDefinition {
 
   @Override
   public List<StepField> fields() {
-    return List.of();
+    return List.of(
+        new StepField("platform", false, true),
+        new StepField("accountName", true, true),
+        new StepField("channelName", false, true),
+        new StepField("subscribeStatus", false, true));
   }
 }

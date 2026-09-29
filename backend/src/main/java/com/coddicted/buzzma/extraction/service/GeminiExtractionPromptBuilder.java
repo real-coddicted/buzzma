@@ -108,6 +108,81 @@ public class GeminiExtractionPromptBuilder {
       Use null for any field that cannot be clearly determined from the image."""
           .formatted(PLATFORM_VALUES);
 
+  private static final String LIKE_PROMPT =
+      """
+      You are a social-engagement-data extractor. Analyze the provided screenshot of a \
+      YouTube video page or Instagram post where the user has liked the content and return \
+      ONLY valid JSON with no markdown fences, no extra text, and no explanation. \
+      The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "accountName": "<the logged-in user's account or channel name visible in the screenshot, or null>",
+        "contentTitle": "<the video title or post caption/description, or null>",
+        "likeStatus": "<'liked' if the thumbs-up icon (YouTube) or heart icon (Instagram) appears solid/filled/active, 'not_liked' if it appears as an outline/inactive, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String VIEW_PROMPT =
+      """
+      You are a social-engagement-data extractor. Analyze the provided screenshot showing \
+      that the user has viewed a YouTube video or Instagram post and return ONLY valid JSON \
+      with no markdown fences, no extra text, and no explanation. \
+      The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "accountName": "<the logged-in user's account or channel name visible in the screenshot, or null>",
+        "contentTitle": "<the video title or post caption/description, or null>",
+        "contentUrl": "<the URL visible in the browser's address bar, or null if the address bar is not visible>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String COMMENT_PROMPT =
+      """
+      You are a social-engagement-data extractor. Analyze the provided screenshot of a \
+      YouTube video or Instagram post where the user has left a comment and return ONLY \
+      valid JSON with no markdown fences, no extra text, and no explanation. \
+      The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "accountName": "<the logged-in user's account or channel name visible in the screenshot, or null>",
+        "contentTitle": "<the video title or post caption/description, or null>",
+        "commentText": "<the full text of the comment left by the user, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String SUBSCRIBE_PROMPT =
+      """
+      You are a social-engagement-data extractor. Analyze the provided screenshot of a \
+      YouTube channel page or video page where the user has subscribed and return ONLY \
+      valid JSON with no markdown fences, no extra text, and no explanation. \
+      The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "accountName": "<the logged-in user's account or channel name visible in the screenshot, or null>",
+        "channelName": "<the name of the YouTube channel the user subscribed to, or null>",
+        "subscribeStatus": "<'subscribed' if the Subscribe button shows a bell icon or 'Subscribed' text or 'Notifications' dropdown, 'not_subscribed' if the button still shows 'Subscribe' in its default state, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
+  private static final String FOLLOW_PROMPT =
+      """
+      You are a social-engagement-data extractor. Analyze the provided screenshot of an \
+      Instagram profile or post where the user has followed the account and return ONLY \
+      valid JSON with no markdown fences, no extra text, and no explanation. \
+      The JSON must match this exact schema:
+      {
+        "platform": "<%s|null>",
+        "accountName": "<the logged-in user's account or channel name visible in the screenshot, or null>",
+        "followedAccount": "<the name or handle of the account being followed, or null>",
+        "followStatus": "<'following' if the button shows 'Following' or 'Requested' or a person-check icon, 'not_following' if the button still shows 'Follow' in its default state, or null>"
+      }
+      Use null for any field that cannot be clearly determined from the image."""
+          .formatted(PLATFORM_VALUES);
+
   private static final String DOWNLOAD_INSTALL_PROMPT =
       """
       You are an app-install-data extractor. Analyze the provided screenshot of an app store \
@@ -150,5 +225,25 @@ public class GeminiExtractionPromptBuilder {
 
   public String buildDownloadInstallPrompt() {
     return DOWNLOAD_INSTALL_PROMPT;
+  }
+
+  public String buildLikePrompt() {
+    return LIKE_PROMPT;
+  }
+
+  public String buildViewPrompt() {
+    return VIEW_PROMPT;
+  }
+
+  public String buildCommentPrompt() {
+    return COMMENT_PROMPT;
+  }
+
+  public String buildSubscribePrompt() {
+    return SUBSCRIBE_PROMPT;
+  }
+
+  public String buildFollowPrompt() {
+    return FOLLOW_PROMPT;
   }
 }
