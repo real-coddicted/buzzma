@@ -319,6 +319,64 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         CampaignStepType.COMMENT, claimId, ownerId, null, screenshot, filename, contentType);
   }
 
+  @Override
+  @Transactional
+  public Claim createSocialPageClaim(
+      final Claim claim,
+      final CampaignStepType stepType,
+      final byte[] screenshot,
+      final String screenshotFilename,
+      final String contentType) {
+
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Campaign campaign = loadActiveCampaign(claim);
+
+    final int updated =
+        this.campaignSlotRepository.decrementSlotsAvailableIfPositive(
+            deal.getCampaignSlot().getId());
+    if (updated == 0) {
+      LOGGER.warn("All slots claimed for deal {}", claim.getDealId());
+      throw new BusinessRuleViolationException("All slots have been claimed for this deal");
+    }
+
+    final String screenshotKey =
+        this.storageService.store("claims", screenshotFilename, contentType, screenshot);
+    final String code =
+        this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
+
+    final StepDefinition stepDefinition = this.stepDefinitionRegistry.get(stepType);
+
+    final Claim saved =
+        this.claimRepository.save(
+            claim.toBuilder()
+                .code(code)
+                .status(terminalStatusFor(campaign, stepType))
+                .ecommerceOrderId("NA")
+                .platform(campaign.getPlatform())
+                .currentStep(stepType)
+                .isDeleted(false)
+                .createdBy(claim.getOwnerId())
+                .updatedBy(claim.getOwnerId())
+                .build());
+
+    final ClaimScreenshot claimScreenshot =
+        saveScreenshot(
+            saved.getId(),
+            screenshotKey,
+            stepDefinition
+                .screenshotType()
+                .orElseThrow(
+                    () ->
+                        new IllegalStateException("Step " + stepType + " has no screenshot type")),
+            saved.getOwnerId());
+
+    if (stepDefinition.extractionPrompt().isPresent()) {
+      this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
+    }
+
+    return saved;
+  }
+
   /**
    * Common orchestration for the "submit a screenshot for the next step" flow: validate ownership
    * and step order, store the media, transition the claim, save the {@code ClaimScreenshot}, then
