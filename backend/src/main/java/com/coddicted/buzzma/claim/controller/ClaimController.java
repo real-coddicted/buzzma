@@ -319,6 +319,44 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  @PostMapping("/{id}/follow")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitFollow(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitFollow(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/subscribe")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitSubscribe(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitSubscribe(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
   @PostMapping("/{id}/update")
   @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto updateScreenshot(

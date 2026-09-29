@@ -70,6 +70,12 @@ public interface ClaimService {
   ClaimWithDeal submitComment(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
+  ClaimWithDeal submitSubscribe(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitFollow(
+      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
   Claim createSocialPageClaim(
       Claim claim,
       CampaignStepType stepType,
