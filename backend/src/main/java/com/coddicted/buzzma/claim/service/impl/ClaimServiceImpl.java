@@ -285,62 +285,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
 
   @Override
   @Transactional
-  public ClaimWithDeal submitLike(
+  public ClaimWithDeal submitSocialStep(
+      final CampaignStepType stepType,
       final UUID claimId,
       final UUID ownerId,
       final byte[] screenshot,
       final String filename,
       final String contentType) {
-    return submitStep(
-        CampaignStepType.LIKE, claimId, ownerId, null, screenshot, filename, contentType);
-  }
-
-  @Override
-  @Transactional
-  public ClaimWithDeal submitView(
-      final UUID claimId,
-      final UUID ownerId,
-      final byte[] screenshot,
-      final String filename,
-      final String contentType) {
-    return submitStep(
-        CampaignStepType.VIEW, claimId, ownerId, null, screenshot, filename, contentType);
-  }
-
-  @Override
-  @Transactional
-  public ClaimWithDeal submitComment(
-      final UUID claimId,
-      final UUID ownerId,
-      final byte[] screenshot,
-      final String filename,
-      final String contentType) {
-    return submitStep(
-        CampaignStepType.COMMENT, claimId, ownerId, null, screenshot, filename, contentType);
-  }
-
-  @Override
-  @Transactional
-  public ClaimWithDeal submitSubscribe(
-      final UUID claimId,
-      final UUID ownerId,
-      final byte[] screenshot,
-      final String filename,
-      final String contentType) {
-    return submitStep(
-        CampaignStepType.SUBSCRIBE, claimId, ownerId, null, screenshot, filename, contentType);
-  }
-
-  @Override
-  @Transactional
-  public ClaimWithDeal submitFollow(
-      final UUID claimId,
-      final UUID ownerId,
-      final byte[] screenshot,
-      final String filename,
-      final String contentType) {
-    return submitStep(
-        CampaignStepType.FOLLOW, claimId, ownerId, null, screenshot, filename, contentType);
+    return submitStep(stepType, claimId, ownerId, null, screenshot, filename, contentType);
   }
 
   @Override

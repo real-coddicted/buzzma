@@ -61,20 +61,13 @@ public interface ClaimService {
   ClaimWithDeal submitSellerFeedback(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
 
-  ClaimWithDeal submitLike(
-      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
-
-  ClaimWithDeal submitView(
-      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
-
-  ClaimWithDeal submitComment(
-      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
-
-  ClaimWithDeal submitSubscribe(
-      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
-
-  ClaimWithDeal submitFollow(
-      UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+  ClaimWithDeal submitSocialStep(
+      CampaignStepType stepType,
+      UUID claimId,
+      UUID ownerId,
+      byte[] screenshot,
+      String filename,
+      String contentType);
 
   Claim createSocialPageClaim(
       Claim claim,

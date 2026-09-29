@@ -262,90 +262,16 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
-  @PostMapping("/{id}/like")
+  @PostMapping("/{id}/step")
   @PreAuthorize(UserRole.Expr.BUYER)
-  public ClaimResponseDto submitLike(
+  public ClaimResponseDto submitSocialStep(
       @CurrentUserId final UUID requesterId,
       @PathVariable final UUID id,
+      @RequestParam("stepType") final CampaignStepType stepType,
       @RequestParam("screenshot") final MultipartFile screenshot) {
     final ClaimWithDeal result =
-        this.claimService.submitLike(
-            id,
-            requesterId,
-            readBytes(screenshot),
-            screenshot.getOriginalFilename(),
-            screenshot.getContentType());
-    final Claim claim = result.claim();
-    final Deal deal = result.deal();
-    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
-  }
-
-  @PostMapping("/{id}/view")
-  @PreAuthorize(UserRole.Expr.BUYER)
-  public ClaimResponseDto submitView(
-      @CurrentUserId final UUID requesterId,
-      @PathVariable final UUID id,
-      @RequestParam("screenshot") final MultipartFile screenshot) {
-    final ClaimWithDeal result =
-        this.claimService.submitView(
-            id,
-            requesterId,
-            readBytes(screenshot),
-            screenshot.getOriginalFilename(),
-            screenshot.getContentType());
-    final Claim claim = result.claim();
-    final Deal deal = result.deal();
-    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
-  }
-
-  @PostMapping("/{id}/comment")
-  @PreAuthorize(UserRole.Expr.BUYER)
-  public ClaimResponseDto submitComment(
-      @CurrentUserId final UUID requesterId,
-      @PathVariable final UUID id,
-      @RequestParam("screenshot") final MultipartFile screenshot) {
-    final ClaimWithDeal result =
-        this.claimService.submitComment(
-            id,
-            requesterId,
-            readBytes(screenshot),
-            screenshot.getOriginalFilename(),
-            screenshot.getContentType());
-    final Claim claim = result.claim();
-    final Deal deal = result.deal();
-    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
-  }
-
-  @PostMapping("/{id}/follow")
-  @PreAuthorize(UserRole.Expr.BUYER)
-  public ClaimResponseDto submitFollow(
-      @CurrentUserId final UUID requesterId,
-      @PathVariable final UUID id,
-      @RequestParam("screenshot") final MultipartFile screenshot) {
-    final ClaimWithDeal result =
-        this.claimService.submitFollow(
-            id,
-            requesterId,
-            readBytes(screenshot),
-            screenshot.getOriginalFilename(),
-            screenshot.getContentType());
-    final Claim claim = result.claim();
-    final Deal deal = result.deal();
-    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
-    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
-  }
-
-  @PostMapping("/{id}/subscribe")
-  @PreAuthorize(UserRole.Expr.BUYER)
-  public ClaimResponseDto submitSubscribe(
-      @CurrentUserId final UUID requesterId,
-      @PathVariable final UUID id,
-      @RequestParam("screenshot") final MultipartFile screenshot) {
-    final ClaimWithDeal result =
-        this.claimService.submitSubscribe(
+        this.claimService.submitSocialStep(
+            stepType,
             id,
             requesterId,
             readBytes(screenshot),
