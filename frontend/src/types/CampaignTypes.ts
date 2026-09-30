@@ -85,6 +85,10 @@ export type Platform =
   | 'PLATFORM_MEESHO'
   | 'PLATFORM_APPLE_APP_STORE'
   | 'PLATFORM_GOOGLE_PLAY_STORE'
+  | 'PLATFORM_GOOGLE_REVIEWS'
+  | 'PLATFORM_INSTAGRAM'
+  | 'PLATFORM_YOUTUBE'
+  | 'PLATFORM_OTHER'
 
 export type CampaignType =
   | 'CAMPAIGN_TYPE_RATING'
@@ -98,6 +102,7 @@ export type PromotionCategory =
   | 'ECOMMERCE'
   | 'QUICK_COMMERCE'
   | 'APP_PROMOTION'
+  | 'SOCIAL_PAGE_PROMOTION'
 
 /** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
 export interface ExchangeProductSelection {

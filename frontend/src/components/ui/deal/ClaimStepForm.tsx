@@ -13,6 +13,11 @@ import { ReviewStep } from './ReviewStep'
 import { SellerFeedbackStep } from './SellerFeedbackStep'
 import { ReturnStep } from './ReturnStep'
 import { CashbackStep } from './CashbackStep'
+import { LikeStep } from './LikeStep'
+import { ViewStep } from './ViewStep'
+import { CommentStep } from './CommentStep'
+import { SubscribeStep } from './SubscribeStep'
+import { FollowStep } from './FollowStep'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 
@@ -76,6 +81,11 @@ export function ClaimStepForm({ deal, currentStep, onStepChange, onClaimUpdate, 
       {stepType === 'SELLER_FEEDBACK' && <SellerFeedbackStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'RETURN_WINDOW' && <ReturnStep claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
       {stepType === 'CASHBACK'      && <CashbackStep claimStatus={effectiveClaim?.status} />}
+      {stepType === 'LIKE'          && <LikeStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'VIEW'          && <ViewStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'COMMENT'       && <CommentStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'SUBSCRIBE'     && <SubscribeStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
+      {stepType === 'FOLLOW'        && <FollowStep deal={deal} claimId={effectiveClaim?.id} onSuccess={handleClaimSuccess} readOnly={readOnly} claimResponse={effectiveClaim} rejectedScreenshot={rejectedScreenshot} />}
     </div>
   )
 }

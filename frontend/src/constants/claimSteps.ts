@@ -14,6 +14,11 @@ export const STEP_TYPE_COLORS: Record<string, Omit<StepperStep, 'label'>> = {
   SELLER_FEEDBACK: { color: 'text-neon-yellow', dotColor: 'bg-neon-yellow', lineColor: 'bg-neon-yellow/40' },
   RETURN_WINDOW:   { color: 'text-neon-orange', dotColor: 'bg-neon-orange', lineColor: 'bg-neon-orange/40' },
   CASHBACK:        { color: 'text-neon-green',  dotColor: 'bg-neon-green',  lineColor: 'bg-neon-green/40'  },
+  VIEW:            { color: 'text-neon-cyan',   dotColor: 'bg-neon-cyan',   lineColor: 'bg-neon-cyan/40'   },
+  LIKE:            { color: 'text-neon-pink',   dotColor: 'bg-neon-pink',   lineColor: 'bg-neon-pink/40'   },
+  FOLLOW:          { color: 'text-neon-blue',   dotColor: 'bg-neon-blue',   lineColor: 'bg-neon-blue/40'   },
+  COMMENT:         { color: 'text-neon-yellow', dotColor: 'bg-neon-yellow', lineColor: 'bg-neon-yellow/40' },
+  SUBSCRIBE:       { color: 'text-neon-red',    dotColor: 'bg-neon-red',    lineColor: 'bg-neon-red/40'    },
 }
 
 export function toStepperSteps(steps: CampaignStepDto[]): StepperStep[] {
@@ -28,6 +33,11 @@ export const STEP_TYPE_TO_SCREENSHOT_TYPE: Record<string, string> = {
   REVIEW: 'SCREENSHOT_TYPE_REVIEW',
   SELLER_FEEDBACK: 'SCREENSHOT_TYPE_SELLER_FEEDBACK',
   RETURN_WINDOW: 'SCREENSHOT_TYPE_RETURN',
+  VIEW: 'SCREENSHOT_TYPE_VIEW',
+  LIKE: 'SCREENSHOT_TYPE_LIKE',
+  FOLLOW: 'SCREENSHOT_TYPE_FOLLOW',
+  COMMENT: 'SCREENSHOT_TYPE_COMMENT',
+  SUBSCRIBE: 'SCREENSHOT_TYPE_SUBSCRIBE',
 }
 
 const SCREENSHOT_TYPE_TO_STEP_TYPE: Record<string, string> = {
@@ -38,6 +48,11 @@ const SCREENSHOT_TYPE_TO_STEP_TYPE: Record<string, string> = {
   SCREENSHOT_TYPE_REVIEW:  'REVIEW',
   SCREENSHOT_TYPE_SELLER_FEEDBACK: 'SELLER_FEEDBACK',
   SCREENSHOT_TYPE_RETURN:  'RETURN_WINDOW',
+  SCREENSHOT_TYPE_VIEW:    'VIEW',
+  SCREENSHOT_TYPE_LIKE:    'LIKE',
+  SCREENSHOT_TYPE_FOLLOW:  'FOLLOW',
+  SCREENSHOT_TYPE_COMMENT: 'COMMENT',
+  SCREENSHOT_TYPE_SUBSCRIBE: 'SUBSCRIBE',
 }
 
 export function getStepVerificationStatuses(

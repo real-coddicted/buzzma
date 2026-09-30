@@ -500,6 +500,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/{id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/claims/{id}/update": {
         parameters: {
             query?: never;
@@ -596,6 +612,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/claims/{id}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitLike"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/claims/{id}/delivery": {
         parameters: {
             query?: never;
@@ -606,6 +638,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["submitDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/{id}/comment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/claims/social-page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSocialPageClaim"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1999,9 +2063,9 @@ export interface components {
         ClaimReviewFilterRequestDto: {
             campaignIds?: string[];
             mediatorIds?: string[];
-            claimStatuses?: ("ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
+            claimStatuses?: ("ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "VIEW_PROOF_SUBMITTED" | "LIKE_PROOF_SUBMITTED" | "FOLLOW_PROOF_SUBMITTED" | "COMMENT_PROOF_SUBMITTED" | "SUBSCRIBE_PROOF_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED")[];
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER")[];
         };
         RecordPaymentRequestDto: {
             /** @enum {string} */
@@ -2082,7 +2146,7 @@ export interface components {
         };
         ExtractionResult: {
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             orderId?: string;
             orderDate?: string;
             productName?: string;
@@ -2146,7 +2210,7 @@ export interface components {
             /** Format: uuid */
             dealId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             orderId: string;
             amount: number;
             productName: string;
@@ -2169,7 +2233,7 @@ export interface components {
             code?: string;
             deal?: components["schemas"]["DealResponseDto"];
             /** @enum {string} */
-            status?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            status?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "VIEW_PROOF_SUBMITTED" | "LIKE_PROOF_SUBMITTED" | "FOLLOW_PROOF_SUBMITTED" | "COMMENT_PROOF_SUBMITTED" | "SUBSCRIBE_PROOF_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             /** Format: int32 */
             currentStep?: number;
             ecommerceOrderId?: string;
@@ -2192,7 +2256,7 @@ export interface components {
             /** Format: uuid */
             reviewerId?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -2203,7 +2267,7 @@ export interface components {
             id?: string;
             storageKey?: string;
             /** @enum {string} */
-            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
+            type?: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL" | "SCREENSHOT_TYPE_VIEW" | "SCREENSHOT_TYPE_LIKE" | "SCREENSHOT_TYPE_FOLLOW" | "SCREENSHOT_TYPE_COMMENT" | "SCREENSHOT_TYPE_SUBSCRIBE";
             /** @enum {string} */
             verificationStatus?: "SCREENSHOT_VERIFICATION_STATUS_PENDING" | "SCREENSHOT_VERIFICATION_STATUS_VERIFIED" | "SCREENSHOT_VERIFICATION_STATUS_REJECTED";
             /** Format: int32 */
@@ -2228,7 +2292,7 @@ export interface components {
             productUrl?: string;
             code?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             originalPricePaise?: number;
@@ -2244,7 +2308,7 @@ export interface components {
             /** Format: int32 */
             endDate?: number;
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
-            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "VIEW" | "LIKE" | "FOLLOW" | "COMMENT" | "SUBSCRIBE" | "CASHBACK")[];
         };
         ExchangeProduct: {
             productName?: string;
@@ -2255,11 +2319,11 @@ export interface components {
             /** Format: uuid */
             screenshotId: string;
             /** @enum {string} */
-            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL";
+            screenshotType: "SCREENSHOT_TYPE_ORDER" | "SCREENSHOT_TYPE_RATING" | "SCREENSHOT_TYPE_REVIEW" | "SCREENSHOT_TYPE_RETURN" | "SCREENSHOT_TYPE_DELIVERY" | "SCREENSHOT_TYPE_SELLER_FEEDBACK" | "SCREENSHOT_TYPE_DOWNLOAD_INSTALL" | "SCREENSHOT_TYPE_VIEW" | "SCREENSHOT_TYPE_LIKE" | "SCREENSHOT_TYPE_FOLLOW" | "SCREENSHOT_TYPE_COMMENT" | "SCREENSHOT_TYPE_SUBSCRIBE";
             /** Format: binary */
             screenshot: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             orderId?: string;
             amount?: number;
             productName?: string;
@@ -2277,6 +2341,17 @@ export interface components {
             reviewerDecision: "APPROVED" | "REJECTED" | "VERIFIED" | "BRAND_VERIFIED" | "PENDING";
             reviewerComment?: string;
             amountApprovedPaise?: number;
+        };
+        CreateSocialPageClaimRequestDto: {
+            /** Format: uuid */
+            campaignId: string;
+            /** Format: uuid */
+            dealId: string;
+            accountName: string;
+            /** @enum {string} */
+            stepType: "ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "VIEW" | "LIKE" | "FOLLOW" | "COMMENT" | "SUBSCRIBE" | "CASHBACK";
+            /** Format: binary */
+            screenshot: string;
         };
         ScreenshotReviewRequestDto: {
             /** Format: uuid */
@@ -2316,7 +2391,7 @@ export interface components {
             claimId?: string;
             claimCode?: string;
             /** @enum {string} */
-            claimStatus?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
+            claimStatus?: "ORDERED" | "DOWNLOADED_AND_INSTALLED" | "DELIVERY_PROOF_SUBMITTED" | "RATING_SUBMITTED" | "REVIEW_SUBMITTED" | "SELLER_FEEDBACK_SUBMITTED" | "VIEW_PROOF_SUBMITTED" | "LIKE_PROOF_SUBMITTED" | "FOLLOW_PROOF_SUBMITTED" | "COMMENT_PROOF_SUBMITTED" | "SUBSCRIBE_PROOF_SUBMITTED" | "PROOF_SUBMITTED" | "PROOF_REJECTED" | "UNDER_REVIEW" | "ADDITIONAL_PROOF_REQUESTED" | "APPROVED" | "READY_FOR_ACCOUNTING" | "REJECTED" | "REWARD_PENDING" | "COMPLETED" | "FAILED";
             ecommerceOrderId?: string;
             exchangeProduct?: string;
             reviewUrl?: string;
@@ -2326,7 +2401,7 @@ export interface components {
             amountPaise?: number;
             amountApprovedPaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** Format: int32 */
             orderDate?: number;
             brandName?: string;
@@ -2415,9 +2490,9 @@ export interface components {
             /** Format: uuid */
             ownerId: string;
             /** @enum {string} */
-            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
-            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION" | "SOCIAL_PAGE_PROMOTION";
             productName: string;
             productImageUrl: string;
             productUrl: string;
@@ -2442,7 +2517,7 @@ export interface components {
             commissionToAllPaise?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "VIEW" | "LIKE" | "FOLLOW" | "COMMENT" | "SUBSCRIBE" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             /** @enum {string} */
@@ -2491,15 +2566,15 @@ export interface components {
             productLink?: string;
             productPricePaise?: number;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
-            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION";
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION" | "SOCIAL_PAGE_PROMOTION";
             campaignPricePaise?: number;
             /** Format: int32 */
             returnWindowDays?: number;
             termsAndConditions?: string;
             sellerName?: string;
-            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK")[];
+            requiredSteps?: ("ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "VIEW" | "LIKE" | "FOLLOW" | "COMMENT" | "SUBSCRIBE" | "CASHBACK")[];
             rewards?: components["schemas"]["Reward"][];
             exchangeProducts?: components["schemas"]["ExchangeProduct"][];
             openToAll?: boolean;
@@ -2532,7 +2607,7 @@ export interface components {
         };
         CampaignSearchRequestDto: {
             brands?: string[];
-            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE")[];
+            platforms?: ("PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER")[];
             types?: ("CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE")[];
             statuses?: ("CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED")[];
             /** Format: int32 */
@@ -2556,7 +2631,7 @@ export interface components {
             /** @enum {string} */
             status?: "CAMPAIGN_STATUS_DRAFT" | "CAMPAIGN_STATUS_CLOSED" | "CAMPAIGN_STATUS_ACTIVE" | "CAMPAIGN_STATUS_ASSIGNED" | "CAMPAIGN_STATUS_PAUSED" | "CAMPAIGN_STATUS_COMPLETED";
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
             type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** Format: int32 */
@@ -2583,7 +2658,7 @@ export interface components {
             title?: string;
             productBrandName?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
         };
         UserSignInRequestDto: {
             mobile: string;
@@ -2997,7 +3072,7 @@ export interface components {
             productName?: string;
             productImageUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
@@ -3038,7 +3113,7 @@ export interface components {
             productImageUrl?: string;
             productUrl?: string;
             /** @enum {string} */
-            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE";
+            platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_OTHER";
             /** @enum {string} */
             dealType?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
             /** @enum {string} */
@@ -3907,7 +3982,7 @@ export interface operations {
     extractSync: {
         parameters: {
             query: {
-                stepType: "ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "CASHBACK";
+                stepType: "ORDER" | "DOWNLOAD_INSTALL" | "DELIVERY" | "RATING" | "REVIEW" | "SELLER_FEEDBACK" | "RETURN_WINDOW" | "VIEW" | "LIKE" | "FOLLOW" | "COMMENT" | "SUBSCRIBE" | "CASHBACK";
                 requesterId?: string;
                 campaignId: string;
             };
@@ -4019,6 +4094,35 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    submitView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4196,6 +4300,35 @@ export interface operations {
             };
         };
     };
+    submitLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
     submitDelivery: {
         parameters: {
             query?: never;
@@ -4216,6 +4349,57 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    submitComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    screenshot: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ClaimResponseDto"];
+                };
+            };
+        };
+    };
+    createSocialPageClaim: {
+        parameters: {
+            query: {
+                request: components["schemas"]["CreateSocialPageClaimRequestDto"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

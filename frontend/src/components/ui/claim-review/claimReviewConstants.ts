@@ -7,6 +7,11 @@ export const CLAIM_STATUS_CONFIG: Record<ClaimStatus, { label: string; colorClas
   'RATING_SUBMITTED':           { label: 'Rating Submitted',           colorClass: 'text-neon-purple' },
   'REVIEW_SUBMITTED':           { label: 'Review Submitted',           colorClass: 'text-neon-purple' },
   'SELLER_FEEDBACK_SUBMITTED':  { label: 'Seller Feedback Submitted',  colorClass: 'text-neon-purple' },
+  'VIEW_PROOF_SUBMITTED':       { label: 'View Proof Submitted',       colorClass: 'text-neon-purple' },
+  'LIKE_PROOF_SUBMITTED':       { label: 'Like Proof Submitted',       colorClass: 'text-neon-purple' },
+  'FOLLOW_PROOF_SUBMITTED':     { label: 'Follow Proof Submitted',     colorClass: 'text-neon-purple' },
+  'COMMENT_PROOF_SUBMITTED':    { label: 'Comment Proof Submitted',    colorClass: 'text-neon-purple' },
+  'SUBSCRIBE_PROOF_SUBMITTED':  { label: 'Subscribe Proof Submitted',  colorClass: 'text-neon-purple' },
   'PROOF_SUBMITTED':            { label: 'Proof Submitted',            colorClass: 'text-neon-purple' },
   'PROOF_REJECTED':             { label: 'Proof Rejected',             colorClass: 'text-neon-red'    },
   'UNDER_REVIEW':               { label: 'Under Review',               colorClass: 'text-neon-yellow' },
@@ -32,6 +37,11 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
   SCREENSHOT_TYPE_DELIVERY: { label: 'Delivery Proof', tag: 'DELIVERY', tagClass: 'bg-neon-pink/10   text-neon-pink   border border-neon-pink/25' },
   SCREENSHOT_TYPE_SELLER_FEEDBACK: { label: 'Seller Feedback', tag: 'FEEDBACK', tagClass: 'bg-neon-purple/10 text-neon-purple border border-neon-purple/25' },
   SCREENSHOT_TYPE_DOWNLOAD_INSTALL: { label: 'Download & Install', tag: 'INSTALL', tagClass: 'bg-neon-blue/10 text-neon-blue border border-neon-blue/25' },
+  SCREENSHOT_TYPE_VIEW:      { label: 'View Proof',      tag: 'VIEW',      tagClass: 'bg-neon-cyan/10   text-neon-cyan   border border-neon-cyan/25' },
+  SCREENSHOT_TYPE_LIKE:      { label: 'Like Proof',      tag: 'LIKE',      tagClass: 'bg-neon-pink/10   text-neon-pink   border border-neon-pink/25' },
+  SCREENSHOT_TYPE_FOLLOW:    { label: 'Follow Proof',    tag: 'FOLLOW',    tagClass: 'bg-neon-blue/10   text-neon-blue   border border-neon-blue/25' },
+  SCREENSHOT_TYPE_COMMENT:   { label: 'Comment Proof',   tag: 'COMMENT',   tagClass: 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/25' },
+  SCREENSHOT_TYPE_SUBSCRIBE: { label: 'Subscribe Proof', tag: 'SUBSCRIBE', tagClass: 'bg-neon-red/10    text-neon-red    border border-neon-red/25' },
 }
 
 export const CLAIM_REVIEW_COLUMNS = [
