@@ -10,6 +10,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.dto.CreateAppReviewClaimRequestDto;
+import com.coddicted.buzzma.claim.dto.CreateSocialPageClaimRequestDto;
 import com.coddicted.buzzma.claim.dto.PagedClaimsResponseDto;
 import com.coddicted.buzzma.claim.dto.ScreenshotReviewRequestDto;
 import com.coddicted.buzzma.claim.dto.UpdateClaimRequestDto;
@@ -140,6 +141,30 @@ public class ClaimController {
     return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
   }
 
+  @PostMapping("/social-page")
+  @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto createSocialPageClaim(
+      @CurrentUserId final UUID requesterId, @Valid final CreateSocialPageClaimRequestDto request) {
+
+    final MultipartFile screenshot = request.getScreenshot();
+    final Claim claim =
+        this.claimService.createSocialPageClaim(
+            Claim.builder()
+                .campaignId(request.getCampaignId())
+                .dealId(request.getDealId())
+                .ownerId(requesterId)
+                .accountName(request.getAccountName())
+                .build(),
+            request.getStepType(),
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Deal deal = this.dealService.getById(claim.getDealId());
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
   @PostMapping("/{id}/rating")
   @PreAuthorize(UserRole.Expr.BUYER)
   public ClaimResponseDto submitRating(
@@ -226,6 +251,27 @@ public class ClaimController {
       @RequestParam("screenshot") final MultipartFile screenshot) {
     final ClaimWithDeal result =
         this.claimService.submitSellerFeedback(
+            id,
+            requesterId,
+            readBytes(screenshot),
+            screenshot.getOriginalFilename(),
+            screenshot.getContentType());
+    final Claim claim = result.claim();
+    final Deal deal = result.deal();
+    final List<ClaimScreenshot> screenshots = this.claimService.listScreenshots(claim.getId());
+    return this.claimMapper.toResponse(claim, deal, screenshots, currentStep(claim, deal));
+  }
+
+  @PostMapping("/{id}/step")
+  @PreAuthorize(UserRole.Expr.BUYER)
+  public ClaimResponseDto submitSocialStep(
+      @CurrentUserId final UUID requesterId,
+      @PathVariable final UUID id,
+      @RequestParam("stepType") final CampaignStepType stepType,
+      @RequestParam("screenshot") final MultipartFile screenshot) {
+    final ClaimWithDeal result =
+        this.claimService.submitSocialStep(
+            stepType,
             id,
             requesterId,
             readBytes(screenshot),

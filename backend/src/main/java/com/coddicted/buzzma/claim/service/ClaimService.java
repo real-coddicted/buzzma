@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.claim.service;
 
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -59,6 +60,21 @@ public interface ClaimService {
 
   ClaimWithDeal submitSellerFeedback(
       UUID claimId, UUID ownerId, byte[] screenshot, String filename, String contentType);
+
+  ClaimWithDeal submitSocialStep(
+      CampaignStepType stepType,
+      UUID claimId,
+      UUID ownerId,
+      byte[] screenshot,
+      String filename,
+      String contentType);
+
+  Claim createSocialPageClaim(
+      Claim claim,
+      CampaignStepType stepType,
+      byte[] screenshot,
+      String screenshotFilename,
+      String contentType);
 
   Claim getById(UUID claimId, UUID ownerId);
 

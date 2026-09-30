@@ -323,6 +323,18 @@ public final class ClaimScreenshotScorerUtils {
     return overallScore;
   }
 
+  public static ExtractedScoredResult updateExtractedDataForSocialEngagement(
+      final Claim claim, final Map<String, ScoredValue> extractedDetails, Integer overallScore) {
+
+    final Map<String, ScoredValue> details =
+        extractedDetails != null ? new HashMap<>(extractedDetails) : new HashMap<>();
+
+    processPlatform(claim, details);
+    processAccountName(claim, details);
+
+    return new ExtractedScoredResult(details, overallScore);
+  }
+
   private static void processAccountName(
       final Claim claim, final Map<String, ScoredValue> details) {
     final ScoredValue scoredValue =

@@ -2,16 +2,43 @@ package com.coddicted.buzzma.claim.scorer;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
+import com.coddicted.buzzma.claim.client.ScoreApiClientProxy;
+import com.coddicted.buzzma.claim.client.ScoreDatasetKeys;
 import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.utils.ClaimScreenshotScorerUtils;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import com.coddicted.buzzma.shared.constants.BuzzmahConstants;
+import com.coddicted.buzzma.shared.score.PayloadItem;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FollowScreenshotScorer implements ClaimScreenshotScorer {
+public class FollowScreenshotScorer extends SimpleScoreApiScorer {
+
+  public FollowScreenshotScorer(final ScoreApiClientProxy scoreApiClientProxy) {
+    super(scoreApiClientProxy);
+  }
 
   @Override
-  public ExtractedScoredResult score(
-      final Claim claim, final Campaign campaign, final ClaimScreenshot screenshot) {
-    return new ExtractedScoredResult(screenshot.getExtractedDetails(), 0);
+  protected String datasetKey() {
+    return ScoreDatasetKeys.FOLLOW;
+  }
+
+  @Override
+  protected List<PayloadItem> additionalPayloadItems(
+      final Claim claim, final Campaign campaign, final Map<String, ScoredValue> details) {
+    final String accountName =
+        ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.ACCOUNT_NAME);
+    return List.of(
+        ClaimScreenshotScorerUtils.payloadItem(
+            BuzzmahConstants.ACCOUNT_NAME, claim.getAccountName(), accountName));
+  }
+
+  @Override
+  protected ExtractedScoredResult reconcile(
+      final Claim claim, final Map<String, ScoredValue> details, final Integer overallScore) {
+    return ClaimScreenshotScorerUtils.updateExtractedDataForSocialEngagement(
+        claim, details, overallScore);
   }
 }

@@ -8,4 +8,9 @@ public interface ScoreDatasetKeys {
   String RETURN = "returnData";
   String DELIVERY = "deliveryData";
   String SELLER_FEEDBACK = "sellerFeedbackData";
+  String LIKE = "likeData";
+  String VIEW = "viewData";
+  String COMMENT = "commentData";
+  String SUBSCRIBE = "subscribeData";
+  String FOLLOW = "followData";
 }
