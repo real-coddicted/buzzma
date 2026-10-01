@@ -1,9 +1,6 @@
 package com.coddicted.buzzma.storage.event;
 
-import com.coddicted.buzzma.claim.entity.Claim;
-import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.config.GoogleDriveProperties;
 import com.coddicted.buzzma.storage.service.GoogleDriveService;
 import com.coddicted.buzzma.storage.service.StorageService;
@@ -12,9 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -132,23 +127,6 @@ public class GoogleDriveUploadConsumer {
 
   @Transactional
   public void uploadScreenshotToDrive(final GoogleDriveUploadMessage message) {
-    final ClaimScreenshot screenshot;
-    try {
-      screenshot = this.claimService.getScreenshotById(message.screenshotId());
-    } catch (final NotFoundException e) {
-      LOGGER.warn("Screenshot {} not found, skipping", message.screenshotId());
-      return;
-    }
-
-    if (screenshot.isDeleted()) {
-      LOGGER.warn("Screenshot {} is deleted, skipping", message.screenshotId());
-      return;
-    }
-
-    if (screenshot.getGoogleDriveUrl() != null) {
-      this.googleDriveService.deleteFile(screenshot.getGoogleDriveUrl());
-    }
-
     final String claimFolderId = resolveClaimFolder(message);
 
     final ResponseBytes<GetObjectResponse> fileBytes =
@@ -161,21 +139,12 @@ public class GoogleDriveUploadConsumer {
         this.googleDriveService.uploadFile(
             claimFolderId, filename, contentType, fileBytes.asByteArray());
 
-    screenshot.setGoogleDriveUrl(driveUrl);
-    this.claimService.saveScreenshot(screenshot);
+    this.claimService.updateScreenshotGoogleDriveUrl(message.screenshotId(), driveUrl);
 
     LOGGER.info("Uploaded screenshot {} to Google Drive: {}", message.screenshotId(), driveUrl);
   }
 
   private String resolveClaimFolder(final GoogleDriveUploadMessage message) {
-    final Map<UUID, Claim> claimMap =
-        this.claimService.findAllByIdAsMap(List.of(message.claimId()));
-    final Claim claim = claimMap.get(message.claimId());
-
-    if (claim != null && claim.getGoogleDriveFolderId() != null) {
-      return claim.getGoogleDriveFolderId();
-    }
-
     final String campaignFolderId =
         this.campaignFolderCache.computeIfAbsent(
             message.campaignCode(),
@@ -183,15 +152,7 @@ public class GoogleDriveUploadConsumer {
                 this.googleDriveService.findOrCreateFolder(
                     this.properties.getRootFolderId(), code));
 
-    final String claimFolderId =
-        this.googleDriveService.findOrCreateFolder(campaignFolderId, message.claimCode());
-
-    if (claim != null) {
-      claim.setGoogleDriveFolderId(claimFolderId);
-      this.claimService.save(claim);
-    }
-
-    return claimFolderId;
+    return this.googleDriveService.findOrCreateFolder(campaignFolderId, message.claimCode());
   }
 
   private String extensionFromKey(final String storageKey) {

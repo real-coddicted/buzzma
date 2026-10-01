@@ -131,7 +131,4 @@ public class Claim implements Auditable {
 
   @Column(name = "accounting_last_attempted_at")
   private Instant accountingLastAttemptedAt;
-
-  @Column(name = "google_drive_folder_id", length = 200)
-  private String googleDriveFolderId;
 }

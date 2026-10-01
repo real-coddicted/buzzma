@@ -117,6 +117,8 @@ public interface ClaimService {
 
   ClaimScreenshot saveScreenshot(ClaimScreenshot screenshot);
 
+  int updateScreenshotGoogleDriveUrl(UUID screenshotId, String url);
+
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
       UUID mediatorId,
       Collection<UUID> campaignIds,

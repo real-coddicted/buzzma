@@ -606,6 +606,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
+  @Transactional
+  public int updateScreenshotGoogleDriveUrl(final UUID screenshotId, final String url) {
+    return this.claimScreenshotRepository.updateGoogleDriveUrl(screenshotId, url);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Page<ClaimReviewModel> findClaimsToReviewForMediator(
       final UUID mediatorId,

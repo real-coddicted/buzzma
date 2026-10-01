@@ -79,6 +79,5 @@ public interface ClaimMapper {
   @Mapping(target = "updatedBy", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "googleDriveFolderId", ignore = true)
   Claim toEntity(ClaimRequestDto request, UUID ownerId);
 }
