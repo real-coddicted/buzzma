@@ -1,60 +1,60 @@
 package com.coddicted.buzzma.storage.event;
 
 import com.coddicted.buzzma.claim.service.ClaimService;
-import com.coddicted.buzzma.storage.config.GoogleDriveProperties;
-import com.coddicted.buzzma.storage.service.GoogleDriveService;
+import com.coddicted.buzzma.storage.config.R2Properties;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
-@ConditionalOnProperty(name = "app.storage.google-drive.enabled", havingValue = "true")
-public class GoogleDriveUploadConsumer {
+@ConditionalOnProperty(name = "app.storage.r2.enabled", havingValue = "true")
+public class R2UploadConsumer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GoogleDriveUploadConsumer.class);
-  private static final String QUEUE_KEY = GoogleDriveUploadPublisher.QUEUE_KEY;
-  private static final String DLQ_KEY = "queue:gdrive-upload:dlq";
+  private static final Logger LOGGER = LoggerFactory.getLogger(R2UploadConsumer.class);
+  private static final String QUEUE_KEY = R2UploadPublisher.QUEUE_KEY;
+  private static final String DLQ_KEY = "queue:r2-upload:dlq";
   private static final Duration BRPOP_TIMEOUT = Duration.ofSeconds(30);
 
   private final StringRedisTemplate redisTemplate;
   private final ObjectMapper objectMapper;
   private final ClaimService claimService;
   private final StorageService storageService;
-  private final GoogleDriveService googleDriveService;
-  private final GoogleDriveProperties properties;
-  private final Map<String, String> campaignFolderCache = new ConcurrentHashMap<>();
+  private final S3Client r2Client;
+  private final R2Properties properties;
   private final AtomicBoolean running = new AtomicBoolean(true);
   private ExecutorService executor;
 
-  public GoogleDriveUploadConsumer(
+  public R2UploadConsumer(
       final StringRedisTemplate redisTemplate,
       final ObjectMapper objectMapper,
       final ClaimService claimService,
       final StorageService storageService,
-      final GoogleDriveService googleDriveService,
-      final GoogleDriveProperties properties) {
+      @Qualifier("r2Client") final S3Client r2Client,
+      final R2Properties properties) {
     this.redisTemplate = redisTemplate;
     this.objectMapper = objectMapper;
     this.claimService = claimService;
     this.storageService = storageService;
-    this.googleDriveService = googleDriveService;
+    this.r2Client = r2Client;
     this.properties = properties;
   }
 
@@ -63,12 +63,12 @@ public class GoogleDriveUploadConsumer {
     this.executor =
         Executors.newSingleThreadExecutor(
             r -> {
-              final Thread t = new Thread(r, "gdrive-upload-consumer");
+              final Thread t = new Thread(r, "r2-upload-consumer");
               t.setDaemon(true);
               return t;
             });
     this.executor.submit(this::consumeLoop);
-    LOGGER.info("Google Drive upload consumer started");
+    LOGGER.info("R2 upload consumer started");
   }
 
   @PreDestroy
@@ -82,7 +82,7 @@ public class GoogleDriveUploadConsumer {
         Thread.currentThread().interrupt();
       }
     }
-    LOGGER.info("Google Drive upload consumer stopped");
+    LOGGER.info("R2 upload consumer stopped");
   }
 
   private void consumeLoop() {
@@ -99,25 +99,25 @@ public class GoogleDriveUploadConsumer {
         if (Thread.currentThread().isInterrupted()) {
           break;
         }
-        LOGGER.error("Error in Google Drive upload consumer loop: {}", e.getMessage(), e);
+        LOGGER.error("Error in R2 upload consumer loop: {}", e.getMessage(), e);
       }
     }
   }
 
   private void processMessage(final String rawMessage) {
-    final GoogleDriveUploadMessage message;
+    final R2UploadMessage message;
     try {
-      message = this.objectMapper.readValue(rawMessage, GoogleDriveUploadMessage.class);
+      message = this.objectMapper.readValue(rawMessage, R2UploadMessage.class);
     } catch (final JsonProcessingException e) {
       LOGGER.warn("Invalid message in queue, cannot deserialize: {}", rawMessage);
       return;
     }
 
     try {
-      uploadScreenshotToDrive(message);
+      uploadScreenshotToR2(message);
     } catch (final Exception e) {
       LOGGER.error(
-          "Failed to upload screenshot {} to Google Drive, moving to DLQ: {}",
+          "Failed to upload screenshot {} to R2, moving to DLQ: {}",
           message.screenshotId(),
           e.getMessage(),
           e);
@@ -126,33 +126,36 @@ public class GoogleDriveUploadConsumer {
   }
 
   @Transactional
-  public void uploadScreenshotToDrive(final GoogleDriveUploadMessage message) {
-    final String claimFolderId = resolveClaimFolder(message);
-
+  public void uploadScreenshotToR2(final R2UploadMessage message) {
     final ResponseBytes<GetObjectResponse> fileBytes =
         this.storageService.retrieve(message.storageKey());
     final String contentType = fileBytes.response().contentType();
-    final String filename =
-        message.screenshotType().toLowerCase() + extensionFromKey(message.storageKey());
+    final String extension = extensionFromKey(message.storageKey());
+    final String filename = message.screenshotType().toLowerCase() + extension;
 
-    final String driveUrl =
-        this.googleDriveService.uploadFile(
-            claimFolderId, filename, contentType, fileBytes.asByteArray());
+    final String r2Key = message.campaignCode() + "/" + message.claimCode() + "/" + filename;
 
-    this.claimService.updateScreenshotGoogleDriveUrl(message.screenshotId(), driveUrl);
+    final PutObjectRequest putRequest =
+        PutObjectRequest.builder()
+            .bucket(this.properties.getBucket())
+            .key(r2Key)
+            .contentType(contentType)
+            .build();
 
-    LOGGER.info("Uploaded screenshot {} to Google Drive: {}", message.screenshotId(), driveUrl);
+    this.r2Client.putObject(putRequest, RequestBody.fromBytes(fileBytes.asByteArray()));
+
+    final String publicUrl = buildPublicUrl(r2Key);
+    this.claimService.updateScreenshotPublicUrl(message.screenshotId(), publicUrl);
+
+    LOGGER.info("Uploaded screenshot {} to R2: {}", message.screenshotId(), publicUrl);
   }
 
-  private String resolveClaimFolder(final GoogleDriveUploadMessage message) {
-    final String campaignFolderId =
-        this.campaignFolderCache.computeIfAbsent(
-            message.campaignCode(),
-            code ->
-                this.googleDriveService.findOrCreateFolder(
-                    this.properties.getRootFolderId(), code));
-
-    return this.googleDriveService.findOrCreateFolder(campaignFolderId, message.claimCode());
+  private String buildPublicUrl(final String key) {
+    String base = this.properties.getPublicUrlBase();
+    if (base.endsWith("/")) {
+      base = base.substring(0, base.length() - 1);
+    }
+    return base + "/" + key;
   }
 
   private String extensionFromKey(final String storageKey) {

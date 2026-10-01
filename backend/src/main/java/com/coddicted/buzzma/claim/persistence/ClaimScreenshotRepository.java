@@ -17,6 +17,6 @@ public interface ClaimScreenshotRepository extends JpaRepository<ClaimScreenshot
   List<ClaimScreenshot> findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(UUID claimId);
 
   @Modifying
-  @Query("UPDATE ClaimScreenshot s SET s.googleDriveUrl = :url WHERE s.id = :id")
-  int updateGoogleDriveUrl(@Param("id") UUID id, @Param("url") String url);
+  @Query("UPDATE ClaimScreenshot s SET s.publicUrl = :url WHERE s.id = :id")
+  int updatePublicUrl(@Param("id") UUID id, @Param("url") String url);
 }

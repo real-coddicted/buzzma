@@ -2,7 +2,7 @@ package com.coddicted.buzzma.storage.event;
 
 import java.util.UUID;
 
-public record GoogleDriveUploadMessage(
+public record R2UploadMessage(
     UUID screenshotId,
     UUID claimId,
     String campaignCode,
