@@ -117,6 +117,8 @@ public interface ClaimService {
 
   ClaimScreenshot saveScreenshot(ClaimScreenshot screenshot);
 
+  List<ClaimScreenshot> listScreenshotsByClaimIds(Collection<UUID> claimIds);
+
   int updateScreenshotPublicUrl(UUID screenshotId, String url);
 
   Page<ClaimReviewModel> findClaimsToReviewForMediator(

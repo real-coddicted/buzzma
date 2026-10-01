@@ -5,6 +5,7 @@ import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Value;
@@ -50,4 +51,6 @@ public class ClaimReviewResponseDto {
 
   Instant createdAt;
   Instant updatedAt;
+
+  @Builder.Default List<String> screenshotPublicUrls = List.of();
 }

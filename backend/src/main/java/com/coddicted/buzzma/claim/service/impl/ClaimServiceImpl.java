@@ -606,6 +606,16 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<ClaimScreenshot> listScreenshotsByClaimIds(final Collection<UUID> claimIds) {
+    if (claimIds == null || claimIds.isEmpty()) {
+      return List.of();
+    }
+    return this.claimScreenshotRepository.findByClaimIdInAndIsDeletedFalseOrderByCreatedAtAsc(
+        claimIds);
+  }
+
+  @Override
   @Transactional
   public int updateScreenshotPublicUrl(final UUID screenshotId, final String url) {
     return this.claimScreenshotRepository.updatePublicUrl(screenshotId, url);

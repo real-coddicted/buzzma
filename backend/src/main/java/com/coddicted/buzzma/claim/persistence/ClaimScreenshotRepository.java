@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.claim.persistence;
 
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,9 @@ public interface ClaimScreenshotRepository extends JpaRepository<ClaimScreenshot
   List<ClaimScreenshot> findByClaimIdAndIsDeletedFalse(UUID claimId);
 
   List<ClaimScreenshot> findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(UUID claimId);
+
+  List<ClaimScreenshot> findByClaimIdInAndIsDeletedFalseOrderByCreatedAtAsc(
+      Collection<UUID> claimIds);
 
   @Modifying
   @Query("UPDATE ClaimScreenshot s SET s.publicUrl = :url WHERE s.id = :id")

@@ -13,6 +13,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.report.excel.ExcelReportWriter;
@@ -40,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 class ReportServiceImplTest {
 
   @Mock private ClaimReviewProcessor claimReviewProcessor;
+  @Mock private ClaimService claimService;
 
   @Test
   void testGenerateClaimReviewReportWritesExpectedColumnsAndRows() throws Exception {
@@ -77,7 +79,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(agency),
             eq(Set.of(campaignId)),
@@ -156,7 +158,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(agency), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(pageOf(row));
@@ -191,7 +193,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(brand), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(pageOf(row));
@@ -223,7 +225,7 @@ class ReportServiceImplTest {
     final BuzzmaUser mediator =
         BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_MEDIATOR).build();
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(Page.empty());
