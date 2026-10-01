@@ -67,7 +67,8 @@ public class ReportServiceImpl implements ReportService {
               dto ->
                   index < dto.getScreenshotPublicUrls().size()
                       ? dto.getScreenshotPublicUrls().get(index)
-                      : null));
+                      : null,
+              String.valueOf(i + 1)));
     }
 
     return this.excelReportWriter.write(
