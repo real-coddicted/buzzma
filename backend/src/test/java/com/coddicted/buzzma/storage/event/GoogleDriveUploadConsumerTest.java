@@ -5,18 +5,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
-import com.coddicted.buzzma.claim.persistence.ClaimRepository;
-import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.storage.config.GoogleDriveProperties;
 import com.coddicted.buzzma.storage.service.GoogleDriveService;
 import com.coddicted.buzzma.storage.service.StorageService;
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,6 @@ class GoogleDriveUploadConsumerTest {
 
   private static final UUID SCREENSHOT_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
   private static final UUID CLAIM_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
-  private static final UUID CAMPAIGN_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
   private static final UUID OWNER_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
   private static final String STORAGE_KEY = "claims/abc123.jpg";
   private static final String CAMPAIGN_CODE = "CAM001";
@@ -45,9 +43,7 @@ class GoogleDriveUploadConsumerTest {
   private static final byte[] FILE_BYTES = {1, 2, 3, 4, 5};
 
   @Mock private StringRedisTemplate mockRedisTemplate;
-  @Mock private ClaimScreenshotRepository mockScreenshotRepository;
-  @Mock private ClaimRepository mockClaimRepository;
-  @Mock private CampaignService mockCampaignService;
+  @Mock private ClaimService mockClaimService;
   @Mock private StorageService mockStorageService;
   @Mock private GoogleDriveService mockGoogleDriveService;
 
@@ -61,9 +57,8 @@ class GoogleDriveUploadConsumerTest {
     this.consumer =
         new GoogleDriveUploadConsumer(
             this.mockRedisTemplate,
-            this.mockScreenshotRepository,
-            this.mockClaimRepository,
-            this.mockCampaignService,
+            new ObjectMapper(),
+            this.mockClaimService,
             this.mockStorageService,
             this.mockGoogleDriveService,
             properties);
@@ -71,6 +66,15 @@ class GoogleDriveUploadConsumerTest {
 
   @Test
   void uploadScreenshotToDrive_uploadsAndUpdatesDb() {
+    final GoogleDriveUploadMessage message =
+        new GoogleDriveUploadMessage(
+            SCREENSHOT_ID,
+            CLAIM_ID,
+            CAMPAIGN_CODE,
+            CLAIM_CODE,
+            STORAGE_KEY,
+            "SCREENSHOT_TYPE_ORDER");
+
     final ClaimScreenshot screenshot =
         ClaimScreenshot.builder()
             .id(SCREENSHOT_ID)
@@ -83,10 +87,7 @@ class GoogleDriveUploadConsumerTest {
             .updatedBy(OWNER_ID)
             .build();
 
-    final Claim claim =
-        Claim.builder().id(CLAIM_ID).campaignId(CAMPAIGN_ID).code(CLAIM_CODE).build();
-
-    final Campaign campaign = Campaign.builder().id(CAMPAIGN_ID).code(CAMPAIGN_CODE).build();
+    final Claim claim = Claim.builder().id(CLAIM_ID).code(CLAIM_CODE).build();
 
     final GetObjectResponse objectResponse =
         GetObjectResponse.builder().contentType("image/jpeg").build();
@@ -94,9 +95,9 @@ class GoogleDriveUploadConsumerTest {
     final ResponseBytes<GetObjectResponse> responseBytes =
         (ResponseBytes<GetObjectResponse>) ResponseBytes.fromByteArray(objectResponse, FILE_BYTES);
 
-    when(this.mockScreenshotRepository.findById(SCREENSHOT_ID)).thenReturn(Optional.of(screenshot));
-    when(this.mockClaimRepository.findById(CLAIM_ID)).thenReturn(Optional.of(claim));
-    when(this.mockCampaignService.getById(CAMPAIGN_ID)).thenReturn(campaign);
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(screenshot);
+    when(this.mockClaimService.findAllByIdAsMap(List.of(CLAIM_ID)))
+        .thenReturn(Map.of(CLAIM_ID, claim));
     when(this.mockStorageService.retrieve(STORAGE_KEY)).thenReturn(responseBytes);
     when(this.mockGoogleDriveService.findOrCreateFolder(ROOT_FOLDER_ID, CAMPAIGN_CODE))
         .thenReturn(CAMPAIGN_FOLDER_ID);
@@ -106,20 +107,29 @@ class GoogleDriveUploadConsumerTest {
             CLAIM_FOLDER_ID, "screenshot_type_order.jpg", "image/jpeg", FILE_BYTES))
         .thenReturn(DRIVE_URL);
 
-    this.consumer.uploadScreenshotToDrive(SCREENSHOT_ID);
+    this.consumer.uploadScreenshotToDrive(message);
 
     final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
         ArgumentCaptor.forClass(ClaimScreenshot.class);
-    verify(this.mockScreenshotRepository).save(screenshotCaptor.capture());
+    verify(this.mockClaimService).saveScreenshot(screenshotCaptor.capture());
     assertEquals(DRIVE_URL, screenshotCaptor.getValue().getGoogleDriveUrl());
 
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
-    verify(this.mockClaimRepository).save(claimCaptor.capture());
+    verify(this.mockClaimService).save(claimCaptor.capture());
     assertEquals(CLAIM_FOLDER_ID, claimCaptor.getValue().getGoogleDriveFolderId());
   }
 
   @Test
   void uploadScreenshotToDrive_skipsDeletedScreenshot() {
+    final GoogleDriveUploadMessage message =
+        new GoogleDriveUploadMessage(
+            SCREENSHOT_ID,
+            CLAIM_ID,
+            CAMPAIGN_CODE,
+            CLAIM_CODE,
+            STORAGE_KEY,
+            "SCREENSHOT_TYPE_ORDER");
+
     final ClaimScreenshot screenshot =
         ClaimScreenshot.builder()
             .id(SCREENSHOT_ID)
@@ -132,15 +142,24 @@ class GoogleDriveUploadConsumerTest {
             .updatedBy(OWNER_ID)
             .build();
 
-    when(this.mockScreenshotRepository.findById(SCREENSHOT_ID)).thenReturn(Optional.of(screenshot));
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(screenshot);
 
-    this.consumer.uploadScreenshotToDrive(SCREENSHOT_ID);
+    this.consumer.uploadScreenshotToDrive(message);
 
     verifyNoInteractions(this.mockGoogleDriveService);
   }
 
   @Test
   void uploadScreenshotToDrive_reusesCachedClaimFolder() {
+    final GoogleDriveUploadMessage message =
+        new GoogleDriveUploadMessage(
+            SCREENSHOT_ID,
+            CLAIM_ID,
+            CAMPAIGN_CODE,
+            CLAIM_CODE,
+            STORAGE_KEY,
+            "SCREENSHOT_TYPE_ORDER");
+
     final ClaimScreenshot screenshot =
         ClaimScreenshot.builder()
             .id(SCREENSHOT_ID)
@@ -154,12 +173,7 @@ class GoogleDriveUploadConsumerTest {
             .build();
 
     final Claim claim =
-        Claim.builder()
-            .id(CLAIM_ID)
-            .campaignId(CAMPAIGN_ID)
-            .code(CLAIM_CODE)
-            .googleDriveFolderId(CLAIM_FOLDER_ID)
-            .build();
+        Claim.builder().id(CLAIM_ID).code(CLAIM_CODE).googleDriveFolderId(CLAIM_FOLDER_ID).build();
 
     final GetObjectResponse objectResponse =
         GetObjectResponse.builder().contentType("image/jpeg").build();
@@ -167,18 +181,19 @@ class GoogleDriveUploadConsumerTest {
     final ResponseBytes<GetObjectResponse> responseBytes =
         (ResponseBytes<GetObjectResponse>) ResponseBytes.fromByteArray(objectResponse, FILE_BYTES);
 
-    when(this.mockScreenshotRepository.findById(SCREENSHOT_ID)).thenReturn(Optional.of(screenshot));
-    when(this.mockClaimRepository.findById(CLAIM_ID)).thenReturn(Optional.of(claim));
+    when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(screenshot);
+    when(this.mockClaimService.findAllByIdAsMap(List.of(CLAIM_ID)))
+        .thenReturn(Map.of(CLAIM_ID, claim));
     when(this.mockStorageService.retrieve(STORAGE_KEY)).thenReturn(responseBytes);
     when(this.mockGoogleDriveService.uploadFile(
             CLAIM_FOLDER_ID, "screenshot_type_order.jpg", "image/jpeg", FILE_BYTES))
         .thenReturn(DRIVE_URL);
 
-    this.consumer.uploadScreenshotToDrive(SCREENSHOT_ID);
+    this.consumer.uploadScreenshotToDrive(message);
 
     final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
         ArgumentCaptor.forClass(ClaimScreenshot.class);
-    verify(this.mockScreenshotRepository).save(screenshotCaptor.capture());
+    verify(this.mockClaimService).saveScreenshot(screenshotCaptor.capture());
     assertEquals(DRIVE_URL, screenshotCaptor.getValue().getGoogleDriveUrl());
   }
 }

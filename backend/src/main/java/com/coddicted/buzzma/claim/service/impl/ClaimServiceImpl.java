@@ -32,6 +32,7 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.storage.event.GoogleDriveUploadMessage;
 import com.coddicted.buzzma.storage.event.GoogleDriveUploadPublisher;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
@@ -94,6 +95,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.codeGenerationService = codeGenerationService;
     this.stepDefinitionRegistry = stepDefinitionRegistry;
     this.googleDriveUploadPublisher = googleDriveUploadPublisher;
+    if (this.googleDriveUploadPublisher == null) {
+      LOGGER.warn("Google Drive upload is disabled -- screenshots will not be synced to Drive");
+    }
   }
 
   @Override
@@ -176,7 +180,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           orderScreenshot.getId());
       this.extractionService.submitJob(orderScreenshot.getId(), saved.getOwnerId());
     }
-    enqueueGoogleDriveUpload(orderScreenshot);
+    enqueueGoogleDriveUpload(orderScreenshot, saved, campaign);
 
     return saved;
   }
@@ -233,7 +237,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL,
             saved.getOwnerId());
     this.extractionService.submitJob(downloadInstallScreenshot.getId(), saved.getOwnerId());
-    enqueueGoogleDriveUpload(downloadInstallScreenshot);
+    enqueueGoogleDriveUpload(downloadInstallScreenshot, saved, campaign);
 
     return saved;
   }
@@ -371,7 +375,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
     }
-    enqueueGoogleDriveUpload(claimScreenshot);
+    enqueueGoogleDriveUpload(claimScreenshot, saved, campaign);
 
     return saved;
   }
@@ -423,7 +427,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), ownerId);
     }
-    enqueueGoogleDriveUpload(claimScreenshot);
+    enqueueGoogleDriveUpload(claimScreenshot, updated, deal.getCampaign());
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -507,7 +511,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .build());
 
     this.extractionService.submitJob(updated.getId(), requesterId);
-    enqueueGoogleDriveUpload(updated);
+
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    enqueueGoogleDriveUpload(updated, claim, campaign);
 
     final Claim finalClaim =
         updateClaim(requesterId, screenshotType, orderFields, reviewUrl, claim);
@@ -719,9 +725,17 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .build());
   }
 
-  private void enqueueGoogleDriveUpload(final ClaimScreenshot screenshot) {
+  private void enqueueGoogleDriveUpload(
+      final ClaimScreenshot screenshot, final Claim claim, final Campaign campaign) {
     if (this.googleDriveUploadPublisher != null) {
-      this.googleDriveUploadPublisher.enqueue(screenshot.getId());
+      this.googleDriveUploadPublisher.enqueue(
+          new GoogleDriveUploadMessage(
+              screenshot.getId(),
+              claim.getId(),
+              campaign.getCode(),
+              claim.getCode(),
+              screenshot.getStorageKey(),
+              screenshot.getType().name()));
     }
   }
 

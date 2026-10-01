@@ -1,17 +1,18 @@
 package com.coddicted.buzzma.storage.event;
 
-import com.coddicted.buzzma.campaign.entity.Campaign;
-import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
-import com.coddicted.buzzma.claim.persistence.ClaimRepository;
-import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
+import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.storage.config.GoogleDriveProperties;
 import com.coddicted.buzzma.storage.service.GoogleDriveService;
 import com.coddicted.buzzma.storage.service.StorageService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,28 +39,25 @@ public class GoogleDriveUploadConsumer {
   private static final Duration BRPOP_TIMEOUT = Duration.ofSeconds(30);
 
   private final StringRedisTemplate redisTemplate;
-  private final ClaimScreenshotRepository claimScreenshotRepository;
-  private final ClaimRepository claimRepository;
-  private final CampaignService campaignService;
+  private final ObjectMapper objectMapper;
+  private final ClaimService claimService;
   private final StorageService storageService;
   private final GoogleDriveService googleDriveService;
   private final GoogleDriveProperties properties;
-  private final Map<String, String> folderIdCache = new ConcurrentHashMap<>();
+  private final Map<String, String> campaignFolderCache = new ConcurrentHashMap<>();
   private final AtomicBoolean running = new AtomicBoolean(true);
   private ExecutorService executor;
 
   public GoogleDriveUploadConsumer(
       final StringRedisTemplate redisTemplate,
-      final ClaimScreenshotRepository claimScreenshotRepository,
-      final ClaimRepository claimRepository,
-      final CampaignService campaignService,
+      final ObjectMapper objectMapper,
+      final ClaimService claimService,
       final StorageService storageService,
       final GoogleDriveService googleDriveService,
       final GoogleDriveProperties properties) {
     this.redisTemplate = redisTemplate;
-    this.claimScreenshotRepository = claimScreenshotRepository;
-    this.claimRepository = claimRepository;
-    this.campaignService = campaignService;
+    this.objectMapper = objectMapper;
+    this.claimService = claimService;
     this.storageService = storageService;
     this.googleDriveService = googleDriveService;
     this.properties = properties;
@@ -111,34 +109,39 @@ public class GoogleDriveUploadConsumer {
     }
   }
 
-  private void processMessage(final String message) {
-    final UUID screenshotId;
+  private void processMessage(final String rawMessage) {
+    final GoogleDriveUploadMessage message;
     try {
-      screenshotId = UUID.fromString(message.trim());
-    } catch (final IllegalArgumentException e) {
-      LOGGER.warn("Invalid screenshot ID in queue: {}", message);
+      message = this.objectMapper.readValue(rawMessage, GoogleDriveUploadMessage.class);
+    } catch (final JsonProcessingException e) {
+      LOGGER.warn("Invalid message in queue, cannot deserialize: {}", rawMessage);
       return;
     }
 
     try {
-      uploadScreenshotToDrive(screenshotId);
+      uploadScreenshotToDrive(message);
     } catch (final Exception e) {
       LOGGER.error(
           "Failed to upload screenshot {} to Google Drive, moving to DLQ: {}",
-          screenshotId,
+          message.screenshotId(),
           e.getMessage(),
           e);
-      this.redisTemplate.opsForList().leftPush(DLQ_KEY, message);
+      this.redisTemplate.opsForList().leftPush(DLQ_KEY, rawMessage);
     }
   }
 
   @Transactional
-  public void uploadScreenshotToDrive(final UUID screenshotId) {
-    final ClaimScreenshot screenshot =
-        this.claimScreenshotRepository.findById(screenshotId).orElse(null);
+  public void uploadScreenshotToDrive(final GoogleDriveUploadMessage message) {
+    final ClaimScreenshot screenshot;
+    try {
+      screenshot = this.claimService.getScreenshotById(message.screenshotId());
+    } catch (final NotFoundException e) {
+      LOGGER.warn("Screenshot {} not found, skipping", message.screenshotId());
+      return;
+    }
 
-    if (screenshot == null || screenshot.isDeleted()) {
-      LOGGER.warn("Screenshot {} not found or deleted, skipping", screenshotId);
+    if (screenshot.isDeleted()) {
+      LOGGER.warn("Screenshot {} is deleted, skipping", message.screenshotId());
       return;
     }
 
@@ -146,50 +149,47 @@ public class GoogleDriveUploadConsumer {
       this.googleDriveService.deleteFile(screenshot.getGoogleDriveUrl());
     }
 
-    final Claim claim =
-        this.claimRepository
-            .findById(screenshot.getClaimId())
-            .orElseThrow(
-                () -> new IllegalStateException("Claim not found for screenshot: " + screenshotId));
-
-    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
-
-    final String claimFolderId = resolveClaimFolder(campaign, claim);
+    final String claimFolderId = resolveClaimFolder(message);
 
     final ResponseBytes<GetObjectResponse> fileBytes =
-        this.storageService.retrieve(screenshot.getStorageKey());
+        this.storageService.retrieve(message.storageKey());
     final String contentType = fileBytes.response().contentType();
     final String filename =
-        screenshot.getType().name().toLowerCase() + extensionFromKey(screenshot.getStorageKey());
+        message.screenshotType().toLowerCase() + extensionFromKey(message.storageKey());
 
     final String driveUrl =
         this.googleDriveService.uploadFile(
             claimFolderId, filename, contentType, fileBytes.asByteArray());
 
     screenshot.setGoogleDriveUrl(driveUrl);
-    this.claimScreenshotRepository.save(screenshot);
+    this.claimService.saveScreenshot(screenshot);
 
-    LOGGER.info("Uploaded screenshot {} to Google Drive: {}", screenshotId, driveUrl);
+    LOGGER.info("Uploaded screenshot {} to Google Drive: {}", message.screenshotId(), driveUrl);
   }
 
-  private String resolveClaimFolder(final Campaign campaign, final Claim claim) {
-    if (claim.getGoogleDriveFolderId() != null) {
+  private String resolveClaimFolder(final GoogleDriveUploadMessage message) {
+    final Map<UUID, Claim> claimMap =
+        this.claimService.findAllByIdAsMap(List.of(message.claimId()));
+    final Claim claim = claimMap.get(message.claimId());
+
+    if (claim != null && claim.getGoogleDriveFolderId() != null) {
       return claim.getGoogleDriveFolderId();
     }
 
-    final String campaignFolderCacheKey = "campaign:" + campaign.getId();
     final String campaignFolderId =
-        this.folderIdCache.computeIfAbsent(
-            campaignFolderCacheKey,
-            k ->
+        this.campaignFolderCache.computeIfAbsent(
+            message.campaignCode(),
+            code ->
                 this.googleDriveService.findOrCreateFolder(
-                    this.properties.getRootFolderId(), campaign.getCode()));
+                    this.properties.getRootFolderId(), code));
 
     final String claimFolderId =
-        this.googleDriveService.findOrCreateFolder(campaignFolderId, claim.getCode());
+        this.googleDriveService.findOrCreateFolder(campaignFolderId, message.claimCode());
 
-    claim.setGoogleDriveFolderId(claimFolderId);
-    this.claimRepository.save(claim);
+    if (claim != null) {
+      claim.setGoogleDriveFolderId(claimFolderId);
+      this.claimService.save(claim);
+    }
 
     return claimFolderId;
   }

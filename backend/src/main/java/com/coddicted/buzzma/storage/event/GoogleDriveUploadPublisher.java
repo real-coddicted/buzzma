@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.storage.event;
 
-import java.util.UUID;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,13 +16,24 @@ public class GoogleDriveUploadPublisher {
   static final String QUEUE_KEY = "queue:gdrive-upload";
 
   private final StringRedisTemplate redisTemplate;
+  private final ObjectMapper objectMapper;
 
-  public GoogleDriveUploadPublisher(final StringRedisTemplate redisTemplate) {
+  public GoogleDriveUploadPublisher(
+      final StringRedisTemplate redisTemplate, final ObjectMapper objectMapper) {
     this.redisTemplate = redisTemplate;
+    this.objectMapper = objectMapper;
   }
 
-  public void enqueue(final UUID claimScreenshotId) {
-    this.redisTemplate.opsForList().leftPush(QUEUE_KEY, claimScreenshotId.toString());
-    LOGGER.debug("Enqueued Google Drive upload for screenshot {}", claimScreenshotId);
+  public void enqueue(final GoogleDriveUploadMessage message) {
+    try {
+      final String json = this.objectMapper.writeValueAsString(message);
+      this.redisTemplate.opsForList().leftPush(QUEUE_KEY, json);
+      LOGGER.debug("Enqueued Google Drive upload for screenshot {}", message.screenshotId());
+    } catch (final JsonProcessingException e) {
+      LOGGER.error(
+          "Failed to serialize Google Drive upload message for screenshot {}: {}",
+          message.screenshotId(),
+          e.getMessage());
+    }
   }
 }
