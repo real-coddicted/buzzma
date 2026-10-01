@@ -134,6 +134,10 @@ app:
       access-key: ${S3_ACCESS_KEY:}
       secret-key: ${S3_SECRET_KEY:}
       region: ${S3_REGION:garage}
+    google-drive:
+      enabled: ${GOOGLE_DRIVE_ENABLED:false}
+      credentials-path: ${GOOGLE_DRIVE_CREDENTIALS_PATH:}
+      root-folder-id: ${GOOGLE_DRIVE_ROOT_FOLDER_ID:}
 
 logging:
   pattern:

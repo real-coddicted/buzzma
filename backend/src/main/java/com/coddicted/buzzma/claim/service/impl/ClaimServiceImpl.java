@@ -32,6 +32,7 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.storage.event.GoogleDriveUploadPublisher;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
 import java.util.Collection;
@@ -42,6 +43,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,6 +67,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
   private final StepDefinitionRegistry stepDefinitionRegistry;
+  private final GoogleDriveUploadPublisher googleDriveUploadPublisher;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -77,7 +80,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService,
-      final StepDefinitionRegistry stepDefinitionRegistry) {
+      final StepDefinitionRegistry stepDefinitionRegistry,
+      @Autowired(required = false) final GoogleDriveUploadPublisher googleDriveUploadPublisher) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -89,6 +93,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
     this.stepDefinitionRegistry = stepDefinitionRegistry;
+    this.googleDriveUploadPublisher = googleDriveUploadPublisher;
   }
 
   @Override
@@ -171,6 +176,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           orderScreenshot.getId());
       this.extractionService.submitJob(orderScreenshot.getId(), saved.getOwnerId());
     }
+    enqueueGoogleDriveUpload(orderScreenshot);
 
     return saved;
   }
@@ -227,6 +233,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL,
             saved.getOwnerId());
     this.extractionService.submitJob(downloadInstallScreenshot.getId(), saved.getOwnerId());
+    enqueueGoogleDriveUpload(downloadInstallScreenshot);
 
     return saved;
   }
@@ -364,6 +371,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
     }
+    enqueueGoogleDriveUpload(claimScreenshot);
 
     return saved;
   }
@@ -415,6 +423,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), ownerId);
     }
+    enqueueGoogleDriveUpload(claimScreenshot);
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -498,6 +507,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .build());
 
     this.extractionService.submitJob(updated.getId(), requesterId);
+    enqueueGoogleDriveUpload(updated);
 
     final Claim finalClaim =
         updateClaim(requesterId, screenshotType, orderFields, reviewUrl, claim);
@@ -707,6 +717,12 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .createdBy(actorId)
             .updatedBy(actorId)
             .build());
+  }
+
+  private void enqueueGoogleDriveUpload(final ClaimScreenshot screenshot) {
+    if (this.googleDriveUploadPublisher != null) {
+      this.googleDriveUploadPublisher.enqueue(screenshot.getId());
+    }
   }
 
   private Campaign loadActiveCampaign(final Claim claim) {

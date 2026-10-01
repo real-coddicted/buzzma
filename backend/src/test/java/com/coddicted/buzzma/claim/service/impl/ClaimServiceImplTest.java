@@ -119,7 +119,8 @@ class ClaimServiceImplTest {
             this.mockStorageService,
             this.mockExtractionService,
             this.mockCodeGenerationService,
-            stepDefinitionRegistry);
+            stepDefinitionRegistry,
+            null);
   }
 
   private static final Claim APP_REVIEW_CLAIM_INPUT =

@@ -90,6 +90,11 @@ dependencies {
   // Gemini SDK
   implementation 'com.google.genai:google-genai:1.64.0'
 
+  // Google Drive API
+  implementation 'com.google.api-client:google-api-client:2.7.2'
+  implementation 'com.google.apis:google-api-services-drive:v3-rev20260428-2.0.0'
+  implementation 'com.google.auth:google-auth-library-oauth2-http:1.31.0'
+
   // Rate limiting
   implementation 'com.bucket4j:bucket4j-core:8.10.1'
 

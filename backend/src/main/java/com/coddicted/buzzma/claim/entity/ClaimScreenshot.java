@@ -63,6 +63,9 @@ public class ClaimScreenshot implements Auditable {
   @Column(name = "reviewer_comments", columnDefinition = "TEXT")
   private String reviewerComments;
 
+  @Column(name = "google_drive_url", length = 1000)
+  private String googleDriveUrl;
+
   @Column(name = "created_by")
   private UUID createdBy;
 
