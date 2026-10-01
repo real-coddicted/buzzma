@@ -10,6 +10,7 @@ import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
+import com.coddicted.buzzma.claim.dto.PendingR2UploadView;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -619,6 +620,45 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Transactional
   public int updateScreenshotPublicUrl(final UUID screenshotId, final String url) {
     return this.claimScreenshotRepository.updatePublicUrl(screenshotId, url);
+  }
+
+  @Override
+  @Transactional
+  public int incrementScreenshotR2UploadAttempts(final UUID screenshotId) {
+    this.claimScreenshotRepository.incrementR2UploadAttempts(screenshotId);
+    return this.claimScreenshotRepository
+        .findR2UploadAttempts(screenshotId)
+        .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<R2UploadMessage> listPendingR2Uploads(
+      final Instant createdBefore, final int maxAttempts, final int limit) {
+    final List<PendingR2UploadView> pending =
+        this.claimScreenshotRepository.findPendingR2Uploads(
+            createdBefore, maxAttempts, PageRequest.of(0, limit));
+    if (pending.isEmpty()) {
+      return List.of();
+    }
+    final Map<UUID, String> campaignCodes =
+        this.campaignService
+            .findCampaignsById(
+                pending.stream().map(PendingR2UploadView::campaignId).collect(Collectors.toSet()))
+            .stream()
+            .collect(Collectors.toMap(Campaign::getId, Campaign::getCode));
+    return pending.stream()
+        .filter(p -> campaignCodes.containsKey(p.campaignId()))
+        .map(
+            p ->
+                new R2UploadMessage(
+                    p.screenshotId(),
+                    p.claimId(),
+                    campaignCodes.get(p.campaignId()),
+                    p.claimCode(),
+                    p.storageKey(),
+                    p.type().name()))
+        .toList();
   }
 
   @Override

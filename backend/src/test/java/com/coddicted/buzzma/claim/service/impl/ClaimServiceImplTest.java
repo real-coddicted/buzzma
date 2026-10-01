@@ -20,6 +20,7 @@ import static com.coddicted.buzzma.claim.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
@@ -59,9 +60,11 @@ import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.ForbiddenException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.storage.event.R2UploadMessage;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -73,6 +76,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
@@ -1408,4 +1412,42 @@ class ClaimServiceImplTest {
           CampaignStepType.SELLER_FEEDBACK,
           CampaignStepType.RETURN_WINDOW,
           CampaignStepType.CASHBACK);
+
+  @Test
+  void listPendingR2Uploads_mapsCampaignCodesAndSkipsDeletedCampaigns() {
+    when(this.mockClaimScreenshotRepository.findPendingR2Uploads(
+            R2_CREATED_BEFORE, R2_MAX_ATTEMPTS, PageRequest.of(0, R2_BATCH_SIZE)))
+        .thenReturn(List.of(PENDING_R2_UPLOAD, PENDING_R2_UPLOAD_DELETED_CAMPAIGN));
+    when(this.mockCampaignService.findCampaignsById(Set.of(R2_CAMPAIGN_ID, R2_DELETED_CAMPAIGN_ID)))
+        .thenReturn(Set.of(R2_CAMPAIGN));
+
+    final List<R2UploadMessage> result =
+        this.claimService.listPendingR2Uploads(R2_CREATED_BEFORE, R2_MAX_ATTEMPTS, R2_BATCH_SIZE);
+
+    assertEquals(List.of(EXPECTED_R2_UPLOAD_MESSAGE), result);
+  }
+
+  @Test
+  void listPendingR2Uploads_returnsEmptyWithoutCampaignLookupWhenNothingPending() {
+    when(this.mockClaimScreenshotRepository.findPendingR2Uploads(
+            R2_CREATED_BEFORE, R2_MAX_ATTEMPTS, PageRequest.of(0, R2_BATCH_SIZE)))
+        .thenReturn(List.of());
+
+    final List<R2UploadMessage> result =
+        this.claimService.listPendingR2Uploads(R2_CREATED_BEFORE, R2_MAX_ATTEMPTS, R2_BATCH_SIZE);
+
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(this.mockCampaignService);
+  }
+
+  @Test
+  void incrementScreenshotR2UploadAttempts_returnsUpdatedCount() {
+    when(this.mockClaimScreenshotRepository.findR2UploadAttempts(SCREENSHOT_ID))
+        .thenReturn(Optional.of(3));
+
+    final int attempts = this.claimService.incrementScreenshotR2UploadAttempts(SCREENSHOT_ID);
+
+    assertEquals(3, attempts);
+    verify(this.mockClaimScreenshotRepository).incrementR2UploadAttempts(SCREENSHOT_ID);
+  }
 }

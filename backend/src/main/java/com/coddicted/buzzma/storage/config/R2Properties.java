@@ -13,6 +13,15 @@ public class R2Properties {
   private String accessKey;
   private String secretKey;
   private String publicUrlBase;
+  private int maxUploadAttempts = 5;
+
+  public int getMaxUploadAttempts() {
+    return this.maxUploadAttempts;
+  }
+
+  public void setMaxUploadAttempts(final int maxUploadAttempts) {
+    this.maxUploadAttempts = maxUploadAttempts;
+  }
 
   public boolean isEnabled() {
     return this.enabled;

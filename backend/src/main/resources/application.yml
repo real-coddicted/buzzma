@@ -141,6 +141,12 @@ app:
       access-key: ${R2_ACCESS_KEY:}
       secret-key: ${R2_SECRET_KEY:}
       public-url-base: ${R2_PUBLIC_URL_BASE:}
+      max-upload-attempts: ${R2_MAX_UPLOAD_ATTEMPTS:5}
+      retry:
+        initial-delay-ms: ${R2_RETRY_INITIAL_DELAY_MS:60000}
+        fixed-delay-ms: ${R2_RETRY_FIXED_DELAY_MS:1800000}
+        min-age-minutes: ${R2_RETRY_MIN_AGE_MINUTES:30}
+        batch-size: ${R2_RETRY_BATCH_SIZE:500}
 
 logging:
   pattern:

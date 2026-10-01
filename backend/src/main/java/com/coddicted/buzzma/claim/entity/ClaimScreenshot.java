@@ -66,6 +66,9 @@ public class ClaimScreenshot implements Auditable {
   @Column(name = "public_url", length = 1000)
   private String publicUrl;
 
+  @Column(name = "r2_upload_attempts", nullable = false)
+  private int r2UploadAttempts;
+
   @Column(name = "created_by")
   private UUID createdBy;
 

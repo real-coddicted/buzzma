@@ -2,21 +2,28 @@ package com.coddicted.buzzma.storage.event;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.storage.config.R2Properties;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -40,14 +47,26 @@ class R2UploadConsumerTest {
   @Mock private StorageService mockStorageService;
   @Mock private S3Client mockR2Client;
 
+  private static final R2UploadMessage MESSAGE =
+      new R2UploadMessage(
+          SCREENSHOT_ID, CLAIM_ID, CAMPAIGN_CODE, CLAIM_CODE, STORAGE_KEY, "SCREENSHOT_TYPE_ORDER");
+
   private R2UploadConsumer consumer;
+  private Logger logbackLogger;
+  private ListAppender<ILoggingEvent> appender;
 
   @BeforeEach
   void setUp() {
+    this.logbackLogger = (Logger) LoggerFactory.getLogger(R2UploadConsumer.class);
+    this.appender = new ListAppender<>();
+    this.appender.start();
+    this.logbackLogger.addAppender(this.appender);
+
     final R2Properties properties = new R2Properties();
     properties.setEnabled(true);
     properties.setBucket("test-bucket");
     properties.setPublicUrlBase(PUBLIC_URL_BASE);
+    properties.setMaxUploadAttempts(5);
     this.consumer =
         new R2UploadConsumer(
             this.mockRedisTemplate,
@@ -56,6 +75,11 @@ class R2UploadConsumerTest {
             this.mockStorageService,
             this.mockR2Client,
             properties);
+  }
+
+  @AfterEach
+  void tearDown() {
+    this.logbackLogger.detachAppender(this.appender);
   }
 
   @Test
@@ -94,5 +118,32 @@ class R2UploadConsumerTest {
     verify(this.mockClaimService)
         .updateScreenshotPublicUrl(
             SCREENSHOT_ID, "https://cdn.example.com/CAM001/CLM001/screenshot_type_order.jpg");
+  }
+
+  @Test
+  void processMessage_failureBelowMaxAttempts_incrementsCounterAndLogsWarn() throws Exception {
+    when(this.mockStorageService.retrieve(STORAGE_KEY))
+        .thenThrow(new IllegalStateException("garage unavailable"));
+    when(this.mockClaimService.incrementScreenshotR2UploadAttempts(SCREENSHOT_ID)).thenReturn(2);
+
+    this.consumer.processMessage(new ObjectMapper().writeValueAsString(MESSAGE));
+
+    verify(this.mockClaimService).incrementScreenshotR2UploadAttempts(SCREENSHOT_ID);
+    final ILoggingEvent event = this.appender.list.get(this.appender.list.size() - 1);
+    assertEquals(Level.WARN, event.getLevel());
+    assertTrue(event.getFormattedMessage().contains("attempt 2/5, will retry"));
+  }
+
+  @Test
+  void processMessage_failureOnFinalAttempt_logsError() throws Exception {
+    when(this.mockStorageService.retrieve(STORAGE_KEY))
+        .thenThrow(new IllegalStateException("garage unavailable"));
+    when(this.mockClaimService.incrementScreenshotR2UploadAttempts(SCREENSHOT_ID)).thenReturn(5);
+
+    this.consumer.processMessage(new ObjectMapper().writeValueAsString(MESSAGE));
+
+    final ILoggingEvent event = this.appender.list.get(this.appender.list.size() - 1);
+    assertEquals(Level.ERROR, event.getLevel());
+    assertTrue(event.getFormattedMessage().contains("final attempt 5/5, giving up"));
   }
 }

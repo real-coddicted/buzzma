@@ -9,7 +9,9 @@ import com.coddicted.buzzma.claim.model.ClaimReviewModel;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.enums.Platform;
+import com.coddicted.buzzma.storage.event.R2UploadMessage;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +122,11 @@ public interface ClaimService {
   List<ClaimScreenshot> listScreenshotsByClaimIds(Collection<UUID> claimIds);
 
   int updateScreenshotPublicUrl(UUID screenshotId, String url);
+
+  /** Increments the screenshot's R2 upload attempt counter and returns the new count. */
+  int incrementScreenshotR2UploadAttempts(UUID screenshotId);
+
+  List<R2UploadMessage> listPendingR2Uploads(Instant createdBefore, int maxAttempts, int limit);
 
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
       UUID mediatorId,

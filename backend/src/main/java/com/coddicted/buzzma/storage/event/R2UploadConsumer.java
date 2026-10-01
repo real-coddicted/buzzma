@@ -31,7 +31,6 @@ public class R2UploadConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(R2UploadConsumer.class);
   private static final String QUEUE_KEY = R2UploadPublisher.QUEUE_KEY;
-  private static final String DLQ_KEY = "queue:r2-upload:dlq";
   private static final Duration BRPOP_TIMEOUT = Duration.ofSeconds(30);
 
   private final StringRedisTemplate redisTemplate;
@@ -104,7 +103,7 @@ public class R2UploadConsumer {
     }
   }
 
-  private void processMessage(final String rawMessage) {
+  void processMessage(final String rawMessage) {
     final R2UploadMessage message;
     try {
       message = this.objectMapper.readValue(rawMessage, R2UploadMessage.class);
@@ -116,12 +115,29 @@ public class R2UploadConsumer {
     try {
       uploadScreenshotToR2(message);
     } catch (final Exception e) {
+      recordFailedAttempt(message, e);
+    }
+  }
+
+  private void recordFailedAttempt(final R2UploadMessage message, final Exception cause) {
+    final int attempts =
+        this.claimService.incrementScreenshotR2UploadAttempts(message.screenshotId());
+    final int maxAttempts = this.properties.getMaxUploadAttempts();
+    if (attempts >= maxAttempts) {
       LOGGER.error(
-          "Failed to upload screenshot {} to R2, moving to DLQ: {}",
+          "R2 upload for screenshot {} failed on final attempt {}/{}, giving up: {}",
           message.screenshotId(),
-          e.getMessage(),
-          e);
-      this.redisTemplate.opsForList().leftPush(DLQ_KEY, rawMessage);
+          attempts,
+          maxAttempts,
+          cause.getMessage(),
+          cause);
+    } else {
+      LOGGER.warn(
+          "R2 upload for screenshot {} failed on attempt {}/{}, will retry: {}",
+          message.screenshotId(),
+          attempts,
+          maxAttempts,
+          cause.getMessage());
     }
   }
 
