@@ -15,6 +15,10 @@ export const PLATFORM_COLORS: Record<Platform, ChipColors> = {
   PLATFORM_MEESHO:   { base: 'bg-neon-plum/10   text-neon-plum   border-neon-plum/25',   selected: 'bg-neon-plum/20   text-neon-plum   border-neon-plum/50' },
   PLATFORM_APPLE_APP_STORE:   { base: 'bg-neon-blue/10 text-neon-blue border-neon-blue/25', selected: 'bg-neon-blue/20 text-neon-blue border-neon-blue/50' },
   PLATFORM_GOOGLE_PLAY_STORE: { base: 'bg-neon-green/10 text-neon-green border-neon-green/25', selected: 'bg-neon-green/20 text-neon-green border-neon-green/50' },
+  PLATFORM_GOOGLE_REVIEWS:    { base: 'bg-neon-cyan/10  text-neon-cyan  border-neon-cyan/25',  selected: 'bg-neon-cyan/20  text-neon-cyan  border-neon-cyan/50' },
+  PLATFORM_INSTAGRAM:         { base: 'bg-neon-pink/10  text-neon-pink  border-neon-pink/25',  selected: 'bg-neon-pink/20  text-neon-pink  border-neon-pink/50' },
+  PLATFORM_YOUTUBE:           { base: 'bg-neon-red/10   text-neon-red   border-neon-red/25',   selected: 'bg-neon-red/20   text-neon-red   border-neon-red/50' },
+  PLATFORM_OTHER:             { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
 }
 
 export const TYPE_COLORS: Record<CampaignType, ChipColors> = {

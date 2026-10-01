@@ -8,6 +8,10 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   PLATFORM_MEESHO: 'Meesho',
   PLATFORM_APPLE_APP_STORE: 'Apple App Store',
   PLATFORM_GOOGLE_PLAY_STORE: 'Google Play Store',
+  PLATFORM_GOOGLE_REVIEWS: 'Google Reviews',
+  PLATFORM_INSTAGRAM: 'Instagram',
+  PLATFORM_YOUTUBE: 'YouTube',
+  PLATFORM_OTHER: 'Other',
 }
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
