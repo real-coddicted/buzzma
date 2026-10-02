@@ -1,6 +1,5 @@
 package com.coddicted.buzzma.storage.event;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
@@ -14,22 +13,17 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.storage.config.R2Properties;
 import com.coddicted.buzzma.storage.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
 class R2UploadConsumerTest {
@@ -41,11 +35,13 @@ class R2UploadConsumerTest {
   private static final String CLAIM_CODE = "CLM001";
   private static final String PUBLIC_URL_BASE = "https://cdn.example.com";
   private static final byte[] FILE_BYTES = {1, 2, 3, 4, 5};
+  private static final String R2_FILENAME =
+      "11111111-1111-1111-1111-111111111111-screenshot_type_order.jpg";
 
   @Mock private StringRedisTemplate mockRedisTemplate;
   @Mock private ClaimService mockClaimService;
   @Mock private StorageService mockStorageService;
-  @Mock private S3Client mockR2Client;
+  @Mock private StorageService mockR2StorageService;
 
   private static final R2UploadMessage MESSAGE =
       new R2UploadMessage(
@@ -73,7 +69,7 @@ class R2UploadConsumerTest {
             new ObjectMapper(),
             this.mockClaimService,
             this.mockStorageService,
-            this.mockR2Client,
+            this.mockR2StorageService,
             properties);
   }
 
@@ -83,41 +79,21 @@ class R2UploadConsumerTest {
   }
 
   @Test
-  void uploadScreenshotToR2_uploadsAndUpdatesDb() throws IOException {
-    final R2UploadMessage message =
-        new R2UploadMessage(
-            SCREENSHOT_ID,
-            CLAIM_ID,
-            CAMPAIGN_CODE,
-            CLAIM_CODE,
-            STORAGE_KEY,
-            "SCREENSHOT_TYPE_ORDER");
-
+  void uploadScreenshotToR2_storesUnderScreenshotIdKeyAndSavesPublicUrl() {
     final GetObjectResponse objectResponse =
         GetObjectResponse.builder().contentType("image/jpeg").build();
     @SuppressWarnings("unchecked")
     final ResponseBytes<GetObjectResponse> responseBytes =
         (ResponseBytes<GetObjectResponse>) ResponseBytes.fromByteArray(objectResponse, FILE_BYTES);
-
     when(this.mockStorageService.retrieve(STORAGE_KEY)).thenReturn(responseBytes);
+    when(this.mockR2StorageService.store("CAM001/CLM001", R2_FILENAME, "image/jpeg", FILE_BYTES))
+        .thenReturn("CAM001/CLM001/" + R2_FILENAME);
 
-    this.consumer.uploadScreenshotToR2(message);
-
-    final ArgumentCaptor<PutObjectRequest> requestCaptor =
-        ArgumentCaptor.forClass(PutObjectRequest.class);
-    final ArgumentCaptor<RequestBody> bodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
-    verify(this.mockR2Client).putObject(requestCaptor.capture(), bodyCaptor.capture());
-
-    final PutObjectRequest captured = requestCaptor.getValue();
-    assertEquals("test-bucket", captured.bucket());
-    assertEquals("CAM001/CLM001/screenshot_type_order.jpg", captured.key());
-    assertEquals("image/jpeg", captured.contentType());
-    assertArrayEquals(
-        FILE_BYTES, bodyCaptor.getValue().contentStreamProvider().newStream().readAllBytes());
+    this.consumer.uploadScreenshotToR2(MESSAGE);
 
     verify(this.mockClaimService)
         .updateScreenshotPublicUrl(
-            SCREENSHOT_ID, "https://cdn.example.com/CAM001/CLM001/screenshot_type_order.jpg");
+            SCREENSHOT_ID, "https://cdn.example.com/CAM001/CLM001/" + R2_FILENAME);
   }
 
   @Test

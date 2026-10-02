@@ -3,6 +3,7 @@ package com.coddicted.buzzma.storage.event;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.storage.config.R2Properties;
 import com.coddicted.buzzma.storage.service.StorageService;
+import com.coddicted.buzzma.storage.service.impl.R2StorageServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -20,10 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
 @ConditionalOnProperty(name = "app.storage.r2.enabled", havingValue = "true")
@@ -37,7 +35,7 @@ public class R2UploadConsumer {
   private final ObjectMapper objectMapper;
   private final ClaimService claimService;
   private final StorageService storageService;
-  private final S3Client r2Client;
+  private final StorageService r2StorageService;
   private final R2Properties properties;
   private final AtomicBoolean running = new AtomicBoolean(true);
   private ExecutorService executor;
@@ -47,13 +45,13 @@ public class R2UploadConsumer {
       final ObjectMapper objectMapper,
       final ClaimService claimService,
       final StorageService storageService,
-      @Qualifier("r2Client") final S3Client r2Client,
+      @Qualifier(R2StorageServiceImpl.BEAN_NAME) final StorageService r2StorageService,
       final R2Properties properties) {
     this.redisTemplate = redisTemplate;
     this.objectMapper = objectMapper;
     this.claimService = claimService;
     this.storageService = storageService;
-    this.r2Client = r2Client;
+    this.r2StorageService = r2StorageService;
     this.properties = properties;
   }
 
@@ -145,20 +143,20 @@ public class R2UploadConsumer {
   public void uploadScreenshotToR2(final R2UploadMessage message) {
     final ResponseBytes<GetObjectResponse> fileBytes =
         this.storageService.retrieve(message.storageKey());
-    final String contentType = fileBytes.response().contentType();
-    final String extension = extensionFromKey(message.storageKey());
-    final String filename = message.screenshotType().toLowerCase() + extension;
+    // The screenshot's random UUID keeps public URLs unguessable; replacements reuse the same row,
+    // so they still overwrite the same R2 object.
+    final String filename =
+        message.screenshotId()
+            + "-"
+            + message.screenshotType().toLowerCase()
+            + extensionFromKey(message.storageKey());
 
-    final String r2Key = message.campaignCode() + "/" + message.claimCode() + "/" + filename;
-
-    final PutObjectRequest putRequest =
-        PutObjectRequest.builder()
-            .bucket(this.properties.getBucket())
-            .key(r2Key)
-            .contentType(contentType)
-            .build();
-
-    this.r2Client.putObject(putRequest, RequestBody.fromBytes(fileBytes.asByteArray()));
+    final String r2Key =
+        this.r2StorageService.store(
+            message.campaignCode() + "/" + message.claimCode(),
+            filename,
+            fileBytes.response().contentType(),
+            fileBytes.asByteArray());
 
     final String publicUrl = buildPublicUrl(r2Key);
     this.claimService.updateScreenshotPublicUrl(message.screenshotId(), publicUrl);

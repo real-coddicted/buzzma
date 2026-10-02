@@ -11,11 +11,13 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Service
+@Primary
 @ConditionalOnProperty(name = "app.storage.type", havingValue = "local")
 public class LocalStorageServiceImpl implements StorageService {
 
