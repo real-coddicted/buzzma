@@ -52,10 +52,8 @@ public class ReportServiceImpl implements ReportService {
                 Pageable.unpaged())
             .getContent();
 
-    final List<ClaimReviewResponseDto> enrichedRows = enrichWithScreenshotUrls(rows);
-
-    final int maxScreenshots =
-        enrichedRows.stream().mapToInt(r -> r.getScreenshotPublicUrls().size()).max().orElse(0);
+    final Map<UUID, List<String>> urlsByClaimId = screenshotUrlsByClaimId(rows);
+    final int maxScreenshots = urlsByClaimId.values().stream().mapToInt(List::size).max().orElse(0);
 
     final List<ExcelColumn<ClaimReviewResponseDto>> columns =
         new ArrayList<>(ClaimReviewReportColumns.columnsFor(requester.getRole()));
@@ -64,67 +62,23 @@ public class ReportServiceImpl implements ReportService {
       columns.add(
           ExcelColumn.hyperlink(
               "Screenshot " + (i + 1),
-              dto ->
-                  index < dto.getScreenshotPublicUrls().size()
-                      ? dto.getScreenshotPublicUrls().get(index)
-                      : null,
+              dto -> {
+                final List<String> urls = urlsByClaimId.getOrDefault(dto.getClaimId(), List.of());
+                return index < urls.size() ? urls.get(index) : null;
+              },
               String.valueOf(i + 1)));
     }
 
-    return this.excelReportWriter.write(
-        WellKnownReports.CLAIM_REVIEW_SHEET_NAME, columns, enrichedRows);
+    return this.excelReportWriter.write(WellKnownReports.CLAIM_REVIEW_SHEET_NAME, columns, rows);
   }
 
-  private List<ClaimReviewResponseDto> enrichWithScreenshotUrls(
-      final List<ClaimReviewResponseDto> rows) {
-    if (rows.isEmpty()) {
-      return rows;
-    }
-
+  private Map<UUID, List<String>> screenshotUrlsByClaimId(final List<ClaimReviewResponseDto> rows) {
     final List<UUID> claimIds = rows.stream().map(ClaimReviewResponseDto::getClaimId).toList();
-
-    final Map<UUID, List<String>> urlsByClaimId =
-        this.claimService.listScreenshotsByClaimIds(claimIds).stream()
-            .filter(s -> s.getPublicUrl() != null)
-            .collect(
-                Collectors.groupingBy(
-                    ClaimScreenshot::getClaimId,
-                    Collectors.mapping(ClaimScreenshot::getPublicUrl, Collectors.toList())));
-
-    return rows.stream()
-        .map(
-            dto ->
-                ClaimReviewResponseDto.builder()
-                    .id(dto.getId())
-                    .campaignId(dto.getCampaignId())
-                    .campaignName(dto.getCampaignName())
-                    .campaignCode(dto.getCampaignCode())
-                    .campaignType(dto.getCampaignType())
-                    .dealId(dto.getDealId())
-                    .dealOwnerId(dto.getDealOwnerId())
-                    .dealOwnerName(dto.getDealOwnerName())
-                    .dealOwnerCode(dto.getDealOwnerCode())
-                    .buyerName(dto.getBuyerName())
-                    .buyerCode(dto.getBuyerCode())
-                    .accountName(dto.getAccountName())
-                    .claimId(dto.getClaimId())
-                    .claimCode(dto.getClaimCode())
-                    .claimStatus(dto.getClaimStatus())
-                    .ecommerceOrderId(dto.getEcommerceOrderId())
-                    .exchangeProduct(dto.getExchangeProduct())
-                    .reviewUrl(dto.getReviewUrl())
-                    .mediatorVerified(dto.getMediatorVerified())
-                    .brandVerified(dto.getBrandVerified())
-                    .matchScore(dto.getMatchScore())
-                    .amountPaise(dto.getAmountPaise())
-                    .amountApprovedPaise(dto.getAmountApprovedPaise())
-                    .platform(dto.getPlatform())
-                    .orderDate(dto.getOrderDate())
-                    .brandName(dto.getBrandName())
-                    .createdAt(dto.getCreatedAt())
-                    .updatedAt(dto.getUpdatedAt())
-                    .screenshotPublicUrls(urlsByClaimId.getOrDefault(dto.getClaimId(), List.of()))
-                    .build())
-        .toList();
+    return this.claimService.listScreenshotsByClaimIds(claimIds).stream()
+        .filter(s -> s.getPublicUrl() != null)
+        .collect(
+            Collectors.groupingBy(
+                ClaimScreenshot::getClaimId,
+                Collectors.mapping(ClaimScreenshot::getPublicUrl, Collectors.toList())));
   }
 }
