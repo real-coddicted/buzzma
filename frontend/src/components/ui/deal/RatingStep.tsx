@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
-import { submitRating, updateScreenshot } from '../../../api/claimApi'
+import { createSocialPageClaim, submitRating, updateScreenshot } from '../../../api/claimApi'
 import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUrl'
 import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
@@ -29,13 +29,16 @@ export function RatingStep({ deal, claimId, onSuccess, readOnly = false, claimRe
     ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_RATING')?.storageKey
 
   async function handleSubmit() {
-    if (!claimId || !file) return
+    if (!file) return
     setLoading(true)
     setError(null)
     try {
-      const claim = rejectedScreenshot?.id
-        ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_RATING', file)
-        : await submitRating(claimId, file)
+      // Social Page Promotion has no ORDER step, so rating can be the step that creates the claim.
+      const claim = !claimId
+        ? await createSocialPageClaim({ campaignId: deal.campaignId, dealId: deal.id, stepType: 'RATING', screenshot: file })
+        : rejectedScreenshot?.id
+          ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_RATING', file)
+          : await submitRating(claimId, file)
       onSuccess(claim)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit rating.')
@@ -64,7 +67,7 @@ export function RatingStep({ deal, claimId, onSuccess, readOnly = false, claimRe
           <button
             className={submitBtnClass('bg-neon-purple hover:brightness-110')}
             onClick={handleSubmit}
-            disabled={!file || !claimId || loading}
+            disabled={!file || loading}
           >
             {loading ? 'Submitting…' : 'Submit Rating'}
           </button>

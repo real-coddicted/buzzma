@@ -155,6 +155,7 @@ public class ClaimController {
                 .dealId(request.getDealId())
                 .ownerId(requesterId)
                 .accountName(request.getAccountName())
+                .reviewUrl(request.getReviewUrl())
                 .build(),
             request.getStepType(),
             readBytes(screenshot),

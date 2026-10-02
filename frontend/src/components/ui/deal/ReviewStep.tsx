@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Deal } from '../../../types/DealTypes'
 import type { components } from '../../../types/api'
-import { submitReview, updateScreenshot } from '../../../api/claimApi'
+import { createSocialPageClaim, submitReview, updateScreenshot } from '../../../api/claimApi'
 import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUrl'
 import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
@@ -29,13 +29,18 @@ export function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimRe
     ?? claimResponse?.screenshots?.find(s => s.type === 'SCREENSHOT_TYPE_REVIEW')?.storageKey
 
   async function handleSubmit() {
-    if (!claimId || !file) return
+    if (!file) return
     setLoading(true)
     setError(null)
     try {
-      const claim = rejectedScreenshot?.id
-        ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_REVIEW', file, reviewUrl || undefined)
-        : await submitReview(claimId, file, reviewUrl || undefined)
+      // Social Page Promotion has no ORDER step, so review can be the step that creates the claim.
+      const claim = !claimId
+        ? await createSocialPageClaim({
+            campaignId: deal.campaignId, dealId: deal.id, stepType: 'REVIEW', screenshot: file, reviewUrl: reviewUrl || undefined,
+          })
+        : rejectedScreenshot?.id
+          ? await updateScreenshot(claimId, rejectedScreenshot.id, 'SCREENSHOT_TYPE_REVIEW', file, reviewUrl || undefined)
+          : await submitReview(claimId, file, reviewUrl || undefined)
       onSuccess(claim)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit review.')
@@ -92,7 +97,7 @@ export function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimRe
           <button
             className={submitBtnClass('bg-neon-cyan hover:brightness-110')}
             onClick={handleSubmit}
-            disabled={!file || !claimId || loading}
+            disabled={!file || loading}
           >
             {loading ? 'Submitting…' : 'Submit Review'}
           </button>

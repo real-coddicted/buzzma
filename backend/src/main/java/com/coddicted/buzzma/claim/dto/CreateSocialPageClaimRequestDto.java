@@ -15,6 +15,8 @@ public class CreateSocialPageClaimRequestDto {
 
   private String accountName;
 
+  private String reviewUrl;
+
   @NotNull private CampaignStepType stepType;
 
   @NotNull private MultipartFile screenshot;

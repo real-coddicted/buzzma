@@ -1,15 +1,18 @@
 package com.coddicted.buzzma.claim.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.Deal;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.dto.ClaimResponseDto;
+import com.coddicted.buzzma.claim.dto.CreateSocialPageClaimRequestDto;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimAccounting;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -29,10 +32,12 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockMultipartFile;
 
 class ClaimControllerTest {
 
@@ -102,6 +107,34 @@ class ClaimControllerTest {
     assertThat(result.getTotal()).isEqualTo(1);
     assertThat(result.getPage()).isZero();
     assertThat(result.getTotalPages()).isEqualTo(1);
+  }
+
+  @Test
+  void testCreateSocialPageClaimPassesReviewUrlToClaim() {
+    final UUID campaignId = UUID.fromString("55555555-5555-5555-5555-555555555555");
+    final byte[] bytes = {1, 2, 3};
+    final CreateSocialPageClaimRequestDto request = new CreateSocialPageClaimRequestDto();
+    request.setCampaignId(campaignId);
+    request.setDealId(DEAL_ID);
+    request.setStepType(CampaignStepType.REVIEW);
+    request.setReviewUrl("https://maps.app.goo.gl/review123");
+    request.setScreenshot(new MockMultipartFile("screenshot", "review.jpg", "image/jpeg", bytes));
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.claimService.createSocialPageClaim(
+            claimCaptor.capture(),
+            eq(CampaignStepType.REVIEW),
+            eq(bytes),
+            eq("review.jpg"),
+            eq("image/jpeg")))
+        .thenReturn(Claim.builder().id(CLAIM_ID).dealId(DEAL_ID).build());
+
+    this.controller.createSocialPageClaim(REQUESTER_ID, request);
+
+    final Claim passed = claimCaptor.getValue();
+    assertThat(passed.getReviewUrl()).isEqualTo("https://maps.app.goo.gl/review123");
+    assertThat(passed.getCampaignId()).isEqualTo(campaignId);
+    assertThat(passed.getDealId()).isEqualTo(DEAL_ID);
+    assertThat(passed.getOwnerId()).isEqualTo(REQUESTER_ID);
   }
 
   @Test

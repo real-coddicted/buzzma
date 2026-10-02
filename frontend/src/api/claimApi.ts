@@ -620,6 +620,7 @@ export interface CreateSocialPageClaimParams {
   stepType: string
   screenshot: File
   accountName?: string
+  reviewUrl?: string
 }
 
 export async function createSocialPageClaim(params: CreateSocialPageClaimParams): Promise<ClaimResponseDto> {
@@ -629,6 +630,7 @@ export async function createSocialPageClaim(params: CreateSocialPageClaimParams)
   formData.append('stepType', params.stepType)
   formData.append('screenshot', params.screenshot)
   if (params.accountName) formData.append('accountName', params.accountName)
+  if (params.reviewUrl) formData.append('reviewUrl', params.reviewUrl)
 
   const token = getAccessToken()
   const res = await fetch(`${API_BASE}/claims/social-page`, {
