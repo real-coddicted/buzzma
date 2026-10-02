@@ -22,11 +22,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * Public mirror of screenshots on Cloudflare R2. Unlike the primary store, {@link #store} keeps the
  * filename as given, so storing the same folder and filename again overwrites the object.
  */
-@Service(R2StorageServiceImpl.BEAN_NAME)
+@Service("r2StorageService")
 @ConditionalOnProperty(name = "app.storage.r2.enabled", havingValue = "true")
 public class R2StorageServiceImpl implements StorageService {
-
-  public static final String BEAN_NAME = "r2StorageService";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(R2StorageServiceImpl.class);
 
