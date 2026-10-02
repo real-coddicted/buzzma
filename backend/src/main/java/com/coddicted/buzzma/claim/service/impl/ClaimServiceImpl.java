@@ -503,6 +503,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         this.claimScreenshotRepository.save(
             existing.toBuilder()
                 .storageKey(newKey)
+                .publicUrl(null)
+                .r2UploadAttempts(0)
                 .verificationStatus(
                     ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
                 .extractedDetails(null)

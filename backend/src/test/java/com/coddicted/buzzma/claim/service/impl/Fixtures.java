@@ -62,6 +62,12 @@ final class Fixtures {
       FileUtils.loadResourceAsObject(
           "/fixtures/input/claim/screenshot-1.json", ClaimScreenshot.class);
 
+  static final ClaimScreenshot SCREENSHOT_UPLOADED_TO_R2 =
+      SCREENSHOT_1.toBuilder()
+          .publicUrl("https://cdn.example.com/CMP1/CLM1/old-screenshot_type_order.jpg")
+          .r2UploadAttempts(2)
+          .build();
+
   static final UUID R2_CAMPAIGN_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
   static final UUID R2_DELETED_CAMPAIGN_ID =
       UUID.fromString("88888888-8888-8888-8888-888888888888");

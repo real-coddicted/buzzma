@@ -1148,6 +1148,45 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testUpdateScreenshotClearsPublicUrlAndResetsR2Attempts() {
+    when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
+        .thenReturn(Optional.of(CLAIM_1));
+    when(this.mockClaimScreenshotRepository.findById(SCREENSHOT_ID))
+        .thenReturn(Optional.of(SCREENSHOT_UPLOADED_TO_R2));
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    when(this.mockClaimScreenshotRepository.save(screenshotCaptor.capture()))
+        .thenReturn(SCREENSHOT_1);
+    when(this.mockClaimScreenshotRepository.findByClaimIdAndIsDeletedFalseOrderByCreatedAtAsc(
+            CLAIM_ID))
+        .thenReturn(List.of(SCREENSHOT_1));
+    when(this.mockCampaignService.getById(CLAIM_1.getCampaignId()))
+        .thenReturn(Campaign.builder().build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+
+    this.claimService.updateScreenshot(
+        CLAIM_ID,
+        OWNER_ID,
+        SCREENSHOT_ID,
+        SCREENSHOT_TYPE_ORDER,
+        SCREENSHOT_BYTES,
+        SCREENSHOT_FILENAME,
+        CONTENT_TYPE,
+        null,
+        null);
+
+    final ClaimScreenshot saved = screenshotCaptor.getValue();
+    assertEquals(SCREENSHOT_KEY, saved.getStorageKey());
+    assertNull(saved.getPublicUrl());
+    assertEquals(0, saved.getR2UploadAttempts());
+  }
+
+  @Test
   void testUpdateScreenshotAppliesExchangeProductForOrderScreenshot() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
