@@ -41,7 +41,7 @@ export function CampaignInfoFields({ form, errors, set, readOnly }: Props) {
     const allowedSteps = PROMOTION_CATEGORY_STEPS[category]
     const forcedStep = PROMOTION_CATEGORY_FORCED_STEP[category]
     const keptSteps = form.requiredSteps.filter(s => allowedSteps.includes(s))
-    set('requiredSteps', keptSteps.includes(forcedStep) ? keptSteps : [forcedStep, ...keptSteps])
+    set('requiredSteps', !forcedStep || keptSteps.includes(forcedStep) ? keptSteps : [forcedStep, ...keptSteps])
   }
 
   return (

@@ -35,6 +35,11 @@ export const REQUIRED_STEP_COLORS: Record<string, string> = {
   SELLER_FEEDBACK:  'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/25',
   RETURN_WINDOW:    'text-neon-orange bg-neon-orange/10 border-neon-orange/25',
   DOWNLOAD_INSTALL: 'text-neon-plum   bg-neon-plum/10   border-neon-plum/25',
+  VIEW:             'text-neon-cyan   bg-neon-cyan/10   border-neon-cyan/25',
+  LIKE:             'text-neon-pink   bg-neon-pink/10   border-neon-pink/25',
+  FOLLOW:           'text-neon-blue   bg-neon-blue/10   border-neon-blue/25',
+  COMMENT:          'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/25',
+  SUBSCRIBE:        'text-neon-red    bg-neon-red/10    border-neon-red/25',
 }
 
 export const ALL_TYPES_OPTION: FilterOption<DealTypeFilter> = { value: 'all', label: 'All Types' }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { fetchStepConfig, type CampaignStepDto } from '../../../api/campaignApi'
-import type { PromotionCategory } from '../../../types'
-import { PROMOTION_CATEGORY_STEPS, PROMOTION_CATEGORY_FORCED_STEP } from '../../../constants/campaigns'
+import type { Platform, PromotionCategory } from '../../../types'
+import { PROMOTION_CATEGORY_STEPS, PROMOTION_CATEGORY_FORCED_STEP, SOCIAL_PAGE_PROMOTION_STEPS_BY_PLATFORM } from '../../../constants/campaigns'
 
 interface FormSlice {
   category: PromotionCategory
+  platform: Platform | ''
   requiredSteps: string[]
 }
 
@@ -21,9 +22,18 @@ export function CampaignRequiredScreenshotsFields({ form, set, readOnly }: Props
     fetchStepConfig().then(setAllSteps)
   }, [])
 
-  const allowedSteps = PROMOTION_CATEGORY_STEPS[form.category]
+  const allowedSteps = form.category === 'SOCIAL_PAGE_PROMOTION' && form.platform
+    ? (SOCIAL_PAGE_PROMOTION_STEPS_BY_PLATFORM[form.platform] ?? PROMOTION_CATEGORY_STEPS[form.category])
+    : PROMOTION_CATEGORY_STEPS[form.category]
   const forcedStep = PROMOTION_CATEGORY_FORCED_STEP[form.category]
   const selectableSteps = allSteps.filter(step => allowedSteps.includes(step.type))
+
+  useEffect(() => {
+    const filtered = form.requiredSteps.filter(s => allowedSteps.includes(s))
+    if (filtered.length !== form.requiredSteps.length) {
+      set('requiredSteps', filtered)
+    }
+  }, [allowedSteps.join(',')])
 
   function handleStepToggle(type: string, checked: boolean) {
     set('requiredSteps', checked

@@ -102,6 +102,7 @@ export type PromotionCategory =
   | 'ECOMMERCE'
   | 'QUICK_COMMERCE'
   | 'APP_PROMOTION'
+  | 'SOCIAL_PAGE_PROMOTION'
 
 /** One exchange product carried on a campaign request — the buyer picks from these when claiming an exchange deal. */
 export interface ExchangeProductSelection {

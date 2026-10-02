@@ -356,6 +356,32 @@ export async function submitReview(claimId: string, screenshot: File, reviewUrl?
   return (await res.json()) as ClaimResponseDto
 }
 
+export async function submitSocialStep(claimId: string, screenshot: File, stepType: string): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('screenshot', screenshot)
+  formData.append('stepType', stepType)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/${claimId}/step`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = `Failed to submit ${stepType} screenshot. Please try again.`
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
 export async function submitRating(claimId: string, screenshot: File): Promise<ClaimResponseDto> {
   const formData = new FormData()
   formData.append('screenshot', screenshot)
@@ -569,6 +595,43 @@ export async function createAppReviewClaim(params: CreateAppReviewClaimParams): 
 
   const token = getAccessToken()
   const res = await fetch(`${API_BASE}/claims/app-review`, {
+    method: 'POST',
+    body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  throwIfUnauthorized(res)
+
+  if (!res.ok) {
+    let message = 'Failed to submit claim. Please try again.'
+    try {
+      const body = (await res.clone().json()) as Record<string, unknown>
+      if (typeof body['message'] === 'string') message = body['message']
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+
+  return (await res.json()) as ClaimResponseDto
+}
+
+export interface CreateSocialPageClaimParams {
+  campaignId: string
+  dealId: string
+  stepType: string
+  screenshot: File
+  accountName?: string
+}
+
+export async function createSocialPageClaim(params: CreateSocialPageClaimParams): Promise<ClaimResponseDto> {
+  const formData = new FormData()
+  formData.append('campaignId', params.campaignId)
+  formData.append('dealId', params.dealId)
+  formData.append('stepType', params.stepType)
+  formData.append('screenshot', params.screenshot)
+  if (params.accountName) formData.append('accountName', params.accountName)
+
+  const token = getAccessToken()
+  const res = await fetch(`${API_BASE}/claims/social-page`, {
     method: 'POST',
     body: formData,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
