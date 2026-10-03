@@ -52,8 +52,10 @@ public class ReportServiceImpl implements ReportService {
                 Pageable.unpaged())
             .getContent();
 
-    final Map<UUID, List<String>> urlsByClaimId = screenshotUrlsByClaimId(rows);
-    final int maxScreenshots = urlsByClaimId.values().stream().mapToInt(List::size).max().orElse(0);
+    final Map<UUID, List<ClaimScreenshot>> screenshotsByClaimId =
+        uploadedScreenshotsByClaimId(rows);
+    final int maxScreenshots =
+        screenshotsByClaimId.values().stream().mapToInt(List::size).max().orElse(0);
 
     final List<ExcelColumn<ClaimReviewResponseDto>> columns =
         new ArrayList<>(ClaimReviewReportColumns.columnsFor(requester.getRole()));
@@ -63,22 +65,29 @@ public class ReportServiceImpl implements ReportService {
           ExcelColumn.hyperlink(
               "Screenshot " + (i + 1),
               dto -> {
-                final List<String> urls = urlsByClaimId.getOrDefault(dto.getClaimId(), List.of());
-                return index < urls.size() ? urls.get(index) : null;
+                final ClaimScreenshot screenshot = screenshotAt(screenshotsByClaimId, dto, index);
+                return screenshot != null ? screenshot.getPublicUrl() : null;
               },
-              String.valueOf(i + 1)));
+              dto -> screenshotAt(screenshotsByClaimId, dto, index).getType().getDisplayName()));
     }
 
     return this.excelReportWriter.write(WellKnownReports.CLAIM_REVIEW_SHEET_NAME, columns, rows);
   }
 
-  private Map<UUID, List<String>> screenshotUrlsByClaimId(final List<ClaimReviewResponseDto> rows) {
+  private Map<UUID, List<ClaimScreenshot>> uploadedScreenshotsByClaimId(
+      final List<ClaimReviewResponseDto> rows) {
     final List<UUID> claimIds = rows.stream().map(ClaimReviewResponseDto::getClaimId).toList();
     return this.claimService.listScreenshotsByClaimIds(claimIds).stream()
         .filter(s -> s.getPublicUrl() != null)
-        .collect(
-            Collectors.groupingBy(
-                ClaimScreenshot::getClaimId,
-                Collectors.mapping(ClaimScreenshot::getPublicUrl, Collectors.toList())));
+        .collect(Collectors.groupingBy(ClaimScreenshot::getClaimId));
+  }
+
+  private static ClaimScreenshot screenshotAt(
+      final Map<UUID, List<ClaimScreenshot>> screenshotsByClaimId,
+      final ClaimReviewResponseDto dto,
+      final int index) {
+    final List<ClaimScreenshot> screenshots =
+        screenshotsByClaimId.getOrDefault(dto.getClaimId(), List.of());
+    return index < screenshots.size() ? screenshots.get(index) : null;
   }
 }

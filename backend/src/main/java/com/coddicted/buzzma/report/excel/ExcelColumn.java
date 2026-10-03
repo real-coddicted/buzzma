@@ -13,7 +13,7 @@ public record ExcelColumn<T>(
     Function<T, Object> valueExtractor,
     List<String> dropdownOptions,
     boolean hyperlink,
-    String hyperlinkLabel) {
+    Function<T, String> hyperlinkLabel) {
 
   public ExcelColumn(final String header, final Function<T, Object> valueExtractor) {
     this(header, valueExtractor, List.of(), false, null);
@@ -32,9 +32,11 @@ public record ExcelColumn<T>(
     return new ExcelColumn<>(header, valueExtractor, List.of(), true, null);
   }
 
-  /** A hyperlink column that displays a fixed label instead of the URL. */
+  /** A hyperlink column whose cell text comes from {@code label} instead of showing the URL. */
   public static <T> ExcelColumn<T> hyperlink(
-      final String header, final Function<T, Object> valueExtractor, final String label) {
+      final String header,
+      final Function<T, Object> valueExtractor,
+      final Function<T, String> label) {
     return new ExcelColumn<>(header, valueExtractor, List.of(), true, label);
   }
 }

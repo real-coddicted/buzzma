@@ -76,7 +76,7 @@ public class ExcelReportWriter {
           cell.setHyperlink(link);
           cell.setCellStyle(hyperlinkStyle);
           if (column.hyperlinkLabel() != null) {
-            cell.setCellValue(column.hyperlinkLabel());
+            cell.setCellValue(column.hyperlinkLabel().apply(rowData));
           }
         }
       }

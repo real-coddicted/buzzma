@@ -13,6 +13,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -239,7 +240,7 @@ class ReportServiceImplTest {
   }
 
   @Test
-  void testGenerateClaimReviewReportAddsNumberedScreenshotLinkColumns() throws Exception {
+  void testGenerateClaimReviewReportAddsScreenshotTypeLinkColumns() throws Exception {
     final BuzzmaUser agency =
         BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_AGENCY).build();
     final UUID claimWithTwo = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
@@ -270,10 +271,10 @@ class ReportServiceImplTest {
     when(claimService.listScreenshotsByClaimIds(List.of(claimWithTwo, claimWithOne)))
         .thenReturn(
             List.of(
-                screenshot(claimWithTwo, orderUrl),
-                screenshot(claimWithTwo, ratingUrl),
-                screenshot(claimWithTwo, null),
-                screenshot(claimWithOne, otherOrderUrl)));
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_ORDER, orderUrl),
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_RATING, ratingUrl),
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_REVIEW, null),
+                screenshot(claimWithOne, ScreenshotType.SCREENSHOT_TYPE_ORDER, otherOrderUrl)));
 
     final byte[] bytes = serviceWithMock.generateClaimReviewReport(agency, null);
 
@@ -285,20 +286,21 @@ class ReportServiceImplTest {
       assertEquals("Screenshot 2", header.getCell(19).getStringCellValue());
 
       final Row first = sheet.getRow(1);
-      assertEquals("1", first.getCell(18).getStringCellValue());
+      assertEquals("Order", first.getCell(18).getStringCellValue());
       assertEquals(orderUrl, first.getCell(18).getHyperlink().getAddress());
-      assertEquals("2", first.getCell(19).getStringCellValue());
+      assertEquals("Rating", first.getCell(19).getStringCellValue());
       assertEquals(ratingUrl, first.getCell(19).getHyperlink().getAddress());
 
       final Row second = sheet.getRow(2);
-      assertEquals("1", second.getCell(18).getStringCellValue());
+      assertEquals("Order", second.getCell(18).getStringCellValue());
       assertEquals(otherOrderUrl, second.getCell(18).getHyperlink().getAddress());
       assertEquals(CellType.BLANK, second.getCell(19).getCellType());
     }
   }
 
-  private static ClaimScreenshot screenshot(final UUID claimId, final String publicUrl) {
-    return ClaimScreenshot.builder().claimId(claimId).publicUrl(publicUrl).build();
+  private static ClaimScreenshot screenshot(
+      final UUID claimId, final ScreenshotType type, final String publicUrl) {
+    return ClaimScreenshot.builder().claimId(claimId).type(type).publicUrl(publicUrl).build();
   }
 
   private static Page<ClaimReviewResponseDto> pageOf(final ClaimReviewResponseDto row) {
