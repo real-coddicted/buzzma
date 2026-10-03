@@ -127,9 +127,14 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final String screenshotKey =
         this.storageService.store("claims", screenshotFilename, contentType, screenshot);
 
+    // Sync extraction failed on the client and the buyer entered details manually: defer
+    // extraction and scoring to the async pipeline instead of reconciling against nothing.
+    final boolean extractionPending = extractedDetails == null || extractedDetails.isEmpty();
     final ExtractedScoredResult extractedScoredResult =
-        ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
-            claim, extractedDetails, overallScore);
+        extractionPending
+            ? new ExtractedScoredResult(null, null)
+            : ClaimScreenshotScorerUtils.updateExtractedDataForMatchWithManualEntryInOrder(
+                claim, extractedDetails, overallScore);
 
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM);
@@ -149,13 +154,23 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .sellerName(campaignHasSellerName ? claim.getSellerName() : null)
                 .build());
 
-    saveScreenshot(
-        saved.getId(),
-        screenshotKey,
-        ScreenshotType.SCREENSHOT_TYPE_ORDER,
-        saved.getOwnerId(),
-        extractedScoredResult.extractedResult(),
-        extractedScoredResult.overallScore());
+    final ClaimScreenshot orderScreenshot =
+        saveScreenshot(
+            saved.getId(),
+            screenshotKey,
+            ScreenshotType.SCREENSHOT_TYPE_ORDER,
+            saved.getOwnerId(),
+            extractedScoredResult.extractedResult(),
+            extractedScoredResult.overallScore());
+
+    if (extractionPending) {
+      LOGGER.info(
+          "Claim {} submitted without extracted details; queuing async extraction for screenshot"
+              + " {}",
+          saved.getId(),
+          orderScreenshot.getId());
+      this.extractionService.submitJob(orderScreenshot.getId(), saved.getOwnerId());
+    }
 
     return saved;
   }

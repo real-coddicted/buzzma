@@ -14,9 +14,8 @@ interface ScreenshotUploadProps {
 }
 
 function resolveError(raw: string): string {
-  if (raw.includes('timed out') || raw.includes('AbortError')) return raw
   if (raw.includes('Session expired')) return raw
-  return 'Screenshot data extraction failed. Please try again or contact support if the issue persists.'
+  return "Couldn't reach our AI agent. Please try again in some time, or enter the details manually and submit."
 }
 
 export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtracting, onFileChange, initialPreview }: ScreenshotUploadProps) {

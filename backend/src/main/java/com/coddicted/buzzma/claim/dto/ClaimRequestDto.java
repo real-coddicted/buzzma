@@ -36,7 +36,8 @@ public class ClaimRequestDto {
 
   @NotNull final MultipartFile screenshot;
 
-  @NotNull private Map<String, ScoredValue> extractedDetails;
+  /** Absent when client-side sync extraction failed and the buyer entered details manually. */
+  @Nullable private Map<String, ScoredValue> extractedDetails;
 
   private Integer overallScore;
 }

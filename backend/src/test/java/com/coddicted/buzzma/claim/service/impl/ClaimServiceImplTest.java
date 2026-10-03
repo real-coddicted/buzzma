@@ -193,6 +193,40 @@ class ClaimServiceImplTest {
   }
 
   @Test
+  void testCreateClaimWithoutExtractedDetailsQueuesAsyncExtraction() {
+    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(
+            ECOMMERCE_ORDER_ID, PLATFORM, ClaimStatus.REJECTED))
+        .thenReturn(false);
+    when(this.mockCampaignSlotRepository.decrementSlotsAvailableIfPositive(SLOT_ID)).thenReturn(1);
+    when(this.mockStorageService.store(
+            "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
+        .thenReturn(SCREENSHOT_KEY);
+    when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.CLAIM))
+        .thenReturn(CLAIM_CODE);
+    when(this.mockCampaignService.getById(CLAIM_INPUT.getCampaignId()))
+        .thenReturn(Campaign.builder().status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE).build());
+    final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
+    when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
+    final ArgumentCaptor<ClaimScreenshot> screenshotCaptor =
+        ArgumentCaptor.forClass(ClaimScreenshot.class);
+    when(this.mockClaimScreenshotRepository.save(screenshotCaptor.capture()))
+        .thenReturn(SCREENSHOT_1);
+
+    final Claim result =
+        this.claimService.createClaim(
+            CLAIM_INPUT, SCREENSHOT_BYTES, SCREENSHOT_FILENAME, CONTENT_TYPE, null, null);
+
+    assertEquals(CLAIM_1, result);
+    assertNull(claimCaptor.getValue().getScore());
+    final ClaimScreenshot savedScreenshot = screenshotCaptor.getValue();
+    assertEquals(SCREENSHOT_TYPE_ORDER, savedScreenshot.getType());
+    assertNull(savedScreenshot.getExtractedDetails());
+    assertNull(savedScreenshot.getScore());
+    verify(this.mockExtractionService).submitJob(SCREENSHOT_1.getId(), CLAIM_1.getOwnerId());
+  }
+
+  @Test
   void testCreateClaimDropsSellerNameWhenCampaignHasNoSellerName() {
     when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimRepository.existsByEcommerceOrderIdAndPlatformAndStatusNotAndIsDeletedFalse(

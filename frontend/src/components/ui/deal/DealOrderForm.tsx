@@ -80,11 +80,22 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
   }
 
   function set(key: keyof FormFields) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setFields(prev => ({ ...prev, [key]: e.target.value }))
       setExtractionErrors(prev => { const next = { ...prev }; delete next[key]; return next })
     }
+  }
 
+
+  // A new screenshot invalidates the previous one's extraction; if extraction for the new file
+  // fails, the claim is submitted without extracted details and the backend extracts it async.
+  function handleFileChange(file: File) {
+    setScreenshotFile(file)
+    setExtractedDetails({})
+    setOverallScore(null)
+    setFieldScores({})
+    setExtractionErrors({})
+  }
 
   function handleExtraction(data: ExtractionResponse) {
     setFields(prev => ({
@@ -193,7 +204,7 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             campaignId={resubmit ? undefined : campaignId}
             onExtract={resubmit ? undefined : handleExtraction}
             onExtracting={setIsExtracting}
-            onFileChange={setScreenshotFile}
+            onFileChange={handleFileChange}
             initialPreview={resubmit?.initialScreenshotUrl}
           />
         )}
