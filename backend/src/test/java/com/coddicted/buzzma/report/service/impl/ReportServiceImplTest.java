@@ -11,8 +11,11 @@ import static org.mockito.Mockito.when;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
+import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.report.excel.ExcelReportWriter;
@@ -40,6 +43,7 @@ import org.springframework.data.domain.Pageable;
 class ReportServiceImplTest {
 
   @Mock private ClaimReviewProcessor claimReviewProcessor;
+  @Mock private ClaimService claimService;
 
   @Test
   void testGenerateClaimReviewReportWritesExpectedColumnsAndRows() throws Exception {
@@ -77,7 +81,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(agency),
             eq(Set.of(campaignId)),
@@ -156,7 +160,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(agency), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(pageOf(row));
@@ -191,7 +195,7 @@ class ReportServiceImplTest {
             .build();
 
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(brand), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(pageOf(row));
@@ -223,7 +227,7 @@ class ReportServiceImplTest {
     final BuzzmaUser mediator =
         BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_MEDIATOR).build();
     final ReportServiceImpl serviceWithMock =
-        new ReportServiceImpl(claimReviewProcessor, new ExcelReportWriter());
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(Page.empty());
@@ -233,6 +237,70 @@ class ReportServiceImplTest {
     verify(claimReviewProcessor)
         .listClaimReviews(
             eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), eq(Pageable.unpaged()));
+  }
+
+  @Test
+  void testGenerateClaimReviewReportAddsScreenshotTypeLinkColumns() throws Exception {
+    final BuzzmaUser agency =
+        BuzzmaUser.builder().id(UUID.randomUUID()).role(UserRole.ROLE_AGENCY).build();
+    final UUID claimWithTwo = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    final UUID claimWithOne = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    final ClaimReviewResponseDto rowWithTwo =
+        ClaimReviewResponseDto.builder()
+            .claimId(claimWithTwo)
+            .platform(Platform.PLATFORM_AMAZON)
+            .orderDate(20260101)
+            .claimStatus(ClaimStatus.APPROVED)
+            .build();
+    final ClaimReviewResponseDto rowWithOne =
+        ClaimReviewResponseDto.builder()
+            .claimId(claimWithOne)
+            .platform(Platform.PLATFORM_AMAZON)
+            .orderDate(20260101)
+            .claimStatus(ClaimStatus.APPROVED)
+            .build();
+    final String orderUrl = "https://cdn.example.com/CMP/CLM1/order.jpg";
+    final String ratingUrl = "https://cdn.example.com/CMP/CLM1/rating.jpg";
+    final String otherOrderUrl = "https://cdn.example.com/CMP/CLM2/order.jpg";
+
+    final ReportServiceImpl serviceWithMock =
+        new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
+    when(claimReviewProcessor.listClaimReviews(
+            agency, null, null, null, null, null, Pageable.unpaged()))
+        .thenReturn(new PageImpl<>(List.of(rowWithTwo, rowWithOne)));
+    when(claimService.listScreenshotsByClaimIds(List.of(claimWithTwo, claimWithOne)))
+        .thenReturn(
+            List.of(
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_ORDER, orderUrl),
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_RATING, ratingUrl),
+                screenshot(claimWithTwo, ScreenshotType.SCREENSHOT_TYPE_REVIEW, null),
+                screenshot(claimWithOne, ScreenshotType.SCREENSHOT_TYPE_ORDER, otherOrderUrl)));
+
+    final byte[] bytes = serviceWithMock.generateClaimReviewReport(agency, null);
+
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
+      final Sheet sheet = workbook.getSheet("Claim Review");
+      final Row header = sheet.getRow(0);
+      assertEquals(20, header.getLastCellNum());
+      assertEquals("Screenshot 1", header.getCell(18).getStringCellValue());
+      assertEquals("Screenshot 2", header.getCell(19).getStringCellValue());
+
+      final Row first = sheet.getRow(1);
+      assertEquals("Order", first.getCell(18).getStringCellValue());
+      assertEquals(orderUrl, first.getCell(18).getHyperlink().getAddress());
+      assertEquals("Rating", first.getCell(19).getStringCellValue());
+      assertEquals(ratingUrl, first.getCell(19).getHyperlink().getAddress());
+
+      final Row second = sheet.getRow(2);
+      assertEquals("Order", second.getCell(18).getStringCellValue());
+      assertEquals(otherOrderUrl, second.getCell(18).getHyperlink().getAddress());
+      assertEquals(CellType.BLANK, second.getCell(19).getCellType());
+    }
+  }
+
+  private static ClaimScreenshot screenshot(
+      final UUID claimId, final ScreenshotType type, final String publicUrl) {
+    return ClaimScreenshot.builder().claimId(claimId).type(type).publicUrl(publicUrl).build();
   }
 
   private static Page<ClaimReviewResponseDto> pageOf(final ClaimReviewResponseDto row) {

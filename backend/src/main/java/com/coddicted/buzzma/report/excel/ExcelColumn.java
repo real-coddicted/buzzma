@@ -12,22 +12,31 @@ public record ExcelColumn<T>(
     String header,
     Function<T, Object> valueExtractor,
     List<String> dropdownOptions,
-    boolean hyperlink) {
+    boolean hyperlink,
+    Function<T, String> hyperlinkLabel) {
 
   public ExcelColumn(final String header, final Function<T, Object> valueExtractor) {
-    this(header, valueExtractor, List.of(), false);
+    this(header, valueExtractor, List.of(), false, null);
   }
 
   public ExcelColumn(
       final String header,
       final Function<T, Object> valueExtractor,
       final List<String> dropdownOptions) {
-    this(header, valueExtractor, dropdownOptions, false);
+    this(header, valueExtractor, dropdownOptions, false, null);
   }
 
   /** A column whose non-null values are rendered as clickable Excel hyperlinks. */
   public static <T> ExcelColumn<T> hyperlink(
       final String header, final Function<T, Object> valueExtractor) {
-    return new ExcelColumn<>(header, valueExtractor, List.of(), true);
+    return new ExcelColumn<>(header, valueExtractor, List.of(), true, null);
+  }
+
+  /** A hyperlink column whose cell text comes from {@code label} instead of showing the URL. */
+  public static <T> ExcelColumn<T> hyperlink(
+      final String header,
+      final Function<T, Object> valueExtractor,
+      final Function<T, String> label) {
+    return new ExcelColumn<>(header, valueExtractor, List.of(), true, label);
   }
 }

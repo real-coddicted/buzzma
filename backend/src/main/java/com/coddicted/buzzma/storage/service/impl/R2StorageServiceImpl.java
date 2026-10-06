@@ -1,13 +1,12 @@
 package com.coddicted.buzzma.storage.service.impl;
 
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.storage.config.R2Properties;
 import com.coddicted.buzzma.storage.service.StorageService;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -19,20 +18,23 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-@Service
-@Primary
-@ConditionalOnProperty(name = "app.storage.type", havingValue = "garage")
-public class GarageStorageServiceImpl implements StorageService {
+/**
+ * Public mirror of screenshots on Cloudflare R2. Unlike the primary store, {@link #store} keeps the
+ * filename as given, so storing the same folder and filename again overwrites the object.
+ */
+@Service("r2StorageService")
+@ConditionalOnProperty(name = "app.storage.r2.enabled", havingValue = "true")
+public class R2StorageServiceImpl implements StorageService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GarageStorageServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(R2StorageServiceImpl.class);
 
-  private final S3Client s3Client;
+  private final S3Client r2Client;
   private final String bucket;
 
-  public GarageStorageServiceImpl(
-      final S3Client s3Client, @Qualifier("bucketName") final String bucket) {
-    this.bucket = bucket;
-    this.s3Client = s3Client;
+  public R2StorageServiceImpl(
+      @Qualifier("r2Client") final S3Client r2Client, final R2Properties properties) {
+    this.r2Client = r2Client;
+    this.bucket = properties.getBucket();
   }
 
   @Override
@@ -41,28 +43,24 @@ public class GarageStorageServiceImpl implements StorageService {
       final String originalFilename,
       final String contentType,
       final byte[] data) {
-    final String ext = extractExtension(originalFilename);
-    final String storageKey = folder + "/" + UUID.randomUUID() + ext;
-
+    final String storageKey = folder + "/" + originalFilename;
     final PutObjectRequest putRequest =
         PutObjectRequest.builder()
             .bucket(this.bucket)
             .key(storageKey)
             .contentType(contentType)
             .build();
-
-    this.s3Client.putObject(putRequest, RequestBody.fromBytes(data));
-    LOGGER.debug("Stored file in Garage: bucket={}, key={}", this.bucket, storageKey);
+    this.r2Client.putObject(putRequest, RequestBody.fromBytes(data));
+    LOGGER.debug("Stored file in R2: bucket={}, key={}", this.bucket, storageKey);
     return storageKey;
   }
 
   @Override
   public ResponseBytes<GetObjectResponse> retrieve(final String storageKey) {
     try {
-      final GetObjectRequest getRequest =
-          GetObjectRequest.builder().bucket(this.bucket).key(storageKey).build();
-
-      return this.s3Client.getObject(getRequest, ResponseTransformer.toBytes());
+      return this.r2Client.getObject(
+          GetObjectRequest.builder().bucket(this.bucket).key(storageKey).build(),
+          ResponseTransformer.toBytes());
     } catch (final NoSuchKeyException e) {
       throw new NotFoundException("File not found: " + storageKey);
     }
@@ -71,21 +69,11 @@ public class GarageStorageServiceImpl implements StorageService {
   @Override
   public void delete(final String storageKey) {
     try {
-      final DeleteObjectRequest deleteRequest =
-          DeleteObjectRequest.builder().bucket(this.bucket).key(storageKey).build();
-
-      this.s3Client.deleteObject(deleteRequest);
-      LOGGER.debug("Deleted file from Garage: bucket={}, key={}", this.bucket, storageKey);
+      this.r2Client.deleteObject(
+          DeleteObjectRequest.builder().bucket(this.bucket).key(storageKey).build());
+      LOGGER.debug("Deleted file from R2: bucket={}, key={}", this.bucket, storageKey);
     } catch (final Exception e) {
-      LOGGER.warn("Failed to delete file {}: {}", storageKey, e.getMessage());
+      LOGGER.warn("Failed to delete R2 file {}: {}", storageKey, e.getMessage());
     }
-  }
-
-  private String extractExtension(final String filename) {
-    if (filename == null) {
-      return "";
-    }
-    final int dot = filename.lastIndexOf('.');
-    return dot >= 0 ? filename.substring(dot) : "";
   }
 }

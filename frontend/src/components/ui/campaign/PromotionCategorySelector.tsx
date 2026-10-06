@@ -10,6 +10,9 @@ import { IconShoppingBag, IconSmartphone, IconGlobe } from '../icons'
  */
 const SELECTABLE_CATEGORIES: PromotionCategory[] = ['ECOMMERCE', 'APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
 
+/** Shown but not selectable until these categories launch. */
+const COMING_SOON_CATEGORIES: PromotionCategory[] = ['APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
+
 const CATEGORY_ICONS: Record<PromotionCategory, (props: { size?: number }) => JSX.Element> = {
   ECOMMERCE: IconShoppingBag,
   QUICK_COMMERCE: IconShoppingBag,
@@ -36,6 +39,7 @@ export function PromotionCategorySelector({ value, onChange, disabled }: Props) 
             label={PROMOTION_CATEGORY_LABELS[category]}
             selected={value === category}
             disabled={disabled}
+            comingSoon={COMING_SOON_CATEGORIES.includes(category)}
             onClick={() => onChange(category)}
           />
         )

@@ -75,6 +75,9 @@ public class ExcelReportWriter {
           link.setAddress(value.toString());
           cell.setHyperlink(link);
           cell.setCellStyle(hyperlinkStyle);
+          if (column.hyperlinkLabel() != null) {
+            cell.setCellValue(column.hyperlinkLabel().apply(rowData));
+          }
         }
       }
     }

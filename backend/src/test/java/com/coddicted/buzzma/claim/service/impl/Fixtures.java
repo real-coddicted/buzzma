@@ -1,12 +1,17 @@
 package com.coddicted.buzzma.claim.service.impl;
 
+import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.Deal;
+import com.coddicted.buzzma.claim.dto.PendingR2UploadView;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.entity.ScreenshotType;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.util.FileUtils;
+import com.coddicted.buzzma.storage.event.R2UploadMessage;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,6 +61,52 @@ final class Fixtures {
   static final ClaimScreenshot SCREENSHOT_1 =
       FileUtils.loadResourceAsObject(
           "/fixtures/input/claim/screenshot-1.json", ClaimScreenshot.class);
+
+  static final ClaimScreenshot SCREENSHOT_UPLOADED_TO_R2 =
+      SCREENSHOT_1.toBuilder()
+          .publicUrl("https://cdn.example.com/CMP1/CLM1/old-screenshot_type_order.jpg")
+          .r2UploadAttempts(2)
+          .build();
+
+  static final UUID R2_CAMPAIGN_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
+  static final UUID R2_DELETED_CAMPAIGN_ID =
+      UUID.fromString("88888888-8888-8888-8888-888888888888");
+  static final UUID R2_ORPHAN_SCREENSHOT_ID =
+      UUID.fromString("99999999-9999-9999-9999-999999999999");
+  static final String R2_CAMPAIGN_CODE = "CMP1-R2X9";
+  static final Instant R2_CREATED_BEFORE = Instant.parse("2026-10-01T10:00:00Z");
+  static final int R2_MAX_ATTEMPTS = 5;
+  static final int R2_BATCH_SIZE = 500;
+
+  static final PendingR2UploadView PENDING_R2_UPLOAD =
+      new PendingR2UploadView(
+          SCREENSHOT_ID,
+          CLAIM_ID,
+          CLAIM_CODE,
+          R2_CAMPAIGN_ID,
+          SCREENSHOT_KEY,
+          ScreenshotType.SCREENSHOT_TYPE_ORDER);
+
+  static final PendingR2UploadView PENDING_R2_UPLOAD_DELETED_CAMPAIGN =
+      new PendingR2UploadView(
+          R2_ORPHAN_SCREENSHOT_ID,
+          CLAIM_ID,
+          CLAIM_CODE,
+          R2_DELETED_CAMPAIGN_ID,
+          SCREENSHOT_KEY,
+          ScreenshotType.SCREENSHOT_TYPE_ORDER);
+
+  static final Campaign R2_CAMPAIGN =
+      Campaign.builder().id(R2_CAMPAIGN_ID).code(R2_CAMPAIGN_CODE).build();
+
+  static final R2UploadMessage EXPECTED_R2_UPLOAD_MESSAGE =
+      new R2UploadMessage(
+          SCREENSHOT_ID,
+          CLAIM_ID,
+          R2_CAMPAIGN_CODE,
+          CLAIM_CODE,
+          SCREENSHOT_KEY,
+          "SCREENSHOT_TYPE_ORDER");
 
   private Fixtures() {}
 }

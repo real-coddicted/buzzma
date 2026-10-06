@@ -10,6 +10,7 @@ import com.coddicted.buzzma.campaign.service.CampaignShareService;
 import com.coddicted.buzzma.campaign.service.CampaignStepResolver;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
+import com.coddicted.buzzma.claim.dto.PendingR2UploadView;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
@@ -32,6 +33,8 @@ import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.service.CodeGenerationService;
+import com.coddicted.buzzma.storage.event.R2UploadMessage;
+import com.coddicted.buzzma.storage.event.R2UploadPublisher;
 import com.coddicted.buzzma.storage.service.StorageService;
 import java.time.Instant;
 import java.util.Collection;
@@ -42,6 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,6 +69,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   private final ExtractionService extractionService;
   private final CodeGenerationService codeGenerationService;
   private final StepDefinitionRegistry stepDefinitionRegistry;
+  private final R2UploadPublisher r2UploadPublisher;
 
   public ClaimServiceImpl(
       final ClaimRepository claimRepository,
@@ -77,7 +82,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final StorageService storageService,
       final ExtractionService extractionService,
       final CodeGenerationService codeGenerationService,
-      final StepDefinitionRegistry stepDefinitionRegistry) {
+      final StepDefinitionRegistry stepDefinitionRegistry,
+      @Autowired(required = false) final R2UploadPublisher r2UploadPublisher) {
     this.claimRepository = claimRepository;
     this.claimScreenshotRepository = claimScreenshotRepository;
     this.campaignService = campaignService;
@@ -89,6 +95,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     this.extractionService = extractionService;
     this.codeGenerationService = codeGenerationService;
     this.stepDefinitionRegistry = stepDefinitionRegistry;
+    this.r2UploadPublisher = r2UploadPublisher;
+    if (this.r2UploadPublisher == null) {
+      LOGGER.warn("R2 upload is disabled -- screenshots will not be synced to R2");
+    }
   }
 
   @Override
@@ -171,6 +181,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
           orderScreenshot.getId());
       this.extractionService.submitJob(orderScreenshot.getId(), saved.getOwnerId());
     }
+    enqueueR2Upload(orderScreenshot, saved, campaign);
 
     return saved;
   }
@@ -227,6 +238,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             ScreenshotType.SCREENSHOT_TYPE_DOWNLOAD_INSTALL,
             saved.getOwnerId());
     this.extractionService.submitJob(downloadInstallScreenshot.getId(), saved.getOwnerId());
+    enqueueR2Upload(downloadInstallScreenshot, saved, campaign);
 
     return saved;
   }
@@ -364,6 +376,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), saved.getOwnerId());
     }
+    enqueueR2Upload(claimScreenshot, saved, campaign);
 
     return saved;
   }
@@ -415,6 +428,7 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     if (stepDefinition.extractionPrompt().isPresent()) {
       this.extractionService.submitJob(claimScreenshot.getId(), ownerId);
     }
+    enqueueR2Upload(claimScreenshot, updated, deal.getCampaign());
 
     return new ClaimWithDeal(updated, deal);
   }
@@ -489,6 +503,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
         this.claimScreenshotRepository.save(
             existing.toBuilder()
                 .storageKey(newKey)
+                .publicUrl(null)
+                .r2UploadAttempts(0)
                 .verificationStatus(
                     ScreenshotVerificationStatus.SCREENSHOT_VERIFICATION_STATUS_PENDING)
                 .extractedDetails(null)
@@ -498,6 +514,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
                 .build());
 
     this.extractionService.submitJob(updated.getId(), requesterId);
+
+    final Campaign campaign = this.campaignService.getById(claim.getCampaignId());
+    enqueueR2Upload(updated, claim, campaign);
 
     final Claim finalClaim =
         updateClaim(requesterId, screenshotType, orderFields, reviewUrl, claim);
@@ -587,6 +606,61 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
   @Transactional
   public ClaimScreenshot saveScreenshot(final ClaimScreenshot screenshot) {
     return this.claimScreenshotRepository.save(screenshot);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ClaimScreenshot> listScreenshotsByClaimIds(final Collection<UUID> claimIds) {
+    if (claimIds == null || claimIds.isEmpty()) {
+      return List.of();
+    }
+    return this.claimScreenshotRepository.findByClaimIdInAndIsDeletedFalseOrderByCreatedAtAsc(
+        claimIds);
+  }
+
+  @Override
+  @Transactional
+  public int updateScreenshotPublicUrl(final UUID screenshotId, final String url) {
+    return this.claimScreenshotRepository.updatePublicUrl(screenshotId, url);
+  }
+
+  @Override
+  @Transactional
+  public int incrementScreenshotR2UploadAttempts(final UUID screenshotId) {
+    this.claimScreenshotRepository.incrementR2UploadAttempts(screenshotId);
+    return this.claimScreenshotRepository
+        .findR2UploadAttempts(screenshotId)
+        .orElseThrow(() -> new NotFoundException("Screenshot not found: " + screenshotId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<R2UploadMessage> listPendingR2Uploads(
+      final Instant createdBefore, final int maxAttempts, final int limit) {
+    final List<PendingR2UploadView> pending =
+        this.claimScreenshotRepository.findPendingR2Uploads(
+            createdBefore, maxAttempts, PageRequest.of(0, limit));
+    if (pending.isEmpty()) {
+      return List.of();
+    }
+    final Map<UUID, String> campaignCodes =
+        this.campaignService
+            .findCampaignsById(
+                pending.stream().map(PendingR2UploadView::campaignId).collect(Collectors.toSet()))
+            .stream()
+            .collect(Collectors.toMap(Campaign::getId, Campaign::getCode));
+    return pending.stream()
+        .filter(p -> campaignCodes.containsKey(p.campaignId()))
+        .map(
+            p ->
+                new R2UploadMessage(
+                    p.screenshotId(),
+                    p.claimId(),
+                    campaignCodes.get(p.campaignId()),
+                    p.claimCode(),
+                    p.storageKey(),
+                    p.type().name()))
+        .toList();
   }
 
   @Override
@@ -707,6 +781,20 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
             .createdBy(actorId)
             .updatedBy(actorId)
             .build());
+  }
+
+  private void enqueueR2Upload(
+      final ClaimScreenshot screenshot, final Claim claim, final Campaign campaign) {
+    if (this.r2UploadPublisher != null) {
+      this.r2UploadPublisher.enqueue(
+          new R2UploadMessage(
+              screenshot.getId(),
+              claim.getId(),
+              campaign.getCode(),
+              claim.getCode(),
+              screenshot.getStorageKey(),
+              screenshot.getType().name()));
+    }
   }
 
   private Campaign loadActiveCampaign(final Claim claim) {

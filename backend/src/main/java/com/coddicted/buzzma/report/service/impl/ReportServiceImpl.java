@@ -2,13 +2,20 @@ package com.coddicted.buzzma.report.service.impl;
 
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
+import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
+import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.report.excel.ClaimReviewReportColumns;
+import com.coddicted.buzzma.report.excel.ExcelColumn;
 import com.coddicted.buzzma.report.excel.ExcelReportWriter;
 import com.coddicted.buzzma.report.service.ReportService;
 import com.coddicted.buzzma.shared.constants.WellKnownReports;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReportServiceImpl implements ReportService {
 
   private final ClaimReviewProcessor claimReviewProcessor;
+  private final ClaimService claimService;
   private final ExcelReportWriter excelReportWriter;
 
   public ReportServiceImpl(
-      final ClaimReviewProcessor claimReviewProcessor, final ExcelReportWriter excelReportWriter) {
+      final ClaimReviewProcessor claimReviewProcessor,
+      final ClaimService claimService,
+      final ExcelReportWriter excelReportWriter) {
     this.claimReviewProcessor = claimReviewProcessor;
+    this.claimService = claimService;
     this.excelReportWriter = excelReportWriter;
   }
 
@@ -40,9 +51,43 @@ public class ReportServiceImpl implements ReportService {
                 filter != null ? filter.getPlatforms() : null,
                 Pageable.unpaged())
             .getContent();
-    return this.excelReportWriter.write(
-        WellKnownReports.CLAIM_REVIEW_SHEET_NAME,
-        ClaimReviewReportColumns.columnsFor(requester.getRole()),
-        rows);
+
+    final Map<UUID, List<ClaimScreenshot>> screenshotsByClaimId =
+        uploadedScreenshotsByClaimId(rows);
+    final int maxScreenshots =
+        screenshotsByClaimId.values().stream().mapToInt(List::size).max().orElse(0);
+
+    final List<ExcelColumn<ClaimReviewResponseDto>> columns =
+        new ArrayList<>(ClaimReviewReportColumns.columnsFor(requester.getRole()));
+    for (int i = 0; i < maxScreenshots; i++) {
+      final int index = i;
+      columns.add(
+          ExcelColumn.hyperlink(
+              "Screenshot " + (i + 1),
+              dto -> {
+                final ClaimScreenshot screenshot = screenshotAt(screenshotsByClaimId, dto, index);
+                return screenshot != null ? screenshot.getPublicUrl() : null;
+              },
+              dto -> screenshotAt(screenshotsByClaimId, dto, index).getType().getDisplayName()));
+    }
+
+    return this.excelReportWriter.write(WellKnownReports.CLAIM_REVIEW_SHEET_NAME, columns, rows);
+  }
+
+  private Map<UUID, List<ClaimScreenshot>> uploadedScreenshotsByClaimId(
+      final List<ClaimReviewResponseDto> rows) {
+    final List<UUID> claimIds = rows.stream().map(ClaimReviewResponseDto::getClaimId).toList();
+    return this.claimService.listScreenshotsByClaimIds(claimIds).stream()
+        .filter(s -> s.getPublicUrl() != null)
+        .collect(Collectors.groupingBy(ClaimScreenshot::getClaimId));
+  }
+
+  private static ClaimScreenshot screenshotAt(
+      final Map<UUID, List<ClaimScreenshot>> screenshotsByClaimId,
+      final ClaimReviewResponseDto dto,
+      final int index) {
+    final List<ClaimScreenshot> screenshots =
+        screenshotsByClaimId.getOrDefault(dto.getClaimId(), List.of());
+    return index < screenshots.size() ? screenshots.get(index) : null;
   }
 }
