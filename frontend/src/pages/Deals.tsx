@@ -11,11 +11,13 @@ import type { ExploreDealsPage } from '../api/dealApi'
 import { Loading } from '../components/ui/Loading'
 import { PaginationToolbar } from '../components/ui/PaginationToolbar'
 import { Toast } from '../components/ui/Toast'
+import { getCurrentUser } from '../api/client'
 
 export function Deals() {
   const [searchParams, setSearchParams] = useSearchParams()
   const view     = searchParams.get('view')
   const dealId   = searchParams.get('id')
+  const isAdmin  = getCurrentUser()?.role === 'ROLE_ADMIN'
 
   const [selectedDeal, setSelectedDeal]     = useState<Deal | null>(null)
   const [search, setSearch]                 = useState('')
@@ -79,7 +81,7 @@ export function Deals() {
   }, [explorePage, search, typeFilter, platformFilter])
 
   if (view === 'detail' && selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => { setSelectedDeal(null); setSearchParams({}) }} />
+    return <DealDetail deal={selectedDeal} readOnly={isAdmin} onBack={() => { setSelectedDeal(null); setSearchParams({}) }} />
   }
 
   const totalPages = explorePage?.totalPages ?? 1

@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.dto.DealResponseDto;
@@ -12,6 +13,8 @@ import com.coddicted.buzzma.connection.entity.Connection;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.model.ConnectionView;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.util.List;
@@ -30,7 +33,16 @@ class DealControllerTest {
   private static final UUID REQUESTER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
   private static final UUID MEDIATOR_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
   private static final UUID DEAL_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
+  private static final UUID ADMIN_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
+  private static final UUID OTHER_MEDIATOR_ID =
+      UUID.fromString("55555555-5555-5555-5555-555555555555");
+  private static final UUID OTHER_DEAL_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
   private static final String MEDIATOR_NAME = "Alice Mediator";
+  private static final String OTHER_MEDIATOR_NAME = "Bob Mediator";
+  private static final BuzzmaUser BUYER =
+      BuzzmaUser.builder().id(REQUESTER_ID).role(UserRole.ROLE_BUYER).build();
+  private static final BuzzmaUser ADMIN =
+      BuzzmaUser.builder().id(ADMIN_ID).role(UserRole.ROLE_ADMIN).build();
 
   private DealService dealService;
   private ConnectionService connectionService;
@@ -73,7 +85,7 @@ class DealControllerTest {
     when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
         .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
 
-    final var result = this.controller.getActiveDeals(REQUESTER_ID, 0, 20);
+    final var result = this.controller.getActiveDeals(BUYER, 0, 20);
 
     assertThat(result.getItems()).hasSize(1);
     assertThat(result.getItems().get(0).getOwnerName()).isEqualTo(MEDIATOR_NAME);
@@ -85,7 +97,7 @@ class DealControllerTest {
             REQUESTER_ID, ConnectionStatus.CONNECTION_STATUS_ACCEPTED))
         .thenReturn(Set.of());
 
-    final var result = this.controller.getActiveDeals(REQUESTER_ID, 0, 20);
+    final var result = this.controller.getActiveDeals(BUYER, 0, 20);
 
     assertThat(result.getItems()).isEmpty();
     assertThat(result.getTotal()).isZero();
@@ -115,7 +127,7 @@ class DealControllerTest {
     when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
         .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
 
-    final DealResponseDto result = this.controller.getActiveDealById(REQUESTER_ID, DEAL_ID);
+    final DealResponseDto result = this.controller.getActiveDealById(BUYER, DEAL_ID);
 
     assertThat(result.getOwnerName()).isEqualTo(MEDIATOR_NAME);
   }
@@ -127,7 +139,59 @@ class DealControllerTest {
         .thenReturn(Set.of());
     when(this.dealService.getActiveDealById(DEAL_ID, Set.of())).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> this.controller.getActiveDealById(REQUESTER_ID, DEAL_ID))
+    assertThatThrownBy(() -> this.controller.getActiveDealById(BUYER, DEAL_ID))
+        .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void testGetActiveDealsForAdminReturnsAllActiveDealsWithoutConnectionLookup() {
+    final Deal deal = Deal.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    final Deal otherDeal = Deal.builder().id(OTHER_DEAL_ID).ownerId(OTHER_MEDIATOR_ID).build();
+    when(this.dealService.getAllActiveDeals(0, 20))
+        .thenReturn(new PageImpl<>(List.of(deal, otherDeal), PageRequest.of(0, 20), 2));
+
+    final DealResponseDto mappedDto =
+        DealResponseDto.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    final DealResponseDto otherMappedDto =
+        DealResponseDto.builder().id(OTHER_DEAL_ID).ownerId(OTHER_MEDIATOR_ID).build();
+    when(this.dealMapper.toDealResponse(List.of(deal, otherDeal)))
+        .thenReturn(List.of(mappedDto, otherMappedDto));
+
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID, OTHER_MEDIATOR_ID)))
+        .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME, OTHER_MEDIATOR_ID, OTHER_MEDIATOR_NAME));
+
+    final var result = this.controller.getActiveDeals(ADMIN, 0, 20);
+
+    assertThat(result.getTotal()).isEqualTo(2);
+    assertThat(result.getItems())
+        .extracting(DealResponseDto::getOwnerName)
+        .containsExactly(MEDIATOR_NAME, OTHER_MEDIATOR_NAME);
+    verifyNoInteractions(this.connectionService);
+  }
+
+  @Test
+  void testGetActiveDealByIdForAdminReturnsDealWithoutConnectionLookup() {
+    final Deal deal = Deal.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    when(this.dealService.getAnyActiveDealById(DEAL_ID)).thenReturn(Optional.of(deal));
+
+    final DealResponseDto mappedDto =
+        DealResponseDto.builder().id(DEAL_ID).ownerId(MEDIATOR_ID).build();
+    when(this.dealMapper.toDealResponse(deal)).thenReturn(mappedDto);
+
+    when(this.userService.getNamesByIds(Set.of(MEDIATOR_ID)))
+        .thenReturn(Map.of(MEDIATOR_ID, MEDIATOR_NAME));
+
+    final DealResponseDto result = this.controller.getActiveDealById(ADMIN, DEAL_ID);
+
+    assertThat(result.getOwnerName()).isEqualTo(MEDIATOR_NAME);
+    verifyNoInteractions(this.connectionService);
+  }
+
+  @Test
+  void testGetActiveDealByIdForAdminThrowsNotFoundWhenDealNotActive() {
+    when(this.dealService.getAnyActiveDealById(DEAL_ID)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> this.controller.getActiveDealById(ADMIN, DEAL_ID))
         .isInstanceOf(NotFoundException.class);
   }
 }

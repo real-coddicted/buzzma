@@ -167,6 +167,62 @@ class DealRepositoryPublishedTest {
     assertTrue(result.getContent().stream().anyMatch(d -> d.getCode().equals("DEAL-IN-RANGE")));
   }
 
+  @Test
+  void findAllActiveDealsReturnsActiveDealsAcrossOwnersNewestFirst() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+
+    final Page<Deal> result = this.dealRepository.findAllActiveDeals(today, PageRequest.of(0, 20));
+
+    final List<String> codes =
+        result.getContent().stream()
+            .map(Deal::getCode)
+            .filter(
+                code ->
+                    List.of("DEAL001", "DEAL002", "DEAL003", "DEAL004", "DEAL005").contains(code))
+            .toList();
+    assertEquals(List.of("DEAL004", "DEAL003", "DEAL001"), codes);
+  }
+
+  @Test
+  void findAllActiveDealsExcludesCampaignsOutsideDateRange() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    final int yesterday = DateTimeUtils.toIntDate(DateTimeUtils.toLocalDate(today).minusDays(1));
+    final int tomorrow = DateTimeUtils.toIntDate(DateTimeUtils.toLocalDate(today).plusDays(1));
+    saveDeal(
+        this.otherMediatorId,
+        saveCampaignWithDates("Future Campaign", "Puma", tomorrow, null),
+        "DEAL-FUTURE");
+    saveDeal(
+        this.otherMediatorId,
+        saveCampaignWithDates("Expired Campaign", "Puma", null, yesterday),
+        "DEAL-EXPIRED");
+
+    final Page<Deal> result = this.dealRepository.findAllActiveDeals(today, PageRequest.of(0, 20));
+
+    assertTrue(
+        result.getContent().stream()
+            .noneMatch(
+                d -> d.getCode().equals("DEAL-FUTURE") || d.getCode().equals("DEAL-EXPIRED")));
+  }
+
+  @Test
+  void findAnyActiveDealByIdFindsDealOfAnyOwner() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    final Deal deal = saveDeal(this.otherMediatorId, this.adidasCampaign, "DEAL-ANY");
+
+    assertTrue(this.dealRepository.findAnyActiveDealById(deal.getId(), today).isPresent());
+  }
+
+  @Test
+  void findAnyActiveDealByIdIgnoresSoftDeletedDeal() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    final Deal deal = saveDeal(this.otherMediatorId, this.adidasCampaign, "DEAL-GONE");
+    deal.setDeleted(true);
+    this.dealRepository.saveAndFlush(deal);
+
+    assertTrue(this.dealRepository.findAnyActiveDealById(deal.getId(), today).isEmpty());
+  }
+
   private Deal saveDeal(final UUID ownerId, final Campaign campaign, final String code) {
     return persistDeal(ownerId, campaign, code, false);
   }

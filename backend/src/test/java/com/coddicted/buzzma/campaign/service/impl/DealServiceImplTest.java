@@ -117,4 +117,38 @@ class DealServiceImplTest {
 
     assertEquals(Optional.empty(), result);
   }
+
+  @Test
+  void testGetAllActiveDeals() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    final Page<Deal> dealPage = new PageImpl<>(List.of(DEAL_1));
+    when(this.mockDealRepository.findAllActiveDeals(today, PageRequest.of(0, 10)))
+        .thenReturn(dealPage);
+
+    final Page<Deal> result = this.dealService.getAllActiveDeals(0, 10);
+
+    assertEquals(dealPage, result);
+  }
+
+  @Test
+  void testGetAnyActiveDealByIdWhenFound() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    when(this.mockDealRepository.findAnyActiveDealById(DEAL_ID, today))
+        .thenReturn(Optional.of(DEAL_1));
+
+    final Optional<Deal> result = this.dealService.getAnyActiveDealById(DEAL_ID);
+
+    assertEquals(Optional.of(DEAL_1), result);
+  }
+
+  @Test
+  void testGetAnyActiveDealByIdWhenNotActive() {
+    final int today = DateTimeUtils.getAsianTodayDate();
+    when(this.mockDealRepository.findAnyActiveDealById(DEAL_ID, today))
+        .thenReturn(Optional.empty());
+
+    final Optional<Deal> result = this.dealService.getAnyActiveDealById(DEAL_ID);
+
+    assertEquals(Optional.empty(), result);
+  }
 }
