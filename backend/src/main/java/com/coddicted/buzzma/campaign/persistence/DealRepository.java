@@ -45,6 +45,43 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       value =
           """
           SELECT d.* FROM deals d, campaigns c
+          WHERE d.is_deleted = false
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
+          ORDER BY d.created_at DESC, d.id
+          """,
+      countQuery =
+          """
+          SELECT COUNT(d.*) FROM deals d, campaigns c
+          WHERE d.is_deleted = false
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
+          """,
+      nativeQuery = true)
+  Page<Deal> findAllActiveDeals(@Param("today") Integer today, Pageable pageable);
+
+  @Query(
+      value =
+          """
+          SELECT d.* FROM deals d, campaigns c
+          WHERE d.id = :id
+            AND d.is_deleted = false
+            AND c.id = d.campaign_id
+            AND c.status = 'CAMPAIGN_STATUS_ACTIVE'
+            AND (c.start_date IS NULL OR c.start_date <= :today)
+            AND (c.end_date IS NULL OR c.end_date >= :today)
+          """,
+      nativeQuery = true)
+  Optional<Deal> findAnyActiveDealById(@Param("id") UUID id, @Param("today") Integer today);
+
+  @Query(
+      value =
+          """
+          SELECT d.* FROM deals d, campaigns c
           WHERE d.id = :id
             AND d.owner_id IN (:ownerIds)
             AND d.is_deleted = false

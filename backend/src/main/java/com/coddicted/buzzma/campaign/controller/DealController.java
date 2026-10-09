@@ -8,12 +8,15 @@ import com.coddicted.buzzma.campaign.mapper.DealMapper;
 import com.coddicted.buzzma.campaign.service.DealService;
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.connection.service.ConnectionService;
+import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
+import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,21 +52,21 @@ public class DealController {
   @GetMapping("/active")
   @PreAuthorize(UserRole.Expr.BUYER)
   public PagedDealsResponseDto getActiveDeals(
-      @CurrentUserId final UUID requesterId,
+      @CurrentUser final BuzzmaUser requester,
       @RequestParam(defaultValue = "0") final int page,
       @RequestParam(defaultValue = "20") final int size) {
+    final Page<Deal> dealsPage;
+    if (requester.getRole() == UserRole.ROLE_ADMIN) {
+      dealsPage = this.dealService.getAllActiveDeals(page, size);
+    } else {
+      final Set<UUID> ownerIds = getConnectedOwnerIds(requester.getId());
+      dealsPage =
+          ownerIds.isEmpty()
+              ? Page.empty(PageRequest.of(page, size))
+              : this.dealService.getActiveDeals(ownerIds, requester.getId(), page, size);
+    }
     final Set<UUID> ownerIds =
-        this.connectionService
-            .getConnectionsByToUserIdAndStatus(
-                requesterId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
-            .stream()
-            .map(view -> view.getConnection().getFromUserId())
-            .collect(Collectors.toSet());
-
-    final Page<Deal> dealsPage =
-        ownerIds.isEmpty()
-            ? Page.empty(PageRequest.of(page, size))
-            : this.dealService.getActiveDeals(ownerIds, requesterId, page, size);
+        dealsPage.getContent().stream().map(Deal::getOwnerId).collect(Collectors.toSet());
     final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
     final List<DealResponseDto> items =
         this.dealMapper.toDealResponse(dealsPage.getContent()).stream()
@@ -80,19 +83,13 @@ public class DealController {
   @GetMapping("/active/{id}")
   @PreAuthorize(UserRole.Expr.BUYER)
   public DealResponseDto getActiveDealById(
-      @CurrentUserId final UUID requesterId, @PathVariable final UUID id) {
-    final Set<UUID> ownerIds =
-        this.connectionService
-            .getConnectionsByToUserIdAndStatus(
-                requesterId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
-            .stream()
-            .map(view -> view.getConnection().getFromUserId())
-            .collect(Collectors.toSet());
-    final Deal deal =
-        this.dealService
-            .getActiveDealById(id, ownerIds)
-            .orElseThrow(() -> new NotFoundException("Deal not found: " + id));
-    final Map<UUID, String> ownerNames = this.userService.getNamesByIds(ownerIds);
+      @CurrentUser final BuzzmaUser requester, @PathVariable final UUID id) {
+    final Optional<Deal> found =
+        requester.getRole() == UserRole.ROLE_ADMIN
+            ? this.dealService.getAnyActiveDealById(id)
+            : this.dealService.getActiveDealById(id, getConnectedOwnerIds(requester.getId()));
+    final Deal deal = found.orElseThrow(() -> new NotFoundException("Deal not found: " + id));
+    final Map<UUID, String> ownerNames = this.userService.getNamesByIds(Set.of(deal.getOwnerId()));
     return this.dealMapper.toDealResponse(deal).toBuilder()
         .ownerName(ownerNames.get(deal.getOwnerId()))
         .build();
@@ -123,5 +120,13 @@ public class DealController {
   public DealResponseDto getByCode(
       @CurrentUserId final UUID requesterId, @PathVariable final String code) {
     return this.dealMapper.toDealResponse(this.dealService.getByCodeForOwner(code, requesterId));
+  }
+
+  private Set<UUID> getConnectedOwnerIds(final UUID requesterId) {
+    return this.connectionService
+        .getConnectionsByToUserIdAndStatus(requesterId, ConnectionStatus.CONNECTION_STATUS_ACCEPTED)
+        .stream()
+        .map(view -> view.getConnection().getFromUserId())
+        .collect(Collectors.toSet());
   }
 }
