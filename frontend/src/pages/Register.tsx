@@ -5,8 +5,10 @@ import { Toast } from '../components/ui/Toast'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { TurnstileWidget } from '../components/ui/TurnstileWidget'
 import { TermsLink } from '../components/ui/TermsLink'
+import { PasswordRequirements } from '../components/ui/PasswordRequirements'
 import { fetchSecurityQuestions, registerUser } from '../api/authApi'
 import { isValidMobile } from '../utils/mobileValidation'
+import { getPasswordError } from '../utils/passwordPolicy'
 import type { LoginAs, RegisterForm } from '../types/RegisterTypes'
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
@@ -83,7 +85,10 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
       next.email = 'Enter a valid email address'
     if (!form.password) next.password = 'Password is required'
-    else if (form.password.length < 8) next.password = 'Minimum 8 characters'
+    else {
+      const passwordError = getPasswordError(form.password)
+      if (passwordError) next.password = passwordError
+    }
     if (!form.inviteCode.trim()) next.inviteCode = 'Invite code is required'
     if (form.registerAs === 'brand' && !form.brandName.trim())
       next.brandName = 'Brand name is required'
@@ -290,7 +295,7 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Min. 8 characters"
+                  placeholder="Create a strong password"
                   value={form.password}
                   onChange={e => set('password', e.target.value)}
                   className={inputBase + ' pr-10'}
@@ -316,6 +321,7 @@ export function Register({ initialCaptchaToken, onRegister, onGoToLogin }: Regis
               {errors.password && (
                 <p className="mt-1 text-xs text-neon-red">{errors.password}</p>
               )}
+              <PasswordRequirements password={form.password} />
             </div>
 
             {/* Invite Code */}

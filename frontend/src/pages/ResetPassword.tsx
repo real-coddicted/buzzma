@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Button } from '../components/ui/Button'
+import { PasswordRequirements } from '../components/ui/PasswordRequirements'
 import { APP_NAME } from '../constants/app'
+import { getPasswordError } from '../utils/passwordPolicy'
 import type { ResetPasswordForm } from '../types/ForgotPasswordTypes'
 
 interface ResetPasswordProps {
@@ -76,7 +78,10 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
   function validate(): boolean {
     const next: Partial<Record<keyof ResetPasswordForm, string>> = {}
     if (!form.password) next.password = 'Password is required'
-    else if (form.password.length < 8) next.password = 'Minimum 8 characters'
+    else {
+      const passwordError = getPasswordError(form.password)
+      if (passwordError) next.password = passwordError
+    }
     if (!form.confirmPassword) next.confirmPassword = 'Please confirm your password'
     else if (form.password !== form.confirmPassword) next.confirmPassword = 'Passwords do not match'
     setErrors(next)
@@ -105,11 +110,12 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
                 New Password
               </label>
               <PasswordInput
-                placeholder="Min. 8 characters"
+                placeholder="Create a strong password"
                 value={form.password}
                 onChange={v => set('password', v)}
                 error={errors.password}
               />
+              <PasswordRequirements password={form.password} />
             </div>
 
             <div>

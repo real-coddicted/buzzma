@@ -1,7 +1,7 @@
 package com.coddicted.buzzma.identity.dto.auth;
 
+import com.coddicted.buzzma.shared.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -11,11 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class PasswordUpdateRequestDto {
 
-  @NotBlank
-  @Size(min = 8, max = 200)
-  String currentPassword;
+  @NotBlank String currentPassword;
 
-  @NotBlank
-  @Size(min = 8, max = 200)
-  String newPassword;
+  @NotBlank @ValidPassword String newPassword;
 }

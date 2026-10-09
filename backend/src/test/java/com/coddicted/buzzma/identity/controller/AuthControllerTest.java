@@ -3,6 +3,7 @@ package com.coddicted.buzzma.identity.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.coddicted.buzzma.config.ConfigProvider;
@@ -44,6 +45,16 @@ class AuthControllerTest {
 
   private static final String VALID_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/identity/user-registration-request-1.json");
+
+  private static final String VALID_RESET_BODY =
+      FileUtils.loadResourceAsString("/fixtures/input/identity/password-reset-request-1.json");
+
+  private static final String VALID_UPDATE_BODY =
+      FileUtils.loadResourceAsString("/fixtures/input/identity/password-update-request-1.json");
+
+  private static final String MOBILE = "9876543210";
+  private static final String CURRENT_PASSWORD = "oldpass12";
+  private static final String NEW_PASSWORD = "NewPass@123";
 
   // --- POST /api/v1/auth/register ---
 
@@ -97,5 +108,85 @@ class AuthControllerTest {
         .perform(
             post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testRegisterWithPasswordMissingSpecialCharacterReturnsBadRequest() throws Exception {
+    final String body = VALID_BODY.replace("Password@123", "Password123");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.fields.password")
+                .value("Password must contain at least one special character"));
+  }
+
+  @Test
+  void testRegisterWithTooShortPasswordReturnsBadRequest() throws Exception {
+    final String body = VALID_BODY.replace("Password@123", "Pa@1");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.fields.password").value("Password must be at least 8 characters"));
+  }
+
+  // --- POST /api/v1/auth/password-reset ---
+
+  @Test
+  void testPasswordResetWithValidPasswordReturnsOk() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_RESET_BODY))
+        .andExpect(status().isOk());
+
+    verify(authService).resetPassword(MOBILE, NEW_PASSWORD, null);
+  }
+
+  @Test
+  void testPasswordResetWithWeakPasswordReturnsBadRequest() throws Exception {
+    final String body = VALID_RESET_BODY.replace(NEW_PASSWORD, "newpass@123");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.fields.newPassword")
+                .value("Password must contain at least one uppercase letter"));
+  }
+
+  // --- POST /api/v1/auth/password-update ---
+
+  @Test
+  void testPasswordUpdateWithValidPasswordReturnsOk() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_UPDATE_BODY))
+        .andExpect(status().isOk());
+
+    verify(authService).updatePassword(CURRENT_PASSWORD, NEW_PASSWORD, null);
+  }
+
+  @Test
+  void testPasswordUpdateWithWeakPasswordReturnsBadRequest() throws Exception {
+    final String body = VALID_UPDATE_BODY.replace(NEW_PASSWORD, "New Pass@123");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.fields.newPassword").value("Password must not contain spaces"));
   }
 }

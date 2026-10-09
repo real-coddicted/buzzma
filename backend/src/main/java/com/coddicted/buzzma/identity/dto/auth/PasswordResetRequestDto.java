@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.identity.dto.auth;
 
+import com.coddicted.buzzma.shared.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -15,7 +16,5 @@ public class PasswordResetRequestDto {
   @Size(min = 10, max = 10)
   String mobile;
 
-  @NotBlank
-  @Size(min = 8, max = 200)
-  String newPassword;
+  @NotBlank @ValidPassword String newPassword;
 }

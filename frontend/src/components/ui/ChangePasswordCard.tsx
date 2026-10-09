@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Button } from './Button'
 import { Toast } from './Toast'
+import { PasswordRequirements } from './PasswordRequirements'
 import { changePassword } from '../../api/authApi'
+import { getPasswordError } from '../../utils/passwordPolicy'
 
 const inputBase =
   'w-full rounded-lg border bg-surface-light-base dark:bg-surface-dark-hover ' +
@@ -30,7 +32,12 @@ export function ChangePasswordCard() {
     const next: FormErrors = {}
     if (!currentPassword) next.currentPassword = 'Current password is required'
     if (!newPassword) next.newPassword = 'New password is required'
-    else if (newPassword.length < 8) next.newPassword = 'Password must be at least 8 characters'
+    else if (newPassword === currentPassword)
+      next.newPassword = 'New password must differ from the current password'
+    else {
+      const passwordError = getPasswordError(newPassword)
+      if (passwordError) next.newPassword = passwordError
+    }
     if (!confirmPassword) next.confirmPassword = 'Please confirm your password'
     else if (newPassword !== confirmPassword) next.confirmPassword = 'Passwords do not match'
     setErrors(next)
@@ -83,7 +90,7 @@ export function ChangePasswordCard() {
           </label>
           <input
             type="password"
-            placeholder="Min. 8 characters"
+            placeholder="Create a strong password"
             value={newPassword}
             onChange={e => { setNewPassword(e.target.value); setErrors(p => ({ ...p, newPassword: undefined })) }}
             className={inputBase}
@@ -91,6 +98,7 @@ export function ChangePasswordCard() {
           {errors.newPassword && (
             <p className="mt-1 text-xs text-neon-red">{errors.newPassword}</p>
           )}
+          <PasswordRequirements password={newPassword} />
         </div>
         <div>
           <label className="block text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted uppercase tracking-wide mb-1.5">
