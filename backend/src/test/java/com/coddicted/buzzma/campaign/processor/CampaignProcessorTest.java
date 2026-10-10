@@ -122,6 +122,46 @@ class CampaignProcessorTest {
   }
 
   @Test
+  void testCreateThrowsWhenQuickCommerceCampaignUsesExchangeType() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_BLINKIT)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_EXCHANGE)
+            .category(PromotionCategory.QUICK_COMMERCE)
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "Quick Commerce campaigns must be one of these campaign types: CAMPAIGN_TYPE_RATING,"
+            + " CAMPAIGN_TYPE_REVIEW, CAMPAIGN_TYPE_ORDER, CAMPAIGN_TYPE_DISCOUNT",
+        ex.getMessage());
+  }
+
+  @Test
+  void testCreateThrowsWhenQuickCommerceCampaignUsesSellerFeedbackStep() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .endDate(20991231)
+            .platform(Platform.PLATFORM_BLINKIT)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .category(PromotionCategory.QUICK_COMMERCE)
+            .requiredSteps(List.of(CampaignStepType.SELLER_FEEDBACK))
+            .build();
+
+    final BusinessRuleViolationException ex =
+        assertThrows(
+            BusinessRuleViolationException.class,
+            () -> campaignProcessor.create(REQUESTER_ID, request));
+    assertEquals(
+        "Blinkit campaigns only allow these steps: Order, Delivery, Rating, Review",
+        ex.getMessage());
+  }
+
+  @Test
   void testCreateThrowsWhenCampaignTypeNotAllowedForCategory() {
     final CampaignRequestDto request =
         CampaignRequestDto.builder()
@@ -391,6 +431,27 @@ class CampaignProcessorTest {
     assertEquals(
         List.of(CampaignStepType.DOWNLOAD_INSTALL, CampaignStepType.REVIEW),
         captor.getValue().getRequiredSteps());
+  }
+
+  @Test
+  void testUpdateCampaignForQuickCommerceAcceptsPlatformAndForcesAffiliateLinkDisallowed() {
+    final CampaignRequestDto request =
+        CampaignRequestDto.builder()
+            .category(PromotionCategory.QUICK_COMMERCE)
+            .platform(Platform.PLATFORM_BLINKIT)
+            .campaignType(CampaignType.CAMPAIGN_TYPE_ORDER)
+            .affiliateLinkAllowed(true)
+            .build();
+    when(campaignService.getById(CAMPAIGN_ID_1)).thenReturn(CAMPAIGN_1);
+    when(productProcessor.updateProduct(CAMPAIGN_1.getProduct(), request)).thenReturn(PRODUCT_1);
+
+    final ArgumentCaptor<Campaign> captor = ArgumentCaptor.forClass(Campaign.class);
+    when(campaignService.update(captor.capture())).thenReturn(CAMPAIGN_1);
+    when(campaignMapper.toResponse(CAMPAIGN_1)).thenReturn(CampaignResponseDto.builder().build());
+
+    campaignProcessor.updateCampaign(REQUESTER_ID, CAMPAIGN_ID_1, request);
+
+    assertFalse(captor.getValue().isAffiliateLinkAllowed());
   }
 
   @Test

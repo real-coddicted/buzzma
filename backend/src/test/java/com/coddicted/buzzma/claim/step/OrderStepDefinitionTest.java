@@ -127,4 +127,76 @@ class OrderStepDefinitionTest {
         errors.stream().anyMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
         "Expected an orderId validation error for a non-18-digit Meesho order ID");
   }
+
+  @Test
+  void testValidateWhenBigBasketOrderIdIsValid() {
+    final Map<String, String> extracted =
+        fields(
+            BuzzmahConstants.PLATFORM, "PLATFORM_BIGBASKET",
+            BuzzmahConstants.ORDER_ID, "BNN-2124450825-20261009",
+            BuzzmahConstants.ORDER_DATE, "2026-04-19",
+            BuzzmahConstants.PRODUCT_NAME, "Product",
+            BuzzmahConstants.AMOUNT, "499",
+            BuzzmahConstants.ORDERED_BY, "Customer");
+
+    final List<ValidationError> errors = this.stepDefinition.validate(extracted);
+
+    assertTrue(
+        errors.stream().noneMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
+        "Expected no orderId validation error for a valid BigBasket order ID");
+  }
+
+  @Test
+  void testValidateWhenBigBasketOrderIdIsInvalid() {
+    final Map<String, String> extracted =
+        fields(
+            BuzzmahConstants.PLATFORM, "PLATFORM_BIGBASKET",
+            BuzzmahConstants.ORDER_ID, "12345",
+            BuzzmahConstants.ORDER_DATE, "2026-04-19",
+            BuzzmahConstants.PRODUCT_NAME, "Product",
+            BuzzmahConstants.AMOUNT, "499",
+            BuzzmahConstants.ORDERED_BY, "Customer");
+
+    final List<ValidationError> errors = this.stepDefinition.validate(extracted);
+
+    assertTrue(
+        errors.stream().anyMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
+        "Expected an orderId validation error for a malformed BigBasket order ID");
+  }
+
+  @Test
+  void testValidateWhenBlinkitOrderIdIsValid() {
+    final Map<String, String> extracted =
+        fields(
+            BuzzmahConstants.PLATFORM, "PLATFORM_BLINKIT",
+            BuzzmahConstants.ORDER_ID, "ORD45740407993",
+            BuzzmahConstants.ORDER_DATE, "2026-04-19",
+            BuzzmahConstants.PRODUCT_NAME, "Product",
+            BuzzmahConstants.AMOUNT, "499",
+            BuzzmahConstants.ORDERED_BY, "Customer");
+
+    final List<ValidationError> errors = this.stepDefinition.validate(extracted);
+
+    assertTrue(
+        errors.stream().noneMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
+        "Expected no orderId validation error for a valid Blinkit order ID");
+  }
+
+  @Test
+  void testValidateWhenBlinkitOrderIdIsInvalid() {
+    final Map<String, String> extracted =
+        fields(
+            BuzzmahConstants.PLATFORM, "PLATFORM_BLINKIT",
+            BuzzmahConstants.ORDER_ID, "12345",
+            BuzzmahConstants.ORDER_DATE, "2026-04-19",
+            BuzzmahConstants.PRODUCT_NAME, "Product",
+            BuzzmahConstants.AMOUNT, "499",
+            BuzzmahConstants.ORDERED_BY, "Customer");
+
+    final List<ValidationError> errors = this.stepDefinition.validate(extracted);
+
+    assertTrue(
+        errors.stream().anyMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
+        "Expected an orderId validation error for a malformed Blinkit order ID");
+  }
 }

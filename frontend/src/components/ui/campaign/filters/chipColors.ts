@@ -18,6 +18,9 @@ export const PLATFORM_COLORS: Record<Platform, ChipColors> = {
   PLATFORM_GOOGLE_REVIEWS:   { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
   PLATFORM_INSTAGRAM:        { base: 'bg-neon-pink/10 text-neon-pink border-neon-pink/25', selected: 'bg-neon-pink/20 text-neon-pink border-neon-pink/50' },
   PLATFORM_YOUTUBE:          { base: 'bg-neon-red/10 text-neon-red border-neon-red/25', selected: 'bg-neon-red/20 text-neon-red border-neon-red/50' },
+  PLATFORM_BIGBASKET:        { base: 'bg-neon-green/10 text-neon-green border-neon-green/25', selected: 'bg-neon-green/20 text-neon-green border-neon-green/50' },
+  PLATFORM_BLINKIT:          { base: 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/25', selected: 'bg-neon-yellow/20 text-neon-yellow border-neon-yellow/50' },
+  PLATFORM_ZEPTO:            { base: 'bg-neon-purple/10 text-neon-purple border-neon-purple/25', selected: 'bg-neon-purple/20 text-neon-purple border-neon-purple/50' },
   PLATFORM_OTHER:            { base: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/25', selected: 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/50' },
 }
 

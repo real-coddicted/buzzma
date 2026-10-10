@@ -17,13 +17,9 @@ public class QuickCommercePromotionCategoryDefinition implements PromotionCatego
     return PromotionCategory.QUICK_COMMERCE;
   }
 
-  /**
-   * Empty - Blinkit/Zepto don't exist in the Platform enum yet, so there's nothing valid to offer
-   * until that lands.
-   */
   @Override
   public Set<Platform> allowedPlatforms() {
-    return Set.of();
+    return Set.of(Platform.PLATFORM_BIGBASKET, Platform.PLATFORM_BLINKIT, Platform.PLATFORM_ZEPTO);
   }
 
   @Override
@@ -32,8 +28,7 @@ public class QuickCommercePromotionCategoryDefinition implements PromotionCatego
         CampaignType.CAMPAIGN_TYPE_RATING,
         CampaignType.CAMPAIGN_TYPE_REVIEW,
         CampaignType.CAMPAIGN_TYPE_ORDER,
-        CampaignType.CAMPAIGN_TYPE_DISCOUNT,
-        CampaignType.CAMPAIGN_TYPE_EXCHANGE);
+        CampaignType.CAMPAIGN_TYPE_DISCOUNT);
   }
 
   @Override
@@ -42,9 +37,7 @@ public class QuickCommercePromotionCategoryDefinition implements PromotionCatego
         CampaignStepType.ORDER,
         CampaignStepType.DELIVERY,
         CampaignStepType.RATING,
-        CampaignStepType.REVIEW,
-        CampaignStepType.SELLER_FEEDBACK,
-        CampaignStepType.RETURN_WINDOW);
+        CampaignStepType.REVIEW);
   }
 
   @Override
