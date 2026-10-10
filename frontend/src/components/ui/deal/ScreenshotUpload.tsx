@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { extractOrderDetails, type ExtractionResponse } from '../../../api/extractionApi'
+import { compressImage } from '../../../utils/imageCompression'
 import { Toast } from '../Toast'
 import { ImageLightbox } from './ImageLightbox'
 
@@ -30,10 +31,11 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtract
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleFile(file: File | undefined) {
-    if (!file) return
+  async function handleFile(original: File | undefined) {
+    if (!original) return
 
-    setFileName(file.name)
+    const file = await compressImage(original)
+    setFileName(original.name)
     setPreview(URL.createObjectURL(file))
     setError(null)
     onFileChange?.(file)
