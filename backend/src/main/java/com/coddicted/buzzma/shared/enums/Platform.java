@@ -17,6 +17,9 @@ public enum Platform {
   PLATFORM_GOOGLE_REVIEWS("Google Reviews"),
   PLATFORM_INSTAGRAM("Instagram"),
   PLATFORM_YOUTUBE("YouTube"),
+  PLATFORM_BIGBASKET("BigBasket"),
+  PLATFORM_BLINKIT("Blinkit"),
+  PLATFORM_ZEPTO("Zepto"),
   PLATFORM_OTHER("Other");
 
   private final String displayName;

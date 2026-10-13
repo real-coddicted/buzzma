@@ -21,6 +21,10 @@ interface Props {
   readOnly?: boolean
 }
 
+function isSellerNameFieldVisible(category: PromotionCategory): boolean {
+  return category !== 'QUICK_COMMERCE'
+}
+
 export function CampaignProductFields({ form, errors, set, readOnly }: Props) {
   return (
     <section className="rounded-xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card p-5 space-y-4">
@@ -41,10 +45,12 @@ export function CampaignProductFields({ form, errors, set, readOnly }: Props) {
           <input className={inputClass} type="text" placeholder="e.g. Acme Co." value={form.productBrandName} onChange={e => set('productBrandName', e.target.value)} disabled={readOnly} />
           {errors.productBrandName && <p className={errorClass}>{errors.productBrandName}</p>}
         </div>
-        <div>
-          <label className={labelClass}>Seller Name</label>
-          <input className={inputClass} type="text" placeholder="e.g. Acme Store" value={form.sellerName} onChange={e => set('sellerName', e.target.value)} disabled={readOnly} />
-        </div>
+        {isSellerNameFieldVisible(form.category) && (
+          <div>
+            <label className={labelClass}>Seller Name</label>
+            <input className={inputClass} type="text" placeholder="e.g. Acme Store" value={form.sellerName} onChange={e => set('sellerName', e.target.value)} disabled={readOnly} />
+          </div>
+        )}
         <div>
           <label className={labelClass}>Product Name *</label>
           <input className={inputClass} type="text" placeholder="e.g. Acme Coffee Cup" value={form.productName} onChange={e => set('productName', e.target.value)} disabled={readOnly} />

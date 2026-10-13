@@ -88,6 +88,9 @@ export type Platform =
   | 'PLATFORM_GOOGLE_REVIEWS'
   | 'PLATFORM_INSTAGRAM'
   | 'PLATFORM_YOUTUBE'
+  | 'PLATFORM_BIGBASKET'
+  | 'PLATFORM_BLINKIT'
+  | 'PLATFORM_ZEPTO'
   | 'PLATFORM_OTHER'
 
 export type CampaignType =

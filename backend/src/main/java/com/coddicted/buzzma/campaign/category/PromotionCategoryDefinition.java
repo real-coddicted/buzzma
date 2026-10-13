@@ -35,4 +35,9 @@ public interface PromotionCategoryDefinition {
 
   /** The step every campaign in this category is forced to require, regardless of selection. */
   Optional<CampaignStepType> forcedStep();
+
+  /** Whether campaigns in this category may specify a seller name. Defaults to {@code true}. */
+  default boolean sellerNameAllowed() {
+    return true;
+  }
 }

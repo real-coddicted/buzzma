@@ -26,6 +26,8 @@ public class OrderStepDefinition implements StepDefinition {
   private static final Pattern MYNTRA_ORDER_ID = Pattern.compile("^\\d{8,20}$");
   private static final Pattern NYKAA_ORDER_ID = Pattern.compile("^NYK-\\d{9}-\\d{7}$");
   private static final Pattern MEESHO_ORDER_ID = Pattern.compile("^\\d{18}$");
+  private static final Pattern BIGBASKET_ORDER_ID = Pattern.compile("^BNN-\\d{10}-\\d{8}$");
+  private static final Pattern BLINKIT_ORDER_ID = Pattern.compile("^ORD\\d{9,15}$");
 
   private final GeminiExtractionPromptBuilder promptBuilder;
   private final OrderScreenshotScorer scorer;
@@ -112,6 +114,8 @@ public class OrderStepDefinition implements StepDefinition {
           case PLATFORM_MYNTRA -> MYNTRA_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_NYKAA -> NYKAA_ORDER_ID.matcher(orderId).matches();
           case PLATFORM_MEESHO -> MEESHO_ORDER_ID.matcher(orderId).matches();
+          case PLATFORM_BIGBASKET -> BIGBASKET_ORDER_ID.matcher(orderId).matches();
+          case PLATFORM_BLINKIT -> BLINKIT_ORDER_ID.matcher(orderId).matches();
           default -> true;
         };
     if (!valid) {

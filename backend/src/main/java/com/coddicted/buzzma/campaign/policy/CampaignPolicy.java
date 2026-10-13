@@ -41,6 +41,15 @@ public final class CampaignPolicy {
     }
   }
 
+  /** A campaign's seller name may only be set when its promotion category allows one. */
+  public static void validateSellerName(
+      final String sellerName, final PromotionCategoryDefinition categoryDefinition) {
+    if (sellerName != null && !sellerName.isBlank() && !categoryDefinition.sellerNameAllowed()) {
+      throw new BusinessRuleViolationException(
+          categoryDefinition.category().getDisplayName() + " campaigns cannot have a seller name");
+    }
+  }
+
   public static void validateRequiredSteps(
       final List<CampaignStepType> requiredSteps,
       final Platform platform,

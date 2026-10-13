@@ -17,6 +17,7 @@ import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
 import com.coddicted.buzzma.campaign.entity.ExchangeProduct;
 import com.coddicted.buzzma.campaign.entity.Product;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.campaign.entity.Reward;
 import com.coddicted.buzzma.campaign.entity.RewardType;
 import com.coddicted.buzzma.campaign.mapper.CampaignMapper;
@@ -140,6 +141,7 @@ public class CampaignProcessor {
         request.getPlatform(), request.getCampaignType(), categoryDefinition);
     CampaignPolicy.validateRequiredSteps(
         request.getRequiredSteps(), request.getPlatform(), categoryDefinition);
+    CampaignPolicy.validateSellerName(request.getSellerName(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Product newProduct = this.productProcessor.saveProduct(request);
@@ -153,6 +155,9 @@ public class CampaignProcessor {
                 .requiredSteps(
                     normalizeRequiredSteps(
                         request.getRequiredSteps(), request.getPlatform(), categoryDefinition))
+                .affiliateLinkAllowed(
+                    normalizeAffiliateLinkAllowed(
+                        request.isAffiliateLinkAllowed(), categoryDefinition))
                 .build());
     this.campaignEventPublisher.publishCampaignCreatedEvent(savedCampaign.getId(), requesterId);
     if (request.getAction() == CampaignAction.CAMPAIGN_ACTION_PUBLISH) {
@@ -171,6 +176,7 @@ public class CampaignProcessor {
         request.getPlatform(), request.getCampaignType(), categoryDefinition);
     CampaignPolicy.validateRequiredSteps(
         request.getRequiredSteps(), request.getPlatform(), categoryDefinition);
+    CampaignPolicy.validateSellerName(request.getSellerName(), categoryDefinition);
     validateReward(request);
     validateExchangeProducts(request);
     final Campaign existingCampaign = this.service.getById(id);
@@ -190,6 +196,8 @@ public class CampaignProcessor {
             .requiredSteps(
                 normalizeRequiredSteps(
                     request.getRequiredSteps(), request.getPlatform(), categoryDefinition))
+            .affiliateLinkAllowed(
+                normalizeAffiliateLinkAllowed(request.isAffiliateLinkAllowed(), categoryDefinition))
             .build();
 
     final Campaign savedCampaign = this.service.update(updatedCampaign);
@@ -345,6 +353,15 @@ public class CampaignProcessor {
     categoryDefinition.forcedStep().ifPresent(steps::add);
     steps.remove(CampaignStepType.CASHBACK);
     return steps.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
+  }
+
+  /** Quick Commerce campaigns never allow a mediator-supplied affiliate link. */
+  private static boolean normalizeAffiliateLinkAllowed(
+      final boolean affiliateLinkAllowed, final PromotionCategoryDefinition categoryDefinition) {
+    if (categoryDefinition.category() == PromotionCategory.QUICK_COMMERCE) {
+      return false;
+    }
+    return affiliateLinkAllowed;
   }
 
   /**

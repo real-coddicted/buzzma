@@ -1,21 +1,16 @@
 import type { PromotionCategory } from '../../../types'
 import { PROMOTION_CATEGORY_LABELS } from '../../../constants/campaigns'
 import { PromotionCategoryCard } from './PromotionCategoryCard'
-import { IconShoppingBag, IconSmartphone, IconGlobe } from '../icons'
+import { IconShoppingBag, IconShoppingBagFast, IconSmartphone, IconGlobe } from '../icons'
 
-/**
- * QUICK_COMMERCE is a real PromotionCategory but isn't selectable here yet - it has no backing
- * platforms (Blinkit/Zepto aren't in the Platform enum), so offering it would show an empty
- * platform dropdown. Add it back once those platforms exist.
- */
-const SELECTABLE_CATEGORIES: PromotionCategory[] = ['ECOMMERCE', 'APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
+const SELECTABLE_CATEGORIES: PromotionCategory[] = ['ECOMMERCE', 'QUICK_COMMERCE', 'APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
 
 /** Shown but not selectable until these categories launch. */
 const COMING_SOON_CATEGORIES: PromotionCategory[] = ['APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
 
 const CATEGORY_ICONS: Record<PromotionCategory, (props: { size?: number }) => JSX.Element> = {
   ECOMMERCE: IconShoppingBag,
-  QUICK_COMMERCE: IconShoppingBag,
+  QUICK_COMMERCE: IconShoppingBagFast,
   APP_PROMOTION: IconSmartphone,
   SOCIAL_PAGE_PROMOTION: IconGlobe,
 }
@@ -29,7 +24,7 @@ interface Props {
 /** Molecule: the row of PromotionCategoryCard atoms, one per PromotionCategory. */
 export function PromotionCategorySelector({ value, onChange, disabled }: Props) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-4 gap-3">
       {SELECTABLE_CATEGORIES.map(category => {
         const Icon = CATEGORY_ICONS[category]
         return (
