@@ -98,7 +98,12 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
       LOGGER.warn("extractSync: validation failed for requester {}: {}", requesterId, errorSummary);
     }
 
-    this.campaignService.getById(campaignId); // fail fast if the campaign doesn't exist
+    final Campaign campaign = this.campaignService.getById(campaignId);
+    final Map<String, ScoredValue> extractedDetails = toScoredValues(extracted);
+    final ExtractedScoredResult scoring =
+        stepDefinition.scoringRequired()
+            ? stepDefinition.scorer().score(campaign, extractedDetails)
+            : new ExtractedScoredResult(extractedDetails, null);
 
     return ExtractionResult.builder()
         .platform(Platform.parse(extracted.get(BuzzmahConstants.PLATFORM)))
@@ -109,7 +114,8 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
         .amount(parseAmount(extracted.get(BuzzmahConstants.AMOUNT)))
         .orderedBy(extracted.get(BuzzmahConstants.ORDERED_BY))
         .validationErrors(errors)
-        .extractedResult(toScoredValues(extracted))
+        .extractedResult(scoring.extractedResult())
+        .overallScore(scoring.overallScore())
         .build();
   }
 
@@ -179,10 +185,9 @@ public class ClaimScreenshotServiceImpl implements ClaimScreenshotService {
   }
 
   /**
-   * extractSync runs before a {@code Claim} exists, and every {@code ClaimScreenshotScorer} needs
-   * one to compare against, so scoring isn't possible here regardless of step type — this returns
-   * raw extracted values unscored, matching what the async scheduler path ({@code
-   * GenericScreenshotProcessor}) stores before its own later, claim-bound scoring step.
+   * Wraps raw extracted values as unscored {@link ScoredValue}s, matching what the async scheduler
+   * path ({@code GenericScreenshotProcessor}) stores before its own later, claim-bound scoring
+   * step. extractSync then feeds these to the claim-free {@code ClaimScreenshotScorer#score}.
    */
   private Map<String, ScoredValue> toScoredValues(final Map<String, String> extracted) {
     final Map<String, ScoredValue> result = new HashMap<>();

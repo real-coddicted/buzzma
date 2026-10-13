@@ -4,6 +4,8 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,5 +21,11 @@ public class DownloadInstallScreenshotScorer implements ClaimScreenshotScorer {
   public ExtractedScoredResult score(
       final Claim claim, final Campaign campaign, final ClaimScreenshot screenshot) {
     return new ExtractedScoredResult(screenshot.getExtractedDetails(), 0);
+  }
+
+  @Override
+  public ExtractedScoredResult score(
+      final Campaign campaign, final Map<String, ScoredValue> extractedDetails) {
+    return new ExtractedScoredResult(extractedDetails, 0);
   }
 }

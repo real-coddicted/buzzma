@@ -1,0 +1,6 @@
+{
+  "platform": { "extractedValue": "PLATFORM_AMAZON", "score": 100 },
+  "productName": { "extractedValue": "Test Product", "score": 100 },
+  "accountName": { "extractedValue": "john.doe", "score": null },
+  "rating": { "extractedValue": "5", "score": null }
+}

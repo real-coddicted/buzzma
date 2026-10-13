@@ -127,4 +127,11 @@ class OrderStepDefinitionTest {
         errors.stream().anyMatch(e -> BuzzmahConstants.ORDER_ID.equals(e.getField())),
         "Expected an orderId validation error for a non-18-digit Meesho order ID");
   }
+
+  @Test
+  void testScoringRequiredSoAsyncExtractedOrderScreenshotsAreScored() {
+    assertTrue(
+        this.stepDefinition.scoringRequired(),
+        "Order must queue a ScoringJob so a manual-entry claim's async extraction is scored");
+  }
 }

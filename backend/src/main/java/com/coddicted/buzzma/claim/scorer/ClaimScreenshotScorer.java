@@ -4,6 +4,8 @@ import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.claim.client.ExtractedScoredResult;
 import com.coddicted.buzzma.claim.entity.Claim;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.extraction.entity.ScoredValue;
+import java.util.Map;
 
 /**
  * Pure scoring computation: given the already-loaded {@code claim} and {@code campaign} plus the
@@ -15,4 +17,12 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
  */
 public interface ClaimScreenshotScorer {
   ExtractedScoredResult score(Claim claim, Campaign campaign, ClaimScreenshot screenshot);
+
+  /**
+   * Claim-free scoring for callers that run before a {@code Claim} exists (see {@code
+   * ClaimScreenshotServiceImpl#extractSync}): scores only what the {@code campaign} alone can
+   * answer, and skips fields that need the claim's own submitted values (e.g. accountName) as well
+   * as the manual-entry reconcile step.
+   */
+  ExtractedScoredResult score(Campaign campaign, Map<String, ScoredValue> extractedDetails);
 }

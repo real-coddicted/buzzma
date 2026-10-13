@@ -28,6 +28,9 @@ public class SubscribeScreenshotScorer extends SimpleScoreApiScorer {
   @Override
   protected List<PayloadItem> additionalPayloadItems(
       final Claim claim, final Campaign campaign, final Map<String, ScoredValue> details) {
+    if (claim == null) {
+      return List.of();
+    }
     final String accountName =
         ClaimScreenshotScorerUtils.valueOf(details, BuzzmahConstants.ACCOUNT_NAME);
     return List.of(

@@ -143,7 +143,7 @@ public class OrderStepDefinition implements StepDefinition {
 
   @Override
   public boolean scoringRequired() {
-    return false;
+    return true;
   }
 
   @Override

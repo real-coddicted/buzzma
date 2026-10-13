@@ -65,4 +65,33 @@ class RatingScreenshotScorerTest {
             "/fixtures/output/claim/scorer/rating-extracted-details.json"),
         result.extractedResult());
   }
+
+  @Test
+  void testScoreWithoutClaimOmitsAccountNameFromPayloadAndSkipsReconcile() {
+    final RatingScreenshotScorer scorer = new RatingScreenshotScorer(this.mockScoreApiClientProxy);
+
+    when(this.mockScoreApiClientProxy.score(
+            ScoreDatasetKeys.RATING,
+            Fixtures.loadPayload("/fixtures/output/claim/scorer/rating-payload-no-claim.json")))
+        .thenReturn(
+            new ExtractedScoredResult(
+                Map.of(
+                    BuzzmahConstants.PLATFORM,
+                        ScoredValue.builder().extractedValue("PLATFORM_AMAZON").score(100).build(),
+                    BuzzmahConstants.PRODUCT_NAME,
+                        ScoredValue.builder().extractedValue("Test Product").score(100).build()),
+                100));
+
+    final ExtractedScoredResult result =
+        scorer.score(
+            CAMPAIGN,
+            Fixtures.loadExtractedDetails(
+                "/fixtures/output/claim/processor/rating-extracted-details.json"));
+
+    assertEquals(100, result.overallScore());
+    assertEquals(
+        Fixtures.loadExtractedDetails(
+            "/fixtures/output/claim/scorer/rating-extracted-details-no-claim.json"),
+        result.extractedResult());
+  }
 }

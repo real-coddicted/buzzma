@@ -27,6 +27,16 @@ public abstract class AbstractScoreApiScorer implements ClaimScreenshotScorer {
     return reconcile(claim, details, scoring.overallScore());
   }
 
+  @Override
+  public final ExtractedScoredResult score(
+      final Campaign campaign, final Map<String, ScoredValue> extractedDetails) {
+    final Map<String, ScoredValue> details = new HashMap<>(extractedDetails);
+    final ExtractedScoredResult scoring = computeScoring(null, campaign, details);
+    details.putAll(scoring.extractedResult());
+    return new ExtractedScoredResult(details, scoring.overallScore());
+  }
+
+  /** {@code claim} is null when called from the claim-free {@link #score(Campaign, Map)}. */
   protected abstract ExtractedScoredResult computeScoring(
       Claim claim, Campaign campaign, Map<String, ScoredValue> details);
 

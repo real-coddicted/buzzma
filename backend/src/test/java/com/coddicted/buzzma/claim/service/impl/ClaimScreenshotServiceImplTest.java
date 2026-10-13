@@ -10,10 +10,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.campaign.entity.Campaign;
+import com.coddicted.buzzma.campaign.entity.CampaignStepType;
 import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.campaign.service.CampaignService;
 import com.coddicted.buzzma.claim.client.GeminiClientProxy;
@@ -28,17 +30,20 @@ import com.coddicted.buzzma.claim.persistence.ClaimRepository;
 import com.coddicted.buzzma.claim.persistence.ClaimScreenshotRepository;
 import com.coddicted.buzzma.claim.processor.ClaimScreenshotProcessor;
 import com.coddicted.buzzma.claim.processor.GenericScreenshotProcessor;
+import com.coddicted.buzzma.claim.scorer.DownloadInstallScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.OrderScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.RatingScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ReturnScreenshotScorer;
 import com.coddicted.buzzma.claim.scorer.ReviewScreenshotScorer;
 import com.coddicted.buzzma.claim.service.ClaimService;
+import com.coddicted.buzzma.claim.step.DownloadInstallStepDefinition;
 import com.coddicted.buzzma.claim.step.OrderStepDefinition;
 import com.coddicted.buzzma.claim.step.RatingStepDefinition;
 import com.coddicted.buzzma.claim.step.ReturnStepDefinition;
 import com.coddicted.buzzma.claim.step.ReviewStepDefinition;
 import com.coddicted.buzzma.claim.step.StepDefinitionRegistry;
 import com.coddicted.buzzma.extraction.entity.ExtractionJob;
+import com.coddicted.buzzma.extraction.entity.ExtractionResult;
 import com.coddicted.buzzma.extraction.entity.ScoredValue;
 import com.coddicted.buzzma.extraction.service.GeminiExtractionPromptBuilder;
 import com.coddicted.buzzma.scoring.entity.ScoringJob;
@@ -106,7 +111,9 @@ class ClaimScreenshotServiceImplTest {
                 new ReviewStepDefinition(
                     promptBuilder, new ReviewScreenshotScorer(scoreApiClientProxy)),
                 new ReturnStepDefinition(
-                    promptBuilder, new ReturnScreenshotScorer(scoreApiClientProxy))));
+                    promptBuilder, new ReturnScreenshotScorer(scoreApiClientProxy)),
+                new DownloadInstallStepDefinition(
+                    promptBuilder, new DownloadInstallScreenshotScorer())));
 
     final ClaimScreenshotProcessor processor =
         new GenericScreenshotProcessor(
@@ -125,7 +132,9 @@ class ClaimScreenshotServiceImplTest {
             stepDefinitionRegistry,
             this.mockClaimService);
 
-    when(this.mockStorageService.retrieve(STORAGE_KEY))
+    // lenient: extractSync tests never touch storage or the claim repository.
+    lenient()
+        .when(this.mockStorageService.retrieve(STORAGE_KEY))
         .thenReturn(
             ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), new byte[] {1}));
 
@@ -137,7 +146,9 @@ class ClaimScreenshotServiceImplTest {
             .ecommerceOrderId("403-1234567-8901234")
             .accountName("john.doe")
             .build();
-    when(this.mockClaimRepository.findByIdForUpdate(CLAIM_ID)).thenReturn(Optional.of(claim));
+    lenient()
+        .when(this.mockClaimRepository.findByIdForUpdate(CLAIM_ID))
+        .thenReturn(Optional.of(claim));
 
     final Campaign campaign =
         Campaign.builder()
@@ -304,6 +315,83 @@ class ClaimScreenshotServiceImplTest {
     // Combined score (min of 0, 100, 100, 100) is 0, unlike the
     // API's inflated overallScore of 95 which ignored the mismatched orderDate.
     assertEquals(0, scored.getScore());
+  }
+
+  @Test
+  void testExtractSyncScoresOrderScreenshotAgainstCampaignWithoutClaim() {
+    when(this.mockCampaignService.getById(CAMPAIGN_ID))
+        .thenReturn(
+            Campaign.builder()
+                .id(CAMPAIGN_ID)
+                .platform(Platform.PLATFORM_AMAZON)
+                .startDate(20260101)
+                .endDate(20261231)
+                .sellerName("Acme Sellers")
+                .product(
+                    Product.builder()
+                        .name("Test Product")
+                        .pricePaise(BigInteger.valueOf(50000))
+                        .build())
+                .build());
+    when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
+        .thenReturn(
+            "{\"platform\":\"PLATFORM_AMAZON\",\"orderId\":\"403-1234567-8901234\","
+                + "\"orderDate\":\"2026-06-15\",\"productName\":\"Test Product\","
+                + "\"sellerName\":\"Acme Sellers\",\"amount\":500,\"orderedBy\":\"John Doe\"}");
+    mockScoreApi(
+        ScoreDatasetKeys.ORDER,
+        Map.of(
+            BuzzmahConstants.PLATFORM,
+            1.0,
+            BuzzmahConstants.PRODUCT_NAME,
+            1.0,
+            BuzzmahConstants.SELLER_NAME,
+            1.0),
+        0.95);
+
+    final ExtractionResult result =
+        this.service.extractSync(
+            CampaignStepType.ORDER,
+            new byte[] {1},
+            "screenshot.jpg",
+            "image/jpeg",
+            OWNER_ID,
+            CAMPAIGN_ID);
+
+    // Order's scoringRequired() is true, so the sync preview scores platform/productName/
+    // sellerName/orderDate via the claim-free score(Campaign, Map) path, matching the async result.
+    assertEquals(100, result.getOverallScore());
+    final Map<String, ScoredValue> details = result.getExtractedResult();
+    assertEquals(100, details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertEquals(100, details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
+    assertEquals(100, details.get("orderDate").getScore());
+    // No Claim exists yet, so reconcile-only fields stay unscored.
+    assertNull(details.get("orderId").getScore());
+    assertNull(details.get("amount").getScore());
+  }
+
+  @Test
+  void testExtractSyncSkipsScoringWhenStepDoesNotRequireIt() {
+    when(this.mockGeminiClient.generateContent(anyString(), any(byte[].class), anyString()))
+        .thenReturn(
+            "{\"platform\":\"PLATFORM_AMAZON\",\"productName\":\"Test Product\","
+                + "\"accountName\":\"john.doe\",\"installStatus\":\"Installed\",\"appVersion\":\"1.0\"}");
+
+    final ExtractionResult result =
+        this.service.extractSync(
+            CampaignStepType.DOWNLOAD_INSTALL,
+            new byte[] {1},
+            "screenshot.jpg",
+            "image/jpeg",
+            OWNER_ID,
+            CAMPAIGN_ID);
+
+    // DownloadInstall's scoringRequired() is false, so extractSync must not invoke the scorer:
+    // the preview stays unscored rather than silently scoring a step that isn't gated for it.
+    assertNull(result.getOverallScore());
+    final Map<String, ScoredValue> details = result.getExtractedResult();
+    assertNull(details.get(BuzzmahConstants.PLATFORM).getScore());
+    assertNull(details.get(BuzzmahConstants.PRODUCT_NAME).getScore());
   }
 
   @Test

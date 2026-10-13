@@ -38,6 +38,7 @@ public abstract class SimpleScoreApiScorer extends AbstractScoreApiScorer {
 
   protected abstract String datasetKey();
 
+  /** {@code claim} is null in claim-free scoring; omit items that depend on it. */
   protected abstract List<PayloadItem> additionalPayloadItems(
       Claim claim, Campaign campaign, Map<String, ScoredValue> details);
 }
