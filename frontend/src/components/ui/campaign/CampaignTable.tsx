@@ -8,9 +8,10 @@ import { type CampaignFilters, emptyFilters, countActiveFilters } from './filter
 import { FilterChips, type FilterChip } from './filters/FilterChips'
 import { PLATFORM_COLORS, TYPE_COLORS, STATUS_COLORS } from './filters/chipColors'
 import type { Campaign, CampaignStatus } from '../../../types'
-import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS } from '../../../constants/campaigns'
+import { CAMPAIGN_TYPE_LABELS, PLATFORM_LABELS, PROMOTION_CATEGORY_LABELS } from '../../../constants/campaigns'
 import { ProductThumbnail } from './ProductThumbnail'
 import { PlatformBadge, DealTypeBadge, SlotsBar } from './CampaignBadges'
+import { CATEGORY_ICONS } from './PromotionCategorySelector'
 import { Loading } from '../Loading'
 import { PaginationToolbar } from '../PaginationToolbar'
 import { formatShortDate as fmtDate } from '../../../utils/time'
@@ -197,6 +198,7 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
               </th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Brand</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Platform</th>
+              <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Category</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Type</th>
               <th className="text-left px-5 py-3 font-semibold uppercase tracking-wider text-[10px] text-ink-light-muted dark:text-ink-dark-muted">Start / End</th>
               <th
@@ -212,7 +214,7 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
           <tbody className="divide-y divide-surface-light-border dark:divide-surface-dark-border">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-5 py-12 text-center">
+                <td colSpan={10} className="px-5 py-12 text-center">
                   <div className="flex justify-center">
                     <Loading size={28} />
                   </div>
@@ -220,7 +222,7 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
+                <td colSpan={10} className="px-5 py-10 text-center text-ink-light-muted dark:text-ink-dark-muted">
                   No campaigns match your filters.
                 </td>
               </tr>
@@ -240,6 +242,17 @@ export function CampaignTable({ campaigns, loading = false, appliedFilters, onAp
                     {c.productBrandName || '—'}
                   </td>
                   <td className="px-5 py-2.5"><PlatformBadge platform={c.platform} /></td>
+                  <td className="px-5 py-2.5">
+                    {(() => {
+                      const Icon = CATEGORY_ICONS[c.category]
+                      return (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-ink-light-secondary dark:text-ink-dark-secondary">
+                          <Icon size={13} />
+                          {PROMOTION_CATEGORY_LABELS[c.category]}
+                        </span>
+                      )
+                    })()}
+                  </td>
                   <td className="px-5 py-2.5"><DealTypeBadge campaignType={c.campaignType} /></td>
                   <td className="px-5 py-2.5 font-mono text-ink-light-secondary dark:text-ink-dark-secondary whitespace-nowrap">
                     <div>{fmtDate(c.startDate)}</div>

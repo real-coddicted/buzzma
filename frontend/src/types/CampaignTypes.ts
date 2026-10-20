@@ -1,7 +1,7 @@
 export type CampaignStatus = 'active' | 'paused' | 'completed' | 'closed' | 'draft'
 
 export const CAMPAIGN_STATUS_CONFIG: Record<CampaignStatus, { label: string; backendStatuses: string[] }> = {
-  active:    { label: 'Active',    backendStatuses: ['CAMPAIGN_STATUS_ACTIVE'] },
+  active:    { label: 'Active',    backendStatuses: ['CAMPAIGN_STATUS_ACTIVE', 'CAMPAIGN_STATUS_ASSIGNED'] },
   paused:    { label: 'Paused',    backendStatuses: ['CAMPAIGN_STATUS_PAUSED'] },
   completed: { label: 'Completed', backendStatuses: ['CAMPAIGN_STATUS_COMPLETED'] },
   closed:    { label: 'Closed',    backendStatuses: ['CAMPAIGN_STATUS_CLOSED'] },

@@ -8,7 +8,7 @@ const SELECTABLE_CATEGORIES: PromotionCategory[] = ['ECOMMERCE', 'QUICK_COMMERCE
 /** Shown but not selectable until these categories launch. */
 const COMING_SOON_CATEGORIES: PromotionCategory[] = ['APP_PROMOTION', 'SOCIAL_PAGE_PROMOTION']
 
-const CATEGORY_ICONS: Record<PromotionCategory, (props: { size?: number }) => JSX.Element> = {
+export const CATEGORY_ICONS: Record<PromotionCategory, (props: { size?: number }) => JSX.Element> = {
   ECOMMERCE: IconShoppingBag,
   QUICK_COMMERCE: IconShoppingBagFast,
   APP_PROMOTION: IconSmartphone,

@@ -2603,6 +2603,8 @@ export interface components {
             platform?: "PLATFORM_AMAZON" | "PLATFORM_FLIPKART" | "PLATFORM_NYKAA" | "PLATFORM_MYNTRA" | "PLATFORM_MEESHO" | "PLATFORM_APPLE_APP_STORE" | "PLATFORM_GOOGLE_PLAY_STORE" | "PLATFORM_GOOGLE_REVIEWS" | "PLATFORM_INSTAGRAM" | "PLATFORM_YOUTUBE" | "PLATFORM_BIGBASKET" | "PLATFORM_BLINKIT" | "PLATFORM_ZEPTO" | "PLATFORM_OTHER";
             /** @enum {string} */
             type?: "CAMPAIGN_TYPE_RATING" | "CAMPAIGN_TYPE_REVIEW" | "CAMPAIGN_TYPE_ORDER" | "CAMPAIGN_TYPE_DISCOUNT" | "CAMPAIGN_TYPE_REGULAR" | "CAMPAIGN_TYPE_EXCHANGE";
+            /** @enum {string} */
+            category?: "ECOMMERCE" | "QUICK_COMMERCE" | "APP_PROMOTION" | "SOCIAL_PAGE_PROMOTION";
             /** Format: int32 */
             totalSlots?: number;
             /** Format: int32 */

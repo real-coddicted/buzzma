@@ -1,5 +1,5 @@
 import type { components } from '../types/api'
-import type { Campaign, CampaignRequestDto, CampaignStatus, CampaignType, Platform } from '../types'
+import type { Campaign, CampaignRequestDto, CampaignStatus, CampaignType, Platform, PromotionCategory } from '../types'
 import { CAMPAIGN_STATUS_CONFIG } from '../types'
 import { type CampaignFilters, emptyFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import { fetchWithAuth, getCurrentUser } from './client'
@@ -114,8 +114,7 @@ function mapCampaignSummaryDto(dto: CampaignSummaryDto): Campaign {
     title:                dto.title ?? '',
     status:               statusMap[dto.status ?? 'CAMPAIGN_STATUS_DRAFT'],
     platform:             (dto.platform ?? '') as Platform,
-    // The summary endpoint doesn't expose category yet - default to ECOMMERCE until it does.
-    category:             'ECOMMERCE',
+    category:             (dto.category ?? 'ECOMMERCE') as PromotionCategory,
     productBrandName:     dto.productBrandName ?? '',
     productName:          dto.productName ?? '',
     productImageUrl:      dto.productImageUrl ?? '',

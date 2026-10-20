@@ -2,6 +2,7 @@ package com.coddicted.buzzma.campaign.dto;
 
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
 import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.PromotionCategory;
 import com.coddicted.buzzma.shared.enums.Platform;
 import java.net.URL;
 import java.util.UUID;
@@ -35,6 +36,8 @@ public class CampaignSummaryResponseDto {
   Platform platform;
 
   CampaignType type;
+
+  PromotionCategory category;
 
   Integer totalSlots;
 

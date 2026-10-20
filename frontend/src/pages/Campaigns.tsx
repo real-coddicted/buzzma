@@ -7,16 +7,34 @@ import { CampaignTable } from '../components/ui/campaign/CampaignTable'
 import { CampaignSummaryCards } from '../components/ui/campaign/CampaignSummaryCards'
 import { Loading } from '../components/ui/Loading'
 import { SharedCampaignsPage } from '../components/ui/campaign/SharedCampaignsPage'
-import type { Campaign, CampaignRequestDto, Platform, CampaignType, PromotionCategory } from '../types'
-import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto } from '../api/campaignApi'
+import type { Campaign, CampaignRequestDto, CampaignStatus, Platform, CampaignType, PromotionCategory } from '../types'
+import { createCampaign, updateCampaign, fetchCampaignById, copyCampaign, pauseCampaign, resumeCampaign, closeCampaign, deleteCampaign, searchCampaigns, fetchSharedCampaigns, type CampaignResponseDto, type PagedCampaigns } from '../api/campaignApi'
 import { getCurrentUser } from '../api/client'
 import { yyyymmddToIso } from '../utils/time'
-import { type CampaignFilters, emptyFilters, countActiveFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
+import { type CampaignFilters, emptyFilters } from '../components/ui/campaign/filters/CampaignFilterTypes'
 import type { CampaignForm } from '../components/ui/campaign/campaignFormConstants'
 import { paiseToRupees } from '../utils/currency'
 import { Toast } from '../components/ui/Toast'
 import { ConfirmModal } from '../components/ui/ConfirmModal'
+import { ToggleSwitch } from '../components/ui/ToggleSwitch'
 import { useSSE } from '../hooks/useSSE'
+
+type CampaignTab = 'active' | 'archive'
+
+/** Active = still actionable; Archive = terminal. ASSIGNED campaigns surface as "Active" everywhere else, so they belong here too. */
+const TAB_STATUSES: Record<CampaignTab, Set<CampaignStatus>> = {
+  active: new Set<CampaignStatus>(['active', 'paused', 'draft']),
+  archive: new Set<CampaignStatus>(['closed', 'completed']),
+}
+
+/** Narrows a filter set's statuses to the current tab, or falls back to the tab's full set when no status filter is applied. */
+function withTabStatuses(filters: CampaignFilters, tab: CampaignTab): CampaignFilters {
+  const tabStatuses = TAB_STATUSES[tab]
+  const statuses = filters.statuses.size > 0
+    ? new Set([...filters.statuses].filter(s => tabStatuses.has(s)))
+    : tabStatuses
+  return { ...filters, statuses }
+}
 
 
 function responseToForm(dto: CampaignResponseDto): CampaignForm {
@@ -86,46 +104,45 @@ export function Campaigns() {
   const [appliedFilters, setAppliedFilters] = useState<CampaignFilters>(emptyFilters)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [tab, setTab] = useState<CampaignTab>('active')
+  const [hideEmptyClosed, setHideEmptyClosed] = useState(true)
 
-  const loadCampaigns = useCallback((page = 1) => {
+  const applyPage = useCallback((filters: CampaignFilters, forTab: CampaignTab, page: number): Promise<PagedCampaigns> => {
     setLoading(true)
-    fetchCampaignsPage(emptyFilters(), page - 1)
+    return fetchCampaignsPage(withTabStatuses(filters, forTab), page - 1)
       .then(result => {
         setCampaigns(result.items)
         setTotalPages(result.totalPages)
         setCurrentPage(page)
+        return result
       })
-      .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
       .finally(() => setLoading(false))
   }, [fetchCampaignsPage])
+
+  const loadCampaigns = useCallback((page = 1) => {
+    applyPage(emptyFilters(), tab, page)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
+  }, [applyPage, tab])
 
   useEffect(() => { loadCampaigns() }, [loadCampaigns])
 
   const handleApplyFilters = useCallback(async (filters: CampaignFilters, page = 1) => {
     setAppliedFilters(filters)
-    if (countActiveFilters(filters) === 0) {
-      loadCampaigns(page)
-      return
-    }
-    setLoading(true)
     try {
-      const result = await fetchCampaignsPage(filters, page - 1)
-      setCampaigns(result.items)
-      setTotalPages(result.totalPages)
-      setCurrentPage(page)
+      await applyPage(filters, tab, page)
     } catch (err) {
       setErrorMsg((err as Error).message || 'Search failed.')
-    } finally {
-      setLoading(false)
     }
-  }, [loadCampaigns, fetchCampaignsPage])
+  }, [applyPage, tab])
 
   function handlePageChange(page: number) {
-    if (countActiveFilters(appliedFilters) === 0) {
-      loadCampaigns(page)
-    } else {
-      handleApplyFilters(appliedFilters, page)
-    }
+    handleApplyFilters(appliedFilters, page)
+  }
+
+  function handleTabChange(newTab: CampaignTab) {
+    setTab(newTab)
+    applyPage(appliedFilters, newTab, 1)
+      .catch(err => setErrorMsg((err as Error).message || 'Failed to load campaigns.'))
   }
 
   useSSE('EVENT_TYPE_REFRESH', loadCampaigns, 'campaigns')
@@ -255,6 +272,10 @@ export function Campaigns() {
   const totalSpent  = campaigns.reduce((s, c) => s + c.spent, 0)
   const totalConv   = campaigns.reduce((s, c) => s + c.conversions, 0)
   const activeCnt   = campaigns.filter(c => c.status === 'active').length
+  const visibleCampaigns = tab === 'archive' && hideEmptyClosed
+    ? campaigns.filter(c => c.slotsClaimed > 0)
+    : campaigns
+  const hiddenEmptyCount = campaigns.length - visibleCampaigns.length
 
   if (showDetail) {
     if (detailLoading) {
@@ -310,8 +331,36 @@ export function Campaigns() {
         />
       )}
 
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border">
+          {(['active', 'archive'] as CampaignTab[]).map(t => (
+            <button
+              key={t}
+              onClick={() => handleTabChange(t)}
+              className={[
+                'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
+                tab === t
+                  ? 'bg-surface-light-card dark:bg-surface-dark-card text-ink-light-primary dark:text-ink-dark-primary shadow-sm'
+                  : 'text-ink-light-secondary dark:text-ink-dark-secondary hover:text-ink-light-primary dark:hover:text-ink-dark-primary',
+              ].join(' ')}
+            >
+              {t === 'active' ? 'Active' : 'Archive'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'archive' && (
+          <ToggleSwitch
+            checked={hideEmptyClosed}
+            onChange={setHideEmptyClosed}
+            label="Hide campaigns no mediator ever claimed a slot on"
+            hint={hiddenEmptyCount > 0 ? `${hiddenEmptyCount} hidden` : undefined}
+          />
+        )}
+      </div>
+
       <CampaignTable
-        campaigns={campaigns}
+        campaigns={visibleCampaigns}
         loading={loading}
         appliedFilters={appliedFilters}
         onApplyFilters={handleApplyFilters}

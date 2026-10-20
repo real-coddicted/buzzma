@@ -3,7 +3,6 @@ import { IconX } from '../icons'
 import { BrandFilter } from './filters/BrandFilter'
 import { PlatformFilter } from './filters/PlatformFilter'
 import { TypeFilter } from './filters/TypeFilter'
-import { StatusFilter } from './filters/StatusFilter'
 import { DateRangeFilter } from './filters/DateRangeFilter'
 import { type CampaignFilters, emptyFilters, countActiveFilters } from './filters/CampaignFilterTypes'
 
@@ -68,10 +67,6 @@ export function CampaignFilterDrawer({ open, onClose, filters, onApply }: Props)
           <TypeFilter
             selected={draft.types}
             onChange={types => setDraft(d => ({ ...d, types }))}
-          />
-          <StatusFilter
-            selected={draft.statuses}
-            onChange={statuses => setDraft(d => ({ ...d, statuses }))}
           />
           <DateRangeFilter
             startDate={draft.startDate}
