@@ -11,6 +11,7 @@ import { AlertModal } from '../AlertModal'
 import { ConfirmModal } from '../ConfirmModal'
 import { Loading } from '../Loading'
 import { Toast } from '../Toast'
+import { PaginationToolbar } from '../PaginationToolbar'
 import { IconCalendar } from '../icons'
 import { getCurrentUser } from '../../../api/client'
 import { canApproveClaims } from './claimUtils'
@@ -30,6 +31,11 @@ import type { TypeaheadOption } from './filters/TypeaheadMultiSelect'
 interface ClaimReviewGridProps {
   claims: ClaimReviewItem[]
   loading?: boolean
+  /** Total matching rows on the backend, across all pages - used for the "Showing X of Y" footer. */
+  total: number
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
   appliedFilters: ClaimReviewFilters
   onApplyFilters: (filters: ClaimReviewFilters) => void
   onViewDetails: (claim: ClaimReviewItem) => void
@@ -41,7 +47,7 @@ interface ClaimReviewGridProps {
   initialCampaignOption?: TypeaheadOption
 }
 
-export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, onMarkReadyForAccounting, initialCampaignOption }: ClaimReviewGridProps) {
+export function ClaimReviewGrid({ claims, loading = false, total, currentPage, totalPages, onPageChange, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, onMarkReadyForAccounting, initialCampaignOption }: ClaimReviewGridProps) {
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -509,20 +515,15 @@ export function ClaimReviewGrid({ claims, loading = false, appliedFilters, onApp
         {/* footer */}
         <div className="px-5 py-3 border-t border-surface-light-border dark:border-surface-dark-border flex items-center justify-between">
           <span className="text-xs text-ink-light-muted dark:text-ink-dark-muted">
-            Showing {filtered.length} of {claims.length} orders
+            Showing {filtered.length} of {total} orders
           </span>
-          <div className="flex items-center gap-1">
-            <button className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40" disabled>
-              Previous
-            </button>
-            <button className="px-3 py-1.5 text-xs rounded-lg bg-neon-blue/10 border border-neon-blue/30 text-neon-blue font-semibold">
-              1
-            </button>
-            <button className="px-3 py-1.5 text-xs rounded-lg border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-40" disabled>
-              Next
-            </button>
-          </div>
         </div>
+        <PaginationToolbar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          disabled={loading}
+        />
       </Card>
       {optionsError && <Toast message={optionsError} type="error" onDismiss={() => setOptionsError(null)} />}
       {showBulkAmountError && (

@@ -158,7 +158,13 @@ function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
   }
 }
 
-export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page = 0, size = 50): Promise<ClaimReviewItem[]> {
+export interface PagedClaimReviews {
+  items: ClaimReviewItem[]
+  total: number
+  totalPages: number
+}
+
+export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page = 0, size = 50): Promise<PagedClaimReviews> {
   const body = claimReviewFilterBody(filter)
   const res = await fetchWithAuth(`${API_BASE}/claims/review?page=${page}&size=${size}`, {
     method: 'POST',
@@ -166,7 +172,11 @@ export async function fetchClaimsToReview(filter?: ClaimReviewServerFilter, page
     body: JSON.stringify(body),
   })
   const data = (await res.json()) as PageClaimReviewResponseDto
-  return (data.content ?? []).map(mapClaimReview)
+  return {
+    items: (data.content ?? []).map(mapClaimReview),
+    total: data.totalElements ?? 0,
+    totalPages: data.totalPages ?? 0,
+  }
 }
 
 /** POST /reports/claim-review/excel — downloads the claim review report as an .xlsx file for the given filters. */

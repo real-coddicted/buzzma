@@ -81,6 +81,7 @@ public interface CampaignMapper {
   @Mapping(source = "campaign.status", target = "status")
   @Mapping(source = "campaign.platform", target = "platform")
   @Mapping(source = "campaign.type", target = "type")
+  @Mapping(source = "campaign.category", target = "category")
   @Mapping(source = "campaign.totalSlots", target = "totalSlots")
   @Mapping(source = "slotsClaimed", target = "slotsClaimed")
   @Mapping(source = "campaignOwnerName", target = "campaignOwnerName")
