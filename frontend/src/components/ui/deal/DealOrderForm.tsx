@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IconCalendar } from '../icons'
+import { IconCalendar, IconInfo } from '../icons'
 import { ScreenshotUpload } from './ScreenshotUpload'
 import type { ExtractionResponse } from '../../../api/extractionApi'
 import { submitClaim, updateOrderScreenshot } from '../../../api/claimApi'
@@ -207,6 +207,18 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
             onFileChange={handleFileChange}
             initialPreview={resubmit?.initialScreenshotUrl}
           />
+        )}
+        {!readOnly && resubmit && (
+          <div className="w-full rounded-lg border border-surface-light-border dark:border-surface-dark-border px-4 py-3 space-y-1.5">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary">
+              <IconInfo size={13} className="shrink-0 text-neon-blue" />
+              Please note:
+            </p>
+            <ul className="list-disc list-inside text-xs text-ink-light-secondary dark:text-ink-dark-secondary space-y-0.5">
+              <li>These fields are pre-filled from your earlier submission.</li>
+              <li>They won't be auto-updated from your new screenshot - please check and edit them manually as required before submitting again.</li>
+            </ul>
+          </div>
         )}
         {!readOnly && (
           <Field
