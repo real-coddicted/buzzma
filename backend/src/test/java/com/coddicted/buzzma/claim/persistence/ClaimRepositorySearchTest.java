@@ -90,7 +90,7 @@ class ClaimRepositorySearchTest {
   void findClaimsToReviewForMediatorScopesByMediatorOnly() {
     final Page<ClaimReviewModel> result =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, null, null, null, null, PageRequest.of(0, 20));
+            this.mediator1Id, null, null, null, null, null, PageRequest.of(0, 20));
 
     assertEquals(1, result.getTotalElements());
     assertEquals(this.claim1Id, result.getContent().get(0).getClaim().getId());
@@ -100,12 +100,24 @@ class ClaimRepositorySearchTest {
   void findClaimsToReviewForMediatorAppliesCampaignIdsFilter() {
     final Page<ClaimReviewModel> matching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, List.of(this.campaignAId), null, null, null, PageRequest.of(0, 20));
+            this.mediator1Id,
+            List.of(this.campaignAId),
+            null,
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertEquals(1, matching.getTotalElements());
 
     final Page<ClaimReviewModel> nonMatching =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, List.of(this.campaignBId), null, null, null, PageRequest.of(0, 20));
+            this.mediator1Id,
+            List.of(this.campaignBId),
+            null,
+            null,
+            null,
+            null,
+            PageRequest.of(0, 20));
     assertTrue(nonMatching.getContent().isEmpty());
   }
 
@@ -118,6 +130,7 @@ class ClaimRepositorySearchTest {
             List.of(ClaimStatus.UNDER_REVIEW),
             null,
             null,
+            null,
             PageRequest.of(0, 20));
     assertEquals(1, matching.getTotalElements());
 
@@ -126,6 +139,7 @@ class ClaimRepositorySearchTest {
             this.mediator1Id,
             null,
             List.of(ClaimStatus.APPROVED),
+            null,
             null,
             null,
             PageRequest.of(0, 20));
@@ -141,7 +155,7 @@ class ClaimRepositorySearchTest {
 
     final Page<ClaimReviewModel> brandMatch =
         this.claimRepository.findClaimsToReviewForMediator(
-            this.mediator1Id, null, null, List.of("Test brand"), null, PageRequest.of(0, 20));
+            this.mediator1Id, null, null, List.of("Test brand"), null, null, PageRequest.of(0, 20));
     assertEquals(1, brandMatch.getTotalElements());
     assertEquals(this.claim1Id, brandMatch.getContent().get(0).getClaim().getId());
 
@@ -152,6 +166,7 @@ class ClaimRepositorySearchTest {
             null,
             null,
             List.of(Platform.PLATFORM_FLIPKART),
+            null,
             PageRequest.of(0, 20));
     assertEquals(1, platformMatch.getTotalElements());
     assertEquals(claim3.getId(), platformMatch.getContent().get(0).getClaim().getId());
@@ -163,6 +178,7 @@ class ClaimRepositorySearchTest {
             null,
             List.of("Nonexistent Brand"),
             null,
+            null,
             PageRequest.of(0, 20));
     assertTrue(noMatch.getContent().isEmpty());
   }
@@ -172,6 +188,7 @@ class ClaimRepositorySearchTest {
     final Page<ClaimReviewModel> result =
         this.claimRepository.findClaimsToReviewForCampaigns(
             List.of(this.campaignAId, this.campaignBId),
+            null,
             null,
             null,
             null,
@@ -190,6 +207,7 @@ class ClaimRepositorySearchTest {
             null,
             null,
             null,
+            null,
             PageRequest.of(0, 20));
 
     assertEquals(1, result.getTotalElements());
@@ -205,6 +223,7 @@ class ClaimRepositorySearchTest {
             List.of(ClaimStatus.UNDER_REVIEW),
             null,
             null,
+            null,
             PageRequest.of(0, 20));
     assertEquals(2, matching.getTotalElements());
 
@@ -213,6 +232,7 @@ class ClaimRepositorySearchTest {
             List.of(this.campaignAId, this.campaignBId),
             null,
             List.of(ClaimStatus.APPROVED),
+            null,
             null,
             null,
             PageRequest.of(0, 20));
@@ -233,6 +253,7 @@ class ClaimRepositorySearchTest {
             null,
             List.of("Other Brand"),
             null,
+            null,
             PageRequest.of(0, 20));
     assertEquals(1, brandMatch.getTotalElements());
     assertEquals(claim3.getId(), brandMatch.getContent().get(0).getClaim().getId());
@@ -244,8 +265,38 @@ class ClaimRepositorySearchTest {
             null,
             null,
             List.of(Platform.PLATFORM_AMAZON),
+            null,
             PageRequest.of(0, 20));
     assertEquals(2, platformMatch.getTotalElements());
+  }
+
+  @Test
+  void findClaimsToReviewForMediatorMatchesClaimCodeExactly() {
+    // Claim codes are always stored upper-case (see CodeGenerator), so the repository does a
+    // plain equality check - case-insensitivity is applied by the caller before this point.
+    this.claimRepository.save(
+        this.claimRepository.findByIdAndIsDeletedFalse(this.claim1Id).orElseThrow().toBuilder()
+            .code("CLAM-TEST01")
+            .build());
+
+    final Page<ClaimReviewModel> matching =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id, null, null, null, null, "CLAM-TEST01", PageRequest.of(0, 20));
+    assertEquals(1, matching.getTotalElements());
+    assertEquals(this.claim1Id, matching.getContent().get(0).getClaim().getId());
+  }
+
+  @Test
+  void findClaimsToReviewForMediatorDoesNotMatchPartialClaimCode() {
+    this.claimRepository.save(
+        this.claimRepository.findByIdAndIsDeletedFalse(this.claim1Id).orElseThrow().toBuilder()
+            .code("CLAM-TEST01")
+            .build());
+
+    final Page<ClaimReviewModel> nonMatching =
+        this.claimRepository.findClaimsToReviewForMediator(
+            this.mediator1Id, null, null, null, null, "TEST01", PageRequest.of(0, 20));
+    assertTrue(nonMatching.getContent().isEmpty());
   }
 
   private final AtomicInteger mobileSequence = new AtomicInteger(0);

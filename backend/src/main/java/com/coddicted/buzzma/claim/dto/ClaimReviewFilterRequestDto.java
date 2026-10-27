@@ -25,4 +25,6 @@ public class ClaimReviewFilterRequestDto {
   @Nullable Set<String> brands;
 
   @Nullable Set<Platform> platforms;
+
+  @Nullable String claimCode;
 }

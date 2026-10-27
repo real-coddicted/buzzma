@@ -671,9 +671,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Collection<ClaimStatus> claimStatuses,
       final Collection<String> brands,
       final Collection<Platform> platforms,
+      final String claimCode,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForMediator(
-        mediatorId, campaignIds, claimStatuses, brands, platforms, pageable);
+        mediatorId, campaignIds, claimStatuses, brands, platforms, claimCode, pageable);
   }
 
   @Override
@@ -684,9 +685,10 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final Collection<ClaimStatus> claimStatuses,
       final Collection<String> brands,
       final Collection<Platform> platforms,
+      final String claimCode,
       final Pageable pageable) {
     return this.claimRepository.findClaimsToReviewForCampaigns(
-        campaignIds, mediatorIds, claimStatuses, brands, platforms, pageable);
+        campaignIds, mediatorIds, claimStatuses, brands, platforms, claimCode, pageable);
   }
 
   @Override

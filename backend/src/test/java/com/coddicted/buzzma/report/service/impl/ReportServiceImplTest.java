@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +13,7 @@ import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ScreenshotType;
+import com.coddicted.buzzma.claim.model.ClaimReviewSearchFilter;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -41,6 +41,9 @@ import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ReportServiceImplTest {
+
+  private static final ClaimReviewSearchFilter EMPTY_SEARCH_FILTER =
+      new ClaimReviewSearchFilter(null, null, null, null, null, null);
 
   @Mock private ClaimReviewProcessor claimReviewProcessor;
   @Mock private ClaimService claimService;
@@ -84,11 +87,14 @@ class ReportServiceImplTest {
         new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
             eq(agency),
-            eq(Set.of(campaignId)),
-            isNull(),
-            isNull(),
-            eq(Set.of("Acme")),
-            eq(Set.of(Platform.PLATFORM_AMAZON)),
+            eq(
+                new ClaimReviewSearchFilter(
+                    Set.of(campaignId),
+                    null,
+                    null,
+                    Set.of("Acme"),
+                    Set.of(Platform.PLATFORM_AMAZON),
+                    null)),
             any(Pageable.class)))
         .thenReturn(pageOf(row));
 
@@ -97,11 +103,14 @@ class ReportServiceImplTest {
     verify(claimReviewProcessor)
         .listClaimReviews(
             eq(agency),
-            eq(Set.of(campaignId)),
-            isNull(),
-            isNull(),
-            eq(Set.of("Acme")),
-            eq(Set.of(Platform.PLATFORM_AMAZON)),
+            eq(
+                new ClaimReviewSearchFilter(
+                    Set.of(campaignId),
+                    null,
+                    null,
+                    Set.of("Acme"),
+                    Set.of(Platform.PLATFORM_AMAZON),
+                    null)),
             eq(Pageable.unpaged()));
 
     try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(bytes))) {
@@ -162,7 +171,7 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(agency), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+            eq(agency), eq(EMPTY_SEARCH_FILTER), any(Pageable.class)))
         .thenReturn(pageOf(row));
 
     final byte[] bytes = serviceWithMock.generateClaimReviewReport(agency, null);
@@ -197,7 +206,7 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(brand), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+            eq(brand), eq(EMPTY_SEARCH_FILTER), any(Pageable.class)))
         .thenReturn(pageOf(row));
 
     final byte[] bytes = serviceWithMock.generateClaimReviewReport(brand, null);
@@ -229,14 +238,13 @@ class ReportServiceImplTest {
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
     when(claimReviewProcessor.listClaimReviews(
-            eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+            eq(mediator), eq(EMPTY_SEARCH_FILTER), any(Pageable.class)))
         .thenReturn(Page.empty());
 
     serviceWithMock.generateClaimReviewReport(mediator, null);
 
     verify(claimReviewProcessor)
-        .listClaimReviews(
-            eq(mediator), isNull(), isNull(), isNull(), isNull(), isNull(), eq(Pageable.unpaged()));
+        .listClaimReviews(eq(mediator), eq(EMPTY_SEARCH_FILTER), eq(Pageable.unpaged()));
   }
 
   @Test
@@ -265,8 +273,7 @@ class ReportServiceImplTest {
 
     final ReportServiceImpl serviceWithMock =
         new ReportServiceImpl(claimReviewProcessor, claimService, new ExcelReportWriter());
-    when(claimReviewProcessor.listClaimReviews(
-            agency, null, null, null, null, null, Pageable.unpaged()))
+    when(claimReviewProcessor.listClaimReviews(agency, EMPTY_SEARCH_FILTER, Pageable.unpaged()))
         .thenReturn(new PageImpl<>(List.of(rowWithTwo, rowWithOne)));
     when(claimService.listScreenshotsByClaimIds(List.of(claimWithTwo, claimWithOne)))
         .thenReturn(

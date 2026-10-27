@@ -46,6 +46,7 @@ export const SCREENSHOT_TYPE_CONFIG: Record<string, { label: string; tag: string
 
 export const CLAIM_REVIEW_COLUMNS = [
   'Order ID / Order Date',
+  'Claim Code',
   'Campaign / Platform',
   'Brand Name',
   'Brand Verified',

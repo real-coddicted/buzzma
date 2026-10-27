@@ -39,6 +39,7 @@ import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
 import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
+import com.coddicted.buzzma.claim.model.ClaimReviewSearchFilter;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.service.ClaimService;
@@ -108,6 +109,10 @@ class ClaimReviewServiceImplTest {
             this.mockClaimReviewEventPublisher);
   }
 
+  private static ClaimReviewSearchFilter filter() {
+    return new ClaimReviewSearchFilter(null, null, null, null, null, null);
+  }
+
   @Test
   void testGetClaimReviewsForMediatorScopesByOwnDealsOnlyWhenNoFiltersGiven() {
     final BuzzmaUser mediator =
@@ -118,11 +123,17 @@ class ClaimReviewServiceImplTest {
 
     final ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     when(this.mockClaimService.findClaimsToReviewForMediator(
-            eq(MEDIATOR_ID), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture()))
+            eq(MEDIATOR_ID),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            pageableCaptor.capture()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimReviewService.getClaimReviews(mediator, null, null, null, null, null, requested);
+        this.claimReviewService.getClaimReviews(mediator, filter(), requested);
 
     assertSame(expected, result);
     final Pageable usedPageable = pageableCaptor.getValue();
@@ -141,12 +152,17 @@ class ClaimReviewServiceImplTest {
 
     final ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     when(this.mockClaimService.findClaimsToReviewForMediator(
-            eq(MEDIATOR_ID), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture()))
+            eq(MEDIATOR_ID),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            pageableCaptor.capture()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimReviewService.getClaimReviews(
-            mediator, null, null, null, null, null, Pageable.unpaged());
+        this.claimReviewService.getClaimReviews(mediator, filter(), Pageable.unpaged());
 
     assertSame(expected, result);
     assertTrue(pageableCaptor.getValue().isUnpaged());
@@ -160,12 +176,20 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForMediator(
-            eq(MEDIATOR_ID), eq(Set.of(OWNED_CAMPAIGN_ID)), isNull(), isNull(), isNull(), any()))
+            eq(MEDIATOR_ID),
+            eq(Set.of(OWNED_CAMPAIGN_ID)),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            mediator, Set.of(OWNED_CAMPAIGN_ID), null, null, null, null, requested);
+            mediator,
+            new ClaimReviewSearchFilter(Set.of(OWNED_CAMPAIGN_ID), null, null, null, null, null),
+            requested);
 
     assertSame(expected, result);
   }
@@ -183,12 +207,16 @@ class ClaimReviewServiceImplTest {
             eq(Set.of(ClaimStatus.UNDER_REVIEW)),
             isNull(),
             isNull(),
+            isNull(),
             any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            mediator, null, null, Set.of(ClaimStatus.UNDER_REVIEW), null, null, requested);
+            mediator,
+            new ClaimReviewSearchFilter(
+                null, null, Set.of(ClaimStatus.UNDER_REVIEW), null, null, null),
+            requested);
 
     assertSame(expected, result);
   }
@@ -206,22 +234,69 @@ class ClaimReviewServiceImplTest {
             isNull(),
             brandsCaptor.capture(),
             platformsCaptor.capture(),
+            isNull(),
             any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
             mediator,
-            null,
-            null,
-            null,
-            Set.of("Nike"),
-            Set.of(Platform.PLATFORM_AMAZON),
+            new ClaimReviewSearchFilter(
+                null, null, null, Set.of("Nike"), Set.of(Platform.PLATFORM_AMAZON), null),
             requested);
 
     assertSame(expected, result);
     assertEquals(Set.of("Nike"), Set.copyOf(brandsCaptor.getValue()));
     assertEquals(Set.of(Platform.PLATFORM_AMAZON), Set.copyOf(platformsCaptor.getValue()));
+  }
+
+  @Test
+  void testGetClaimReviewsForMediatorPassesThroughClaimCodeFilterTrimmedAndUpperCased() {
+    // The repository does a plain equality check against c.code, which is always stored
+    // upper-case, so the service must upper-case (and trim) the filter value before it gets
+    // there - this is what lets a buyer-typed lowercase code still match.
+    final BuzzmaUser mediator =
+        BuzzmaUser.builder().id(MEDIATOR_ID).role(UserRole.ROLE_MEDIATOR).build();
+    final Pageable requested = Pageable.ofSize(10);
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    final ArgumentCaptor<String> claimCodeCaptor = ArgumentCaptor.forClass(String.class);
+    when(this.mockClaimService.findClaimsToReviewForMediator(
+            eq(MEDIATOR_ID),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            claimCodeCaptor.capture(),
+            any()))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimReviewService.getClaimReviews(
+            mediator,
+            new ClaimReviewSearchFilter(null, null, null, null, null, "  clam-x3nk  "),
+            requested);
+
+    assertSame(expected, result);
+    assertEquals("CLAM-X3NK", claimCodeCaptor.getValue());
+  }
+
+  @Test
+  void testGetClaimReviewsForMediatorBlankClaimCodeNormalizesToNull() {
+    final BuzzmaUser mediator =
+        BuzzmaUser.builder().id(MEDIATOR_ID).role(UserRole.ROLE_MEDIATOR).build();
+    final Pageable requested = Pageable.ofSize(10);
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    when(this.mockClaimService.findClaimsToReviewForMediator(
+            eq(MEDIATOR_ID), isNull(), isNull(), isNull(), isNull(), isNull(), any()))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimReviewService.getClaimReviews(
+            mediator, new ClaimReviewSearchFilter(null, null, null, null, null, "   "), requested);
+
+    assertSame(expected, result);
   }
 
   @Test
@@ -232,12 +307,14 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForMediator(
-            eq(MEDIATOR_ID), isNull(), isNull(), isNull(), isNull(), any()))
+            eq(MEDIATOR_ID), isNull(), isNull(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            mediator, null, Set.of(OTHER_MEDIATOR_ID), null, null, null, requested);
+            mediator,
+            new ClaimReviewSearchFilter(null, Set.of(OTHER_MEDIATOR_ID), null, null, null, null),
+            requested);
 
     assertSame(expected, result);
     verifyNoInteractions(this.mockCampaignService);
@@ -255,11 +332,11 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), any()))
+            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimReviewService.getClaimReviews(agency, null, null, null, null, null, requested);
+        this.claimReviewService.getClaimReviews(agency, filter(), requested);
 
     assertSame(expected, result);
     assertEquals(Set.of(OWNED_CAMPAIGN_ID), Set.copyOf(campaignIdsCaptor.getValue()));
@@ -277,11 +354,11 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), any()))
+            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
-        this.claimReviewService.getClaimReviews(brand, null, null, null, null, null, requested);
+        this.claimReviewService.getClaimReviews(brand, filter(), requested);
 
     assertSame(expected, result);
     assertEquals(Set.of(SHARED_CAMPAIGN_ID), Set.copyOf(campaignIdsCaptor.getValue()));
@@ -305,17 +382,14 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), any()))
+            campaignIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
             agency,
-            Set.of(OWNED_CAMPAIGN_ID, NOT_OWNED_CAMPAIGN_ID),
-            null,
-            null,
-            null,
-            null,
+            new ClaimReviewSearchFilter(
+                Set.of(OWNED_CAMPAIGN_ID, NOT_OWNED_CAMPAIGN_ID), null, null, null, null, null),
             requested);
 
     assertSame(expected, result);
@@ -337,12 +411,14 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            any(), mediatorIdsCaptor.capture(), isNull(), isNull(), isNull(), any()))
+            any(), mediatorIdsCaptor.capture(), isNull(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            agency, null, Set.of(MEDIATOR_ID), null, null, null, requested);
+            agency,
+            new ClaimReviewSearchFilter(null, Set.of(MEDIATOR_ID), null, null, null, null),
+            requested);
 
     assertSame(expected, result);
     assertEquals(Set.of(MEDIATOR_ID), Set.copyOf(mediatorIdsCaptor.getValue()));
@@ -363,12 +439,15 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            any(), isNull(), claimStatusesCaptor.capture(), isNull(), isNull(), any()))
+            any(), isNull(), claimStatusesCaptor.capture(), isNull(), isNull(), isNull(), any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            agency, null, null, Set.of(ClaimStatus.UNDER_REVIEW), null, null, requested);
+            agency,
+            new ClaimReviewSearchFilter(
+                null, null, Set.of(ClaimStatus.UNDER_REVIEW), null, null, null),
+            requested);
 
     assertSame(expected, result);
     assertEquals(Set.of(ClaimStatus.UNDER_REVIEW), Set.copyOf(claimStatusesCaptor.getValue()));
@@ -389,22 +468,54 @@ class ClaimReviewServiceImplTest {
     final Page<ClaimReviewModel> expected =
         new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
     when(this.mockClaimService.findClaimsToReviewForCampaigns(
-            any(), isNull(), isNull(), brandsCaptor.capture(), platformsCaptor.capture(), any()))
+            any(),
+            isNull(),
+            isNull(),
+            brandsCaptor.capture(),
+            platformsCaptor.capture(),
+            isNull(),
+            any()))
         .thenReturn(expected);
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
             agency,
-            null,
-            null,
-            null,
-            Set.of("Adidas"),
-            Set.of(Platform.PLATFORM_FLIPKART),
+            new ClaimReviewSearchFilter(
+                null, null, null, Set.of("Adidas"), Set.of(Platform.PLATFORM_FLIPKART), null),
             requested);
 
     assertSame(expected, result);
     assertEquals(Set.of("Adidas"), Set.copyOf(brandsCaptor.getValue()));
     assertEquals(Set.of(Platform.PLATFORM_FLIPKART), Set.copyOf(platformsCaptor.getValue()));
+  }
+
+  @Test
+  void testGetClaimReviewsForAgencyPassesThroughClaimCodeFilterTrimmedAndUpperCased() {
+    final BuzzmaUser agency = BuzzmaUser.builder().id(AGENCY_ID).role(UserRole.ROLE_AGENCY).build();
+    final Pageable requested = Pageable.ofSize(10);
+
+    when(this.mockCampaignService.getByOwnerId(AGENCY_ID))
+        .thenReturn(
+            List.of(
+                CampaignSummary.builder()
+                    .campaign(Campaign.builder().id(OWNED_CAMPAIGN_ID).build())
+                    .build()));
+
+    final Page<ClaimReviewModel> expected =
+        new PageImpl<>(List.of(ClaimReviewModel.builder().build()));
+    final ArgumentCaptor<String> claimCodeCaptor = ArgumentCaptor.forClass(String.class);
+    when(this.mockClaimService.findClaimsToReviewForCampaigns(
+            any(), isNull(), isNull(), isNull(), isNull(), claimCodeCaptor.capture(), any()))
+        .thenReturn(expected);
+
+    final Page<ClaimReviewModel> result =
+        this.claimReviewService.getClaimReviews(
+            agency,
+            new ClaimReviewSearchFilter(null, null, null, null, null, " clam-x3nk "),
+            requested);
+
+    assertSame(expected, result);
+    assertEquals("CLAM-X3NK", claimCodeCaptor.getValue());
   }
 
   @Test
@@ -415,7 +526,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockCampaignService.getByOwnerId(AGENCY_ID)).thenReturn(List.of());
 
     final Page<ClaimReviewModel> result =
-        this.claimReviewService.getClaimReviews(agency, null, null, null, null, null, requested);
+        this.claimReviewService.getClaimReviews(agency, filter(), requested);
 
     assertTrue(result.getContent().isEmpty());
     verifyNoInteractions(this.mockClaimService);
@@ -435,7 +546,10 @@ class ClaimReviewServiceImplTest {
 
     final Page<ClaimReviewModel> result =
         this.claimReviewService.getClaimReviews(
-            agency, Set.of(NOT_OWNED_CAMPAIGN_ID), null, null, null, null, requested);
+            agency,
+            new ClaimReviewSearchFilter(
+                Set.of(NOT_OWNED_CAMPAIGN_ID), null, null, null, null, null),
+            requested);
 
     assertTrue(result.getContent().isEmpty());
     verifyNoInteractions(this.mockClaimService);

@@ -14,6 +14,7 @@ import com.coddicted.buzzma.claim.entity.ClaimStatus;
 import com.coddicted.buzzma.claim.entity.ReviewerDecision;
 import com.coddicted.buzzma.claim.entity.ScreenshotVerificationStatus;
 import com.coddicted.buzzma.claim.model.ClaimReviewModel;
+import com.coddicted.buzzma.claim.model.ClaimReviewSearchFilter;
 import com.coddicted.buzzma.claim.model.ClaimWithDeal;
 import com.coddicted.buzzma.claim.notification.ClaimReviewEventPublisher;
 import com.coddicted.buzzma.claim.policy.ClaimReviewPolicy;
@@ -22,7 +23,6 @@ import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.shared.common.BaseCrudService;
-import com.coddicted.buzzma.shared.enums.Platform;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
 import java.math.BigInteger;
@@ -43,6 +43,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimReviewService {
@@ -85,13 +86,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
   @Override
   @Transactional(readOnly = true)
   public Page<ClaimReviewModel> getClaimReviews(
-      final BuzzmaUser requester,
-      final Set<UUID> campaignIdsFilter,
-      final Set<UUID> mediatorIdsFilter,
-      final Set<ClaimStatus> claimStatusFilter,
-      final Set<String> brandsFilter,
-      final Set<Platform> platformsFilter,
-      final Pageable pageable) {
+      final BuzzmaUser requester, final ClaimReviewSearchFilter filter, final Pageable pageable) {
     // updatedAt-descending ordering is a business rule enforced in the repository queries
     // themselves, so any client-supplied sort is stripped here to avoid a conflicting ORDER BY.
     // Pageable.unpaged() (used by report generation to fetch every matching row) throws on
@@ -100,22 +95,28 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
         pageable.isPaged()
             ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize())
             : Pageable.unpaged();
+    // Claim codes are always generated upper-case (see CodeGenerator), so upper-casing the filter
+    // value here lets the repository do a plain equality check instead of wrapping c.code in
+    // UPPER(...) on every row.
+    final String claimCode =
+        StringUtils.hasText(filter.claimCode()) ? filter.claimCode().trim().toUpperCase() : null;
 
     if (requester.getRole() == UserRole.ROLE_MEDIATOR) {
       // A mediator can only ever see their own claims, so mediatorIdsFilter is meaningless here
       // and is ignored entirely.
       return this.claimService.findClaimsToReviewForMediator(
           requester.getId(),
-          emptyToNull(campaignIdsFilter),
-          emptyToNull(claimStatusFilter),
-          emptyToNull(brandsFilter),
-          emptyToNull(platformsFilter),
+          emptyToNull(filter.campaignIds()),
+          emptyToNull(filter.claimStatuses()),
+          emptyToNull(filter.brands()),
+          emptyToNull(filter.platforms()),
+          claimCode,
           unsortedPageable);
     }
 
     // campaignIdsFilter only ever narrows within the agency's owned campaigns, never broadens it.
     final Set<UUID> campaignIds =
-        intersect(getApplicableCampaignIds(requester.getId()), campaignIdsFilter);
+        intersect(getApplicableCampaignIds(requester.getId()), filter.campaignIds());
     if (campaignIds.isEmpty()) {
       LOGGER.info("No applicable campaigns found for role {}", requester.getRole());
       return Page.empty(unsortedPageable);
@@ -123,10 +124,11 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
 
     return this.claimService.findClaimsToReviewForCampaigns(
         campaignIds,
-        emptyToNull(mediatorIdsFilter),
-        emptyToNull(claimStatusFilter),
-        emptyToNull(brandsFilter),
-        emptyToNull(platformsFilter),
+        emptyToNull(filter.mediatorIds()),
+        emptyToNull(filter.claimStatuses()),
+        emptyToNull(filter.brands()),
+        emptyToNull(filter.platforms()),
+        claimCode,
         unsortedPageable);
   }
 

@@ -5,6 +5,7 @@ import type { ClaimReviewItem } from '../../../../types'
 function makeRow(overrides: Partial<ClaimReviewItem> = {}): ClaimReviewItem {
   return {
     id: '1',
+    claimCode: 'CLAM-X3NK',
     campaignId: 'camp-1',
     campaignName: 'Summer Sale',
     orderId: 'ORD-1',
@@ -38,8 +39,19 @@ describe('countActiveFilters', () => {
       platforms: new Set<ClaimReviewItem['platform']>(['PLATFORM_AMAZON']),
       claimStatuses: new Set<ClaimReviewItem['claimStatus']>([]),
       mediatorIds: new Set(['med-1']),
+      claimCode: '',
     }
     expect(countActiveFilters(f)).toBe(5)
+  })
+
+  it('counts a non-blank claim code as one active filter', () => {
+    const f = { ...emptyFilters(), claimCode: 'CLAM-X3NK' }
+    expect(countActiveFilters(f)).toBe(1)
+  })
+
+  it('does not count a blank or whitespace-only claim code', () => {
+    const f = { ...emptyFilters(), claimCode: '   ' }
+    expect(countActiveFilters(f)).toBe(0)
   })
 })
 
@@ -82,5 +94,16 @@ describe('matchesFilters', () => {
     const f = { ...emptyFilters(), brands: new Set(['Nike']), platforms: new Set<ClaimReviewItem['platform']>(['PLATFORM_AMAZON']) }
     expect(matchesFilters(makeRow({ brandName: 'Nike', platform: 'PLATFORM_AMAZON' }), f)).toBe(true)
     expect(matchesFilters(makeRow({ brandName: 'Nike', platform: 'PLATFORM_FLIPKART' }), f)).toBe(false)
+  })
+
+  it('filters by claim code, exact match case-insensitive', () => {
+    const f = { ...emptyFilters(), claimCode: 'clam-x3nk' }
+    expect(matchesFilters(makeRow({ claimCode: 'CLAM-X3NK' }), f)).toBe(true)
+    expect(matchesFilters(makeRow({ claimCode: 'CLAM-OTHER' }), f)).toBe(false)
+  })
+
+  it('does not match claim code by substring', () => {
+    const f = { ...emptyFilters(), claimCode: 'X3NK' }
+    expect(matchesFilters(makeRow({ claimCode: 'CLAM-X3NK' }), f)).toBe(false)
   })
 })

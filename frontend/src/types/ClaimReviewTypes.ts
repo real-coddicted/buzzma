@@ -44,6 +44,7 @@ export interface ClaimScreenshotItem {
 
 export interface ClaimReviewItem {
   id: string
+  claimCode?: string
   campaignId: string
   campaignName: string
   orderId: string

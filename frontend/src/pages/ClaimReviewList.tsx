@@ -38,6 +38,7 @@ export function ClaimReviewList({ onViewDetails, onOpenImport }: ClaimReviewList
       brands: appliedFilters.brands,
       platforms: appliedFilters.platforms,
       claimStatuses: appliedFilters.claimStatuses,
+      claimCode: appliedFilters.claimCode,
     }, page - 1)
       .then(result => {
         setClaims(result.items)

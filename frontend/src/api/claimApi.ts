@@ -65,6 +65,7 @@ function mapClaimReview(dto: ClaimReviewResponseDto): ClaimReviewItem {
   const backendStatus = (dto.claimStatus ?? 'ORDERED') as BackendClaimStatus
   return {
     id: dto.claimId ?? dto.id ?? '',
+    claimCode: dto.claimCode ?? '',
     campaignId: dto.campaignId ?? '',
     campaignName: dto.campaignName ?? '',
     orderId: dto.ecommerceOrderId ?? '',
@@ -146,6 +147,7 @@ export interface ClaimReviewServerFilter {
   brands?: Set<string>
   platforms?: Set<Platform>
   claimStatuses?: Set<ClaimStatus>
+  claimCode?: string
 }
 
 function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
@@ -155,6 +157,7 @@ function claimReviewFilterBody(filter?: ClaimReviewServerFilter) {
     brands: filter?.brands && filter.brands.size > 0 ? [...filter.brands] : null,
     platforms: filter?.platforms && filter.platforms.size > 0 ? [...filter.platforms] : null,
     claimStatuses: filter?.claimStatuses && filter.claimStatuses.size > 0 ? [...filter.claimStatuses] : null,
+    claimCode: filter?.claimCode?.trim() ? filter.claimCode.trim() : null,
   }
 }
 

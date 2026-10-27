@@ -121,6 +121,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
+            AND (CAST(:claimCode AS string) IS NULL OR c.code = CAST(:claimCode AS string))
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -133,6 +134,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
+            AND (CAST(:claimCode AS string) IS NULL OR c.code = CAST(:claimCode AS string))
           """)
   Page<ClaimReviewModel> findClaimsToReviewForMediator(
       @Param("mediatorId") UUID mediatorId,
@@ -140,6 +142,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       @Param("brands") Collection<String> brands,
       @Param("platforms") Collection<Platform> platforms,
+      @Param("claimCode") String claimCode,
       Pageable pageable);
 
   @Query(
@@ -156,6 +159,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
+            AND (CAST(:claimCode AS string) IS NULL OR c.code = CAST(:claimCode AS string))
           ORDER BY c.updatedAt DESC
           """,
       countQuery =
@@ -168,6 +172,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
             AND (:claimStatuses IS NULL OR c.status IN :claimStatuses)
             AND (:brands IS NULL OR d.campaign.product.brandName IN :brands)
             AND (:platforms IS NULL OR d.campaign.platform IN :platforms)
+            AND (CAST(:claimCode AS string) IS NULL OR c.code = CAST(:claimCode AS string))
           """)
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
       @Param("campaignIds") Collection<UUID> campaignIds,
@@ -175,6 +180,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
       @Param("claimStatuses") Collection<ClaimStatus> claimStatuses,
       @Param("brands") Collection<String> brands,
       @Param("platforms") Collection<Platform> platforms,
+      @Param("claimCode") String claimCode,
       Pageable pageable);
 
   @Query(

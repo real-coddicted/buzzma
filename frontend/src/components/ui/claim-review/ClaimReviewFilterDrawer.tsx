@@ -59,6 +59,16 @@ export function ClaimReviewFilterDrawer({ open, onClose, filters, onApply, campa
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-ink-light-secondary dark:text-ink-dark-secondary">Claim Code</label>
+            <input
+              type="text"
+              value={draft.claimCode}
+              onChange={e => setDraft(d => ({ ...d, claimCode: e.target.value }))}
+              placeholder="e.g. CLAM-X3NK-BHP2"
+              className="w-full px-3 py-2 rounded-lg text-xs bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border text-ink-light-primary dark:text-ink-dark-primary placeholder:text-ink-light-muted dark:placeholder:text-ink-dark-muted focus:outline-none focus:border-neon-blue/50"
+            />
+          </div>
           <TypeaheadMultiSelect
             label="Campaign"
             options={campaignOptions}

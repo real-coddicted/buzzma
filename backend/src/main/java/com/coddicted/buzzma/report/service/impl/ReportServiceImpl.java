@@ -3,6 +3,7 @@ package com.coddicted.buzzma.report.service.impl;
 import com.coddicted.buzzma.claim.dto.ClaimReviewFilterRequestDto;
 import com.coddicted.buzzma.claim.dto.ClaimReviewResponseDto;
 import com.coddicted.buzzma.claim.entity.ClaimScreenshot;
+import com.coddicted.buzzma.claim.model.ClaimReviewSearchFilter;
 import com.coddicted.buzzma.claim.processor.ClaimReviewProcessor;
 import com.coddicted.buzzma.claim.service.ClaimService;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
@@ -40,16 +41,10 @@ public class ReportServiceImpl implements ReportService {
   @Transactional(readOnly = true)
   public byte[] generateClaimReviewReport(
       final BuzzmaUser requester, final ClaimReviewFilterRequestDto filter) {
+    final ClaimReviewSearchFilter searchFilter = ClaimReviewSearchFilter.from(filter);
     final List<ClaimReviewResponseDto> rows =
         this.claimReviewProcessor
-            .listClaimReviews(
-                requester,
-                filter != null ? filter.getCampaignIds() : null,
-                filter != null ? filter.getMediatorIds() : null,
-                filter != null ? filter.getClaimStatuses() : null,
-                filter != null ? filter.getBrands() : null,
-                filter != null ? filter.getPlatforms() : null,
-                Pageable.unpaged())
+            .listClaimReviews(requester, searchFilter, Pageable.unpaged())
             .getContent();
 
     final Map<UUID, List<ClaimScreenshot>> screenshotsByClaimId =

@@ -134,6 +134,7 @@ public interface ClaimService {
       Collection<ClaimStatus> claimStatuses,
       Collection<String> brands,
       Collection<Platform> platforms,
+      String claimCode,
       Pageable pageable);
 
   Page<ClaimReviewModel> findClaimsToReviewForCampaigns(
@@ -142,6 +143,7 @@ public interface ClaimService {
       Collection<ClaimStatus> claimStatuses,
       Collection<String> brands,
       Collection<Platform> platforms,
+      String claimCode,
       Pageable pageable);
 
   List<ClaimReviewModel> findClaimReviewModels(Collection<UUID> claimIds);

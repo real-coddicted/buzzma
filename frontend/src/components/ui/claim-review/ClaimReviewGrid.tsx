@@ -198,6 +198,7 @@ export function ClaimReviewGrid({ claims, loading = false, total, currentPage, t
         brands: appliedFilters.brands,
         platforms: appliedFilters.platforms,
         claimStatuses: appliedFilters.claimStatuses,
+        claimCode: appliedFilters.claimCode,
       })
     } catch (err) {
       console.error('Failed to download claim review report', err)
@@ -412,6 +413,9 @@ export function ClaimReviewGrid({ claims, loading = false, total, currentPage, t
                           <span className="font-mono text-xs">{row.orderDate || '—'}</span>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-5 py-4 font-mono text-ink-light-muted dark:text-ink-dark-muted">
+                      {row.claimCode || '—'}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1">
