@@ -148,6 +148,65 @@ class CampaignRepositorySearchTest {
     assertEquals(java.util.Arrays.asList(20240601, 20240101, null), startDates);
   }
 
+  @Test
+  void returnsEveryCampaignExactlyOnceWhenStartDatesTie() {
+    final List<UUID> tiedCampaignIds =
+        List.of(
+            save(
+                    this.ownerId,
+                    "Puma",
+                    Platform.PLATFORM_AMAZON,
+                    CampaignType.CAMPAIGN_TYPE_REVIEW,
+                    CampaignStatus.CAMPAIGN_STATUS_ACTIVE,
+                    20240901,
+                    null)
+                .getId(),
+            save(
+                    this.ownerId,
+                    "Puma",
+                    Platform.PLATFORM_AMAZON,
+                    CampaignType.CAMPAIGN_TYPE_REVIEW,
+                    CampaignStatus.CAMPAIGN_STATUS_ACTIVE,
+                    20240901,
+                    null)
+                .getId(),
+            save(
+                    this.ownerId,
+                    "Puma",
+                    Platform.PLATFORM_AMAZON,
+                    CampaignType.CAMPAIGN_TYPE_REVIEW,
+                    CampaignStatus.CAMPAIGN_STATUS_ACTIVE,
+                    20240901,
+                    null)
+                .getId(),
+            save(
+                    this.ownerId,
+                    "Puma",
+                    Platform.PLATFORM_AMAZON,
+                    CampaignType.CAMPAIGN_TYPE_REVIEW,
+                    CampaignStatus.CAMPAIGN_STATUS_ACTIVE,
+                    20240901,
+                    null)
+                .getId());
+
+    final Page<Campaign> firstPage =
+        this.campaignRepository.search(
+            this.ownerId, List.of("puma"), null, null, null, null, null, PageRequest.of(0, 2));
+    final Page<Campaign> secondPage =
+        this.campaignRepository.search(
+            this.ownerId, List.of("puma"), null, null, null, null, null, PageRequest.of(1, 2));
+
+    final List<UUID> fetchedIds =
+        java.util.stream.Stream.concat(
+                firstPage.getContent().stream(), secondPage.getContent().stream())
+            .map(Campaign::getId)
+            .toList();
+
+    assertEquals(4, firstPage.getTotalElements());
+    assertEquals(4, fetchedIds.size());
+    assertEquals(java.util.Set.copyOf(tiedCampaignIds), java.util.Set.copyOf(fetchedIds));
+  }
+
   private void save(
       final UUID ownerId,
       final String brand,

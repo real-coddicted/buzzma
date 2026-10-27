@@ -14,11 +14,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.coddicted.buzzma.campaign.entity.Campaign;
 import com.coddicted.buzzma.campaign.entity.CampaignShare;
 import com.coddicted.buzzma.campaign.entity.CampaignStatus;
+import com.coddicted.buzzma.campaign.entity.CampaignType;
+import com.coddicted.buzzma.campaign.entity.Product;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
+import com.coddicted.buzzma.shared.enums.Platform;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -127,6 +137,66 @@ class CampaignRepositorySharedCampaignsTest {
 
     assertEquals(1, matching.getTotalElements());
     assertEquals(0, nonMatching.getTotalElements());
+  }
+
+  @Test
+  void returnsEveryCampaignExactlyOnceWhenStartDatesTie() {
+    final BuzzmaUser agency = this.usersRepository.save(AGENCY_USER.toBuilder().build());
+    final List<Campaign> tiedCampaigns =
+        List.of(
+            saveTiedCampaign(agency.getId()),
+            saveTiedCampaign(agency.getId()),
+            saveTiedCampaign(agency.getId()),
+            saveTiedCampaign(agency.getId()));
+    tiedCampaigns.forEach(c -> saveShare(c.getId(), agency.getId(), BRAND_ID));
+
+    final Page<Campaign> firstPage = findShared(BRAND_ID, PageRequest.of(0, 2));
+    final Page<Campaign> secondPage = findShared(BRAND_ID, PageRequest.of(1, 2));
+
+    final List<UUID> fetchedIds =
+        Stream.concat(firstPage.getContent().stream(), secondPage.getContent().stream())
+            .map(Campaign::getId)
+            .toList();
+
+    assertEquals(4, firstPage.getTotalElements());
+    assertEquals(4, fetchedIds.size());
+    assertEquals(
+        Set.copyOf(tiedCampaigns.stream().map(Campaign::getId).toList()), Set.copyOf(fetchedIds));
+  }
+
+  private Campaign saveTiedCampaign(final UUID ownerId) {
+    final Product product =
+        Product.builder()
+            .name("Tied test product")
+            .brandName("Tied Brand")
+            .imageUrls(List.of(url("https://example.com/tied-image.jpg")))
+            .productLink(url("https://example.com/tied-product"))
+            .pricePaise(BigInteger.valueOf(10000))
+            .build();
+    return this.campaignRepository.save(
+        Campaign.builder()
+            .title("Tied campaign")
+            .ownerId(ownerId)
+            .createdBy(ownerId)
+            .updatedBy(ownerId)
+            .totalSlots(10)
+            .product(product)
+            .platform(Platform.PLATFORM_AMAZON)
+            .type(CampaignType.CAMPAIGN_TYPE_REVIEW)
+            .status(CampaignStatus.CAMPAIGN_STATUS_ACTIVE)
+            .startDate(20240701)
+            .endDate(20990101)
+            .openToAll(false)
+            .isDeleted(false)
+            .build());
+  }
+
+  private static URL url(final String value) {
+    try {
+      return new URI(value).toURL();
+    } catch (final MalformedURLException | URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Page<Campaign> findShared(final UUID toUserId, final PageRequest pageRequest) {

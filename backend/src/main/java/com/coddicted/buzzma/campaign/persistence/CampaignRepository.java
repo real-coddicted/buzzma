@@ -49,7 +49,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
               ((:fromDate IS NULL OR c.endDate >= :fromDate)
                 AND (:toDate IS NULL OR c.endDate <= :toDate))
             )
-          ORDER BY c.startDate DESC NULLS LAST
+          ORDER BY c.startDate DESC NULLS LAST, c.id
           """,
       countQuery =
           """
@@ -199,7 +199,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
               ((:fromDate IS NULL OR c.endDate >= :fromDate)
                 AND (:toDate IS NULL OR c.endDate <= :toDate))
             )
-          ORDER BY c.startDate DESC
+          ORDER BY c.startDate DESC, c.id
           """,
       countQuery =
           """
