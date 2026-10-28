@@ -16,12 +16,17 @@ import com.coddicted.buzzma.shared.security.JwtProperties;
 import com.coddicted.buzzma.shared.security.JwtService;
 import com.coddicted.buzzma.shared.turnstile.TurnstileClient;
 import com.coddicted.buzzma.shared.util.FileUtils;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AuthController.class)
@@ -49,12 +54,32 @@ class AuthControllerTest {
   private static final String VALID_RESET_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/identity/password-reset-request-1.json");
 
+  private static final String VALID_LOOKUP_BODY =
+      FileUtils.loadResourceAsString(
+          "/fixtures/input/identity/forgot-password-lookup-request-1.json");
+
   private static final String VALID_UPDATE_BODY =
       FileUtils.loadResourceAsString("/fixtures/input/identity/password-update-request-1.json");
 
   private static final String MOBILE = "9876543210";
+  private static final UUID QUESTION_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
+  private static final String ANSWER = "plain-answer";
   private static final String CURRENT_PASSWORD = "oldpass12";
   private static final String NEW_PASSWORD = "NewPass@123";
+
+  @AfterEach
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
+
+  // Filters are off here, so set the principal an unauthenticated request really carries:
+  // Spring's anonymous token, whose principal is the String "anonymousUser".
+  private static void actAsAnonymousUser() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new AnonymousAuthenticationToken(
+                "key", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+  }
 
   // --- POST /api/v1/auth/register ---
 
@@ -134,7 +159,35 @@ class AuthControllerTest {
         .andExpect(jsonPath("$.fields.password").value("Password must be at least 8 characters"));
   }
 
+  // --- POST /api/v1/auth/forgot-password/lookup ---
+
+  @Test
+  void testForgotPasswordLookupAsAnonymousUserReturnsOk() throws Exception {
+    actAsAnonymousUser();
+    mockMvc
+        .perform(
+            post("/api/v1/auth/forgot-password/lookup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_LOOKUP_BODY))
+        .andExpect(status().isOk());
+
+    verify(authService).getSecurityQuestionsByMobile(MOBILE);
+  }
+
   // --- POST /api/v1/auth/password-reset ---
+
+  @Test
+  void testPasswordResetAsAnonymousUserReturnsOk() throws Exception {
+    actAsAnonymousUser();
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_RESET_BODY))
+        .andExpect(status().isOk());
+
+    verify(authService).resetPassword(MOBILE, QUESTION_ID, ANSWER, NEW_PASSWORD);
+  }
 
   @Test
   void testPasswordResetWithValidPasswordReturnsOk() throws Exception {
@@ -145,7 +198,7 @@ class AuthControllerTest {
                 .content(VALID_RESET_BODY))
         .andExpect(status().isOk());
 
-    verify(authService).resetPassword(MOBILE, NEW_PASSWORD, null);
+    verify(authService).resetPassword(MOBILE, QUESTION_ID, ANSWER, NEW_PASSWORD);
   }
 
   @Test
@@ -161,6 +214,32 @@ class AuthControllerTest {
         .andExpect(
             jsonPath("$.fields.newPassword")
                 .value("Password must contain at least one uppercase letter"));
+  }
+
+  @Test
+  void testPasswordResetWithoutSecurityAnswerReturnsBadRequest() throws Exception {
+    final String body = VALID_RESET_BODY.replace("\"answer\": \"plain-answer\",\n  ", "");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testPasswordResetWithoutQuestionIdReturnsBadRequest() throws Exception {
+    final String body =
+        VALID_RESET_BODY.replace(
+            "\"questionId\": \"55555555-5555-5555-5555-555555555555\",\n  ", "");
+
+    mockMvc
+        .perform(
+            post("/api/v1/auth/password-reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
   }
 
   // --- POST /api/v1/auth/password-update ---

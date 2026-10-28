@@ -3,11 +3,14 @@ import { Button } from '../components/ui/Button'
 import { PasswordRequirements } from '../components/ui/PasswordRequirements'
 import { APP_NAME } from '../constants/app'
 import { getPasswordError } from '../utils/passwordPolicy'
-import type { ResetPasswordForm } from '../types/ForgotPasswordTypes'
+import { resetPassword } from '../api/authApi'
+import type { PasswordResetChallenge, ResetPasswordForm } from '../types/ForgotPasswordTypes'
 
 interface ResetPasswordProps {
+  challenge: PasswordResetChallenge
   onSuccess: () => void
   onGoToLogin: () => void
+  onBack: () => void
 }
 
 const inputBase =
@@ -63,12 +66,14 @@ function PasswordInput({
   )
 }
 
-export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
+export function ResetPassword({ challenge, onSuccess, onGoToLogin, onBack }: ResetPasswordProps) {
   const [form, setForm] = useState<ResetPasswordForm>({
     password: '',
     confirmPassword: '',
   })
   const [errors, setErrors] = useState<Partial<Record<keyof ResetPasswordForm, string>>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   function set<K extends keyof ResetPasswordForm>(key: K, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -88,9 +93,23 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
     return Object.keys(next).length === 0
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (validate()) onSuccess()
+    if (!validate()) return
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const res = await resetPassword(challenge, form.password)
+      if (res.success) {
+        onSuccess()
+      } else {
+        setSubmitError(res.message)
+      }
+    } catch {
+      setSubmitError('Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -102,6 +121,17 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
             Set a new password
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to security question
+        </button>
 
         <div className="rounded-2xl border border-surface-light-border dark:border-surface-dark-border bg-surface-light-card dark:bg-surface-dark-card shadow-card-light dark:shadow-card-dark p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -130,7 +160,20 @@ export function ResetPassword({ onSuccess, onGoToLogin }: ResetPasswordProps) {
               />
             </div>
 
-            <Button type="submit" variant="primary" size="lg" className="w-full mt-2">
+            {submitError && (
+              <p className="text-xs text-neon-red">
+                {submitError}{' '}
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="text-neon-blue hover:underline font-medium"
+                >
+                  Go back
+                </button>
+              </p>
+            )}
+
+            <Button type="submit" variant="primary" size="lg" loading={submitting} className="w-full mt-2">
               Reset Password
             </Button>
           </form>

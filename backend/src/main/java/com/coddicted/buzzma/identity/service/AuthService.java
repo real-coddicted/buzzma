@@ -22,9 +22,9 @@ public interface AuthService {
 
   SignInResult signIn(BuzzmaUser user, UserCredential userCredential);
 
-  List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile, UUID requesterId);
+  List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(String mobile);
 
-  boolean resetPassword(String mobile, String newPassword, UUID requesterId);
+  boolean resetPassword(String mobile, UUID questionId, String answer, String newPassword);
 
   TokensDto refresh(String refreshToken);
 

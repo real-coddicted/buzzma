@@ -22,6 +22,7 @@ import com.coddicted.buzzma.settings.entity.UserSettings;
 import com.coddicted.buzzma.settings.service.UserSettingsService;
 import com.coddicted.buzzma.settings.util.SettingsUtils;
 import com.coddicted.buzzma.shared.exception.BusinessRuleViolationException;
+import com.coddicted.buzzma.shared.exception.NotFoundException;
 import com.coddicted.buzzma.shared.exception.PasswordMatchException;
 import com.coddicted.buzzma.shared.exception.UnauthorizedException;
 import com.coddicted.buzzma.shared.security.JwtProperties;
@@ -77,21 +78,43 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(
-      final String mobile, final UUID requesterId) {
+  public List<SecurityQuestionWrapper> getSecurityQuestionsByMobile(final String mobile) {
     final BuzzmaUser existingUser = this.userService.getByMobile(mobile);
     return this.securityQuestionAnswerService.getSecurityQuestionsByUserId(existingUser.getId());
   }
 
   @Override
+  @Transactional
   public boolean resetPassword(
-      final String mobile, final String newPassword, final UUID requesterId) {
+      final String mobile, final UUID questionId, final String answer, final String newPassword) {
     final BuzzmaUser existingUser = this.userService.getByMobile(mobile);
-    final UserCredential existingUserCredential =
-        this.userCredentialService.getByUserId(existingUser.getId(), requesterId);
+    final UUID userId = existingUser.getId();
+    if (!isSecurityAnswerCorrect(userId, questionId, answer)) {
+      LOG.warn("Password reset rejected: incorrect security answer for user {}", userId);
+      throw new UnauthorizedException("Incorrect security answer");
+    }
+    final UserCredential existingUserCredential = this.userCredentialService.getByUserId(userId);
     final UserCredential updatedUserCredential =
         existingUserCredential.toBuilder().passwordHash(newPassword).build();
-    return this.userCredentialService.update(updatedUserCredential, requesterId);
+    final boolean updated = this.userCredentialService.update(updatedUserCredential, userId);
+    // sign the user out everywhere so a session opened with the old password does not survive
+    this.refreshTokenService.revokeAll(userId);
+    return updated;
+  }
+
+  private boolean isSecurityAnswerCorrect(
+      final UUID userId, final UUID questionId, final String answer) {
+    try {
+      return this.securityQuestionAnswerService.verifySecurityAnswer(
+          SecurityAnswer.builder()
+              .userId(userId)
+              .questionId(questionId)
+              .answerHash(answer)
+              .build());
+    } catch (final NotFoundException e) {
+      // no answer stored for this question: same response as a wrong answer
+      return false;
+    }
   }
 
   @Override
@@ -181,7 +204,7 @@ public class AuthServiceImpl implements AuthService {
       final String currentPassword, final String newPassword, final UUID requesterId) {
     if (this.userCredentialService.verify(requesterId, currentPassword)) {
       final UserCredential existingUserCredential =
-          this.userCredentialService.getByUserId(requesterId, requesterId);
+          this.userCredentialService.getByUserId(requesterId);
       final UserCredential updatedUserCredential =
           existingUserCredential.toBuilder().passwordHash(newPassword).build();
       return this.userCredentialService.update(updatedUserCredential, requesterId);

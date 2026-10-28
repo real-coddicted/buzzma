@@ -4,7 +4,7 @@ import com.coddicted.buzzma.identity.entity.UserCredential;
 import java.util.UUID;
 
 public interface UserCredentialService {
-  UserCredential getByUserId(UUID userId, UUID requesterId);
+  UserCredential getByUserId(UUID userId);
 
   boolean create(UserCredential credential, UUID requesterId);
 

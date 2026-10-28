@@ -4,10 +4,11 @@ import { Button } from '../components/ui/Button'
 import { AuthBackground } from '../components/ui/AuthBackground'
 import { fetchUserSecurityQuestion } from '../api/authApi'
 import { isValidMobile } from '../utils/mobileValidation'
-import type { LoginAs, ForgotPasswordForm } from '../types/ForgotPasswordTypes'
+import type { ForgotPasswordForm } from '../types/ForgotPasswordTypes'
 
 interface ForgotPasswordProps {
-  onSuccess: () => void
+  initialForm?: ForgotPasswordForm
+  onSuccess: (form: ForgotPasswordForm) => void
   onGoToLogin: () => void
 }
 
@@ -19,10 +20,10 @@ const inputBase =
   'px-3 py-2.5 text-sm outline-none transition-colors ' +
   'focus:border-neon-purple focus:ring-1 focus:ring-neon-purple/30'
 
-export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) {
-  const [form, setForm] = useState<ForgotPasswordForm>({
-    role: 'brand',
+export function ForgotPassword({ initialForm, onSuccess, onGoToLogin }: ForgotPasswordProps) {
+  const [form, setForm] = useState<ForgotPasswordForm>(initialForm ?? {
     mobile: '',
+    questionId: '',
     securityQuestion: '',
     answer: '',
   })
@@ -38,9 +39,16 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
     const mobile = form.mobile.replace(/\s/g, '')
     if (!mobile || !isValidMobile(mobile)) return
     setQuestionLoading(true)
-    setForm(prev => ({ ...prev, securityQuestion: '', answer: '' }))
+    setForm(prev => ({ ...prev, questionId: '', securityQuestion: '', answer: '' }))
     fetchUserSecurityQuestion(mobile)
-      .then(q => setForm(prev => ({ ...prev, securityQuestion: q })))
+      .then(result => {
+        if (result.success) {
+          setForm(prev => ({ ...prev, questionId: result.questionId, securityQuestion: result.question }))
+        } else {
+          setErrors(prev => ({ ...prev, mobile: result.message }))
+        }
+      })
+      .catch(() => setErrors(prev => ({ ...prev, mobile: 'Something went wrong. Please try again.' })))
       .finally(() => setQuestionLoading(false))
   }
 
@@ -49,14 +57,22 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
     if (!form.mobile.trim()) next.mobile = 'Mobile number is required'
     else if (!isValidMobile(form.mobile))
       next.mobile = 'Enter a valid mobile number'
-    if (!form.answer.trim()) next.answer = 'Answer is required'
+    else if (!form.questionId)
+      next.mobile = errors.mobile ?? 'Enter your mobile number to load your security question'
+    else if (!form.answer.trim()) next.answer = 'Answer is required'
     setErrors(next)
     return Object.keys(next).length === 0
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (validate()) onSuccess()
+    if (validate() && !questionLoading) {
+      onSuccess({
+        ...form,
+        mobile: form.mobile.replace(/\s/g, ''),
+        answer: form.answer.trim(),
+      })
+    }
   }
 
   return (
@@ -78,21 +94,6 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
 
         <div className="rounded-2xl border border-neon-purple/20 bg-surface-light-card dark:bg-surface-dark-card shadow-neon-purple p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            {/* Role */}
-            <div>
-              <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
-                Role
-              </label>
-              <select
-                value={form.role}
-                onChange={e => set('role', e.target.value as LoginAs)}
-                className={inputBase + ' cursor-pointer'}
-              >
-                <option value="brand">Brand</option>
-                <option value="agency">Agency</option>
-              </select>
-            </div>
-
             {/* Mobile */}
             <div>
               <label className="block text-xs font-medium text-ink-light-secondary dark:text-ink-dark-secondary mb-1.5">
@@ -103,7 +104,11 @@ export function ForgotPassword({ onSuccess, onGoToLogin }: ForgotPasswordProps) 
                 placeholder="9876543210"
                 maxLength={10}
                 value={form.mobile}
-                onChange={e => set('mobile', e.target.value)}
+                onChange={e => {
+                  // a question loaded for the previous number no longer applies
+                  setForm(prev => ({ ...prev, questionId: '', securityQuestion: '', answer: '' }))
+                  set('mobile', e.target.value)
+                }}
                 onBlur={handleMobileBlur}
                 className={inputBase}
               />

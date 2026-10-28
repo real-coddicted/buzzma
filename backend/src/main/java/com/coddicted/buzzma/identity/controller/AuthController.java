@@ -93,19 +93,19 @@ public class AuthController {
 
   @PostMapping("/forgot-password/lookup")
   public List<SecurityQuestionResponseDto> forgotPasswordLookup(
-      @CurrentUserId final UUID requesterId,
       @Valid @RequestBody final ForgotPasswordLookupRequestDto request) {
     final List<SecurityQuestionWrapper> wrappers =
-        this.authService.getSecurityQuestionsByMobile(request.getMobile(), requesterId);
+        this.authService.getSecurityQuestionsByMobile(request.getMobile());
     return this.securityQuestionMapper.toResponseList(wrappers);
   }
 
   @PostMapping("/password-reset")
-  public boolean passwordReset(
-      @CurrentUserId final UUID requesterId,
-      @Valid @RequestBody final PasswordResetRequestDto request) {
+  public boolean passwordReset(@Valid @RequestBody final PasswordResetRequestDto request) {
     return this.authService.resetPassword(
-        request.getMobile(), request.getNewPassword(), requesterId);
+        request.getMobile(),
+        request.getQuestionId(),
+        request.getAnswer(),
+        request.getNewPassword());
   }
 
   @PostMapping("/password-update")

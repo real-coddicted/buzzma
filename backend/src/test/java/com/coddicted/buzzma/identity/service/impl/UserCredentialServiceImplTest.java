@@ -36,7 +36,7 @@ class UserCredentialServiceImplTest {
     when(this.mockCredentialRepository.findByUserIdAndIsDeletedFalse(USER_ID))
         .thenReturn(Optional.of(USER_CREDENTIAL_2));
 
-    assertEquals(USER_CREDENTIAL_2, this.userCredentialService.getByUserId(USER_ID, REQUESTER_ID));
+    assertEquals(USER_CREDENTIAL_2, this.userCredentialService.getByUserId(USER_ID));
   }
 
   @Test
@@ -46,8 +46,7 @@ class UserCredentialServiceImplTest {
 
     final NotFoundException ex =
         assertThrows(
-            NotFoundException.class,
-            () -> this.userCredentialService.getByUserId(USER_ID, REQUESTER_ID));
+            NotFoundException.class, () -> this.userCredentialService.getByUserId(USER_ID));
     assertEquals("Credentials not found for user: " + USER_ID, ex.getMessage());
   }
 

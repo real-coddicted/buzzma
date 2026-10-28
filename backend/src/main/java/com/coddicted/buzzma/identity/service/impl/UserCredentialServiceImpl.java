@@ -28,7 +28,7 @@ public class UserCredentialServiceImpl extends BaseCrudService implements UserCr
   }
 
   @Override
-  public UserCredential getByUserId(UUID userId, UUID requesterId) {
+  public UserCredential getByUserId(UUID userId) {
     return credentialRepository
         .findByUserIdAndIsDeletedFalse(userId)
         .orElseThrow(() -> new NotFoundException("Credentials not found for user: " + userId));

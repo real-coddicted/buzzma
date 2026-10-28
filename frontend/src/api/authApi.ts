@@ -1,5 +1,9 @@
-import { securityQuestions } from '../data/mockData'
-import type { SecurityQuestion } from '../types/ForgotPasswordTypes'
+import type {
+  PasswordResetChallenge,
+  PasswordResetResult,
+  SecurityQuestion,
+  UserSecurityQuestionResult,
+} from '../types/ForgotPasswordTypes'
 import type { RegisterForm, RegisterResponse } from '../types/RegisterTypes'
 import type { LoginForm, LoginResponse } from '../types/LoginTypes'
 import type { components } from '../types/api'
@@ -10,16 +14,23 @@ type UserRegistrationRequestDto = components['schemas']['UserRegistrationRequest
 type PasswordUpdateRequestDto = components['schemas']['PasswordUpdateRequestDto']
 type SecurityQuestionWrapper = components['schemas']['SecurityQuestionWrapper']
 type BackendSecurityQuestion = components['schemas']['SecurityQuestion']
+type SecurityQuestionResponseDto = components['schemas']['SecurityQuestionResponseDto']
+type PasswordResetRequestDto = components['schemas']['PasswordResetRequestDto']
 
 const questionIdByText = new Map<string, string>()
+const questionTextById = new Map<string, string>()
 
 export async function fetchSecurityQuestions(): Promise<SecurityQuestion[]> {
   const res = await fetch('/api/v1/security-questions')
   if (!res.ok) throw new Error('Failed to load security questions.')
   const data: BackendSecurityQuestion[] = await res.json()
   questionIdByText.clear()
+  questionTextById.clear()
   for (const q of data) {
-    if (q.id && q.question) questionIdByText.set(q.question, q.id)
+    if (q.id && q.question) {
+      questionIdByText.set(q.question, q.id)
+      questionTextById.set(q.id, q.question)
+    }
   }
   return data.map(q => q.question ?? '').filter(Boolean)
 }
@@ -110,9 +121,46 @@ export async function signOut(): Promise<void> {
   })
 }
 
-export async function fetchUserSecurityQuestion(_mobile: string): Promise<SecurityQuestion> {
-  await new Promise(resolve => setTimeout(resolve, 400))
-  // Mock: randomly return one of the two questions the user set at registration
-  const userQuestions = securityQuestions.slice(0, 2)
-  return userQuestions[Math.floor(Math.random() * userQuestions.length)]
+export async function fetchUserSecurityQuestion(mobile: string): Promise<UserSecurityQuestionResult> {
+  const res = await fetch('/api/v1/auth/forgot-password/lookup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile }),
+  })
+  if (res.status === 404) {
+    return { success: false, message: 'No account found for this mobile number.' }
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    return { success: false, message: data?.message ?? 'Something went wrong. Please try again.' }
+  }
+  const data: SecurityQuestionResponseDto[] = await res.json()
+  const questionId = data.find(q => q.questionId)?.questionId
+  if (!questionId) {
+    return {
+      success: false,
+      message: 'No security question is set for this account. Please contact support.',
+    }
+  }
+  if (!questionTextById.has(questionId)) await fetchSecurityQuestions()
+  const question = questionTextById.get(questionId)
+  if (!question) return { success: false, message: 'Something went wrong. Please try again.' }
+  return { success: true, questionId, question }
+}
+
+export async function resetPassword(
+  challenge: PasswordResetChallenge,
+  newPassword: string,
+): Promise<PasswordResetResult> {
+  const body: PasswordResetRequestDto = { ...challenge, newPassword }
+  const res = await fetch('/api/v1/auth/password-reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    return { success: false, message: data?.message ?? 'Password reset failed. Please try again.' }
+  }
+  return { success: true, message: '' }
 }
