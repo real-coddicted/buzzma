@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me": {
         parameters: {
             query?: never;
@@ -1894,6 +1910,12 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        ResetUserPasswordRequestDto: {
+            currentPassword: string;
+        };
+        ResetUserPasswordResponseDto: {
+            newPassword?: string;
+        };
         UpdateProfileRequestDto: {
             email: string;
         };
@@ -1904,7 +1926,7 @@ export interface components {
             mobile?: string;
             email?: string;
             /** @enum {string} */
-            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             /** @enum {string} */
             status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
             emailVerified?: boolean;
@@ -1928,7 +1950,7 @@ export interface components {
             id?: string;
             name?: string;
             /** @enum {string} */
-            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             upiId?: string;
         };
         TicketRequestDto: {
@@ -2149,7 +2171,7 @@ export interface components {
             fromUserId?: string;
             fromUserName?: string;
             /** @enum {string} */
-            fromUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            fromUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             fromUserCode?: string;
             /** Format: uuid */
             toUserId?: string;
@@ -2157,7 +2179,7 @@ export interface components {
             inviteOwnerId?: string;
             toUserName?: string;
             /** @enum {string} */
-            toUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            toUserRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             toUserCode?: string;
             status?: string;
             /** Format: uuid */
@@ -2402,12 +2424,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"][];
+            unpaged?: boolean;
             paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            unpaged?: boolean;
         };
         SortObject: {
             direction?: string;
@@ -2652,7 +2674,7 @@ export interface components {
             mobile?: string;
             email?: string;
             /** @enum {string} */
-            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            role?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             /** @enum {string} */
             status?: "USER_STATUS_ACTIVE" | "USER_STATUS_SUSPENDED" | "USER_STATUS_LOCKED";
             emailVerified?: boolean;
@@ -2677,7 +2699,7 @@ export interface components {
             securityQuestionList?: components["schemas"]["SecurityQuestionWrapper"][];
             inviteCode?: string;
             /** @enum {string} */
-            userRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN";
+            userRole?: "ROLE_BUYER" | "ROLE_MEDIATOR" | "ROLE_AGENCY" | "ROLE_BRAND" | "ROLE_ADMIN" | "ROLE_SUPER_ADMIN";
             bankAccountNumber?: string;
             bankIfscCode?: string;
             bankName?: string;
@@ -3387,6 +3409,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetUserPasswordRequestDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetUserPasswordResponseDto"];
+                };
             };
         };
     };

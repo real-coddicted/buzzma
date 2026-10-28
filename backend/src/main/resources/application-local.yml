@@ -34,6 +34,11 @@ app:
     name: Test Admin 1
     mobile: "9000000001"
     password: test1234
+    super-admin:
+      enabled: true
+      name: Test Super Admin 1
+      mobile: "9500000001"
+      password: test1234
   rate-limit:
     auth:
       capacity: ${RATE_LIMIT_AUTH_CAPACITY:100}

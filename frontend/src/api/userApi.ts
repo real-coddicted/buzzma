@@ -5,6 +5,7 @@ import type { UserActivityDto } from '../types/ProfileTypes'
 export type UserSummaryDto      = components['schemas']['UserSummaryDto']
 export type UserBankingDetailDto = components['schemas']['UserBankingDetailDto']
 export type PagedUsersResponseDto = components['schemas']['PagedUsersResponseDto']
+export type ResetUserPasswordResponseDto = components['schemas']['ResetUserPasswordResponseDto']
 
 export async function fetchCurrentUser(): Promise<UserSummaryDto> {
   const res = await fetchWithAuth('/api/v1/users/me')
@@ -81,4 +82,13 @@ export async function upsertUserBanking(userId: string, data: UserBankingDetailD
 export async function fetchUserActivity(userId: string): Promise<UserActivityDto> {
   const res = await fetchWithAuth(`/api/v1/users/${userId}/activity`)
   return res.json() as Promise<UserActivityDto>
+}
+
+export async function resetUserPassword(userId: string, currentPassword: string): Promise<string> {
+  const res = await fetchWithAuth(`/api/v1/users/${userId}/reset-password`, {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword }),
+  })
+  const { newPassword }: ResetUserPasswordResponseDto = await res.json()
+  return newPassword!
 }

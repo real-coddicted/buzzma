@@ -22,6 +22,7 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
+import com.coddicted.buzzma.identity.service.AuthService;
 import com.coddicted.buzzma.identity.service.EmailVerificationService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -64,6 +65,7 @@ class UsersControllerTest {
   @MockBean private UserBankingDetailMapper userBankingDetailMapper;
   @MockBean private ConnectionService connectionService;
   @MockBean private EmailVerificationService emailVerificationService;
+  @MockBean private AuthService authService;
 
   private static final UUID TARGET_USER_ID =
       UUID.fromString("44444444-4444-4444-4444-444444444444");
@@ -333,6 +335,57 @@ class UsersControllerTest {
   void testGetBankingUnauthenticatedReturnsUnauthorized() throws Exception {
     mockMvc
         .perform(get("/api/v1/users/" + TARGET_USER_ID + "/banking"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // --- POST /api/v1/users/{id}/reset-password ---
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_SUPER_ADMIN, id = CALLER_ID_STR)
+  void testResetPasswordAsSuperAdminReturnsGeneratedPassword() throws Exception {
+    when(authService.resetUserPassword(TARGET_USER_ID, CALLER_ID, "my-current-password"))
+        .thenReturn("Gen3r@ted");
+
+    mockMvc
+        .perform(
+            post("/api/v1/users/" + TARGET_USER_ID + "/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"currentPassword\": \"my-current-password\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.newPassword").value("Gen3r@ted"));
+
+    verify(authService).resetUserPassword(TARGET_USER_ID, CALLER_ID, "my-current-password");
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_ADMIN)
+  void testResetPasswordAsPlainAdminReturnsForbidden() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/" + TARGET_USER_ID + "/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"currentPassword\": \"my-current-password\"}"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_SUPER_ADMIN)
+  void testResetPasswordWithBlankCurrentPasswordReturnsBadRequest() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/" + TARGET_USER_ID + "/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"currentPassword\": \"\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void testResetPasswordUnauthenticatedReturnsUnauthorized() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/users/" + TARGET_USER_ID + "/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"currentPassword\": \"my-current-password\"}"))
         .andExpect(status().isUnauthorized());
   }
 }

@@ -92,7 +92,11 @@ public class SecurityConfig {
   @Bean
   public RoleHierarchy roleHierarchy() {
     return RoleHierarchyImpl.fromHierarchy(
-        UserRole.ROLE_ADMIN.name()
+        UserRole.ROLE_SUPER_ADMIN.name()
+            + " > "
+            + UserRole.ROLE_ADMIN.name()
+            + "\n"
+            + UserRole.ROLE_ADMIN.name()
             + " > "
             + UserRole.ROLE_BUYER.name()
             + "\n"

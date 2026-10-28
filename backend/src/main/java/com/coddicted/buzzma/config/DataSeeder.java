@@ -22,6 +22,8 @@ public class DataSeeder implements ApplicationRunner {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSeeder.class);
 
   private static final UUID ADMIN_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000001");
+  private static final UUID SUPER_ADMIN_ID =
+      UUID.fromString("5eed0002-0000-0000-0000-000000000001");
 
   private final PasswordService passwordService;
   private final JdbcTemplate jdbcTemplate;
@@ -29,6 +31,10 @@ public class DataSeeder implements ApplicationRunner {
   private final String seedName;
   private final String seedMobile;
   private final String seedPassword;
+  private final boolean seedSuperAdmin;
+  private final String seedSuperAdminName;
+  private final String seedSuperAdminMobile;
+  private final String seedSuperAdminPassword;
 
   public DataSeeder(
       final PasswordService passwordService,
@@ -36,29 +42,51 @@ public class DataSeeder implements ApplicationRunner {
       @Value("${app.seed.initial-user:false}") final boolean seedInitialUser,
       @Value("${app.seed.name}") final String seedName,
       @Value("${app.seed.mobile}") final String seedMobile,
-      @Value("${app.seed.password}") final String seedPassword) {
+      @Value("${app.seed.password}") final String seedPassword,
+      @Value("${app.seed.super-admin.enabled:false}") final boolean seedSuperAdmin,
+      @Value("${app.seed.super-admin.name}") final String seedSuperAdminName,
+      @Value("${app.seed.super-admin.mobile}") final String seedSuperAdminMobile,
+      @Value("${app.seed.super-admin.password}") final String seedSuperAdminPassword) {
     this.passwordService = passwordService;
     this.jdbcTemplate = jdbcTemplate;
     this.seedInitialUser = seedInitialUser;
     this.seedName = seedName;
     this.seedMobile = seedMobile;
     this.seedPassword = seedPassword;
+    this.seedSuperAdmin = seedSuperAdmin;
+    this.seedSuperAdminName = seedSuperAdminName;
+    this.seedSuperAdminMobile = seedSuperAdminMobile;
+    this.seedSuperAdminPassword = seedSuperAdminPassword;
   }
 
   @Override
   @Transactional
   public void run(final ApplicationArguments args) {
     LOGGER.warn("==========================================================");
-    if (!seedInitialUser
-        || StringUtils.isBlank(seedName)
-        || StringUtils.isBlank(seedMobile)
-        || StringUtils.isBlank(seedPassword)) {
+    if (seedInitialUser
+        && StringUtils.isNotBlank(seedName)
+        && StringUtils.isNotBlank(seedMobile)
+        && StringUtils.isNotBlank(seedPassword)) {
+      seedUser(seedName, seedMobile, seedPassword, UserRole.ROLE_ADMIN, ADMIN_ID);
+      LOGGER.warn("  Data SEED — test credentials created");
+    } else {
       LOGGER.warn("No data seed has been initialised");
-      return;
     }
-    seedUser(seedName, seedMobile, seedPassword, UserRole.ROLE_ADMIN, ADMIN_ID);
 
-    LOGGER.warn("  Data SEED — test credentials created");
+    if (seedSuperAdmin
+        && StringUtils.isNotBlank(seedSuperAdminName)
+        && StringUtils.isNotBlank(seedSuperAdminMobile)
+        && StringUtils.isNotBlank(seedSuperAdminPassword)) {
+      seedUser(
+          seedSuperAdminName,
+          seedSuperAdminMobile,
+          seedSuperAdminPassword,
+          UserRole.ROLE_SUPER_ADMIN,
+          SUPER_ADMIN_ID);
+      LOGGER.warn("  Data SEED — super-admin credentials created");
+    } else {
+      LOGGER.warn("No super-admin data seed has been initialised");
+    }
     LOGGER.warn("==========================================================");
   }
 

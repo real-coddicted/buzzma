@@ -72,7 +72,7 @@ public class UserSettingsServiceImpl extends BaseCrudService implements UserSett
   public UserSettings getDefaultSettingsByUserRole(final UserRole role) {
     final Settings settings =
         switch (role) {
-          case ROLE_ADMIN -> SettingsUtils.getAdminSettings();
+          case ROLE_ADMIN, ROLE_SUPER_ADMIN -> SettingsUtils.getAdminSettings();
           case ROLE_BRAND -> SettingsUtils.getBrandSettings();
           case ROLE_MEDIATOR -> SettingsUtils.getMediatorSettings();
           case ROLE_AGENCY -> SettingsUtils.getAgencySettings();

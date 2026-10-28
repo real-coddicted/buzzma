@@ -1,6 +1,8 @@
 package com.coddicted.buzzma.identity.controller;
 
 import com.coddicted.buzzma.identity.dto.PagedUsersResponseDto;
+import com.coddicted.buzzma.identity.dto.ResetUserPasswordRequestDto;
+import com.coddicted.buzzma.identity.dto.ResetUserPasswordResponseDto;
 import com.coddicted.buzzma.identity.dto.UpdateProfileRequestDto;
 import com.coddicted.buzzma.identity.dto.UserBankingDetailDto;
 import com.coddicted.buzzma.identity.dto.UserBatchRequestDto;
@@ -12,6 +14,7 @@ import com.coddicted.buzzma.identity.entity.UserBankingDetail;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.mapper.UserBankingDetailMapper;
 import com.coddicted.buzzma.identity.mapper.UserMapper;
+import com.coddicted.buzzma.identity.service.AuthService;
 import com.coddicted.buzzma.identity.service.EmailVerificationService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
@@ -50,18 +53,21 @@ public class UsersController {
   private final UserBankingDetailService userBankingDetailService;
   private final UserBankingDetailMapper userBankingDetailMapper;
   private final EmailVerificationService emailVerificationService;
+  private final AuthService authService;
 
   public UsersController(
       final UserService userService,
       final UserMapper userMapper,
       final UserBankingDetailService userBankingDetailService,
       final UserBankingDetailMapper userBankingDetailMapper,
-      final EmailVerificationService emailVerificationService) {
+      final EmailVerificationService emailVerificationService,
+      final AuthService authService) {
     this.userService = userService;
     this.userMapper = userMapper;
     this.userBankingDetailService = userBankingDetailService;
     this.userBankingDetailMapper = userBankingDetailMapper;
     this.emailVerificationService = emailVerificationService;
+    this.authService = authService;
   }
 
   @GetMapping("/me")
@@ -106,6 +112,17 @@ public class UsersController {
         .page(page)
         .totalPages(usersPage.getTotalPages())
         .build();
+  }
+
+  @PostMapping("/{id}/reset-password")
+  @PreAuthorize(UserRole.Expr.SUPER_ADMIN)
+  public ResetUserPasswordResponseDto resetPassword(
+      @PathVariable final UUID id,
+      @Valid @RequestBody final ResetUserPasswordRequestDto request,
+      @CurrentUserId final UUID requesterId) {
+    final String newPassword =
+        this.authService.resetUserPassword(id, requesterId, request.getCurrentPassword());
+    return ResetUserPasswordResponseDto.builder().newPassword(newPassword).build();
   }
 
   /** Bulk lookup for display purposes, restricted to users connected to the caller. */

@@ -5,7 +5,8 @@ public enum UserRole {
   ROLE_MEDIATOR,
   ROLE_AGENCY,
   ROLE_BRAND,
-  ROLE_ADMIN;
+  ROLE_ADMIN,
+  ROLE_SUPER_ADMIN;
 
   public static final class Expr {
     public static final String OR = " or ";
@@ -16,5 +17,6 @@ public enum UserRole {
     public static final String AGENCY = "hasRole('AGENCY')";
     public static final String BRAND = "hasRole('BRAND')";
     public static final String ADMIN = "hasRole('ADMIN')";
+    public static final String SUPER_ADMIN = "hasRole('SUPER_ADMIN')";
   }
 }

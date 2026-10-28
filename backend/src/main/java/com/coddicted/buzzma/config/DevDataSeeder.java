@@ -49,6 +49,8 @@ public class DevDataSeeder implements ApplicationRunner {
   private static final UUID AGENCY_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000003");
   private static final UUID BRAND_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000004");
   private static final UUID MEDIATOR_ID = UUID.fromString("5eed0001-0000-0000-0000-000000000005");
+  private static final UUID SUPER_ADMIN_ID =
+      UUID.fromString("5eed0002-0000-0000-0000-000000000001");
 
   private final PasswordService passwordService;
   private final JdbcTemplate jdbcTemplate;
@@ -66,6 +68,8 @@ public class DevDataSeeder implements ApplicationRunner {
     seedUser("Test Agency 1", "9200000001", "test1234", UserRole.ROLE_AGENCY, AGENCY_ID);
     seedUser("Test Mediator 1", "9300000001", "test1234", UserRole.ROLE_MEDIATOR, MEDIATOR_ID);
     seedUser("Test Buyer 1", "9400000001", "test1234", UserRole.ROLE_BUYER, BUYER_ID);
+    seedUser(
+        "Test Super Admin 1", "9500000001", "test1234", UserRole.ROLE_SUPER_ADMIN, SUPER_ADMIN_ID);
 
     seedConnections();
     //    CAMPAIGN_SCENARIOS.forEach(this::seedCampaign);
@@ -79,6 +83,7 @@ public class DevDataSeeder implements ApplicationRunner {
     LOGGER.warn("  Agency   mobile=9200000001  password=test1234");
     LOGGER.warn("  Mediator mobile=9300000001  password=test1234");
     LOGGER.warn("  Buyer    mobile=9400000001  password=test1234");
+    LOGGER.warn("  Super Admin mobile=9500000001  password=test1234");
     LOGGER.warn("==========================================================");
   }
 

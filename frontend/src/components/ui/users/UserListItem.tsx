@@ -5,11 +5,12 @@ import type { StatCardAccent } from '../../../types'
 import type { UserSummaryDto } from '../../../api/userApi'
 
 const ROLE_CONFIG: Record<string, { label: string; variant: StatCardAccent }> = {
-  ROLE_BUYER:    { label: 'Buyer',    variant: 'blue' },
-  ROLE_MEDIATOR: { label: 'Mediator', variant: 'purple' },
-  ROLE_AGENCY:   { label: 'Agency',   variant: 'cyan' },
-  ROLE_BRAND:    { label: 'Brand',    variant: 'orange' },
-  ROLE_ADMIN:    { label: 'Admin',    variant: 'pink' },
+  ROLE_BUYER:       { label: 'Buyer',       variant: 'blue' },
+  ROLE_MEDIATOR:    { label: 'Mediator',    variant: 'purple' },
+  ROLE_AGENCY:      { label: 'Agency',      variant: 'cyan' },
+  ROLE_BRAND:       { label: 'Brand',       variant: 'orange' },
+  ROLE_ADMIN:       { label: 'Admin',       variant: 'pink' },
+  ROLE_SUPER_ADMIN: { label: 'Super Admin', variant: 'red' },
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: StatCardAccent; dot: string }> = {

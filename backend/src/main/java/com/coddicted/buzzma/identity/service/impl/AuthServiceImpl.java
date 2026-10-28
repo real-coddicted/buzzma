@@ -12,6 +12,7 @@ import com.coddicted.buzzma.identity.entity.UserCredential;
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.entity.UserStatus;
 import com.coddicted.buzzma.identity.service.AuthService;
+import com.coddicted.buzzma.identity.service.RandomPasswordGenerator;
 import com.coddicted.buzzma.identity.service.RefreshTokenService;
 import com.coddicted.buzzma.identity.service.SecurityQuestionAnswerService;
 import com.coddicted.buzzma.identity.service.UserBankingDetailService;
@@ -52,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
   private final ConnectionService connectionService;
   private final UserSettingsService userSettingsService;
   private final TermsService termsService;
+  private final RandomPasswordGenerator randomPasswordGenerator;
 
   public AuthServiceImpl(
       final JwtService jwtService,
@@ -64,7 +66,8 @@ public class AuthServiceImpl implements AuthService {
       final SecurityQuestionAnswerService securityQuestionAnswerService,
       final ConnectionService connectionService,
       final UserSettingsService userSettingsService,
-      final TermsService termsService) {
+      final TermsService termsService,
+      final RandomPasswordGenerator randomPasswordGenerator) {
     this.jwtService = jwtService;
     this.jwtProperties = jwtProperties;
     this.refreshTokenService = refreshTokenService;
@@ -75,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
     this.connectionService = connectionService;
     this.userSettingsService = userSettingsService;
     this.termsService = termsService;
+    this.randomPasswordGenerator = randomPasswordGenerator;
   }
 
   @Override
@@ -212,6 +216,23 @@ public class AuthServiceImpl implements AuthService {
     throw new PasswordMatchException("Current password is incorrect");
   }
 
+  @Override
+  @Transactional
+  public String resetUserPassword(
+      final UUID targetUserId, final UUID requesterId, final String requesterCurrentPassword) {
+    if (!this.userCredentialService.verify(requesterId, requesterCurrentPassword)) {
+      throw new PasswordMatchException("Current password is incorrect");
+    }
+    final String newPassword = this.randomPasswordGenerator.generate();
+    final UserCredential existingUserCredential =
+        this.userCredentialService.getByUserId(targetUserId);
+    final UserCredential updatedUserCredential =
+        existingUserCredential.toBuilder().passwordHash(newPassword).build();
+    this.userCredentialService.update(updatedUserCredential, requesterId);
+    this.refreshTokenService.revokeAll(targetUserId);
+    return newPassword;
+  }
+
   private boolean canRegister(
       final BuzzmaUser user,
       final UserCredential userCredential,
@@ -228,6 +249,10 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private boolean validateUser(final BuzzmaUser user) {
+    if (user.getRole() == UserRole.ROLE_ADMIN || user.getRole() == UserRole.ROLE_SUPER_ADMIN) {
+      throw new BusinessRuleViolationException(
+          "Registration failed. Role is not self-registerable");
+    }
     if (this.userService.existsByMobile(user.getMobile())) {
       throw new BusinessRuleViolationException(
           "Registration failed. User with mobile number already exists");

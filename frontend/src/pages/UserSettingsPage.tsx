@@ -4,8 +4,10 @@ import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { Toast } from '../components/ui/Toast'
 import { IconChevronLeft } from '../components/ui/icons'
+import { ResetPasswordModal } from '../components/ui/users/ResetPasswordModal'
 import { fetchUserSettingsById, updateUserSettingsById, FLAG_TO_DTO_KEY, type UserSettingsDto, type UserSettingsFlagDto } from '../api/userSettingsApi'
-import type { UserSummaryDto } from '../api/userApi'
+import { resetUserPassword, type UserSummaryDto } from '../api/userApi'
+import { getCurrentUser } from '../api/client'
 
 interface UserSettingsPageProps {
   user: UserSummaryDto
@@ -17,6 +19,8 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
   const [toast, setToast]     = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [showResetPassword, setShowResetPassword] = useState(false)
+  const isSuperAdmin = getCurrentUser()?.role === 'ROLE_SUPER_ADMIN'
 
   useEffect(() => {
     setLoading(true)
@@ -28,6 +32,10 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
 
   function toggle(flag: string) {
     setValues(prev => prev ? prev.map(f => f.flag === flag ? { ...f, enabled: !f.enabled } : f) : prev)
+  }
+
+  async function handleResetPassword(currentPassword: string) {
+    return resetUserPassword(user.id!, currentPassword)
   }
 
   async function handleUpdate() {
@@ -70,6 +78,11 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
             </p>
           </div>
         </div>
+        {isSuperAdmin && (
+          <Button variant="danger" size="sm" className="ml-auto" onClick={() => setShowResetPassword(true)}>
+            Reset Password
+          </Button>
+        )}
       </div>
 
       <Card padded={false}>
@@ -118,6 +131,13 @@ export function UserSettingsPage({ user, onBack }: UserSettingsPageProps) {
 
       {toast && (
         <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />
+      )}
+
+      {showResetPassword && (
+        <ResetPasswordModal
+          onConfirm={handleResetPassword}
+          onCancel={() => setShowResetPassword(false)}
+        />
       )}
     </div>
   )

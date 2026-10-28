@@ -31,4 +31,6 @@ public interface AuthService {
   void signOut(String refreshToken);
 
   boolean updatePassword(String currentPassword, String newPassword, UUID requesterId);
+
+  String resetUserPassword(UUID targetUserId, UUID requesterId, String requesterCurrentPassword);
 }
