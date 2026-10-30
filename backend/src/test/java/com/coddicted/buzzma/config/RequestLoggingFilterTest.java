@@ -6,8 +6,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.coddicted.buzzma.shared.security.ViewAs;
 import jakarta.servlet.FilterChain;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,11 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 class RequestLoggingFilterTest {
+
+  private static final UUID VIEW_AS_ACTOR_ID =
+      UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001");
+  private static final UUID VIEW_AS_SUBJECT_ID =
+      UUID.fromString("bbbbbbbb-0000-0000-0000-000000000001");
 
   private RequestLoggingFilter filter;
   private Logger logbackLogger;
@@ -87,6 +94,31 @@ class RequestLoggingFilterTest {
 
     String logged = soleExchangeMessage();
     assertThat(logged).contains("{\"id\":42,\"name\":\"Summer Sale\"}");
+  }
+
+  @Test
+  void logsViewAsActorAndSubject() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/deals/active");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    FilterChain chain =
+        (req, res) -> {
+          req.setAttribute(ViewAs.ACTOR_ID_ATTRIBUTE, VIEW_AS_ACTOR_ID);
+          req.setAttribute(ViewAs.SUBJECT_ID_ATTRIBUTE, VIEW_AS_SUBJECT_ID);
+        };
+
+    filter.doFilter(request, response, chain);
+
+    assertThat(soleExchangeMessage())
+        .contains("viewAs(actor=" + VIEW_AS_ACTOR_ID + ", subject=" + VIEW_AS_SUBJECT_ID + ")");
+  }
+
+  @Test
+  void omitsViewAsOutsideViewAsMode() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/deals/active");
+
+    filter.doFilter(request, new MockHttpServletResponse(), (req, res) -> {});
+
+    assertThat(soleExchangeMessage()).doesNotContain("viewAs(");
   }
 
   private String soleExchangeMessage() {

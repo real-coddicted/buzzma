@@ -1,5 +1,6 @@
 package com.coddicted.buzzma.config;
 
+import com.coddicted.buzzma.shared.security.ViewAs;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,7 +85,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       String requestTarget = buildRequestTarget(wrappedRequest);
       String requestBody = extractRequestBody(wrappedRequest);
       String responseBody = extractResponseBody(wrappedResponse);
-      String principal = describePrincipal();
+      String principal = describePrincipal() + describeViewAs(wrappedRequest);
 
       String message =
           String.format(
@@ -122,6 +123,19 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining("|"));
     return auth.getName() + "[" + (authorities.isEmpty() ? "no-authorities" : authorities) + "]";
+  }
+
+  /** Audit trail for admin view-as: who (actor) looked at whose data (subject). */
+  private String describeViewAs(HttpServletRequest request) {
+    Object actorId = request.getAttribute(ViewAs.ACTOR_ID_ATTRIBUTE);
+    if (actorId == null) {
+      return "";
+    }
+    return " viewAs(actor="
+        + actorId
+        + ", subject="
+        + request.getAttribute(ViewAs.SUBJECT_ID_ATTRIBUTE)
+        + ")";
   }
 
   private String describeAuthHeader(String header) {

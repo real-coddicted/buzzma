@@ -1,0 +1,10 @@
+{
+  "id": "bbbbbbbb-0000-0000-0000-000000000002",
+  "name": "Deleted Buyer",
+  "mobile": "9000000004",
+  "role": "ROLE_BUYER",
+  "status": "USER_STATUS_ACTIVE",
+  "isDeleted": true,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}

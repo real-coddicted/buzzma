@@ -2,6 +2,7 @@ package com.coddicted.buzzma.shared.security;
 
 import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.security.JwtAuthenticationFilter;
+import com.coddicted.buzzma.identity.security.ViewAsFilter;
 import com.coddicted.buzzma.shared.ratelimit.AuthBucketCache;
 import com.coddicted.buzzma.shared.ratelimit.RateLimitFilter;
 import com.coddicted.buzzma.shared.ratelimit.UserBucketCache;
@@ -38,16 +39,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final ViewAsFilter viewAsFilter;
   private final AuthBucketCache authBucketCache;
   private final UserBucketCache userBucketCache;
   private final IpAddressMatcher metricsNetworkMatcher;
 
   public SecurityConfig(
       final JwtAuthenticationFilter jwtAuthenticationFilter,
+      final ViewAsFilter viewAsFilter,
       final AuthBucketCache authBucketCache,
       final UserBucketCache userBucketCache,
       @Value("${docker.network.cidr:127.0.0.1/32}") final String dockerNetworkCidr) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.viewAsFilter = viewAsFilter;
     this.authBucketCache = authBucketCache;
     this.userBucketCache = userBucketCache;
     this.metricsNetworkMatcher = new IpAddressMatcher(dockerNetworkCidr);
@@ -80,7 +84,9 @@ public class SecurityConfig {
             ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(
-            new RateLimitFilter(authBucketCache, userBucketCache), JwtAuthenticationFilter.class);
+            new RateLimitFilter(authBucketCache, userBucketCache), JwtAuthenticationFilter.class)
+        // After rate limiting, so view-as requests count against the admin's own bucket.
+        .addFilterAfter(this.viewAsFilter, RateLimitFilter.class);
     return http.build();
   }
 
