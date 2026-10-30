@@ -12,6 +12,7 @@ import com.coddicted.buzzma.shared.service.CodeGenerationService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -79,8 +80,12 @@ public class UserServiceImpl extends BaseCrudService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<BuzzmaUser> searchUsers(final String term, final Pageable pageable) {
-    return this.repository.searchByNameOrMobile(term, pageable);
+  public Page<BuzzmaUser> searchUsers(
+      final String term, final Set<UserRole> roles, final Pageable pageable) {
+    if (roles.isEmpty()) {
+      return this.repository.searchByNameOrMobile(term, pageable);
+    }
+    return this.repository.searchByNameOrMobileAndRoleIn(term, roles, pageable);
   }
 
   @Override

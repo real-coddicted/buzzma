@@ -3,11 +3,13 @@ package com.coddicted.buzzma.identity.service.impl;
 import static com.coddicted.buzzma.identity.service.impl.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coddicted.buzzma.connection.entity.ConnectionStatus;
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.persistence.UsersRepository;
 import com.coddicted.buzzma.shared.constants.WellKnownSequences;
 import com.coddicted.buzzma.shared.exception.NotFoundException;
@@ -148,10 +150,23 @@ class UserServiceImplTest {
     when(this.mockUsersRepository.searchByNameOrMobile(SEARCH_TERM, pageable))
         .thenReturn(new PageImpl<>(List.of(USER_2), pageable, 1));
 
-    final var result = this.userService.searchUsers(SEARCH_TERM, pageable);
+    final var result = this.userService.searchUsers(SEARCH_TERM, Set.of(), pageable);
 
     assertEquals(List.of(USER_2), result.getContent());
     assertEquals(1, result.getTotalElements());
+  }
+
+  @Test
+  void testSearchUsersWithRolesUsesRoleFilteredQuery() {
+    final Pageable pageable = PageRequest.of(0, 20);
+    final Set<UserRole> roles = Set.of(UserRole.ROLE_BUYER, UserRole.ROLE_MEDIATOR);
+    when(this.mockUsersRepository.searchByNameOrMobileAndRoleIn(SEARCH_TERM, roles, pageable))
+        .thenReturn(new PageImpl<>(List.of(USER_2), pageable, 1));
+
+    final var result = this.userService.searchUsers(SEARCH_TERM, roles, pageable);
+
+    assertEquals(List.of(USER_2), result.getContent());
+    verify(this.mockUsersRepository, never()).searchByNameOrMobile(SEARCH_TERM, pageable);
   }
 
   @Test

@@ -6,6 +6,7 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,18 @@ public interface UsersRepository extends JpaRepository<BuzzmaUser, UUID> {
           OR u.mobile LIKE CONCAT('%', :term, '%'))
       """)
   Page<BuzzmaUser> searchByNameOrMobile(@Param("term") String term, Pageable pageable);
+
+  /** {@link #searchByNameOrMobile} restricted to users having one of {@code roles}. */
+  @Query(
+      """
+      SELECT u FROM BuzzmaUser u
+      WHERE u.isDeleted = false
+        AND u.role IN :roles
+        AND (LOWER(u.name) LIKE LOWER(CONCAT('%', :term, '%'))
+          OR u.mobile LIKE CONCAT('%', :term, '%'))
+      """)
+  Page<BuzzmaUser> searchByNameOrMobileAndRoleIn(
+      @Param("term") String term, @Param("roles") Set<UserRole> roles, Pageable pageable);
 
   /** Of {@code ids}, only those users directly connected (as parent or child) to {@code userId}. */
   @Query(

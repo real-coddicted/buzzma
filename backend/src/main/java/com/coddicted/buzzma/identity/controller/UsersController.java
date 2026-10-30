@@ -20,6 +20,7 @@ import com.coddicted.buzzma.identity.service.UserBankingDetailService;
 import com.coddicted.buzzma.identity.service.UserService;
 import com.coddicted.buzzma.shared.security.CurrentUser;
 import com.coddicted.buzzma.shared.security.CurrentUserId;
+import com.coddicted.buzzma.shared.security.ViewAsActor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
@@ -103,9 +104,11 @@ public class UsersController {
   @PreAuthorize(UserRole.Expr.ADMIN)
   public PagedUsersResponseDto searchUsers(
       @RequestParam @NotBlank final String q,
+      @RequestParam(defaultValue = "") final Set<UserRole> roles,
       @RequestParam(defaultValue = "0") final int page,
       @RequestParam(defaultValue = "20") final int size) {
-    final Page<BuzzmaUser> usersPage = this.userService.searchUsers(q, PageRequest.of(page, size));
+    final Page<BuzzmaUser> usersPage =
+        this.userService.searchUsers(q, roles, PageRequest.of(page, size));
     return PagedUsersResponseDto.builder()
         .items(this.userMapper.toUserSummaryDto(usersPage.getContent()))
         .total(usersPage.getTotalElements())
@@ -179,9 +182,13 @@ public class UsersController {
 
   @GetMapping("/{id}/banking")
   @PreAuthorize("@ownershipGuard.isOwner(#id) or @parentshipGuard.isParentOf(#id)")
-  public UserBankingDetailDto getBankingDetail(@PathVariable final UUID id) {
+  public UserBankingDetailDto getBankingDetail(
+      @PathVariable final UUID id, @ViewAsActor final BuzzmaUser viewAsActor) {
     final UserBankingDetail bankingDetail = this.userBankingDetailService.getByUserId(id);
-    return this.userBankingDetailMapper.toDto(bankingDetail);
+    // An admin viewing as the user only gets the last digits of the account number.
+    return viewAsActor == null
+        ? this.userBankingDetailMapper.toDto(bankingDetail)
+        : this.userBankingDetailMapper.toMaskedDto(bankingDetail);
   }
 
   @PutMapping("/{id}/banking")

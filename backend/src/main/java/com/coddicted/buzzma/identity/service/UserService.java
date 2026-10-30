@@ -5,6 +5,7 @@ import com.coddicted.buzzma.identity.entity.UserRole;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,8 +31,10 @@ public interface UserService {
 
   BuzzmaUser getByMobile(String mobile);
 
-  /** Case-insensitive partial match on name or mobile. */
-  Page<BuzzmaUser> searchUsers(String term, Pageable pageable);
+  /**
+   * Case-insensitive partial match on name or mobile, limited to {@code roles} unless it is empty.
+   */
+  Page<BuzzmaUser> searchUsers(String term, Set<UserRole> roles, Pageable pageable);
 
   BuzzmaUser getByRole(UserRole role);
 
