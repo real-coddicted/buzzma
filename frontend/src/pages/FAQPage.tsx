@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { PROMOTION_CATEGORY_PLATFORMS, PROMOTION_CATEGORY_STEPS, PLATFORM_LABELS } from '../constants/campaigns'
 import { useStepLabels } from '../hooks/useStepLabels'
 import { ComingSoonPlaceholder } from '../components/ui/ComingSoonPlaceholder'
+import { ImageLightbox } from '../components/ui/deal/ImageLightbox'
 import { IconChevronRight, IconShoppingBag, IconShoppingBagFast } from '../components/ui/icons'
 import type { PromotionCategory, Platform } from '../types'
 
@@ -25,19 +26,38 @@ const CATEGORY_LABELS: Record<PromotionCategory, string> = {
 
 const POLICY_ITEMS = ['Order Submission', 'Refund Form Deadlines', 'Late Submission Penalties']
 
-/** Looks up `/faq/<platform>/<step>.png` in public/ and falls back to the "coming soon" placeholder if it 404s. */
+/**
+ * Looks up `/faq/<platform>/<step>.png` in public/ and falls back to the "coming soon" placeholder
+ * if it 404s. Clickable — opens the same full-size ImageLightbox used for claim-proof screenshots.
+ */
 function ScreenshotSlot({ platform, step }: { platform: Platform; step: string }) {
   const [failed, setFailed] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const src = `/faq/${platform}/${step}.png`
+  const alt = `${PLATFORM_LABELS[platform]} — ${step} example`
+
   if (failed) return <ComingSoonPlaceholder variant="image" />
+
   return (
-    <div className="w-full aspect-video max-w-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border overflow-hidden bg-white">
-      <img
-        src={`/faq/${platform}/${step}.png`}
-        alt={`${PLATFORM_LABELS[platform]} — ${step} example`}
-        className="w-full h-full object-contain"
-        onError={() => setFailed(true)}
-      />
-    </div>
+    <>
+      <div
+        className="relative group cursor-pointer w-full max-w-md h-64 flex items-center justify-center rounded-lg border border-surface-light-border dark:border-surface-dark-border overflow-hidden bg-white"
+        onClick={() => setLightboxOpen(true)}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="max-w-full max-h-full object-contain"
+          onError={() => setFailed(true)}
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold bg-black/50 px-2.5 py-1 rounded-lg">
+            ⤢ View full
+          </span>
+        </div>
+      </div>
+      {lightboxOpen && <ImageLightbox src={src} alt={alt} onClose={() => setLightboxOpen(false)} />}
+    </>
   )
 }
 

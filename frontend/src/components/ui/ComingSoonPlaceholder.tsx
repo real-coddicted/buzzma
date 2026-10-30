@@ -8,7 +8,7 @@ interface ComingSoonPlaceholderProps {
 export function ComingSoonPlaceholder({ variant }: ComingSoonPlaceholderProps) {
   if (variant === 'image') {
     return (
-      <div className="w-full aspect-video max-w-sm rounded-lg border border-dashed border-surface-light-border dark:border-surface-dark-border flex flex-col items-center justify-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover">
+      <div className="w-full max-w-md h-64 rounded-lg border border-dashed border-surface-light-border dark:border-surface-dark-border flex flex-col items-center justify-center gap-2 bg-surface-light-hover dark:bg-surface-dark-hover">
         <ImageFiller />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-neon-yellow">Coming soon</span>
       </div>
