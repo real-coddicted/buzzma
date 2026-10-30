@@ -93,4 +93,14 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
       @Param("campaignId") UUID campaignId, @Param("ownerId") UUID ownerId);
 
   Optional<Deal> findByCodeAndOwnerIdAndIsDeletedFalse(String code, UUID ownerId);
+
+  @Query(
+      """
+      SELECT d FROM Deal d
+        JOIN FETCH d.campaign c
+        JOIN FETCH c.product
+        JOIN FETCH d.campaignSlot
+      WHERE d.id = :id
+      """)
+  Optional<Deal> findByIdWithCampaignDetails(@Param("id") UUID id);
 }

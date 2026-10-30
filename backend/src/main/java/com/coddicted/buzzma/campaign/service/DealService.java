@@ -12,6 +12,13 @@ public interface DealService {
 
   Deal getById(UUID id);
 
+  /**
+   * Like {@link #getById(UUID)} but fetches the deal's campaign, campaign product, and campaign
+   * slot in the same query, for callers that need those associations (avoids lazy-loading them one
+   * at a time once the transaction that loaded the deal has closed).
+   */
+  Deal getByIdWithCampaignDetails(UUID id);
+
   Deal create(Deal deal);
 
   Page<Deal> getActiveDeals(Collection<UUID> ownerIds, UUID requesterId, int page, int size);

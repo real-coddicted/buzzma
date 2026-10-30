@@ -40,6 +40,13 @@ public class DealServiceImpl extends BaseCrudService implements DealService {
   }
 
   @Override
+  public Deal getByIdWithCampaignDetails(final UUID id) {
+    return this.dealRepository
+        .findByIdWithCampaignDetails(id)
+        .orElseThrow(() -> new NotFoundException("Deal not found: " + id));
+  }
+
+  @Override
   public Deal create(final Deal deal) {
     final String code =
         this.codeGenerationService.generateCodeFromSequence(WellKnownSequences.DEAL);

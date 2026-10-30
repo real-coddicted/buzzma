@@ -558,7 +558,7 @@ class ClaimReviewServiceImplTest {
   @Test
   void testReviewScreenshotRejected() {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
     final Claim rejectedClaim =
         CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).updatedBy(OWNER_ID).build();
@@ -598,7 +598,7 @@ class ClaimReviewServiceImplTest {
   @Test
   void testReviewScreenshotVerifiedDoesNotPublishEvent() {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
 
     final ClaimWithDeal result =
@@ -635,7 +635,7 @@ class ClaimReviewServiceImplTest {
   void testReviewScreenshotRevertsProofRejectedClaimWhenNoScreenshotsRemainRejected() {
     final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
     when(this.mockClaimService.listScreenshots(CLAIM_ID))
         .thenReturn(
@@ -665,7 +665,7 @@ class ClaimReviewServiceImplTest {
     // (e.g. return window) haven't been submitted yet.
     final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
     when(this.mockClaimService.listScreenshots(CLAIM_ID))
         .thenReturn(
@@ -693,7 +693,7 @@ class ClaimReviewServiceImplTest {
   void testReviewScreenshotDoesNotRevertProofRejectedClaimWhileAnotherScreenshotStaysRejected() {
     final Claim proofRejectedClaim = CLAIM_1.toBuilder().status(ClaimStatus.PROOF_REJECTED).build();
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(proofRejectedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockClaimService.getScreenshotById(SCREENSHOT_ID)).thenReturn(SCREENSHOT_1);
     final ClaimScreenshot stillRejectedScreenshot =
         SCREENSHOT_1.toBuilder()
@@ -765,7 +765,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockClaimService.listScreenshots(CLAIM_ID)).thenReturn(List.of(SCREENSHOT_1));
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID,
@@ -789,7 +789,7 @@ class ClaimReviewServiceImplTest {
         CLAIM_1.toBuilder().status(ClaimStatus.REJECTED).updatedBy(OWNER_ID).build();
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(rejectedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID,
@@ -809,7 +809,7 @@ class ClaimReviewServiceImplTest {
   void testSubmitClaimReviewVerifiedByMediatorDoesNotPublishDecisionEvent() {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
     when(this.mockClaimService.save(any(Claim.class))).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID, OWNER_ID, UserRole.ROLE_MEDIATOR, ReviewerDecision.VERIFIED, null, null);
@@ -823,7 +823,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.BRAND_VERIFIED, null, null);
@@ -847,7 +847,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.BRAND_VERIFIED, null, null);
@@ -931,7 +931,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(approvedClaim);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(approvedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID, OWNER_ID, UserRole.ROLE_AGENCY, ReviewerDecision.PENDING, null, null);
@@ -956,7 +956,7 @@ class ClaimReviewServiceImplTest {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(approvedClaim);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimService.save(claimCaptor.capture())).thenReturn(approvedClaim);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimReviewService.submitClaimReview(
         CLAIM_ID, OWNER_ID, UserRole.ROLE_BRAND, ReviewerDecision.PENDING, null, null);
@@ -973,7 +973,7 @@ class ClaimReviewServiceImplTest {
   @Test
   void testSubmitClaimReviewResetOnNonApprovedClaimThrows() {
     when(this.mockClaimService.getById(CLAIM_ID, OWNER_ID)).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     final BusinessRuleViolationException ex =
         assertThrows(

@@ -397,7 +397,9 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
       final String contentType) {
 
     final Claim claim = loadAndVerifyOwnership(claimId, ownerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
+    // Fetches campaign/product/slot eagerly: the response built from this ClaimWithDeal needs
+    // them (via DealMapper), and loading them here avoids one-at-a-time lazy loads later.
+    final Deal deal = this.dealService.getByIdWithCampaignDetails(claim.getDealId());
     final List<CampaignStepType> steps = this.campaignStepResolver.resolve(deal.getCampaign());
     validatePrecedingStep(steps, stepType, claim.getCurrentStep());
 
@@ -521,7 +523,8 @@ public class ClaimServiceImpl extends BaseCrudService implements ClaimService {
     final Claim finalClaim =
         updateClaim(requesterId, screenshotType, orderFields, reviewUrl, claim);
 
-    return new ClaimWithDeal(finalClaim, this.dealService.getById(finalClaim.getDealId()));
+    return new ClaimWithDeal(
+        finalClaim, this.dealService.getByIdWithCampaignDetails(finalClaim.getDealId()));
   }
 
   private Claim updateClaim(
