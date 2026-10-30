@@ -57,6 +57,26 @@ class DealServiceImplTest {
   }
 
   @Test
+  void testGetByIdWithCampaignDetailsWhenFound() {
+    when(this.mockDealRepository.findByIdWithCampaignDetails(DEAL_ID))
+        .thenReturn(Optional.of(DEAL_1));
+
+    final Deal result = this.dealService.getByIdWithCampaignDetails(DEAL_ID);
+
+    assertEquals(DEAL_1, result);
+  }
+
+  @Test
+  void testGetByIdWithCampaignDetailsWhenNotFound() {
+    when(this.mockDealRepository.findByIdWithCampaignDetails(DEAL_ID)).thenReturn(Optional.empty());
+
+    final NotFoundException ex =
+        assertThrows(
+            NotFoundException.class, () -> this.dealService.getByIdWithCampaignDetails(DEAL_ID));
+    assertEquals("Deal not found: " + DEAL_ID, ex.getMessage());
+  }
+
+  @Test
   void testCreate() {
     when(this.mockCodeGenerationService.generateCodeFromSequence(WellKnownSequences.DEAL))
         .thenReturn(DEAL_CODE);

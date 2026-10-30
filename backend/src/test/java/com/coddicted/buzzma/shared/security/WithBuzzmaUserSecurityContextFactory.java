@@ -1,6 +1,7 @@
 package com.coddicted.buzzma.shared.security;
 
 import com.coddicted.buzzma.identity.entity.BuzzmaUser;
+import com.coddicted.buzzma.identity.entity.UserRole;
 import com.coddicted.buzzma.identity.security.BuzzmaUserDetails;
 import java.util.UUID;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +29,17 @@ public class WithBuzzmaUserSecurityContextFactory
             .mobile("9999999999")
             .isDeleted(false)
             .build();
-    final BuzzmaUserDetails details = new BuzzmaUserDetails(user);
+    final BuzzmaUser actor =
+        annotation.actorId().isBlank()
+            ? null
+            : BuzzmaUser.builder()
+                .id(UUID.fromString(annotation.actorId()))
+                .role(UserRole.ROLE_ADMIN)
+                .name("Test Admin")
+                .mobile("9999999998")
+                .isDeleted(false)
+                .build();
+    final BuzzmaUserDetails details = new BuzzmaUserDetails(user, actor);
     final UsernamePasswordAuthenticationToken auth =
         new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
     final SecurityContext context = SecurityContextHolder.createEmptyContext();

@@ -146,7 +146,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       throw new BusinessRuleViolationException(
           "Claim is already " + claim.getStatus().getDisplayName() + " and cannot be reviewed");
     }
-    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Deal deal = this.dealService.getByIdWithCampaignDetails(claim.getDealId());
 
     final ClaimScreenshot screenshot = this.claimService.getScreenshotById(screenshotId);
 
@@ -199,7 +199,7 @@ public class ClaimReviewServiceImpl extends BaseCrudService implements ClaimRevi
       final BigInteger amountApprovedPaise) {
     ClaimReviewPolicy.validateSubmitClaimReview(reviewerRole, decision);
     final Claim claim = this.claimService.getById(claimId, reviewerId);
-    final Deal deal = this.dealService.getById(claim.getDealId());
+    final Deal deal = this.dealService.getByIdWithCampaignDetails(claim.getDealId());
     final Claim updated;
     if (decision == ReviewerDecision.PENDING) {
       updated = resetClaimReview(claim, reviewerRole, reviewerId);

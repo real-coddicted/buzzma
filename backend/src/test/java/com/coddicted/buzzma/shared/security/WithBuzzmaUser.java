@@ -14,4 +14,7 @@ public @interface WithBuzzmaUser {
   UserRole role();
 
   String id() default "";
+
+  /** When set, the user is being viewed by this admin (view-as mode). */
+  String actorId() default "";
 }

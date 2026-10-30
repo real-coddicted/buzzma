@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -182,7 +183,7 @@ class UsersControllerTest {
   void testSearchAsAdminReturnsPagedUsers() throws Exception {
     final BuzzmaUser user = BuzzmaUser.builder().id(TARGET_USER_ID).name("Alice").build();
     final PageRequest pageable = PageRequest.of(0, 20);
-    when(userService.searchUsers("alice", pageable))
+    when(userService.searchUsers("alice", Set.of(), pageable))
         .thenReturn(new PageImpl<>(List.of(user), pageable, 1));
     when(userMapper.toUserSummaryDto(List.of(user)))
         .thenReturn(List.of(UserSummaryDto.builder().id(TARGET_USER_ID).name("Alice").build()));
@@ -195,6 +196,26 @@ class UsersControllerTest {
         .andExpect(jsonPath("$.total").value(1))
         .andExpect(jsonPath("$.page").value(0))
         .andExpect(jsonPath("$.totalPages").value(1));
+  }
+
+  @Test
+  @WithBuzzmaUser(role = UserRole.ROLE_ADMIN)
+  void testSearchWithRolesPassesRolesToService() throws Exception {
+    final BuzzmaUser user = BuzzmaUser.builder().id(TARGET_USER_ID).name("Alice").build();
+    final PageRequest pageable = PageRequest.of(0, 20);
+    when(userService.searchUsers(
+            "alice", Set.of(UserRole.ROLE_BUYER, UserRole.ROLE_MEDIATOR), pageable))
+        .thenReturn(new PageImpl<>(List.of(user), pageable, 1));
+    when(userMapper.toUserSummaryDto(List.of(user)))
+        .thenReturn(List.of(UserSummaryDto.builder().id(TARGET_USER_ID).name("Alice").build()));
+
+    mockMvc
+        .perform(
+            get("/api/v1/users/search")
+                .param("q", "alice")
+                .param("roles", "ROLE_BUYER,ROLE_MEDIATOR"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].id").value(TARGET_USER_ID.toString()));
   }
 
   @Test
@@ -296,6 +317,24 @@ class UsersControllerTest {
     when(userBankingDetailMapper.toDto(detail)).thenReturn(UserBankingDetailDto.builder().build());
 
     mockMvc.perform(get("/api/v1/users/" + TARGET_USER_ID + "/banking")).andExpect(status().isOk());
+  }
+
+  @Test
+  @WithBuzzmaUser(
+      role = UserRole.ROLE_BUYER,
+      id = "44444444-4444-4444-4444-444444444444",
+      actorId = "55555555-5555-5555-5555-555555555555")
+  void testGetBankingWhenViewedAsByAdminReturnsMaskedAccountNumber() throws Exception {
+    final UserBankingDetail detail = UserBankingDetail.builder().userId(TARGET_USER_ID).build();
+    when(userBankingDetailService.getByUserId(TARGET_USER_ID)).thenReturn(detail);
+    when(userBankingDetailMapper.toMaskedDto(detail))
+        .thenReturn(UserBankingDetailDto.builder().bankAccountNumber("XX7890").build());
+
+    mockMvc
+        .perform(get("/api/v1/users/" + TARGET_USER_ID + "/banking"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.bankAccountNumber").value("XX7890"));
+    verify(userBankingDetailMapper, never()).toDto(detail);
   }
 
   @Test

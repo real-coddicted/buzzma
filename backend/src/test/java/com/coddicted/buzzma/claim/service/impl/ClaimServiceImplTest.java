@@ -604,7 +604,7 @@ class ClaimServiceImplTest {
   void testSubmitRating() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
@@ -636,7 +636,7 @@ class ClaimServiceImplTest {
   void testSubmitRatingWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
@@ -665,7 +665,7 @@ class ClaimServiceImplTest {
   void testSubmitReview() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
@@ -707,7 +707,7 @@ class ClaimServiceImplTest {
             CampaignStepType.CASHBACK);
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
@@ -727,7 +727,7 @@ class ClaimServiceImplTest {
   void testSubmitReviewWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
@@ -787,7 +787,7 @@ class ClaimServiceImplTest {
   void testSubmitReturn() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_3));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
     when(this.mockStorageService.store(
             "claims", SCREENSHOT_FILENAME, CONTENT_TYPE, SCREENSHOT_BYTES))
@@ -819,7 +819,7 @@ class ClaimServiceImplTest {
   void testSubmitReturnWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(STEPS);
 
     final BusinessRuleViolationException ex =
@@ -864,7 +864,7 @@ class ClaimServiceImplTest {
   void testSubmitDelivery() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
         .thenReturn(STEPS_WITH_DELIVERY);
     when(this.mockStorageService.store(
@@ -897,7 +897,7 @@ class ClaimServiceImplTest {
   void testSubmitDeliveryWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_2));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
         .thenReturn(STEPS_WITH_DELIVERY);
 
@@ -927,7 +927,7 @@ class ClaimServiceImplTest {
   void testSubmitSellerFeedback() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_3));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
         .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
     when(this.mockStorageService.store(
@@ -960,7 +960,7 @@ class ClaimServiceImplTest {
   void testSubmitSellerFeedbackWhenWrongStep() {
     when(this.mockClaimRepository.findByIdAndIsDeletedFalse(CLAIM_ID))
         .thenReturn(Optional.of(CLAIM_1));
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign()))
         .thenReturn(STEPS_WITH_SELLER_FEEDBACK);
 
@@ -1097,7 +1097,7 @@ class ClaimServiceImplTest {
         .thenReturn(Campaign.builder().sellerName("Acme Sellers").build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.updateScreenshot(
         CLAIM_ID,
@@ -1131,7 +1131,7 @@ class ClaimServiceImplTest {
         .thenReturn(Campaign.builder().sellerName(null).build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.updateScreenshot(
         CLAIM_ID,
@@ -1167,7 +1167,7 @@ class ClaimServiceImplTest {
         .thenReturn(Campaign.builder().build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.updateScreenshot(
         CLAIM_ID,
@@ -1207,7 +1207,7 @@ class ClaimServiceImplTest {
                 .build());
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_1);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
 
     this.claimService.updateScreenshot(
         CLAIM_ID,
@@ -1332,7 +1332,7 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
         .thenReturn(DEAL_1.getCampaign());
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
 
@@ -1397,7 +1397,7 @@ class ClaimServiceImplTest {
     when(this.mockCampaignService.getById(CLAIM_3.getCampaignId()))
         .thenReturn(DEAL_1.getCampaign());
     when(this.mockCampaignStepResolver.resolve(DEAL_1.getCampaign())).thenReturn(stepsReviewLast);
-    when(this.mockDealService.getById(DEAL_ID)).thenReturn(DEAL_1);
+    when(this.mockDealService.getByIdWithCampaignDetails(DEAL_ID)).thenReturn(DEAL_1);
     final ArgumentCaptor<Claim> claimCaptor = ArgumentCaptor.forClass(Claim.class);
     when(this.mockClaimRepository.save(claimCaptor.capture())).thenReturn(CLAIM_3);
 

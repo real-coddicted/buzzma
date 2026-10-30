@@ -12,12 +12,24 @@ public class BuzzmaUserDetails implements UserDetails {
 
   private final BuzzmaUser user;
 
+  /** The admin viewing as {@link #user}; {@code null} outside view-as mode. */
+  private final BuzzmaUser actor;
+
   public BuzzmaUserDetails(BuzzmaUser user) {
+    this(user, null);
+  }
+
+  public BuzzmaUserDetails(BuzzmaUser user, BuzzmaUser actor) {
     this.user = user;
+    this.actor = actor;
   }
 
   public BuzzmaUser getUser() {
     return this.user;
+  }
+
+  public BuzzmaUser getActor() {
+    return this.actor;
   }
 
   @Override

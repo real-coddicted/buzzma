@@ -1,0 +1,10 @@
+{
+  "id": "dddddddd-0000-0000-0000-000000000001",
+  "name": "Brand",
+  "mobile": "9000000006",
+  "role": "ROLE_BRAND",
+  "status": "USER_STATUS_ACTIVE",
+  "isDeleted": false,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "updatedAt": "2024-01-01T00:00:00Z"
+}
