@@ -25,6 +25,22 @@ const CATEGORY_LABELS: Record<PromotionCategory, string> = {
 
 const POLICY_ITEMS = ['Order Submission', 'Refund Form Deadlines', 'Late Submission Penalties']
 
+/** Looks up `/faq/<platform>/<step>.png` in public/ and falls back to the "coming soon" placeholder if it 404s. */
+function ScreenshotSlot({ platform, step }: { platform: Platform; step: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return <ComingSoonPlaceholder variant="image" />
+  return (
+    <div className="w-full aspect-video max-w-sm rounded-lg border border-surface-light-border dark:border-surface-dark-border overflow-hidden bg-white">
+      <img
+        src={`/faq/${platform}/${step}.png`}
+        alt={`${PLATFORM_LABELS[platform]} — ${step} example`}
+        className="w-full h-full object-contain"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  )
+}
+
 function AccordionItem({ title, icon, children, defaultOpen = false }: { title: ReactNode; icon?: ReactNode; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
@@ -60,7 +76,7 @@ export function FAQPage() {
           How to submit proof screenshots for your campaigns, by platform and screenshot type.
         </p>
         <p className="text-xs text-ink-light-muted dark:text-ink-dark-muted mt-2">
-          Note: screenshots should be taken from a web browser (desktop or mobile web). Screenshots from a native app aren't supported yet.
+          Note: screenshots should be taken from a web browser (desktop) unless otherwise specified. Screenshots from a native app may be rejected if they do not clearly show the required information.
         </p>
       </div>
 
@@ -86,7 +102,7 @@ export function FAQPage() {
                           </p>
                           <ComingSoonPlaceholder variant="text" />
                           <div className="mt-2">
-                            <ComingSoonPlaceholder variant="image" />
+                            <ScreenshotSlot platform={platform} step={step} />
                           </div>
                         </div>
                       ))}
