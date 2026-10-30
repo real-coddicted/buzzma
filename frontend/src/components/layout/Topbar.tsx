@@ -83,7 +83,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNot
           className="flex items-center gap-1 h-9 px-2 rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
         >
           <IconHelpCircle size={18} />
-          <span className="hidden sm:inline text-xs font-medium">FAQ</span>
+          <span className="hidden sm:inline text-xs font-medium text-neon-blue">FAQ</span>
         </button>
 
         <div className="relative">

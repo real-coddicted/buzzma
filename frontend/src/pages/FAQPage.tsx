@@ -120,7 +120,6 @@ export function FAQPage() {
                           <p className="text-xs font-semibold text-ink-light-primary dark:text-ink-dark-primary mb-1">
                             {stepLabels[step] ?? step}
                           </p>
-                          <ComingSoonPlaceholder variant="text" />
                           <div className="mt-2">
                             <ScreenshotSlot platform={platform} step={step} />
                           </div>
