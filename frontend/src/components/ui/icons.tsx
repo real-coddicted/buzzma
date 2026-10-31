@@ -535,6 +535,16 @@ export function IconGlobe({ size = 18, ...p }: IconProps) {
   )
 }
 
+export function IconHelpCircle({ size = 18, ...p }: IconProps) {
+  return (
+    <svg {...base(size, p)}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 5" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  )
+}
+
 export function IconWhatsApp({ size = 14, ...p }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...p}>

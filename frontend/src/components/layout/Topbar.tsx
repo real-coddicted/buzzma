@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
-import { IconBell, IconChevronRight, IconMenu } from '../ui/icons'
+import { IconBell, IconChevronRight, IconMenu, IconHelpCircle } from '../ui/icons'
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext'
 import type { Theme, NavPage } from '../../types'
 
@@ -22,6 +22,7 @@ const pageTitles: Record<NavPage, { title: string; subtitle: string }> = {
   'tickets':       { title: 'Tickets',          subtitle: 'View and action on user tickets' },
   'my-payments':   { title: 'My Payments',      subtitle: 'Track all payments received and pending against your claims' },
   'user-payouts':  { title: 'User Payouts',     subtitle: 'Manage payouts to your downward network' },
+  faq:             { title: 'FAQ',              subtitle: 'How Buzzma works' },
 }
 
 interface TopbarProps {
@@ -80,6 +81,14 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNot
         <div className="mr-1 relative top-[3px]">
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
+
+        <button
+          onClick={() => onNavigate('faq')}
+          className="flex items-center gap-1 h-9 px-2 rounded-lg text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover hover:text-ink-light-primary dark:hover:text-ink-dark-primary transition-colors"
+        >
+          <IconHelpCircle size={18} />
+          <span className="hidden sm:inline text-xs font-medium text-neon-blue">FAQ</span>
+        </button>
 
         <div className="relative">
           <button

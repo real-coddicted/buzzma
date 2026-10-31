@@ -18,6 +18,7 @@ import { MyPayments } from './pages/MyPayments'
 import { UserPayouts } from './pages/UserPayouts'
 import { Auth } from './pages/Auth'
 import { TermsPage } from './pages/TermsPage'
+import { FAQPage } from './pages/FAQPage'
 import { TermsReacceptDialog } from './components/ui/TermsReacceptDialog'
 import { Loading } from './components/ui/Loading'
 import { Card } from './components/ui/Card'
@@ -65,7 +66,7 @@ export default function App() {
   const [termsError, setTermsError] = useState<string | null>(null)
   const loginTimestampRef = useRef(Date.now())
 
-  const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','my-claims','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments','user-payouts']), [])
+  const validPages = useMemo(() => new Set<NavPage>(['dashboard','campaigns','connections','assignments','deals','my-claims','feedback','profile','raise-ticket','my-tickets','notifications','claim-review','users','tickets','my-payments','user-payouts','faq']), [])
   const rawPage = location.pathname.replace(/^\//, '') || 'dashboard'
   const activePage: NavPage = validPages.has(rawPage as NavPage) ? (rawPage as NavPage) : 'dashboard'
 
@@ -336,6 +337,7 @@ export default function App() {
       {activePage === 'tickets' && <MyTickets title="Tickets" fetchFn={fetchAllTickets} />}
       {activePage === 'my-payments'  && <MyPayments />}
       {activePage === 'user-payouts' && <UserPayouts />}
+      {activePage === 'faq'          && <FAQPage />}
       </ViewOnlyProvider>
       )}
       {errorToasts}

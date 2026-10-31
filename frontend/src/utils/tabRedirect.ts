@@ -15,7 +15,7 @@ export const TAB_FLAGS: Partial<Record<NavPage, keyof UserSettingsDto>> = {
 // tab flag in the first place.
 const SUPPORT_PAGES: ReadonlySet<NavPage> = new Set<NavPage>([
   ...NAV_ITEMS.filter(item => item.section === 'footer').map(item => item.page),
-  'profile', 'notifications', 'raise-ticket', 'tickets',
+  'profile', 'notifications', 'raise-ticket', 'tickets', 'faq',
 ])
 
 export function isTabDisabled(page: NavPage, settings: UserSettingsDto): boolean {

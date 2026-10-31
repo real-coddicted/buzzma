@@ -25,4 +25,5 @@ export const VIEW_AS_ROLES: Record<NavPage, ViewAsRole[]> = {
   profile:         ALL_ROLES,
   'raise-ticket':  ALL_ROLES,
   notifications:   ALL_ROLES,
+  faq:             [],
 }
