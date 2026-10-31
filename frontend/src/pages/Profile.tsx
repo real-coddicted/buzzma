@@ -7,6 +7,7 @@ import type { CurrentUser } from '../api/client'
 import { fetchCurrentUser, updateUserProfile } from '../api/userApi'
 import type { UserDetails } from '../types/ProfileTypes'
 import { roleToType } from '../utils/userRole'
+import { useViewOnly } from '../contexts/ViewOnlyContext'
 
 type ProfileTab = 'personal' | 'password' | 'banking'
 
@@ -27,6 +28,7 @@ function toUserDetails(user: CurrentUser): UserDetails {
 }
 
 export function Profile() {
+  const viewOnly = useViewOnly()
   const [user, setUser] = useState<CurrentUser | null>(() => getCurrentUser())
   const [activeTab, setActiveTab] = useState<ProfileTab>('personal')
 
@@ -45,7 +47,8 @@ export function Profile() {
       </h1>
 
       <div className="flex gap-1 p-1 rounded-lg bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border self-start mb-6 w-fit">
-        {tabs.map(t => (
+        {/* Viewing as another user: their password is not the admin's to change. */}
+        {tabs.filter(t => !(viewOnly && t.value === 'password')).map(t => (
           <button
             key={t.value}
             onClick={() => setActiveTab(t.value)}
@@ -80,7 +83,7 @@ export function Profile() {
         )
       )}
 
-      {activeTab === 'password' && <ChangePasswordCard />}
+      {activeTab === 'password' && !viewOnly && <ChangePasswordCard />}
 
       {activeTab === 'banking' && (
         user?.id

@@ -25,6 +25,7 @@ import { PLATFORM_COLORS, CLAIM_STATUS_COLORS } from '../campaign/filters/chipCo
 import { FilterChips, type FilterChip } from '../campaign/filters/FilterChips'
 import { type ClaimReviewFilters, emptyFilters, countActiveFilters, matchesFilters } from './filters/ClaimReviewFilterTypes'
 import type { TypeaheadOption } from './filters/TypeaheadMultiSelect'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 // --- main grid ---
 
@@ -48,6 +49,7 @@ interface ClaimReviewGridProps {
 }
 
 export function ClaimReviewGrid({ claims, loading = false, total, currentPage, totalPages, onPageChange, appliedFilters, onApplyFilters, onViewDetails, onApprove, onBrandVerify, onBulkApprove, onOpenImport, onMarkReadyForAccounting, initialCampaignOption }: ClaimReviewGridProps) {
+  const viewOnly = useViewOnly()
   const [search, setSearch] = useState('')
   const [approvedAmounts, setApprovedAmounts] = useState<Record<string, string>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -493,7 +495,7 @@ export function ClaimReviewGrid({ claims, loading = false, total, currentPage, t
                               onChange={v => handleAmountChange(row.id, v)}
                               symbolOffset="left-1.5"
                               inputPadding="pl-4"
-                              disabled={row.claimStatus === 'APPROVED' || row.claimStatus === 'READY_FOR_ACCOUNTING' || row.claimStatus === 'REJECTED'}
+                              disabled={viewOnly || row.claimStatus === 'APPROVED' || row.claimStatus === 'READY_FOR_ACCOUNTING' || row.claimStatus === 'REJECTED'}
                               className="w-20 pr-2 py-0.5 text-xs rounded border border-surface-light-border dark:border-surface-dark-border bg-transparent text-ink-light-primary dark:text-ink-dark-primary focus:outline-none focus:border-neon-green/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
@@ -570,12 +572,12 @@ export function ClaimReviewGrid({ claims, loading = false, total, currentPage, t
       )}
       {canApprove && selectedIds.size > 0 && (
         <button
-          onClick={() => allSelectedApprovable && handleBulkApproveClick()}
-          disabled={!allSelectedApprovable}
-          title={!allSelectedApprovable ? 'One or more of the claims are not eligible for approval yet due to pending process' : undefined}
+          onClick={() => allSelectedApprovable && !viewOnly && handleBulkApproveClick()}
+          disabled={!allSelectedApprovable || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : !allSelectedApprovable ? 'One or more of the claims are not eligible for approval yet due to pending process' : undefined}
           className={[
             'fixed bottom-7 right-8 flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold text-sm shadow-lg z-50',
-            allSelectedApprovable
+            allSelectedApprovable && !viewOnly
               ? 'bg-neon-green text-surface-dark-base shadow-neon-green/40 hover:brightness-110 cursor-pointer'
               : 'bg-neon-green/40 text-surface-dark-base/70 cursor-not-allowed',
           ].join(' ')}

@@ -7,6 +7,7 @@ import { FeedbackCategorySelector } from './FeedbackCategorySelector'
 import { FeedbackStarRating } from './FeedbackStarRating'
 import { FeedbackSuccessState } from './FeedbackSuccessState'
 import { FeedbackSubmitterCard } from './FeedbackSubmitterCard'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface FeedbackFormProps {
   submitterName: string
@@ -25,6 +26,7 @@ const inputClass = [
 ].join(' ')
 
 export function FeedbackForm({ submitterName, submitterEmail }: FeedbackFormProps) {
+  const viewOnly = useViewOnly()
   const [rating, setRating] = useState(0)
   const [category, setCategory] = useState<FeedbackCategory | ''>('')
   const [message, setMessage] = useState('')
@@ -131,7 +133,7 @@ export function FeedbackForm({ submitterName, submitterEmail }: FeedbackFormProp
         )}
 
         <div className="flex justify-end">
-          <Button type="submit" variant="primary" size="md" loading={loading}>
+          <Button type="submit" variant="primary" size="md" loading={loading} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
             Submit Feedback
           </Button>
         </div>

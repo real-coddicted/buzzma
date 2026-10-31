@@ -1,4 +1,4 @@
-import { getAccessToken, clearSession } from './client'
+import { getAccessToken, clearSession, viewAsHeaders } from './client'
 import type { components } from '../types/api'
 
 export type ExtractionResult = components['schemas']['ExtractionResult']
@@ -30,6 +30,7 @@ export async function extractOrderDetails(file: File, campaignId: string, reques
       headers: {
         // Don't set Content-Type - let browser set it with correct boundary for multipart/form-data
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...viewAsHeaders(),
       },
     })
 

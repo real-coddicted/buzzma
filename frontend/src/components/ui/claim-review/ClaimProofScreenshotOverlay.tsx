@@ -9,6 +9,7 @@ import { SCREENSHOT_TYPE_CONFIG } from './claimReviewConstants'
 import type { ClaimProofItem } from './ClaimProofGallery'
 import type { ScreenshotVerificationStatus } from '../../../types'
 import { canReviewClaims, isReviewSubmitDisabled } from './claimUtils'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 const STATUS_OPTIONS: { value: ScreenshotVerificationStatus; label: string }[] = [
   { value: 'SCREENSHOT_VERIFICATION_STATUS_PENDING', label: 'Pending' },
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, claimLocked, hasPrev, hasNext, onPrev, onNext, onClose, onSubmitReview }: Props) {
+  const viewOnly = useViewOnly()
   const canReview = canReviewClaims(userRole)
   const [fullImage, setFullImage] = useState(false)
   const serverStatus: ScreenshotVerificationStatus =
@@ -69,7 +71,7 @@ export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, claimL
     onSubmitReview(status, comment.trim() || undefined)
   }
 
-  const submitDisabled = isReviewSubmitDisabled(claimLocked, status, serverStatus)
+  const submitDisabled = viewOnly || isReviewSubmitDisabled(claimLocked, status, serverStatus)
 
   return (
     <div
@@ -191,6 +193,7 @@ export function ClaimProofScreenshotOverlay({ item, idx, score, userRole, claimL
                 leftIcon={<IconCheck size={12} />}
                 onClick={handleSubmit}
                 disabled={submitDisabled}
+                title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
                 className="!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"
               >
                 Submit Review

@@ -11,6 +11,7 @@ import {
   type ClaimReviewWorksheetResponseDto,
 } from '../api/claimApi'
 import { formatDateTime } from '../utils/time'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../contexts/ViewOnlyContext'
 
 interface ClaimReviewWorksheetImportProps {
   onBack: () => void
@@ -29,6 +30,7 @@ export const STATUS_CONFIG: Record<WorksheetStatus, { label: string; colorClass:
 const COLUMNS = ['Original File Name', 'Total Rows', 'Rows Processed', 'Rows Pending', 'Status', 'Uploaded At', 'Actions']
 
 export function ClaimReviewWorksheetImport({ onBack, onOpenRows }: ClaimReviewWorksheetImportProps) {
+  const viewOnly = useViewOnly()
   const { setDetail, clearDetail } = useBreadcrumb()
   useEffect(() => {
     setDetail('Import Worksheets', onBack)
@@ -124,7 +126,8 @@ export function ClaimReviewWorksheetImport({ onBack, onOpenRows }: ClaimReviewWo
           />
           <button
             onClick={handleUpload}
-            disabled={!file || uploading}
+            disabled={!file || uploading || viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-neon-blue/10 border border-neon-blue/30 text-neon-blue hover:brightness-110 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? 'Uploading…' : 'Upload'}

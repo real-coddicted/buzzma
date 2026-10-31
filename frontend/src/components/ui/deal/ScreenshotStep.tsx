@@ -5,6 +5,7 @@ import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUr
 import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
 import { submitBtnClass } from './claimStepStyles'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ClaimScreenshotResponseDto = components['schemas']['ClaimScreenshotResponseDto']
@@ -40,6 +41,7 @@ export function ScreenshotStep({
   onSubmit,
   onCreate,
 }: ScreenshotStepProps) {
+  const viewOnly = useViewOnly()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +93,8 @@ export function ScreenshotStep({
           <button
             className={submitBtnClass(buttonColor)}
             onClick={handleSubmit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           >
             {loading ? 'Submitting...' : buttonLabel}
           </button>

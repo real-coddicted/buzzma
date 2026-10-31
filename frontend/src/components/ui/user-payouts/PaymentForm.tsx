@@ -7,6 +7,7 @@ import { CopyableCode } from '../CopyableCode'
 import { formatRupees } from '../../../utils/currency'
 import { PAYMENT_METHODS } from '../../../types/UserPayoutsTypes'
 import type { PayoutClaim, PaymentSubmission } from '../../../types/UserPayoutsTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 const inputClass = [
   'w-full px-3 py-2 rounded-lg border text-sm',
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function PaymentForm({ userName, claimsToPay, onSubmit }: Props) {
+  const viewOnly = useViewOnly()
   const totalAmount = claimsToPay.reduce((s, c) => s + c.amount, 0)
 
   const [screenshot, setScreenshot]     = useState<File | null>(null)
@@ -173,7 +175,7 @@ export function PaymentForm({ userName, claimsToPay, onSubmit }: Props) {
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <Button variant="primary" size="lg" onClick={handleSubmit} loading={submitting} className="flex-1">
+            <Button variant="primary" size="lg" onClick={handleSubmit} loading={submitting} className="flex-1" disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
               Confirm &amp; Mark as Paid
             </Button>
           </div>

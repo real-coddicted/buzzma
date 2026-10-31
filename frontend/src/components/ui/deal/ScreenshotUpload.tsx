@@ -3,6 +3,7 @@ import { extractOrderDetails, type ExtractionResponse } from '../../../api/extra
 import { compressImage } from '../../../utils/imageCompression'
 import { Toast } from '../Toast'
 import { ImageLightbox } from './ImageLightbox'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface ScreenshotUploadProps {
   label: string
@@ -20,6 +21,7 @@ function resolveError(raw: string): string {
 }
 
 export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtracting, onFileChange, initialPreview }: ScreenshotUploadProps) {
+  const viewOnly = useViewOnly()
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(initialPreview ?? null)
@@ -70,10 +72,11 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtract
         <p className="text-[11px] text-ink-light-muted dark:text-ink-dark-muted">{hint}</p>
       )}
       <div
-        onClick={() => !isLoading && inputRef.current?.click()}
-        onDrop={e => !isLoading && handleDrop(e)}
+        onClick={() => !isLoading && !viewOnly && inputRef.current?.click()}
+        onDrop={e => !isLoading && !viewOnly && handleDrop(e)}
+        title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
         onDragOver={e => e.preventDefault()}
-        className={`w-full rounded-xl border-2 border-dashed border-surface-light-border dark:border-surface-dark-border hover:border-neon-blue/40 transition-colors ${!isLoading ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} overflow-hidden`}
+        className={`w-full rounded-xl border-2 border-dashed border-surface-light-border dark:border-surface-dark-border hover:border-neon-blue/40 transition-colors ${!isLoading && !viewOnly ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} overflow-hidden`}
       >
         {preview ? (
           <div className="relative">
@@ -114,7 +117,7 @@ export function ScreenshotUpload({ label, hint, campaignId, onExtract, onExtract
         type="file"
         accept="image/*"
         className="hidden"
-        disabled={isLoading}
+        disabled={isLoading || viewOnly}
         onChange={e => handleFile(e.target.files?.[0])}
       />
       {lightboxOpen && preview && (

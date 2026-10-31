@@ -3,6 +3,7 @@ import { Button } from '../Button'
 import { Tabs } from '../Tabs'
 import type { ConnectionDirection } from '../../../api/connectionApi'
 import type { ConnectionTabLabels } from '../../../utils/connectionTabLabels'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface ConnectionsHeaderProps {
   total: number
@@ -40,6 +41,7 @@ export function ConnectionsHeader({
   onAddConnection,
   onRequestConnection,
 }: ConnectionsHeaderProps) {
+  const viewOnly = useViewOnly()
   const directionTabs = [
     ...(tabLabels.child !== null ? [{ value: 'child' as const, label: tabLabels.child.label }] : []),
     ...(tabLabels.parent !== null ? [{ value: 'parent' as const, label: tabLabels.parent.label }] : []),
@@ -54,11 +56,11 @@ export function ConnectionsHeader({
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconLink size={14} />}>
+          <Button variant="yellowSoft" onClick={onRequestConnection} leftIcon={<IconLink size={14} />} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
             Request to Connect
           </Button>
           {tabLabels.child !== null && (
-            <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />}>
+            <Button variant="primary" onClick={onAddConnection} leftIcon={<IconPlus size={14} />} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
               Invite
             </Button>
           )}

@@ -16,6 +16,9 @@ interface AppLayoutProps {
   onNavigate: (page: NavPage) => void
   unreadNotificationCount: number
   userSettings: UserSettingsDto | null
+  topbarActions?: ReactNode
+  /** Shown above the page content. */
+  banner?: ReactNode
 }
 
 export function AppLayout({
@@ -26,6 +29,8 @@ export function AppLayout({
   onNavigate,
   unreadNotificationCount,
   userSettings,
+  topbarActions,
+  banner,
 }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -54,9 +59,10 @@ export function AppLayout({
           onNavigate={handleNavigate}
           unreadNotificationCount={unreadNotificationCount}
           onMenuClick={() => setIsSidebarOpen(true)}
+          actions={topbarActions}
         />
         <main className="md:ml-60 pt-16 min-h-screen">
-          <div className="p-4 sm:p-6 animate-fade-in">{children}</div>
+          <div className="p-4 sm:p-6 animate-fade-in">{banner}{children}</div>
         </main>
       </div>
     </BreadcrumbProvider>

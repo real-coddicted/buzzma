@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { VerifyEmailModal } from './VerifyEmailModal'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../contexts/ViewOnlyContext'
 
 interface EmailVerificationStatusProps {
   email: string
@@ -8,6 +9,7 @@ interface EmailVerificationStatusProps {
 }
 
 export function EmailVerificationStatus({ email, verified, onVerified }: EmailVerificationStatusProps) {
+  const viewOnly = useViewOnly()
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
@@ -24,7 +26,9 @@ export function EmailVerificationStatus({ email, verified, onVerified }: EmailVe
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="text-xs font-medium text-neon-blue hover:underline"
+            disabled={viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
+            className="text-xs font-medium text-neon-blue hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
           >
             Verify
           </button>

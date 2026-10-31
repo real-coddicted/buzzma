@@ -38,15 +38,20 @@ export async function verifyEmailOtp(code: string): Promise<UserSummaryDto> {
   return user
 }
 
-export async function searchUsers(term: string, page = 0, size = 20): Promise<PagedUsersResponseDto> {
+/** Admin-only, so always sent as the admin. Empty `roles` means every role. */
+export async function searchUsers(term: string, page = 0, size = 20, roles: string[] = []): Promise<PagedUsersResponseDto> {
+  const rolesParam = roles.length > 0 ? `&roles=${roles.join(',')}` : ''
   const res = await fetchWithAuth(
-    `/api/v1/users/search?q=${encodeURIComponent(term)}&page=${page}&size=${size}`,
+    `/api/v1/users/search?q=${encodeURIComponent(term)}&page=${page}&size=${size}${rolesParam}`,
+    {},
+    undefined,
+    true,
   )
   return res.json() as Promise<PagedUsersResponseDto>
 }
 
-export async function fetchUserById(userId: string): Promise<UserSummaryDto> {
-  const res = await fetchWithAuth(`/api/v1/users/${userId}`)
+export async function fetchUserById(userId: string, asSelf = false): Promise<UserSummaryDto> {
+  const res = await fetchWithAuth(`/api/v1/users/${userId}`, {}, undefined, asSelf)
   return res.json() as Promise<UserSummaryDto>
 }
 

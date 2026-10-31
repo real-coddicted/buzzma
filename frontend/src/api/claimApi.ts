@@ -1,7 +1,7 @@
 import type { components } from '../types/api'
 import type { ClaimReviewItem, ClaimScreenshotItem, ClaimStatus } from '../types/ClaimReviewTypes'
 import type { Platform } from '../types/CampaignTypes'
-import { fetchWithAuth, getAccessToken, throwIfUnauthorized } from './client'
+import { fetchWithAuth, getAccessToken, throwIfUnauthorized, viewAsHeaders } from './client'
 import { rupeesToPaise } from '../utils/currency'
 import { yyyymmddToIso } from '../utils/time'
 
@@ -276,7 +276,7 @@ export async function submitReturn(claimId: string, screenshot: File): Promise<C
   const res = await fetch(`${API_BASE}/claims/${claimId}/return`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -301,7 +301,7 @@ export async function submitDelivery(claimId: string, screenshot: File): Promise
   const res = await fetch(`${API_BASE}/claims/${claimId}/delivery`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -326,7 +326,7 @@ export async function submitSellerFeedback(claimId: string, screenshot: File): P
   const res = await fetch(`${API_BASE}/claims/${claimId}/seller-feedback`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -352,7 +352,7 @@ export async function submitReview(claimId: string, screenshot: File, reviewUrl?
   const res = await fetch(`${API_BASE}/claims/${claimId}/review`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -378,7 +378,7 @@ export async function submitSocialStep(claimId: string, screenshot: File, stepTy
   const res = await fetch(`${API_BASE}/claims/${claimId}/step`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -403,7 +403,7 @@ export async function submitRating(claimId: string, screenshot: File): Promise<C
   const res = await fetch(`${API_BASE}/claims/${claimId}/rating`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -437,7 +437,7 @@ export async function updateScreenshot(
   const res = await fetch(`${API_BASE}/claims/${claimId}/update`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -486,7 +486,7 @@ export async function updateOrderScreenshot(
   const res = await fetch(`${API_BASE}/claims/${claimId}/update`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -610,7 +610,7 @@ export async function createAppReviewClaim(params: CreateAppReviewClaimParams): 
   const res = await fetch(`${API_BASE}/claims/app-review`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -649,7 +649,7 @@ export async function createSocialPageClaim(params: CreateSocialPageClaimParams)
   const res = await fetch(`${API_BASE}/claims/social-page`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)
@@ -691,7 +691,7 @@ export async function submitClaim(params: SubmitClaimParams): Promise<ClaimRespo
   const res = await fetch(`${API_BASE}/claims`, {
     method: 'POST',
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...viewAsHeaders() },
   })
 
   throwIfUnauthorized(res)

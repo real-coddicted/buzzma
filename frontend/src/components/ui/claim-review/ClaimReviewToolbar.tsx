@@ -1,5 +1,6 @@
 import { SearchInput } from '../SearchInput'
 import { IconFilter, IconFileSpreadsheet, IconUpload, IconCheck } from '../icons'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface ClaimReviewToolbarProps {
   search: string
@@ -28,6 +29,7 @@ export function ClaimReviewToolbar({
   showMarkReadyForAccounting,
   onMarkReadyForAccounting,
 }: ClaimReviewToolbarProps) {
+  const viewOnly = useViewOnly()
   return (
     <div className="p-4 flex flex-col sm:flex-row gap-3 border-b border-surface-light-border dark:border-surface-dark-border">
       <SearchInput
@@ -78,9 +80,10 @@ export function ClaimReviewToolbar({
       {showMarkReadyForAccounting && (
         <button
           onClick={onMarkReadyForAccounting}
-          title="Mark all approved claims ready for accounting"
+          disabled={viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Mark all approved claims ready for accounting'}
           aria-label="Mark all approved claims ready for accounting"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-surface-light-border dark:border-surface-dark-border text-ink-light-secondary dark:text-ink-dark-secondary hover:bg-surface-light-hover dark:hover:bg-surface-dark-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IconCheck size={13} />
           Mark Ready for Accounting

@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button'
 import { IconCheck, IconTicket } from '../components/ui/icons'
 import { createTicket, fetchTicketCategories } from '../api/ticketApi'
 import type { TicketCategory } from '../types/TicketTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../contexts/ViewOnlyContext'
 
 const labelClass =
   'block text-[11px] font-semibold uppercase tracking-wider text-ink-light-muted dark:text-ink-dark-muted mb-1.5'
@@ -34,6 +35,7 @@ interface RaiseTicketFormProps {
 }
 
 export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps) {
+  const viewOnly = useViewOnly()
   const [form, setForm] = useState(EMPTY)
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -248,7 +250,7 @@ export function RaiseTicketForm({ onSubmitted, onCancel }: RaiseTicketFormProps)
             Cancel
           </Button>
         )}
-        <Button type="submit" variant="primary" size="sm" loading={loading}>
+        <Button type="submit" variant="primary" size="sm" loading={loading} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
           Submit Ticket
         </Button>
       </div>
@@ -321,9 +323,10 @@ interface RaiseTicketButtonProps {
 
 export function RaiseTicketButton({ size = 'md' }: RaiseTicketButtonProps) {
   const [open, setOpen] = useState(false)
+  const viewOnly = useViewOnly()
   return (
     <>
-      <Button variant="primary" size={size} leftIcon={<IconTicket size={14} />} onClick={() => setOpen(true)}>
+      <Button variant="primary" size={size} leftIcon={<IconTicket size={14} />} onClick={() => setOpen(true)} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
         Raise a Ticket
       </Button>
       <RaiseTicketModal open={open} onClose={() => setOpen(false)} />

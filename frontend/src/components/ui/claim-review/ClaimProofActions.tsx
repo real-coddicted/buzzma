@@ -7,6 +7,7 @@ import { RupeeInput } from '../RupeeInput'
 import { paiseToRupees } from '../../../utils/currency'
 import { canReviewClaims, canApproveClaims, canResetClaim } from './claimUtils'
 import type { ClaimStatus } from '../../../types'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface ClaimProofActionsProps {
   userRole: string | undefined
@@ -23,6 +24,7 @@ interface ClaimProofActionsProps {
 }
 
 export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediatorVerified, brandVerified, initialAmountApprovedPaise, onApprove, onVerified, onBrandVerified, onReject, onReset }: ClaimProofActionsProps) {
+  const viewOnly = useViewOnly()
   const [comment, setComment] = useState('')
   const [commentError, setCommentError] = useState('')
   const [approvedAmountRupees, setApprovedAmountRupees] = useState(
@@ -100,7 +102,8 @@ export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediat
               variant="secondary"
               leftIcon={<IconCheck size={13} />}
               onClick={handleApproveClick}
-              disabled={!isUnderReview}
+              disabled={!isUnderReview || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className="!text-neon-green !border-neon-green/30 !bg-neon-green/10 hover:!bg-neon-green/20"
             >
               Approve claim
@@ -112,7 +115,8 @@ export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediat
               variant="secondary"
               leftIcon={<IconCopyCheck size={13} />}
               onClick={onBrandVerified}
-              disabled={!isUnderReview || brandVerified}
+              disabled={!isUnderReview || brandVerified || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className={brandVerified
                 ? "!text-neon-green !border-neon-green/30 !bg-neon-green/10"
                 : "!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"}
@@ -126,7 +130,8 @@ export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediat
               variant="secondary"
               leftIcon={<IconX size={13} />}
               onClick={handleRejectClick}
-              disabled={!isUnderReview}
+              disabled={!isUnderReview || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className="!text-neon-red !border-neon-red/30 !bg-neon-red/10 hover:!bg-neon-red/20"
             >
               Reject claim
@@ -138,7 +143,8 @@ export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediat
               variant="secondary"
               leftIcon={<IconCopyCheck size={13} />}
               onClick={onVerified}
-              disabled={!isUnderReview || mediatorVerified}
+              disabled={!isUnderReview || mediatorVerified || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className={mediatorVerified
                 ? "!text-neon-green !border-neon-green/30 !bg-neon-green/10"
                 : "!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"}
@@ -152,6 +158,8 @@ export function ClaimProofActions({ userRole, claimStatus, isUnderReview, mediat
               variant="secondary"
               leftIcon={<IconEdit size={13} />}
               onClick={() => setShowResetConfirm(true)}
+              disabled={viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className="!text-neon-blue !border-neon-blue/30 !bg-neon-blue/10 hover:!bg-neon-blue/20"
             >
               Reset Review

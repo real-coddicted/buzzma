@@ -4,6 +4,7 @@ import { Toast } from '../Toast'
 import { updateTicketStatus } from '../../../api/ticketApi'
 import type { Ticket } from '../../../types/TicketTypes'
 import type { components } from '../../../types/api'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 type TicketAction = components['schemas']['TicketStatusUpdateRequestDto']['action']
 
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function TicketActions({ ticket, role, onUpdate }: Props) {
+  const viewOnly = useViewOnly()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { status } = ticket
@@ -38,7 +40,8 @@ export function TicketActions({ ticket, role, onUpdate }: Props) {
       {/* Close — available at any non-terminal stage */}
       {!isTerminal && (
         <button
-          disabled={busy}
+          disabled={busy || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           onClick={() => handle('TICKET_ACTION_CLOSE')}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neon-red/10 text-neon-red border border-neon-red/30 hover:bg-neon-red/20 disabled:opacity-50 transition-colors"
         >
@@ -48,7 +51,8 @@ export function TicketActions({ ticket, role, onUpdate }: Props) {
       {/* Info Provided — only when waiting for reporter's input */}
       {status === 'WaitingForUser' && (
         <button
-          disabled={busy}
+          disabled={busy || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           onClick={() => handle('TICKET_ACTION_INFO_PROVIDED')}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/20 disabled:opacity-50 transition-colors"
         >
@@ -58,7 +62,8 @@ export function TicketActions({ ticket, role, onUpdate }: Props) {
       {/* Reopen — only when resolved */}
       {status === 'Resolved' && (
         <button
-          disabled={busy}
+          disabled={busy || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           onClick={() => handle('TICKET_ACTION_REOPEN')}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-light-hover dark:bg-surface-dark-hover text-ink-light-secondary dark:text-ink-dark-secondary border border-surface-light-border dark:border-surface-dark-border hover:bg-surface-light-raised dark:hover:bg-surface-dark-raised disabled:opacity-50 transition-colors"
         >
@@ -73,7 +78,8 @@ export function TicketActions({ ticket, role, onUpdate }: Props) {
       {/* Mark Resolved — not when already resolved or closed */}
       {status !== 'Resolved' && !isTerminal && (
         <button
-          disabled={busy}
+          disabled={busy || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           onClick={() => handle('TICKET_ACTION_MARK_RESOLVE')}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neon-green/10 text-neon-green border border-neon-green/30 hover:bg-neon-green/20 disabled:opacity-50 transition-colors"
         >
@@ -83,7 +89,8 @@ export function TicketActions({ ticket, role, onUpdate }: Props) {
       {/* Request More Info — not when resolved, closed, or already waiting */}
       {status !== 'Resolved' && !isTerminal && status !== 'WaitingForUser' && (
         <button
-          disabled={busy}
+          disabled={busy || viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           onClick={() => handle('TICKET_ACTION_REQUEST_ADDITIONAL_INFO')}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/20 disabled:opacity-50 transition-colors"
         >

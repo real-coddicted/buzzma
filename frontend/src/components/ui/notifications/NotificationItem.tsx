@@ -1,5 +1,6 @@
 import type { Notification } from '../../../types/NotificationTypes'
 import { IconPin, IconCheck, IconEyeOff } from '../icons'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface NotificationItemProps {
   notification: Notification
@@ -8,6 +9,7 @@ interface NotificationItemProps {
 }
 
 export function NotificationItem({ notification: n, onToggleRead, onTogglePin }: NotificationItemProps) {
+  const viewOnly = useViewOnly()
   return (
     <div className={[
       'group flex items-start gap-3 px-4 py-4 transition-colors cursor-pointer',
@@ -35,9 +37,10 @@ export function NotificationItem({ notification: n, onToggleRead, onTogglePin }:
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={e => { e.stopPropagation(); onTogglePin(n.id) }}
-                title={n.pinned ? 'Unpin' : 'Pin to top'}
+                disabled={viewOnly}
+                title={viewOnly ? VIEW_ONLY_TOOLTIP : n.pinned ? 'Unpin' : 'Pin to top'}
                 className={[
-                  'w-7 h-7 flex items-center justify-center rounded transition-colors',
+                  'w-7 h-7 flex items-center justify-center rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
                   n.pinned
                     ? 'text-neon-blue hover:text-neon-blue/70'
                     : 'text-neon-orange hover:text-neon-orange/70',
@@ -47,8 +50,9 @@ export function NotificationItem({ notification: n, onToggleRead, onTogglePin }:
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onToggleRead(n.id) }}
-                title={n.unread ? 'Mark as read' : 'Mark as unread'}
-                className="w-7 h-7 flex items-center justify-center rounded text-neon-green hover:text-neon-green/70 transition-colors"
+                disabled={viewOnly}
+                title={viewOnly ? VIEW_ONLY_TOOLTIP : n.unread ? 'Mark as read' : 'Mark as unread'}
+                className="w-7 h-7 flex items-center justify-center rounded text-neon-green hover:text-neon-green/70 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {n.unread ? <IconCheck size={16} /> : <IconEyeOff size={16} />}
               </button>

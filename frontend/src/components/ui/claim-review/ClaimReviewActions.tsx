@@ -1,5 +1,6 @@
 import { IconEye, IconCheck, IconCopyCheck } from '../icons'
 import type { ClaimReviewItem } from '../../../types'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface ActionButtonProps {
   title: string
@@ -38,6 +39,7 @@ interface ClaimReviewActionsProps {
 }
 
 export function ClaimReviewActions({ row, onAction, showApprove = true, showVerify = false, verified = false }: ClaimReviewActionsProps) {
+  const viewOnly = useViewOnly()
   return (
     <div className="flex items-center justify-center gap-1">
       <ActionButton
@@ -48,22 +50,22 @@ export function ClaimReviewActions({ row, onAction, showApprove = true, showVeri
       />
       {showApprove && (
         <ActionButton
-          title="Approve"
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Approve'}
           colorClass="text-neon-green border-neon-green/30 bg-neon-green/10 hover:bg-neon-green/20"
           onClick={() => onAction('approve', row)}
           icon={<IconCheck size={13} />}
-          disabled={!row.isUnderReview}
+          disabled={!row.isUnderReview || viewOnly}
         />
       )}
       {showVerify && (
         <ActionButton
-          title={verified ? 'Verified' : 'Verify'}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : verified ? 'Verified' : 'Verify'}
           colorClass={verified
             ? 'text-neon-green border-neon-green/30 bg-neon-green/10'
             : 'text-neon-blue border-neon-blue/30 bg-neon-blue/10 hover:bg-neon-blue/20'}
           onClick={() => onAction('verify', row)}
           icon={<IconCopyCheck size={13} />}
-          disabled={!row.isUnderReview || verified}
+          disabled={!row.isUnderReview || verified || viewOnly}
         />
       )}
     </div>

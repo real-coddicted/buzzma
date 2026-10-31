@@ -5,6 +5,7 @@ import { Button } from './Button'
 import { Toast } from './Toast'
 import { EmailVerificationStatus } from './EmailVerificationStatus'
 import type { UserDetails } from '../../types/ProfileTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../contexts/ViewOnlyContext'
 
 interface DetailsCardProps {
   details: UserDetails
@@ -28,6 +29,7 @@ const inputBase =
   'focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/30'
 
 export function DetailsCard({ details, onSave, onEmailVerified }: DetailsCardProps) {
+  const viewOnly = useViewOnly()
   const { code, type, name, mobile, email, emailVerified } = details
   const [emailValue, setEmailValue] = useState(email ?? '')
   const [emailError, setEmailError] = useState('')
@@ -122,6 +124,7 @@ export function DetailsCard({ details, onSave, onEmailVerified }: DetailsCardPro
               placeholder="you@example.com"
               value={emailValue}
               onChange={e => { setEmailValue(e.target.value); setEmailError('') }}
+              disabled={viewOnly}
               className={inputBase}
             />
             {emailError && <p className="text-xs text-neon-red">{emailError}</p>}
@@ -139,7 +142,7 @@ export function DetailsCard({ details, onSave, onEmailVerified }: DetailsCardPro
               />
             )}
             <div className="flex justify-end pt-1">
-              <Button type="submit" variant="primary" loading={saving}>
+              <Button type="submit" variant="primary" loading={saving} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
                 Save
               </Button>
             </div>

@@ -9,6 +9,7 @@ import { formatShortDate } from '../../../utils/time'
 import { ProductThumbnail } from '../campaign/ProductThumbnail'
 import { PlatformBadge, DealTypeBadge, SlotsBar } from '../campaign/CampaignBadges'
 import type { Connection } from '../../../types/ConnectionTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface Props {
   connection: Connection
@@ -21,6 +22,7 @@ function formatRupees(paise: number): string {
 }
 
 export function ShareableCampaignsTab({ connection }: Props) {
+  const viewOnly = useViewOnly()
   const [campaigns, setCampaigns] = useState<ShareableCampaign[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
@@ -132,7 +134,8 @@ export function ShareableCampaignsTab({ connection }: Props) {
                       </td>
                       <td className="px-5 py-2.5 text-right">
                         <button
-                          disabled={alreadyShared}
+                          disabled={alreadyShared || viewOnly}
+                          title={viewOnly && !alreadyShared ? VIEW_ONLY_TOOLTIP : undefined}
                           onClick={() => setPendingCampaign(c)}
                           className="px-3 py-1.5 rounded-lg text-xs font-semibold text-neon-blue border border-neon-blue/30 bg-neon-blue/5 hover:bg-neon-blue/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
