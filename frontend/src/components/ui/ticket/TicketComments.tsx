@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '../Button'
 import { fetchTicketComments, postTicketComment } from '../../../api/ticketApi'
 import type { Ticket, TicketComment } from '../../../types/TicketTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 const canComment = (status: Ticket['status']) => status === 'InProgress' || status === 'WaitingForUser'
 
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export function TicketComments({ ticket }: Props) {
+  const viewOnly = useViewOnly()
   const [comments, setComments] = useState<TicketComment[]>([])
   const [commentsLoading, setCommentsLoading] = useState(true)
   const [commentsError, setCommentsError] = useState(false)
@@ -161,7 +163,8 @@ export function TicketComments({ ticket }: Props) {
               variant="orange"
               size="sm"
               loading={posting}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               onClick={handlePost}
             >
               Send

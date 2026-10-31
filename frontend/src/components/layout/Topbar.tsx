@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { APP_NAME } from '../../constants/app'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { IconBell, IconChevronRight, IconMenu, IconHelpCircle } from '../ui/icons'
@@ -31,10 +32,12 @@ interface TopbarProps {
   onNavigate: (page: NavPage) => void
   unreadNotificationCount: number
   onMenuClick: () => void
+  /** Extra controls shown before the theme toggle. */
+  actions?: ReactNode
 }
 
 
-export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNotificationCount, onMenuClick }: TopbarProps) {
+export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNotificationCount, onMenuClick, actions }: TopbarProps) {
   const { title, subtitle } = pageTitles[activePage]
   const { detailTitle, onDetailBack } = useBreadcrumb()
 
@@ -74,6 +77,7 @@ export function Topbar({ theme, onToggleTheme, activePage, onNavigate, unreadNot
       </div>
 
       <div className="flex items-center gap-1">
+        {actions}
         <div className="mr-1 relative top-[3px]">
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>

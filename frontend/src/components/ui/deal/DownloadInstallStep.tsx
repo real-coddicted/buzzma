@@ -6,6 +6,7 @@ import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUr
 import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
 import { inputClass, labelClass, submitBtnClass } from './claimStepStyles'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ClaimScreenshotResponseDto = components['schemas']['ClaimScreenshotResponseDto']
@@ -20,6 +21,7 @@ interface DownloadInstallStepProps {
 }
 
 export function DownloadInstallStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: DownloadInstallStepProps) {
+  const viewOnly = useViewOnly()
   const [file, setFile] = useState<File | null>(null)
   const [accountName, setAccountName] = useState(claimResponse?.accountName ?? '')
   const [loading, setLoading] = useState(false)
@@ -94,7 +96,8 @@ export function DownloadInstallStep({ deal, claimId, onSuccess, readOnly = false
           <button
             className={submitBtnClass('bg-neon-blue hover:brightness-110')}
             onClick={handleSubmit}
-            disabled={!file || !accountName.trim() || loading}
+            disabled={!file || !accountName.trim() || loading || viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           >
             {loading ? 'Submitting…' : 'Submit'}
           </button>

@@ -1,4 +1,5 @@
 import { IconCheck } from '../icons'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 export type NotificationTab = 'unread' | 'read'
 
@@ -15,6 +16,7 @@ const tabs: { value: NotificationTab; label: string }[] = [
 ]
 
 export function NotificationTabs({ value, unreadCount, onChange, onMarkAllRead }: NotificationTabsProps) {
+  const viewOnly = useViewOnly()
   return (
     <div className="flex items-center justify-between">
       <div className="flex gap-1 p-1 rounded-lg bg-surface-light-hover dark:bg-surface-dark-hover border border-surface-light-border dark:border-surface-dark-border">
@@ -37,8 +39,9 @@ export function NotificationTabs({ value, unreadCount, onChange, onMarkAllRead }
       {unreadCount > 0 && (
         <button
           onClick={onMarkAllRead}
-          title="Mark all as read"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/5 transition-colors"
+          disabled={viewOnly}
+          title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Mark all as read'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-ink-light-muted dark:text-ink-dark-muted hover:text-neon-blue hover:bg-neon-blue/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <IconCheck size={13} />
           Mark all read

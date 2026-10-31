@@ -1,5 +1,6 @@
 import { IconPause, IconPlay, IconCopy, IconEdit, IconX, IconEye, IconTrash, IconList } from '../icons'
 import type { Campaign } from '../../../types'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface Props {
   campaign: Campaign
@@ -26,7 +27,12 @@ const btn = {
   claims: 'p-1.5 rounded-lg text-neon-purple bg-neon-purple/10 hover:bg-neon-purple/20 transition-colors',
 }
 
+const disabledClass = ' disabled:opacity-50 disabled:cursor-not-allowed'
+
 export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPause, onResume, onClose, onDelete, onViewClaims, readOnly = false }: Props) {
+  // Viewing as another user: changes are disabled; Edit still opens the form, read-only.
+  const viewOnly = useViewOnly()
+  const writeProps = (title: string) => ({ disabled: viewOnly, title: viewOnly ? VIEW_ONLY_TOOLTIP : title })
   if (readOnly) {
     return (
       <div className="flex items-center justify-end gap-1">
@@ -48,7 +54,7 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
           </button>
         )}
         {c.status === 'draft' && (
-          <button title="Delete" onClick={onDelete} className={btn.delete}>
+          <button {...writeProps('Delete')} onClick={onDelete} className={btn.delete + disabledClass}>
             <IconTrash size={14} />
           </button>
         )}
@@ -63,22 +69,22 @@ export function CampaignRowActions({ campaign: c, onEdit, onCopy, onView, onPaus
           </button>
         )}
         {c.status === 'active' && (
-          <button title="Pause" onClick={onPause} className={btn.pause}>
+          <button {...writeProps('Pause')} onClick={onPause} className={btn.pause + disabledClass}>
             <IconPause size={14} />
           </button>
         )}
         {c.status === 'paused' && (
-          <button title="Resume" onClick={onResume} className={btn.resume}>
+          <button {...writeProps('Resume')} onClick={onResume} className={btn.resume + disabledClass}>
             <IconPlay size={14} />
           </button>
         )}
         {(c.status === 'active' || c.status === 'paused') && (
-          <button title="Close" onClick={onClose} className={btn.close}>
+          <button {...writeProps('Close')} onClick={onClose} className={btn.close + disabledClass}>
             <IconX size={14} />
           </button>
         )}
       </div>
-      <button title="Copy" onClick={onCopy} className={btn.copy}>
+      <button {...writeProps('Copy')} onClick={onCopy} className={btn.copy + disabledClass}>
         <IconCopy size={14} />
       </button>
     </div>

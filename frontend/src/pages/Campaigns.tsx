@@ -18,6 +18,7 @@ import { Toast } from '../components/ui/Toast'
 import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { ToggleSwitch } from '../components/ui/ToggleSwitch'
 import { useSSE } from '../hooks/useSSE'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../contexts/ViewOnlyContext'
 
 type CampaignTab = 'active' | 'archive'
 
@@ -89,6 +90,7 @@ export function Campaigns() {
   const showDetail = view === 'new' || view === 'edit' || view === 'view'
   const isViewMode = view === 'view'
   const currentRole = getCurrentUser()?.role
+  const viewOnly = useViewOnly()
   const isBrand = currentRole === 'ROLE_BRAND'
   const fetchCampaignsPage = isBrand ? fetchSharedCampaigns : searchCampaigns
 
@@ -290,7 +292,7 @@ export function Campaigns() {
         onBack={handleBack}
         onSubmit={campaignId ? handleUpdateCampaign : handleCreateCampaign}
         initialForm={detail?.form}
-        readOnly={isViewMode}
+        readOnly={isViewMode || viewOnly}
         campaignCode={detail?.code ?? undefined}
       />
     )
@@ -315,7 +317,7 @@ export function Campaigns() {
             </Button>
           )}
           {!isBrand && (
-            <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })}>
+            <Button variant="primary" size="md" leftIcon={<IconPlus size={14} />} onClick={() => setSearchParams({ view: 'new' })} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
               New Campaign
             </Button>
           )}

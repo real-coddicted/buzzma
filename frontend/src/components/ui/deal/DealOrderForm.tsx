@@ -6,6 +6,7 @@ import { submitClaim, updateOrderScreenshot } from '../../../api/claimApi'
 import type { components } from '../../../types/api'
 import { ScoreBadge } from '../../utils/ScoreBadge'
 import { PLATFORM_LABELS } from '../../../constants/campaigns'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ScoredValue = components['schemas']['ScoredValue']
@@ -49,6 +50,7 @@ const scoreKeyMap: Partial<Record<string, keyof FormFields>> = {
 }
 
 export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false, claimValues, resubmit, sellerNameOptional = false, exchangeProductOptions }: DealOrderFormProps) {
+  const viewOnly = useViewOnly()
   const [fields, setFields] = useState<FormFields>(() => ({
     platform:    '',
     orderId:     '',
@@ -280,7 +282,8 @@ export function DealOrderForm({ dealId, campaignId, onSuccess, readOnly = false,
         {!readOnly && (
           <button
             type="submit"
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || isSubmitting || viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
             className="w-full py-2.5 rounded-lg bg-neon-blue text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting && (

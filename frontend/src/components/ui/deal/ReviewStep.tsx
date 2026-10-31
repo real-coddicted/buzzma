@@ -6,6 +6,7 @@ import { useRejectedScreenshotUrl } from '../../../hooks/useRejectedScreenshotUr
 import { ScreenshotPreview } from './ScreenshotPreview'
 import { ScreenshotUpload } from './ScreenshotUpload'
 import { inputClass, labelClass, submitBtnClass } from './claimStepStyles'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 type ClaimResponseDto = components['schemas']['ClaimResponseDto']
 type ClaimScreenshotResponseDto = components['schemas']['ClaimScreenshotResponseDto']
@@ -20,6 +21,7 @@ interface ReviewStepProps {
 }
 
 export function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimResponse, rejectedScreenshot }: ReviewStepProps) {
+  const viewOnly = useViewOnly()
   const [reviewUrl, setReviewUrl] = useState(claimResponse?.reviewUrl ?? '')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -97,7 +99,8 @@ export function ReviewStep({ deal, claimId, onSuccess, readOnly = false, claimRe
           <button
             className={submitBtnClass('bg-neon-cyan hover:brightness-110')}
             onClick={handleSubmit}
-            disabled={!file || loading}
+            disabled={!file || loading || viewOnly}
+            title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
           >
             {loading ? 'Submitting…' : 'Submit Review'}
           </button>

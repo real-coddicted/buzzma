@@ -4,7 +4,7 @@ import { NavItem } from '../ui/NavItem'
 import { AccountSubmenu } from '../ui/AccountSubmenu'
 import { IconSettings, IconLogout, IconX } from '../ui/icons'
 import { NAV_ITEMS } from '../../config/navItems'
-import { getCurrentUser } from '../../api/client'
+import { getSignedInUser } from '../../api/client'
 import { isPageVisible, isSettingsMenuVisible } from '../../utils/tabRedirect'
 import type { NavPage } from '../../types'
 import type { components } from '../../types/api'
@@ -59,7 +59,7 @@ export function Sidebar({ activePage, onNavigate, isOpen, onClose, userSettings 
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<number | null>(null)
-  const currentUser = getCurrentUser()
+  const currentUser = getSignedInUser()
   const rawName = currentUser?.name?.trim() || 'Guest'
   const displayName = rawName.length > 15 ? `${rawName.slice(0, 15)}…` : rawName
   const displayEmail = currentUser?.email?.trim() ?? ''

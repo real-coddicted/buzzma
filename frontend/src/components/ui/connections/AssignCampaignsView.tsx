@@ -13,6 +13,7 @@ import { formatShortDate } from '../../../utils/time'
 import { ProductThumbnail } from '../campaign/ProductThumbnail'
 import { PlatformBadge, DealTypeBadge, SlotsBar } from '../campaign/CampaignBadges'
 import type { Connection } from '../../../types/ConnectionTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 interface Props {
   connection: Connection
@@ -31,6 +32,7 @@ function formatRupees(paise: number): string {
 }
 
 export function AssignCampaignsView({ connection, onBack }: Props) {
+  const viewOnly = useViewOnly()
   const [campaigns, setCampaigns] = useState<AssignableCampaign[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
@@ -242,7 +244,8 @@ export function AssignCampaignsView({ connection, onBack }: Props) {
                   {hasSelection ? `${selectedCampaigns.length} campaign${selectedCampaigns.length > 1 ? 's' : ''} selected` : 'No campaigns selected'}
                 </span>
                 <button
-                  disabled={!hasSelection}
+                  disabled={!hasSelection || viewOnly}
+                  title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
                   onClick={handleSubmitClick}
                   className="px-5 py-2 rounded-lg text-sm font-semibold bg-neon-blue/15 text-neon-blue border border-neon-blue/40 hover:bg-neon-blue/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >

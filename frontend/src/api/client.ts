@@ -1,4 +1,5 @@
 import type { components } from '../types/api'
+import { VIEW_AS_HEADER, readViewAsParam, resolveViewAs } from '../utils/viewAs'
 
 const TOKEN_KEY = 'buzzma-access-token'
 const USER_KEY = 'buzzma-current-user'
@@ -17,7 +18,16 @@ export function clearAccessToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+/**
+ * The user the app renders for: the viewed user while an admin is viewing as someone, otherwise
+ * the signed-in user. Use getSignedInUser for decisions about the admin themselves.
+ */
 export function getCurrentUser(): CurrentUser | null {
+  if (viewAsUserId) return viewAsUser?.id === viewAsUserId ? viewAsUser : null
+  return getSignedInUser()
+}
+
+export function getSignedInUser(): CurrentUser | null {
   const raw = localStorage.getItem(USER_KEY)
   if (!raw) return null
 
@@ -30,6 +40,9 @@ export function getCurrentUser(): CurrentUser | null {
 }
 
 export function setCurrentUser(user: CurrentUser): void {
+  // /users/me is served as the viewed user while viewing as someone; never store that as the
+  // signed-in user.
+  if (viewAsUserId) return
   localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
@@ -40,6 +53,42 @@ export function clearCurrentUser(): void {
 export function clearSession(): void {
   clearAccessToken()
   clearCurrentUser()
+  setViewAsUserId(null)
+}
+
+// The user an admin is viewing as. Seeded from the URL at load so the very first requests
+// already carry it; App keeps it in sync with the ?viewAs param afterwards.
+let viewAsUserId: string | null =
+  typeof window === 'undefined'
+    ? null
+    : resolveViewAs(readViewAsParam(window.location.search), getSignedInUser()?.role)
+let viewAsUser: CurrentUser | null = null
+const viewAsListeners = new Set<() => void>()
+
+export function getViewAsUserId(): string | null {
+  return viewAsUserId
+}
+
+export function setViewAsUserId(userId: string | null): void {
+  const next = resolveViewAs(userId, getSignedInUser()?.role)
+  if (next === viewAsUserId) return
+  viewAsUserId = next
+  viewAsListeners.forEach(listener => listener())
+}
+
+/** The viewed user's profile, once loaded; getCurrentUser returns it from then on. */
+export function setViewAsUser(user: CurrentUser): void {
+  viewAsUser = user
+}
+
+export function subscribeViewAs(listener: () => void): () => void {
+  viewAsListeners.add(listener)
+  return () => { viewAsListeners.delete(listener) }
+}
+
+/** Header for requests that bypass fetchWithAuth (e.g. multipart uploads). */
+export function viewAsHeaders(): Record<string, string> {
+  return viewAsUserId ? { [VIEW_AS_HEADER]: viewAsUserId } : {}
 }
 
 function forceLogout(): void {
@@ -98,10 +147,12 @@ export function cancelProactiveRefresh(): void {
 
 const DEFAULT_TIMEOUT_MS = 5000
 
+/** `asSelf` skips the view-as header, for admin-only endpoints the admin calls as themselves. */
 export async function fetchWithAuth(
   url: string,
   init: RequestInit = {},
   timeoutMs: number = DEFAULT_TIMEOUT_MS,
+  asSelf = false,
 ): Promise<Response> {
   const token = getAccessToken()
   const controller = new AbortController()
@@ -115,6 +166,7 @@ export async function fetchWithAuth(
       headers: {
         ...(!(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(asSelf ? {} : viewAsHeaders()),
         ...init.headers,
       },
     })
@@ -134,7 +186,7 @@ export async function fetchWithAuth(
       throw new Error('Session expired. Please sign in again.')
     }
     // Retry the original request with the new access token
-    return fetchWithAuth(url, init, timeoutMs)
+    return fetchWithAuth(url, init, timeoutMs, asSelf)
   }
 
   if (!res.ok) {

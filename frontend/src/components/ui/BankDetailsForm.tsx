@@ -3,6 +3,7 @@ import { Button } from './Button'
 import { Toast } from './Toast'
 import { fetchUserBanking, upsertUserBanking } from '../../api/userApi'
 import type { UserBankingDetailDto } from '../../api/userApi'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../contexts/ViewOnlyContext'
 
 const inputBase =
   'w-full rounded-lg border bg-surface-light-base dark:bg-surface-dark-hover ' +
@@ -24,6 +25,7 @@ interface BankDetailsFormProps {
 }
 
 export function BankDetailsForm({ userId }: BankDetailsFormProps) {
+  const viewOnly = useViewOnly()
   const [bankName, setBankName]                           = useState('')
   const [bankAccountNumber, setBankAccountNumber]         = useState('')
   const [bankIfscCode, setBankIfscCode]                   = useState('')
@@ -188,7 +190,7 @@ export function BankDetailsForm({ userId }: BankDetailsFormProps) {
           />
         )}
         <div className="flex justify-end">
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" loading={loading} disabled={viewOnly} title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}>
             Save Bank Details
           </Button>
         </div>

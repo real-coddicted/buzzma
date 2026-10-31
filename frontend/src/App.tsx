@@ -21,16 +21,25 @@ import { TermsPage } from './pages/TermsPage'
 import { FAQPage } from './pages/FAQPage'
 import { TermsReacceptDialog } from './components/ui/TermsReacceptDialog'
 import { Loading } from './components/ui/Loading'
+import { Card } from './components/ui/Card'
+import { ViewOnlyProvider } from './contexts/ViewOnlyContext'
 import { Toast } from './components/ui/Toast'
+import { ViewAsPicker } from './components/ui/ViewAsPicker'
+import { ViewAsBanner } from './components/ui/ViewAsBanner'
+import { ROLE_CONFIG } from './components/ui/users/UserListItem'
+import { VIEW_AS_ROLES } from './config/viewAsRoles'
 import { fetchUnreadNotificationCount } from './api/notificationApi'
 import { fetchAllTickets } from './api/ticketApi'
 import { fetchUserSettings } from './api/userSettingsApi'
 import { fetchTermsAcceptanceStatus } from './api/termsApi'
 import { initSSE } from './api/sseClient'
 import { useSSE } from './hooks/useSSE'
-import { cancelProactiveRefresh, clearSession, getAccessToken } from './api/client'
+import { cancelProactiveRefresh, clearSession, getAccessToken, getSignedInUser, getViewAsUserId, setViewAsUserId, setViewAsUser as storeViewAsUser } from './api/client'
+import { fetchUserById, type UserSummaryDto } from './api/userApi'
 import { signOut } from './api/authApi'
 import { useTheme } from './hooks/useTheme'
+import { useViewAsUserId } from './hooks/useViewAs'
+import { readViewAsParam, withViewAsParam } from './utils/viewAs'
 import { isPageVisible, getFirstEnabledPage } from './utils/tabRedirect'
 import { isAuthPath, POST_LOGIN_REDIRECT_KEY } from './utils/postLoginRedirect'
 import { runAfterMinDuration } from './utils/minDuration'
@@ -48,6 +57,8 @@ export default function App() {
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken())
   const [userSettings, setUserSettings] = useState<UserSettingsDto | null>(null)
+  // The view-as user (null = the admin themselves) the loaded settings belong to.
+  const [userSettingsFor, setUserSettingsFor] = useState<string | null>(null)
   const [mustReacceptTerms, setMustReacceptTerms] = useState(false)
   const [userSettingsLoading, setUserSettingsLoading] = useState(true)
   const [termsStatusLoading, setTermsStatusLoading] = useState(true)
@@ -60,8 +71,66 @@ export default function App() {
   const activePage: NavPage = validPages.has(rawPage as NavPage) ? (rawPage as NavPage) : 'dashboard'
 
   const handleNavigate = useCallback((page: NavPage) => {
-    navigate('/' + page)
+    navigate({ pathname: '/' + page, search: withViewAsParam('', getViewAsUserId()) })
   }, [navigate])
+  const viewAsUserId = useViewAsUserId()
+
+  // ?viewAs in the URL selects the user an admin views as. Pages that rewrite their query
+  // string drop it, so put it back rather than silently leaving view-as mode.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const fromUrl = readViewAsParam(location.search)
+    if (fromUrl) {
+      setViewAsUserId(fromUrl)
+      return
+    }
+    const current = getViewAsUserId()
+    if (current) {
+      navigate({ ...location, search: withViewAsParam(location.search, current) }, { replace: true })
+    }
+  }, [isAuthenticated, location, navigate])
+
+  const [viewAsUser, setViewAsUser] = useState<UserSummaryDto | null>(null)
+  const [viewAsError, setViewAsError] = useState<string | null>(null)
+
+  // Both entering and leaving view-as go back to the page's root view, since a detail view
+  // open for one user means nothing for another.
+  const handleViewAs = useCallback((user: UserSummaryDto) => {
+    if (!user.id) return
+    storeViewAsUser(user)
+    setViewAsUser(user)
+    setViewAsUserId(user.id)
+    navigate({ pathname: location.pathname, search: withViewAsParam('', user.id) })
+  }, [navigate, location.pathname])
+
+  const handleExitViewAs = useCallback(() => {
+    setViewAsUserId(null)
+    navigate({ pathname: location.pathname, search: '' })
+  }, [navigate, location.pathname])
+
+  useEffect(() => {
+    if (!viewAsUserId) {
+      setViewAsUser(null)
+      return
+    }
+    if (viewAsUser?.id === viewAsUserId) return
+    let cancelled = false
+    fetchUserById(viewAsUserId, true)
+      .then(user => {
+        if (cancelled) return
+        if (user.role === 'ROLE_ADMIN') throw new Error('Cannot view as another admin.')
+        storeViewAsUser(user)
+        setViewAsUser(user)
+      })
+      .catch(err => {
+        if (cancelled) return
+        console.error(err)
+        setViewAsError(`Could not view as this user. ${(err as Error).message}`)
+        setViewAsUserId(null)
+        navigate({ pathname: window.location.pathname, search: '' }, { replace: true })
+      })
+    return () => { cancelled = true }
+  }, [viewAsUserId, viewAsUser, navigate])
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
 
   const handleLogout = useCallback(async () => {
@@ -79,26 +148,42 @@ export default function App() {
   }, [handleLogout])
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    // The stream carries the admin's own events, which mean nothing while viewing as someone.
+    if (!isAuthenticated || viewAsUserId) return
     return initSSE()
-  }, [isAuthenticated])
+  }, [isAuthenticated, viewAsUserId])
 
   useEffect(() => {
     if (!isAuthenticated) return
     let cancelled = false
     setUserSettingsLoading(true)
     const settled = fetchUserSettings()
-      .then(settings => { if (!cancelled) setUserSettings(settings) })
+      .then(settings => {
+        if (cancelled) return
+        setUserSettings(settings)
+        setUserSettingsFor(viewAsUserId)
+      })
       .catch(err => {
         console.error(err)
-        if (!cancelled) setUserSettingsError('Failed to load your account settings. Some tabs may be unavailable until this is retried.')
+        if (cancelled) return
+        setUserSettings(null)
+        setUserSettingsFor(viewAsUserId)
+        setUserSettingsError('Failed to load your account settings. Some tabs may be unavailable until this is retried.')
       })
     const cancelMinDuration = runAfterMinDuration(settled, loginTimestampRef, MIN_POST_LOGIN_LOADING_MS, () => setUserSettingsLoading(false))
     return () => { cancelled = true; cancelMinDuration() }
-  }, [isAuthenticated])
+    // Refetched on view-as changes: the request is served as the viewed user, so the
+    // sidebar shows their tabs.
+  }, [isAuthenticated, viewAsUserId])
 
   useEffect(() => {
     if (!isAuthenticated) return
+    // The viewed user's terms are theirs to accept; the admin's own are checked again on exit.
+    if (viewAsUserId) {
+      setMustReacceptTerms(false)
+      setTermsStatusLoading(false)
+      return
+    }
     let cancelled = false
     setTermsStatusLoading(true)
     const settled = fetchTermsAcceptanceStatus()
@@ -109,14 +194,18 @@ export default function App() {
       })
     const cancelMinDuration = runAfterMinDuration(settled, loginTimestampRef, MIN_POST_LOGIN_LOADING_MS, () => setTermsStatusLoading(false))
     return () => { cancelled = true; cancelMinDuration() }
-  }, [isAuthenticated])
+  }, [isAuthenticated, viewAsUserId])
 
   useEffect(() => {
     if (!isAuthenticated) return
     if (userSettingsLoading) return
+    // Settings still belong to the previous view-as user until the refetch lands.
+    if (userSettingsFor !== viewAsUserId) return
+    // While viewing as someone, stay put: a tab hidden for them is shown as such instead.
+    if (viewAsUserId) return
     if (isPageVisible(activePage, userSettings)) return
     navigate('/' + (userSettings ? getFirstEnabledPage(userSettings) : 'feedback'), { replace: true })
-  }, [isAuthenticated, userSettings, userSettingsLoading, activePage, navigate])
+  }, [isAuthenticated, userSettings, userSettingsFor, userSettingsLoading, activePage, navigate, viewAsUserId])
 
   useEffect(() => {
     if (isAuthenticated) return
@@ -127,7 +216,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return
     fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
-  }, [isAuthenticated])
+  }, [isAuthenticated, viewAsUserId])
 
   useSSE('EVENT_TYPE_NOTIFICATION', () => {
     fetchUnreadNotificationCount().then(setUnreadNotificationCount).catch(console.error)
@@ -167,6 +256,9 @@ export default function App() {
           onDismiss={() => setUserSettingsError(null)}
         />
       )}
+      {viewAsError && (
+        <Toast message={viewAsError} type="error" onDismiss={() => setViewAsError(null)} />
+      )}
       {termsError && (
         <Toast
           message={termsError}
@@ -200,7 +292,33 @@ export default function App() {
       onNavigate={handleNavigate}
       unreadNotificationCount={unreadNotificationCount}
       userSettings={userSettings}
+      topbarActions={getSignedInUser()?.role === 'ROLE_ADMIN' && VIEW_AS_ROLES[activePage].length > 0 && (
+        <ViewAsPicker
+          roles={VIEW_AS_ROLES[activePage]}
+          selectedName={viewAsUser?.name}
+          onSelect={handleViewAs}
+        />
+      )}
+      banner={viewAsUserId && (
+        <ViewAsBanner
+          name={viewAsUser?.name ?? 'Loading…'}
+          roleLabel={viewAsUser?.role ? ROLE_CONFIG[viewAsUser.role]?.label : undefined}
+          onExit={handleExitViewAs}
+        />
+      )}
     >
+      {/* Keyed on the viewed user so switching users remounts the page and refetches. */}
+      {/* Pages read the viewed user's role, so wait for their profile before rendering. */}
+      {viewAsUserId && viewAsUser?.id !== viewAsUserId ? (
+        <div className="flex justify-center py-20"><Loading size={32} /></div>
+      ) : viewAsUserId && !isPageVisible(activePage, userSettings) ? (
+        <Card>
+          <p className="text-sm text-ink-light-secondary dark:text-ink-dark-secondary">
+            This tab is disabled for {viewAsUser?.name ?? 'this user'}.
+          </p>
+        </Card>
+      ) : (
+      <ViewOnlyProvider key={viewAsUserId ?? 'self'} viewOnly={!!viewAsUserId}>
       {activePage === 'dashboard'     && <Dashboard />}
       {activePage === 'campaigns'     && <Campaigns />}
       {activePage === 'connections'    && <Connections />}
@@ -220,6 +338,8 @@ export default function App() {
       {activePage === 'my-payments'  && <MyPayments />}
       {activePage === 'user-payouts' && <UserPayouts />}
       {activePage === 'faq'          && <FAQPage />}
+      </ViewOnlyProvider>
+      )}
       {errorToasts}
     </AppLayout>
   )

@@ -4,6 +4,7 @@ import { Toast } from '../Toast'
 import { RupeeInput } from '../RupeeInput'
 import { ToggleSwitch } from '../ToggleSwitch'
 import { paiseToRupees, formatRupees } from '../../../utils/currency'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 export interface AssignmentFormFields {
   yourCommissionPaise: number
@@ -32,6 +33,7 @@ export function AssignmentForm({
   affiliateLinkAllowed = false,
   onPublished,
 }: AssignmentFormProps) {
+  const viewOnly = useViewOnly()
   const [yourCommission, setYourCommission] = useState('')
   const [affiliateUrl, setAffiliateUrl] = useState('')
   const [sendNotificationOnPublish, setSendNotificationOnPublish] = useState(true)
@@ -163,7 +165,8 @@ export function AssignmentForm({
           {!readOnly && (
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || viewOnly}
+              title={viewOnly ? VIEW_ONLY_TOOLTIP : undefined}
               className="w-full py-2.5 rounded-lg bg-neon-purple text-surface-dark-base text-sm font-semibold hover:brightness-110 transition-all mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (

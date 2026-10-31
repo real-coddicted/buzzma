@@ -4,7 +4,7 @@ import { IconChevronRight } from '../icons'
 import type { StatCardAccent } from '../../../types'
 import type { UserSummaryDto } from '../../../api/userApi'
 
-const ROLE_CONFIG: Record<string, { label: string; variant: StatCardAccent }> = {
+export const ROLE_CONFIG: Record<string, { label: string; variant: StatCardAccent }> = {
   ROLE_BUYER:       { label: 'Buyer',       variant: 'blue' },
   ROLE_MEDIATOR:    { label: 'Mediator',    variant: 'purple' },
   ROLE_AGENCY:      { label: 'Agency',      variant: 'cyan' },

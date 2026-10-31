@@ -3,6 +3,7 @@ import { Card } from '../Card'
 import { Loading } from '../Loading'
 import { IconUsers, IconCheck, IconX, IconTrash, IconSearch, IconFilter, IconList, IconLink } from '../icons'
 import type { Connection, ConnectionStatus, ConnectionSortKey } from '../../../types/ConnectionTypes'
+import { VIEW_ONLY_TOOLTIP, useViewOnly } from '../../../contexts/ViewOnlyContext'
 
 export type { Connection, ConnectionStatus, ConnectionSortKey }
 
@@ -68,6 +69,7 @@ export function ConnectionsGrid({
   onAssignCampaigns,
   onShareCampaign,
 }: ConnectionsGridProps) {
+  const viewOnly = useViewOnly()
   const [sortBy, setSortBy]   = useState<ConnectionSortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
@@ -210,8 +212,8 @@ export function ConnectionsGrid({
                         {c.status === 'pending' && c.canApprove && (
                           <>
                             <button
-                              title="Accept"
-                              disabled={busy}
+                              title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Accept'}
+                              disabled={busy || viewOnly}
                               onClick={e => { e.stopPropagation(); onAccept(c) }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-green border border-neon-green/30 bg-neon-green/5 hover:bg-neon-green/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
@@ -219,8 +221,8 @@ export function ConnectionsGrid({
                               Accept
                             </button>
                             <button
-                              title="Reject"
-                              disabled={busy}
+                              title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Reject'}
+                              disabled={busy || viewOnly}
                               onClick={e => { e.stopPropagation(); onReject(c) }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-red border border-neon-red/30 bg-neon-red/5 hover:bg-neon-red/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
@@ -253,8 +255,8 @@ export function ConnectionsGrid({
                         )}
                         {c.status === 'connected' && (
                           <button
-                            title="Delete"
-                            disabled={busy}
+                            title={viewOnly ? VIEW_ONLY_TOOLTIP : 'Delete'}
+                            disabled={busy || viewOnly}
                             onClick={e => { e.stopPropagation(); onDelete(c) }}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold text-neon-red border border-neon-red/30 bg-neon-red/5 hover:bg-neon-red/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           >
